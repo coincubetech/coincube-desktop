@@ -43,7 +43,7 @@ jobs:
     name: Build & Stage
     # Manual dispatch is allowed for a tag, but a branch build must never
     # publish assets without the tag-bound verification jobs below.
-    if: github.repository == 'coincubetech/coincube' && startsWith(github.ref, 'refs/tags/')
+    if: github.repository == 'coincubetech/coincube-desktop' && startsWith(github.ref, 'refs/tags/')
     runs-on: ${{ matrix.os }}
     # LTO release build + codesign/notarize; a healthy leg is well under this.
     timeout-minutes: 150
@@ -565,7 +565,7 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: github.repository == 'coincubetech/coincube' && startsWith(github.ref, 'refs/tags/')
+    if: github.repository == 'coincubetech/coincube-desktop' && startsWith(github.ref, 'refs/tags/')
     outputs:
       version: ${{ steps.version.outputs.version }}
 
@@ -631,7 +631,7 @@ jobs:
   publish_release:
     name: Verify draft and publish complete release
     needs: checksums
-    if: github.repository == 'coincubetech/coincube' && startsWith(github.ref, 'refs/tags/')
+    if: github.repository == 'coincubetech/coincube-desktop' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -686,7 +686,7 @@ jobs:
   verify_release:
     name: Verify published release signature and assets
     needs: [checksums, publish_release]
-    if: github.repository == 'coincubetech/coincube' && startsWith(github.ref, 'refs/tags/')
+    if: github.repository == 'coincubetech/coincube-desktop' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
