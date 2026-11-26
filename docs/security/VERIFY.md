@@ -26,7 +26,10 @@ is the Rust target triple. For version 1.5.0:
 
 ### Step 1: Import the Coincube GPG Public Key (One-Time Setup)
 
-Download the public key from the repository:
+Download the public key for the release you are verifying. For releases signed
+with fingerprint `ED4D0D710103D6252854681367F9701BF0D2DAF4`, the matching
+[historical public key](release-keys/ED4D0D710103D6252854681367F9701BF0D2DAF4.asc)
+is available under its full fingerprint.
 
 ```bash
 curl -O https://raw.githubusercontent.com/coincubetech/coincube/master/docs/security/coincube-release-public.asc

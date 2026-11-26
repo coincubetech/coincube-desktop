@@ -44,7 +44,14 @@ Generate new GPG key
 → Publish new public key  
 → Deprecate old key
 
-Never remove the old public key immediately — users may need it to verify historical releases.
+Keep each retired public key under `docs/security/release-keys/` with its full
+fingerprint as the filename. The existing release key is preserved byte for
+byte in [the release key archive](release-keys/ED4D0D710103D6252854681367F9701BF0D2DAF4.asc).
+
+Before activating the replacement key, record the first release version that
+uses it. Update the active public key and both `expected_fingerprint` checks
+in `.github/workflows/releases.yml` together. Update the verification guide and
+keep the archived key available for releases from before the cutoff.
 
 ---
 
@@ -101,17 +108,12 @@ Do not commit private keys.
 
 ### 4. Verify in CI
 
-Trigger a test release:
-
-```bash
-git tag vX.Y.Z-test-gpg
-git push origin vX.Y.Z-test-gpg
-```
-
-Confirm:
-- CI imports new key
-- Artifacts are signed
-- .asc files are uploaded
+Before creating the first production tag, sign a sample checksum file and
+verify it in a clean GPG keyring containing only the replacement public key.
+Check that both workflow fingerprint checks match the replacement. Confirm
+that the archived public key can still be imported for historical verification.
+The tag-triggered production workflow publishes release assets, so use an
+owner-approved release for the first live verification.
 
 ---
 
