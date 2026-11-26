@@ -26,19 +26,26 @@ is the Rust target triple. For version 1.5.0:
 
 ### Step 1: Import the Coincube GPG Public Key (One-Time Setup)
 
-Download the public key for the release you are verifying. For releases signed
-with fingerprint `ED4D0D710103D6252854681367F9701BF0D2DAF4`, the matching
-[historical public key](release-keys/ED4D0D710103D6252854681367F9701BF0D2DAF4.asc)
-is available under its full fingerprint.
+Use the public key for the release you are verifying. The examples below
+use the active Desktop key.
+
+| Releases | Public key | Full fingerprint |
+|----------|------------|------------------|
+| New Desktop releases | [Active key](coincube-release-public.asc) | `B847C6267DD910B90B0DBDB448A152377E8FB081` |
+| [Original repository releases](https://github.com/coincubetech/coincube/releases) | [Historical key](release-keys/ED4D0D710103D6252854681367F9701BF0D2DAF4.asc) | `ED4D0D710103D6252854681367F9701BF0D2DAF4` |
+
+For a past release signed with the old key, import the historical key and
+download that release's checksum file and detached signature from the original
+repository. Check the signature's full fingerprint against the table.
 
 ```bash
-curl -O https://raw.githubusercontent.com/coincubetech/coincube/master/docs/security/coincube-release-public.asc
+curl -O https://raw.githubusercontent.com/coincubetech/coincube-desktop/master/docs/security/coincube-release-public.asc
 gpg --import coincube-release-public.asc
 ```
 
 Expected output should include:
 ```bash
-gpg: key 67F9701BF0D2DAF4: public key "Coincube Release Signing <releases@coincube.io>" imported
+gpg: key 48A152377E8FB081: public key "Coincube Release Signing <releases@coincube.io>" imported
 ```
 
 ### Step 2: Download Release Files
@@ -47,9 +54,9 @@ Download the artifact you want to install plus the checksums files:
 
 ```bash
 # Example for macOS Apple Silicon (arm64), version 1.5.0
-curl -LO https://github.com/coincubetech/coincube/releases/download/v1.5.0/coincube-desktop-1.5.0-aarch64-apple-darwin.dmg
-curl -LO https://github.com/coincubetech/coincube/releases/download/v1.5.0/SHA256SUMS-1.5.0.txt
-curl -LO https://github.com/coincubetech/coincube/releases/download/v1.5.0/SHA256SUMS-1.5.0.txt.asc
+curl -LO https://github.com/coincubetech/coincube-desktop/releases/download/v1.5.0/coincube-desktop-1.5.0-aarch64-apple-darwin.dmg
+curl -LO https://github.com/coincubetech/coincube-desktop/releases/download/v1.5.0/SHA256SUMS-1.5.0.txt
+curl -LO https://github.com/coincubetech/coincube-desktop/releases/download/v1.5.0/SHA256SUMS-1.5.0.txt.asc
 ```
 
 ### Step 3: Verify the GPG Signature
@@ -62,7 +69,7 @@ Expected output:
 ```bash
 gpg: assuming signed data in 'SHA256SUMS-1.5.0.txt'
 gpg: Signature made [DATE]
-gpg:                using RSA key 67F9701BF0D2DAF4
+gpg:                using RSA key B847C6267DD910B90B0DBDB448A152377E8FB081
 gpg: Good signature from "Coincube Release Signing <releases@coincube.io>"
 ```
 
@@ -87,15 +94,15 @@ coincube-desktop-1.5.0-aarch64-apple-darwin.dmg: OK
 
 ```bash
 # Import key (one-time)
-curl -O https://raw.githubusercontent.com/coincubetech/coincube/master/docs/security/coincube-release-public.asc
+curl -O https://raw.githubusercontent.com/coincubetech/coincube-desktop/master/docs/security/coincube-release-public.asc
 gpg --import coincube-release-public.asc
 
 # Download files
 VERSION=1.5.0
 TARGET=aarch64-apple-darwin  # or x86_64-apple-darwin for Intel Macs
-curl -LO https://github.com/coincubetech/coincube/releases/download/v${VERSION}/coincube-desktop-${VERSION}-${TARGET}.dmg
-curl -LO https://github.com/coincubetech/coincube/releases/download/v${VERSION}/SHA256SUMS-${VERSION}.txt
-curl -LO https://github.com/coincubetech/coincube/releases/download/v${VERSION}/SHA256SUMS-${VERSION}.txt.asc
+curl -LO https://github.com/coincubetech/coincube-desktop/releases/download/v${VERSION}/coincube-desktop-${VERSION}-${TARGET}.dmg
+curl -LO https://github.com/coincubetech/coincube-desktop/releases/download/v${VERSION}/SHA256SUMS-${VERSION}.txt
+curl -LO https://github.com/coincubetech/coincube-desktop/releases/download/v${VERSION}/SHA256SUMS-${VERSION}.txt.asc
 
 # Verify
 gpg --verify SHA256SUMS-${VERSION}.txt.asc
@@ -106,14 +113,14 @@ shasum -a 256 --check SHA256SUMS-${VERSION}.txt --ignore-missing
 
 ```bash
 # Import key (one-time)
-curl -O https://raw.githubusercontent.com/coincubetech/coincube/master/docs/security/coincube-release-public.asc
+curl -O https://raw.githubusercontent.com/coincubetech/coincube-desktop/master/docs/security/coincube-release-public.asc
 gpg --import coincube-release-public.asc
 
 # Download files
 VERSION=1.5.0
-curl -LO https://github.com/coincubetech/coincube/releases/download/v${VERSION}/coincube-desktop-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
-curl -LO https://github.com/coincubetech/coincube/releases/download/v${VERSION}/SHA256SUMS-${VERSION}.txt
-curl -LO https://github.com/coincubetech/coincube/releases/download/v${VERSION}/SHA256SUMS-${VERSION}.txt.asc
+curl -LO https://github.com/coincubetech/coincube-desktop/releases/download/v${VERSION}/coincube-desktop-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
+curl -LO https://github.com/coincubetech/coincube-desktop/releases/download/v${VERSION}/SHA256SUMS-${VERSION}.txt
+curl -LO https://github.com/coincubetech/coincube-desktop/releases/download/v${VERSION}/SHA256SUMS-${VERSION}.txt.asc
 
 # Verify
 gpg --verify SHA256SUMS-${VERSION}.txt.asc
@@ -125,14 +132,14 @@ sha256sum --check SHA256SUMS-${VERSION}.txt --ignore-missing
 ```powershell
 # Import key (one-time)
 # Install GPG4Win first: https://gpg4win.org/
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/coincubetech/coincube/master/docs/security/coincube-release-public.asc" -OutFile "coincube-release-public.asc"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/coincubetech/coincube-desktop/master/docs/security/coincube-release-public.asc" -OutFile "coincube-release-public.asc"
 gpg --import coincube-release-public.asc
 
 # Download files
 $VERSION = "1.5.0"
-Invoke-WebRequest -Uri "https://github.com/coincubetech/coincube/releases/download/v$VERSION/coincube-desktop-$VERSION-x86_64-pc-windows-msvc.msi" -OutFile "coincube-desktop-$VERSION-x86_64-pc-windows-msvc.msi"
-Invoke-WebRequest -Uri "https://github.com/coincubetech/coincube/releases/download/v$VERSION/SHA256SUMS-$VERSION.txt" -OutFile "SHA256SUMS-$VERSION.txt"
-Invoke-WebRequest -Uri "https://github.com/coincubetech/coincube/releases/download/v$VERSION/SHA256SUMS-$VERSION.txt.asc" -OutFile "SHA256SUMS-$VERSION.txt.asc"
+Invoke-WebRequest -Uri "https://github.com/coincubetech/coincube-desktop/releases/download/v$VERSION/coincube-desktop-$VERSION-x86_64-pc-windows-msvc.msi" -OutFile "coincube-desktop-$VERSION-x86_64-pc-windows-msvc.msi"
+Invoke-WebRequest -Uri "https://github.com/coincubetech/coincube-desktop/releases/download/v$VERSION/SHA256SUMS-$VERSION.txt" -OutFile "SHA256SUMS-$VERSION.txt"
+Invoke-WebRequest -Uri "https://github.com/coincubetech/coincube-desktop/releases/download/v$VERSION/SHA256SUMS-$VERSION.txt.asc" -OutFile "SHA256SUMS-$VERSION.txt.asc"
 
 # Verify signature
 gpg --verify "SHA256SUMS-$VERSION.txt.asc"
@@ -153,19 +160,9 @@ Install GPG:
 
 ### "WARNING: This key is not certified with a trusted signature"
 
-This is normal on first import. The warning means you haven't explicitly marked the key as trusted. You can verify the key fingerprint matches:
-
-```text
-ED4D 0D71 0103 D625 2854  6813 67F9 701B F0D2 DAF4
-```
-
-To mark as trusted:
-```bash
-gpg --edit-key releases@coincube.io
-> trust
-> 5 (ultimate trust)
-> quit
-```
+GPG can report this warning for a valid signature when the signing key has
+no assigned trust in your keyring. Confirm that the signature's full
+fingerprint matches the entry for that release in the key table above.
 
 ### "No such file or directory"
 
@@ -175,7 +172,7 @@ Ensure you're in the directory containing the downloaded files, or provide full 
 
 | Property | Value |
 |----------|-------|
-| Key ID | `67F9701BF0D2DAF4` |
+| Active key fingerprint | `B847C6267DD910B90B0DBDB448A152377E8FB081` |
 | Email | [releases@coincube.io](mailto:releases@coincube.io) |
 | Name | Coincube Release Signing |
 | Type | RSA 4096 |

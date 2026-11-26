@@ -37,12 +37,11 @@ GPG signing provides vendor-level trust independent of platform vendors (Apple, 
 
 ## Rotation Overview
 
-Generate new GPG key  
-→ Export new private & public keys  
-→ Update GitHub Secrets  
-→ Verify in CI  
-→ Publish new public key  
-→ Deprecate old key
+1. Generate the replacement key and export its public and private material.
+2. Restore-test the protected backup and verify a signature from the new key.
+3. Stage the GitHub secrets.
+4. Publish the new public key and update the workflow fingerprints.
+5. Enable release signing with the replacement.
 
 Keep each retired public key under `docs/security/release-keys/` with its full
 fingerprint as the filename. The existing release key is preserved byte for
@@ -93,27 +92,29 @@ Store the private key securely.
 
 ---
 
-### 3. Update GitHub Secrets
+### 3. Verify the Replacement
 
-Update the following secrets:
-
-| Secret | Description |
-|------|-------------|
-| GPG_PRIVATE_KEY | New private key (ASCII armored) |
-| GPG_PASSPHRASE | Passphrase for the key |
-
-Do not commit private keys.
+Restore the encrypted backup into an isolated GPG keyring. Use it to sign a
+sample checksum file and verify the signature in a second keyring that holds
+only the replacement public key. Check the full signature fingerprint. Use a
+historical checksum and signature to confirm that the archived public key
+still works for historical verification.
 
 ---
 
-### 4. Verify in CI
+### 4. Stage GitHub Secrets
 
-Before creating the first production tag, sign a sample checksum file and
-verify it in a clean GPG keyring containing only the replacement public key.
-Check that both workflow fingerprint checks match the replacement. Confirm
-that the archived public key can still be imported for historical verification.
-The tag-triggered production workflow publishes release assets, so use an
-owner-approved release for the first live verification.
+Keep production release signing paused while the secrets and workflow
+fingerprints are being updated. Set both secrets in the standalone repo.
+
+| Secret | Description |
+|--------|-------------|
+| GPG_PRIVATE_KEY | New private key (ASCII armored) |
+| GPG_PASSPHRASE | Passphrase for the key |
+
+The tag-triggered production workflow publishes release assets. Use an
+owner-approved release for the first live verification after reviewing and
+merging the public key and both workflow fingerprints.
 
 ---
 
