@@ -119,10 +119,7 @@ impl Sharing {
 }
 
 fn relevant(change: PreferenceChange) -> bool {
-    matches!(
-        change,
-        PreferenceChange::Worldview(_) | PreferenceChange::Artwork(_, _)
-    )
+    matches!(change, PreferenceChange::Worldview(_))
 }
 
 impl GUI {
@@ -491,15 +488,14 @@ impl GUI {
     }
 }
 
-fn selection_names(selection: Selection) -> (&'static str, &'static str) {
-    use crate::app::settings::preferences::{ArtworkStyle::*, WorldviewMode::*};
-    match (selection.mode, selection.artwork) {
-        (Samurai, Existing) => ("Samurai", "Kage"),
-        (Samurai, Scene) => ("Samurai", "Mountain Watch"),
-        (Suitcoiner, Existing) => ("Suitcoiner", "Gilded Wall Street"),
-        (Suitcoiner, Scene) => ("Suitcoiner", "Gilded Exchange"),
-        (Luke, Existing) => ("Luke", "Purist’s Woodcut"),
-        (Luke, Scene) => ("Luke", "The Stone Crossing"),
+/// The shared Worldview's name. The selection still carries Mobile's
+/// `artwork` field on the wire, but Desktop names only the worldview.
+fn selection_names(selection: Selection) -> &'static str {
+    use crate::app::settings::preferences::WorldviewMode::*;
+    match selection.mode {
+        Samurai => "Samurai",
+        Suitcoiner => "Suitcoiner",
+        Luke => "Luke",
     }
 }
 
@@ -678,6 +674,14 @@ mod tests {
     fn edit(gui: &mut GUI, change: PreferenceChange) {
         drop(gui.change_preference(change));
         let request = gui.worldview_sharing.save.as_ref().unwrap().0.clone();
+        finish_save(gui, request);
+    }
+
+    /// Saves a change sharing does not track, through the same completion path.
+    fn edit_unrelated(gui: &mut GUI, change: PreferenceChange) {
+        assert!(!relevant(change));
+        let request = gui.preferences.begin_save(change).unwrap();
+        assert!(gui.worldview_sharing.save.is_none());
         finish_save(gui, request);
     }
 
@@ -889,24 +893,20 @@ mod tests {
     }
 
     #[test]
-    fn automatically_publishes_all_six_accepted_pairs_without_another_share_click() {
+    fn automatically_publishes_each_accepted_worldview_without_another_share_click() {
         with_gui(|gui| {
-            use crate::app::settings::preferences::{ArtworkStyle::*, WorldviewMode::*};
+            use crate::app::settings::preferences::{ArtworkStyle, WorldviewMode::*};
             edit(gui, PreferenceChange::Worldview(Luke));
             remote(gui, Ok(snapshot(None))); // Sharing was never enabled.
             shared(gui);
-            for (mode, artwork) in [
-                (Samurai, Existing),
-                (Samurai, Scene),
-                (Suitcoiner, Existing),
-                (Suitcoiner, Scene),
-                (Luke, Existing),
-                (Luke, Scene),
-            ] {
+            for mode in [Samurai, Suitcoiner, Luke, Samurai] {
                 let previous = gui.worldview_sharing.snapshot.clone().unwrap();
                 edit(gui, PreferenceChange::Worldview(mode));
-                edit(gui, PreferenceChange::Artwork(mode, artwork));
-                let expected = Selection { mode, artwork };
+                // The wire keeps Mobile's artwork field: the mode's default.
+                let expected = Selection {
+                    mode,
+                    artwork: ArtworkStyle::default_for(mode),
+                };
                 assert_eq!(gui.worldview_sharing.desired, Some(expected));
                 assert!(matches!(
                     gui.worldview_sharing.operation,
@@ -928,14 +928,14 @@ mod tests {
     }
 
     #[test]
-    fn no_sharing_noop_inactive_artwork_and_failed_saves_never_publish() {
+    fn no_sharing_noop_unrelated_and_failed_saves_never_publish() {
         with_gui(|gui| {
-            use crate::app::settings::preferences::{ArtworkStyle::*, WorldviewMode::*};
+            use crate::app::settings::preferences::{Language, WorldviewMode::*};
             edit(gui, PreferenceChange::Worldview(Samurai));
             assert!(gui.worldview_sharing.pending.is_none());
-            edit(gui, PreferenceChange::Artwork(Luke, Existing));
+            edit_unrelated(gui, PreferenceChange::Language(Language::Spanish));
             assert!(gui.worldview_sharing.pending.is_none());
-            edit(gui, PreferenceChange::Artwork(Samurai, Scene));
+            edit(gui, PreferenceChange::Worldview(Luke));
             remote(gui, Ok(snapshot(None)));
             assert!(gui.worldview_sharing.pending.is_none());
             shared(gui);
@@ -1040,11 +1040,11 @@ mod tests {
     #[test]
     fn background_refresh_keeps_the_original_fifo_save_bindings() {
         with_gui(|gui| {
-            use crate::app::settings::preferences::{ArtworkStyle::*, WorldviewMode::*};
+            use crate::app::settings::preferences::WorldviewMode::*;
             std::thread::sleep(std::time::Duration::from_millis(1100));
             let refresh = gui.preferences.begin_refresh_if_due().unwrap();
             drop(gui.change_preference(PreferenceChange::Worldview(Luke)));
-            drop(gui.change_preference(PreferenceChange::Artwork(Luke, Existing)));
+            drop(gui.change_preference(PreferenceChange::Worldview(Suitcoiner)));
             assert_eq!(gui.worldview_sharing.queued.len(), 2);
             set_account(gui, 8);
             let receipt = super::super::GlobalSettings::load_or_initialize_preferences(
@@ -1213,7 +1213,7 @@ mod tests {
     fn unsuccessful_or_inactive_edits_in_another_origin_preserve_the_accepted_intent() {
         for kind in 0..3 {
             with_gui(move |gui| {
-                use crate::app::settings::preferences::{ArtworkStyle::*, WorldviewMode::*};
+                use crate::app::settings::preferences::{Language, WorldviewMode::*};
                 shared(gui);
                 let original = selected(gui);
                 edit(gui, PreferenceChange::Worldview(Luke));
@@ -1222,7 +1222,7 @@ mod tests {
                 another_home(gui, Some(7));
                 match kind {
                     0 => edit(gui, PreferenceChange::Worldview(Luke)), // No-op.
-                    1 => edit(gui, PreferenceChange::Artwork(Samurai, Scene)),
+                    1 => edit_unrelated(gui, PreferenceChange::Language(Language::Spanish)),
                     _ => {
                         drop(gui.change_preference(PreferenceChange::Worldview(Suitcoiner)));
                         let request = gui.worldview_sharing.save.as_ref().unwrap().0.clone();
@@ -1281,15 +1281,15 @@ mod tests {
     #[test]
     fn enabled_account_is_discovered_after_restart_and_only_the_latest_queued_pair_is_sent() {
         with_gui(|gui| {
-            use crate::app::settings::preferences::{ArtworkStyle::*, WorldviewMode::*};
+            use crate::app::settings::preferences::{ArtworkStyle, WorldviewMode::*};
             let original = selected(gui);
             std::thread::sleep(std::time::Duration::from_millis(1100));
             let refresh = gui.preferences.begin_refresh_if_due().unwrap();
             for change in [
                 PreferenceChange::Worldview(Luke),
-                PreferenceChange::Artwork(Luke, Existing),
-                PreferenceChange::Artwork(Luke, Scene),
-                PreferenceChange::Artwork(Luke, Existing),
+                PreferenceChange::Worldview(Suitcoiner),
+                PreferenceChange::Worldview(Samurai),
+                PreferenceChange::Worldview(Luke),
             ] {
                 drop(gui.change_preference(change));
             }
@@ -1307,7 +1307,7 @@ mod tests {
             }
             let expected = Selection {
                 mode: Luke,
-                artwork: Existing,
+                artwork: ArtworkStyle::default_for(Luke),
             };
             assert_eq!(gui.worldview_sharing.desired, Some(expected));
             assert!(matches!(

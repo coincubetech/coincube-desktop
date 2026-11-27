@@ -1843,14 +1843,14 @@ pub fn start_internal_bitcoind<'a>(
     )
 }
 
-/// A Recovery Kit or phone restore's Done: Kage holding the sealed Cube,
+/// A Recovery Kit or phone restore's Done: a plain check mark,
 /// "[Cube] is restored" and one line. Open Cube is the frame's footer.
 pub fn restored<'a>(cube_name: &str, warning: Option<&'a String>) -> Element<'a, Message> {
     Column::new()
         .spacing(16)
         .width(Length::Fill)
         .align_x(Alignment::Center)
-        .push(crate::home::restore_frame::done_art(false))
+        .push(crate::home::restore_frame::done_mark())
         .push(text::h3(CopyText::CubeRestored.get().replacen(
             "{cube_name}",
             cube_name,

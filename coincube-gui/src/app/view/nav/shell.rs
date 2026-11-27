@@ -222,8 +222,8 @@ pub fn top_bar_with_privacy<'a>(
     }))
     .chip(connect)
     .into();
-    // `.top { border-bottom: 1px }`, under the bar as on the Launcher.
-    let mut bar = column![top, rule::horizontal(1)];
+    // The quiet rule under the bar, as on the Launcher.
+    let mut bar = column![top, bar::rule()];
     // The panel hangs from the control's trailing edge, clear of App
     // preferences, and covers the page rather than pushing it down.
     if ctx.connect.panel_open {
@@ -555,7 +555,24 @@ fn nav_row_alert<'a>(
     message: Option<Message>,
     alert: bool,
 ) -> Element<'a, Message> {
-    nav_row_inner(key, label, icon, active, message, false, None, alert)
+    nav_row_inner(key, label, icon, active, message, false, None, alert, false)
+}
+
+/// A Cube menu row (`.menu .mi b`): its label at Mobile's medium weight.
+fn menu_row<'a>(label: &str, icon: &'static str, message: Message) -> Element<'a, Message> {
+    let key = label.to_owned();
+    let label = localized_copy(&key).to_owned();
+    nav_row_inner(
+        key,
+        label,
+        Some(NavIcon::Glyph(icon)),
+        false,
+        Some(message),
+        false,
+        None,
+        false,
+        true,
+    )
 }
 
 /// A row whose focus ID comes from `key`, not its label, so a label that
@@ -578,9 +595,11 @@ fn nav_row_with_key<'a>(
         nested,
         disabled_reason,
         false,
+        false,
     )
 }
 
+/// `menu` sets the label at the medium weight of a menu row (`.mi b`).
 #[allow(clippy::too_many_arguments)]
 fn nav_row_inner<'a>(
     key: String,
@@ -591,6 +610,7 @@ fn nav_row_inner<'a>(
     nested: bool,
     disabled_reason: Option<String>,
     alert: bool,
+    menu: bool,
 ) -> Element<'a, Message> {
     let mut body: Row<Message> = Row::new().spacing(10).align_y(Alignment::Center);
     if nested {
@@ -616,6 +636,8 @@ fn nav_row_inner<'a>(
             .size(if nested { 13 } else { 14 })
             .font(if active {
                 font::SEMIBOLD
+            } else if menu {
+                font::MEDIUM
             } else {
                 font::REGULAR
             })
@@ -759,16 +781,13 @@ fn identity<'a>(ctx: &NavContext<'a>) -> Element<'a, Message> {
     container(control).padding([4, 8]).into()
 }
 
+/// The Cube menu's surface: the floating panel, shadowed and unoutlined.
+const SWITCHER_MENU_STYLE: fn(&theme::Theme) -> iced::widget::container::Style =
+    theme::tenshu::surface::panel;
+
 fn switcher_menu<'a>(ctx: &NavContext<'a>, state: ShellState) -> Element<'a, Message> {
-    let mut items: Column<Message> = column![nav_row(
-        "All Cubes",
-        Some(NavIcon::Glyph(glyph::GRID)),
-        false,
-        Some(Message::OpenLauncher),
-        false,
-        None,
-    )]
-    .spacing(4);
+    let mut items: Column<Message> =
+        column![menu_row("All Cubes", glyph::GRID, Message::OpenLauncher)].spacing(4);
     if state.lock_confirmation {
         let prompt = format!(
             "Lock {} and open the Launcher?",
@@ -817,18 +836,13 @@ fn switcher_menu<'a>(ctx: &NavContext<'a>, state: ShellState) -> Element<'a, Mes
                 .spacing(8),
             );
     } else {
-        items = items.push(nav_row(
-            "Lock Cube",
-            Some(NavIcon::Glyph(glyph::LOCK)),
-            false,
-            Some(Message::AskCubeLock),
-            false,
-            None,
-        ));
+        items = items.push(menu_row("Lock Cube", glyph::LOCK, Message::AskCubeLock));
     }
+    // `.menu{border:0}`: the Cube menu floats over the sidebar, so its fill
+    // and shadow set it apart and it has no outline.
     container(items)
         .padding(7)
-        .style(theme::container::shell_menu)
+        .style(SWITCHER_MENU_STYLE)
         .into()
 }
 
@@ -1034,21 +1048,19 @@ pub fn sidebar<'a>(menu: &Menu, ctx: &NavContext<'a>, state: ShellState) -> Elem
     middle = append_wallet_rows(middle, menu, ctx, settings_active);
     middle = append_marketplace_rows(middle, menu, ctx);
 
-    let foot = column![
-        rule::horizontal(1),
-        container(nav_row(
-            "Settings",
-            Some(NavIcon::Glyph(glyph::GEAR)),
-            settings_active,
-            Some(Message::Menu(Menu::Cube(CubeSubMenu::Settings(
-                CubeSettingsOption::General
-            )))),
-            false,
-            None
-        ))
-        .id("cube-sidebar-settings"),
-    ]
-    .spacing(8)
+    // No rule above Settings: the foot keeps its inset and Settings its place
+    // at the bottom; the middle group takes the 9px the line and its gap used.
+    let foot = column![container(nav_row(
+        "Settings",
+        Some(NavIcon::Glyph(glyph::GEAR)),
+        settings_active,
+        Some(Message::Menu(Menu::Cube(CubeSubMenu::Settings(
+            CubeSettingsOption::General
+        )))),
+        false,
+        None
+    ))
+    .id("cube-sidebar-settings"),]
     .padding([8, 10]);
 
     let mut sidebar: Column<Message> = Column::new()
@@ -1074,11 +1086,17 @@ pub fn sidebar<'a>(menu: &Menu, ctx: &NavContext<'a>, state: ShellState) -> Elem
         .push(scrollable(middle).id(MIDDLE_SCROLL_ID).height(Length::Fill))
         .push_maybe(state.backup_attention.then(backup_attention))
         .push(foot);
-    container(sidebar)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .style(theme::container::shell_rail)
-        .into()
+    // `.side { border-right: 1px solid var(--rule) }`: the rail's one edge,
+    // painted over the rail's fill as a CSS border is.
+    container(
+        row![sidebar, rule::vertical(1).style(theme::rule::quiet),]
+            .width(Length::Fill)
+            .height(Length::Fill),
+    )
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .style(theme::container::shell_sidebar)
+    .into()
 }
 
 /// What the runtime does with one event, for tests that drive the shell
@@ -1180,6 +1198,43 @@ pub(crate) fn test_draw(
                 iced::mouse::Cursor::Unavailable,
             );
         });
+    }
+}
+
+#[cfg(test)]
+mod menu_style_tests {
+    use super::*;
+    use coincube_ui::theme::tenshu::contrast;
+
+    /// `.menu{border:0}`: the Cube menu keeps its shadow and drops its outline.
+    #[test]
+    fn the_cube_menu_has_a_shadow_and_no_outline() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let style = SWITCHER_MENU_STYLE(&theme);
+            assert_eq!(style.border.width, 0.0);
+            assert!(style.shadow.color.a > 0.0 && style.shadow.blur_radius > 0.0);
+        }
+    }
+
+    /// Without its outline the menu still stands apart from the sidebar it
+    /// covers in the light theme, where the fills are closest, and its rows
+    /// stay readable on its fill.
+    #[test]
+    fn the_cube_menu_reads_over_the_sidebar_in_the_light_theme() {
+        let theme = theme::Theme::light();
+        let shell = theme.colors.shell;
+        let style = SWITCHER_MENU_STYLE(&theme);
+        let Some(iced::Background::Color(fill)) = style.background else {
+            panic!("the menu has a fill");
+        };
+        assert_ne!(fill, shell.rail);
+        assert!(
+            coincube_ui::theme::tenshu::luminance(fill)
+                > coincube_ui::theme::tenshu::luminance(shell.rail),
+            "the menu is lighter than the rail"
+        );
+        assert!(contrast(shell.ink, fill) >= 7.0);
+        assert!(contrast(shell.muted, fill) >= 4.5);
     }
 }
 

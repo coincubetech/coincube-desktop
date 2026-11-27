@@ -659,8 +659,6 @@ pub struct Home {
     advisory_notice: Option<&'static crate::hw_advisory::Advisory>,
     #[allow(dead_code)]
     welcome_quote: coincube_ui::component::quote_display::Quote,
-    #[allow(dead_code)]
-    welcome_image_handle: iced::widget::image::Handle,
 }
 
 impl Home {
@@ -805,8 +803,6 @@ impl Home {
                 recovery_method_modal: None,
                 advisory_notice: pending_advisory_notice(&datadir_path),
                 welcome_quote: coincube_ui::component::quote_display::random_quote("first-launch"),
-                welcome_image_handle:
-                    coincube_ui::component::quote_display::image_handle_for_context("first-launch"),
             },
             // Kick a Connect session check alongside the datadir probe
             // so the sidebar reflects authenticated state immediately

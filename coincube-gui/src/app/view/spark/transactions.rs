@@ -12,7 +12,6 @@ use coincube_core::miniscript::bitcoin::Amount;
 use coincube_spark_protocol::PaymentSummary;
 use coincube_ui::locale::copy as localized_copy;
 use coincube_ui::locale::Text as CopyText;
-use iced::widget::image;
 
 use crate::app::wallets::DomainPaymentStatus;
 use crate::export::ImportExportMessage;
@@ -56,7 +55,6 @@ pub struct SparkTransactionsView<'a> {
     pub bitcoin_unit: BitcoinDisplayUnit,
     pub show_direction_badges: bool,
     pub empty_state_quote: &'a Quote,
-    pub empty_state_image_handle: &'a image::Handle,
     pub current_page: u32,
     pub is_last_page: bool,
     pub processing: bool,
@@ -113,9 +111,7 @@ impl<'a> SparkTransactionsView<'a> {
                     .align_x(Alignment::Center)
                     .push(Space::new().height(Length::Fixed(40.0)))
                     .push(quote_display::display(&QuoteDisplayProps::new(
-                        "empty-wallet",
                         self.empty_state_quote,
-                        self.empty_state_image_handle,
                     )))
                     .push(Space::new().height(Length::Fixed(10.0)))
                     .push(

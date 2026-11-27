@@ -3111,13 +3111,9 @@ impl ImportedBitcoinPanel {
         ))
     }
 
-    /// Done: the Sumi-e art, "[Cube] is ready" and one short line. Only a
-    /// stalled scan or a failed key store adds its own retry.
+    /// Done: a plain check mark, "[Cube] is ready" and one short line. Only
+    /// a stalled scan or a failed key store adds its own retry.
     fn done_content<'a>(&'a self, cache: &'a Cache) -> Element<'a, view::Message> {
-        let light = matches!(
-            cache.theme_mode,
-            coincube_ui::theme::palette::ThemeMode::Light
-        );
         let ready = self.is_ready();
         let stalled = matches!(
             ScanDisplay::from_info(self.info.as_ref(), self.sync_failed),
@@ -3140,7 +3136,7 @@ impl ImportedBitcoinPanel {
             .spacing(16)
             .width(iced::Length::Fill)
             .align_x(iced::Alignment::Center)
-            .push(crate::home::restore_frame::done_art(light))
+            .push(crate::home::restore_frame::done_mark())
             .push(h3(coincube_ui::localized_format!(
                 "{} is ready",
                 "{} está listo",

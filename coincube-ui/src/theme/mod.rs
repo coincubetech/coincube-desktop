@@ -35,31 +35,11 @@ pub enum WorldviewMode {
     Samurai,
 }
 
-/// Decorative artwork choice within one worldview.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ArtworkStyle {
-    Scene,
-    #[default]
-    #[serde(other)]
-    Existing,
-}
-
-impl ArtworkStyle {
-    pub const fn default_for(worldview: WorldviewMode) -> Self {
-        match worldview {
-            WorldviewMode::Samurai => Self::Existing,
-            WorldviewMode::Suitcoiner | WorldviewMode::Luke => Self::Scene,
-        }
-    }
-}
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Theme {
     pub colors: palette::Palette,
     pub mode: palette::ThemeMode,
     worldview: WorldviewMode,
-    artwork: ArtworkStyle,
 }
 
 impl Default for Theme {
@@ -74,7 +54,6 @@ impl Theme {
             colors: palette::Palette::dark(),
             mode: palette::ThemeMode::Dark,
             worldview: WorldviewMode::default(),
-            artwork: ArtworkStyle::Existing,
         }
     }
 
@@ -83,7 +62,6 @@ impl Theme {
             colors: palette::Palette::light(),
             mode: palette::ThemeMode::Light,
             worldview: WorldviewMode::default(),
-            artwork: ArtworkStyle::Existing,
         }
     }
 
@@ -92,37 +70,16 @@ impl Theme {
             colors: palette::Palette::from_mode(mode),
             mode,
             worldview: WorldviewMode::default(),
-            artwork: ArtworkStyle::Existing,
         }
     }
 
     pub fn with_worldview(mut self, worldview: WorldviewMode) -> Self {
         self.worldview = worldview;
-        self.artwork = ArtworkStyle::default_for(worldview);
         self
-    }
-
-    pub fn with_artwork(mut self, artwork: ArtworkStyle) -> Self {
-        self.artwork = artwork;
-        self
-    }
-
-    pub fn artwork(&self) -> ArtworkStyle {
-        self.artwork
     }
 
     pub fn worldview(&self) -> WorldviewMode {
         self.worldview
-    }
-
-    /// The active worldview's accent: muted ink for Samurai, antique gold for
-    /// Suitcoiner, oxblood for Luke. Decorative marks only, never body text.
-    pub fn worldview_accent(&self) -> iced::Color {
-        match self.worldview {
-            WorldviewMode::Samurai => self.colors.shell.muted,
-            WorldviewMode::Suitcoiner => self.colors.shell.suitcoiner,
-            WorldviewMode::Luke => self.colors.shell.luke,
-        }
     }
 }
 
@@ -225,5 +182,32 @@ impl iced_aw::style::number_input::ExtendedCatalog for Theme {
         status: iced_aw::card::Status,
     ) -> iced_aw::number_input::Style {
         iced_aw::style::number_input::Catalog::style(self, class, status)
+    }
+}
+
+#[cfg(test)]
+mod worldview_colour_tests {
+    use super::*;
+
+    const MODES: [WorldviewMode; 3] = [
+        WorldviewMode::Samurai,
+        WorldviewMode::Suitcoiner,
+        WorldviewMode::Luke,
+    ];
+
+    /// Desktop V3 (V7): the worldviews have no accent colours. Switching mode
+    /// leaves the accent, its ink and every other colour where they were, in
+    /// both appearances.
+    #[test]
+    fn a_worldview_switch_changes_no_colour() {
+        for base in [Theme::dark(), Theme::light()] {
+            for mode in MODES {
+                let themed = base.with_worldview(mode);
+                assert_eq!(themed.worldview(), mode);
+                assert_eq!(themed.colors.shell.accent, base.colors.shell.accent);
+                assert_eq!(themed.colors.shell.accent_ink, base.colors.shell.accent_ink);
+                assert_eq!(themed.colors, base.colors, "{mode:?}");
+            }
+        }
     }
 }

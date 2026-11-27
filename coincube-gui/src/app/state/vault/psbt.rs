@@ -1237,10 +1237,6 @@ impl PsbtState {
                     broadcasting: false,
                     error: None,
                     sent_quote: coincube_ui::component::quote_display::random_quote("bitcoin-send"),
-                    sent_image_handle:
-                        coincube_ui::component::quote_display::image_handle_for_context(
-                            "bitcoin-send",
-                        ),
                     spend_amount_display: amount_display,
                     fee_display: self.tx.fee_amount.map(|fee| {
                         format!(
@@ -1694,7 +1690,6 @@ pub struct BroadcastModal {
     conflicting_txids: HashSet<Txid>,
     /// Quote and image handle for the celebration screen.
     sent_quote: coincube_ui::component::quote_display::Quote,
-    sent_image_handle: iced::widget::image::Handle,
     /// Formatted spend amount for the celebration display.
     spend_amount_display: String,
     /// Network fee with its unit, for the receipt.
@@ -1835,7 +1830,6 @@ impl Modal for BroadcastModal {
                     .map(|e| crate::user_error::UserError::from(e).toast()),
                 &self.spend_amount_display,
                 &self.sent_quote,
-                &self.sent_image_handle,
                 self.is_self_transfer,
                 identity_review,
                 view::vault::psbt::BroadcastReceipt {

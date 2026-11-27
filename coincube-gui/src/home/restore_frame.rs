@@ -356,7 +356,9 @@ fn title_text<'a>(title: &'static str) -> iced::widget::Text<'a, theme::Theme> {
 }
 
 /// The network menu, dropped under the header's network control: an
-/// undrawn copy of the title and divider puts it under the chip.
+/// undrawn copy of the title and divider puts it under the chip. It opens
+/// over the sheet, whose fill it shares, so it keeps its line border beside
+/// the shadow (`P-Restore` `.menu`; a box never sits on its own fill unseen).
 pub(crate) fn network_menu<'a, M: 'a>(title: &'static str, rows: Element<'a, M>) -> Element<'a, M> {
     let menu = Container::new(rows)
         .width(Length::Fixed(340.0))
@@ -474,64 +476,29 @@ pub(crate) fn sheet<'a, M: Clone + 'a>(
     }
 }
 
-/// The Done art: Kage holding the sealed Cube, centred. Its background is
-/// transparent; in dark mode a white disc sits behind the orange ensō
-/// circle only, so the ink figure keeps the sheet behind it.
-pub(crate) fn done_art<'a, M: 'a>(light: bool) -> Element<'a, M> {
-    const WIDTH: f32 = 240.0;
-    const HEIGHT: f32 = 360.0;
-    // The ensō in the 320×480 source: centre (165, 140), radius 125.
-    const SCALE: f32 = WIDTH / 320.0;
-    let radius = 122.0 * SCALE;
-    let (cx, cy) = (165.0 * SCALE, 140.0 * SCALE);
-    let art = coincube_ui::illustration::image(
-        Some(coincube_ui::illustration::Slot::Restored),
-        coincube_ui::image::kage_cube_sealed(),
-        Length::Fixed(WIDTH),
-        Length::Fixed(HEIGHT),
-        iced::ContentFit::Contain,
-    );
-    let mut stack = iced::widget::Stack::new()
-        .width(Length::Fixed(WIDTH))
-        .height(Length::Fixed(HEIGHT));
-    if !light {
-        stack = stack.push(
-            Column::new()
-                .push(Space::new().height(Length::Fixed(cy - radius)))
-                .push(
-                    Row::new()
-                        .push(Space::new().width(Length::Fixed(cx - radius)))
-                        .push(
-                            Container::new(Space::new())
-                                .width(Length::Fixed(radius * 2.0))
-                                .height(Length::Fixed(radius * 2.0))
-                                .style(move |theme: &theme::Theme| {
-                                    if theme.worldview() != theme::WorldviewMode::Samurai
-                                        || coincube_ui::illustration::has_full_scene(
-                                            theme,
-                                            coincube_ui::illustration::Slot::Restored,
-                                        )
-                                    {
-                                        return iced::widget::container::Style::default();
-                                    }
-                                    iced::widget::container::Style {
-                                        background: Some(iced::Background::Color(
-                                            iced::Color::WHITE,
-                                        )),
-                                        border: iced::Border {
-                                            radius: radius.into(),
-                                            ..Default::default()
-                                        },
-                                        ..Default::default()
-                                    }
-                                }),
-                        ),
-                ),
-        );
-    }
-    Container::new(stack.push(art))
-        .center_x(Length::Fill)
-        .into()
+/// The Done mark (`.mvok`): a plain check in the good tone on a 64px disc
+/// of the hover fill, centred over the title. Desktop V3 draws no artwork.
+pub(crate) fn done_mark<'a, M: 'a>() -> Element<'a, M> {
+    const SIDE: f32 = 64.0;
+    let check = coincube_ui::icon::check_icon()
+        .size(30)
+        .style(|theme: &theme::Theme| iced::widget::text::Style {
+            color: Some(theme.colors.shell.good),
+        });
+    let disc = Container::new(check)
+        .width(Length::Fixed(SIDE))
+        .height(Length::Fixed(SIDE))
+        .center_x(Length::Fixed(SIDE))
+        .center_y(Length::Fixed(SIDE))
+        .style(|theme: &theme::Theme| iced::widget::container::Style {
+            background: Some(iced::Background::Color(theme.colors.shell.hover)),
+            border: iced::Border {
+                radius: (SIDE / 2.0).into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+    Container::new(disc).center_x(Length::Fill).into()
 }
 
 /// The network's coin mark.
