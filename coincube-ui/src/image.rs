@@ -5,9 +5,9 @@ use iced::{
     window::icon,
 };
 
+use crate::component::wordmark::Wordmark;
 use crate::theme::Theme;
-use crate::widget::{Column, Row};
-use crate::{color, font};
+use crate::widget::Column;
 
 pub fn coincube_window_icon() -> icon::Icon {
     let bytes = include_bytes!("../static/logos/tenshu-window-256.png");
@@ -20,15 +20,10 @@ pub fn coincube_window_icon() -> icon::Icon {
     icon::from_rgba(buffer, width, height).unwrap()
 }
 
-/// COINCUBE wordmark using Space Grotesk Bold at a given size.
-/// One ink throughout: the whole word takes the theme's primary text color
-/// (white on the dark theme), with no orange "COIN".
-pub fn coincube_wordmark<'a, M: 'a>(size: f32) -> Row<'a, M> {
-    use crate::theme;
-    iced::widget::row![iced::widget::text("COINCUBE")
-        .font(font::SPACE_GROTESK_BOLD)
-        .size(size)
-        .style(theme::text::primary),]
+/// COINCUBE wordmark using Space Grotesk Bold at a given size, in one ink
+/// (the theme's ink) and tracked 0.08em, as Mobile draws it.
+pub fn coincube_wordmark<'a, M: 'a>(size: f32) -> Wordmark<'a, M> {
+    crate::component::wordmark::wordmark(size)
 }
 
 /// The app-chrome brand mark: the sumi-e castle keep inside an orange
@@ -80,21 +75,6 @@ pub fn theme_toggle_button<'a, M: Clone + 'a>(
     .on_press(on_press)
     .style(crate::theme::button::transparent)
     .padding([8, 12])
-}
-
-/// COINCUBE wordmark in gray tones using Space Grotesk Bold.
-/// "COIN" is medium gray; "CUBE" is lighter gray.
-pub fn coincube_wordmark_gray<'a, M: 'a>(size: f32) -> Row<'a, M> {
-    iced::widget::row![
-        iced::widget::text("COIN")
-            .font(font::SPACE_GROTESK_BOLD)
-            .size(size)
-            .color(color::GREY_3),
-        iced::widget::text("CUBE")
-            .font(font::SPACE_GROTESK_BOLD)
-            .size(size)
-            .color(color::GREY_2),
-    ]
 }
 
 const SUCCESS_MARK_ICON: &[u8] = include_bytes!("../static/icons/success-mark.svg");

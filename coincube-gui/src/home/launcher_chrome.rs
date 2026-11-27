@@ -1776,12 +1776,10 @@ fn brand_footprint<'a, M: 'a>() -> Element<'a, M> {
                 .width(Length::Fixed(20.0))
                 .height(Length::Fixed(20.0)),
         )
-        .push(
-            text("COINCUBE")
-                .size(top_bar::BRAND_WORD)
-                .font(font::SPACE_GROTESK_BOLD)
-                .color(Color::TRANSPARENT),
-        )
+        .push(coincube_ui::component::wordmark::wordmark_in(
+            top_bar::BRAND_WORD,
+            |_: &theme::Theme| Color::TRANSPARENT,
+        ))
         .into()
 }
 
@@ -2503,7 +2501,14 @@ mod top_bar_tests {
         };
         let settings = at(&launcher_catalog::settings_id());
         assert_eq!((settings.width, settings.height), (32.0, 32.0));
-        assert_eq!(settings.x + settings.width, 1024.0 - super::GUTTER);
+        // The fill space left after the tracked wordmark's fractional glyph
+        // widths carries float rounding; a hundredth of a pixel is not drawn.
+        let right_edge = settings.x + settings.width;
+        assert!(
+            (right_edge - (1024.0 - super::GUTTER)).abs() < 0.01,
+            "App preferences ends at {}, not the gutter",
+            right_edge
+        );
         let labels: Vec<_> = live
             .text
             .iter()
@@ -2543,7 +2548,7 @@ mod top_bar_tests {
             .unwrap()
             .1;
         assert_eq!((label.width, label.height), (32.0, 32.0));
-        assert_eq!(label.x + label.width, 1024.0 - super::GUTTER);
+        assert!((label.x + label.width - (1024.0 - super::GUTTER)).abs() < 0.01);
         assert!(!quiet
             .text
             .iter()
