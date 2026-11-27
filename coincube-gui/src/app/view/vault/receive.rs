@@ -263,29 +263,13 @@ fn accent_text(theme: &theme::Theme) -> iced::widget::text::Style {
     }
 }
 
-/// The shared orange outline with a readable resting label. The shared label
-/// orange is 2.6:1 on the light card, below 4.5:1 for 14px text, so the active
-/// label uses the shell's accent ink. Hovered, pressed and disabled are the
-/// shared style unchanged.
-fn new_address_style(theme: &theme::Theme, status: iced_button::Status) -> iced_button::Style {
-    let style = theme::button::orange_outline(theme, status);
-    if matches!(status, iced_button::Status::Active) {
-        iced_button::Style {
-            text_color: theme.colors.shell.accent_ink,
-            ..style
-        }
-    } else {
-        style
-    }
-}
-
 /// The card's generate action is primary until the first address exists,
-/// then the readable outline.
+/// then the content outline (`theme::button::secondary`).
 fn generate_style(
     has_address: bool,
 ) -> fn(&theme::Theme, iced_button::Status) -> iced_button::Style {
     if has_address {
-        new_address_style
+        theme::button::secondary
     } else {
         theme::button::primary
     }
@@ -2108,21 +2092,16 @@ mod tests {
                 let ratio = label_contrast(style(&th, status), panel);
                 assert!(ratio >= 4.5, "{} {:?}: {:.3}:1", appearance, status, ratio);
             }
-            // Only the resting label changes; disabled keeps its palette and
-            // alpha.
-            assert_eq!(
-                style(&th, Status::Active),
-                iced_button::Style {
-                    text_color: th.colors.shell.accent_ink,
-                    ..theme::button::orange_outline(&th, Status::Active)
-                },
-                "{}",
-                appearance
-            );
-            for status in [Status::Hovered, Status::Pressed, Status::Disabled] {
+            // Once an address exists the footer is the content outline.
+            for status in [
+                Status::Active,
+                Status::Hovered,
+                Status::Pressed,
+                Status::Disabled,
+            ] {
                 assert_eq!(
                     style(&th, status),
-                    theme::button::orange_outline(&th, status),
+                    theme::button::secondary(&th, status),
                     "{} {:?}",
                     appearance,
                     status
@@ -2144,12 +2123,5 @@ mod tests {
                 );
             }
         }
-        // The shared resting style this replaces fails on the light card.
-        let light = theme::Theme::light();
-        let old = label_contrast(
-            theme::button::orange_outline(&light, Status::Active),
-            light.colors.shell.panel,
-        );
-        assert!(old < 4.5, "{:.3}:1", old);
     }
 }

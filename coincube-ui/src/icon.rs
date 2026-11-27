@@ -21,6 +21,10 @@ pub fn arrow_down<'a>() -> Text<'a> {
     bootstrap_icon('\u{F128}')
 }
 
+pub fn arrow_up<'a>() -> Text<'a> {
+    bootstrap_icon('\u{F148}')
+}
+
 pub fn arrow_back<'a>() -> Text<'a> {
     bootstrap_icon('\u{F12E}')
 }

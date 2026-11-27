@@ -35,7 +35,7 @@ pub fn bar<'a, Message: Clone + 'a>(tabs: Vec<Tab<'a, Message>>) -> Element<'a, 
         let btn: Button<Message> = Button::new(label_row)
             .padding([8, 16])
             .style(if tab.active {
-                theme::button::tab_liquid
+                theme::button::tab_active
             } else {
                 theme::button::tab
             })

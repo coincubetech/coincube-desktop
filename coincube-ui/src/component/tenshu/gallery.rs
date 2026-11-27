@@ -740,7 +740,8 @@ fn geometry_matches_the_v113_artboards() {
 
 #[test]
 fn every_button_shape_is_square_cornered() {
-    // Canvas v122: buttons use `.btn`'s 8px corner at most; no pills.
+    // Canvas v122: buttons use `.btn`'s 8px corner at most; no pills. The one
+    // exception since canvas v337 (Phase 1 D4) is the 40px `.pill`, at 10px.
     let theme = Theme::dark();
     for shape in [
         ActionShape::Pill,
@@ -764,8 +765,13 @@ fn every_button_shape_is_square_cornered() {
                     .border
                     .radius
                     .top_left;
+                let limit = if shape == ActionShape::Pill {
+                    tokens::radius::PILL
+                } else {
+                    tokens::radius::CONTROL
+                };
                 assert!(
-                    corner <= tokens::radius::CONTROL,
+                    corner <= limit,
                     "{:?} {:?} {:?} has a {}px corner",
                     shape,
                     kind,

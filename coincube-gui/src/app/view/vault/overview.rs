@@ -2,6 +2,7 @@ use chrono::{DateTime, Local, Utc};
 use coincube_ui::locale::copy as localized_copy;
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::localized_format;
+use coincube_ui::{component::tenshu::ActionButton, theme::tenshu::button::ActionKind};
 use std::{collections::HashMap, time::Duration, vec};
 
 use iced::{
@@ -28,7 +29,7 @@ use crate::{
         view::{
             dashboard_headed,
             message::Message,
-            shared::landing::{landing_balance_section, landing_button, landing_control_id},
+            shared::landing::{landing_balance_section, landing_control_id},
             vault::coins,
             vault::label,
             vault_page_head,
@@ -57,24 +58,29 @@ fn rescan_date_prompt<'a>(cube_id: &str) -> Element<'a, Message> {
                 Row::new()
                     .spacing(5)
                     .push(Space::new().width(Length::Fill))
-                    .push(landing_button(
-                        landing_control_id(cube_id, "Vault", "rescan-pick-date"),
-                        localized_copy("Pick a date"),
-                        None,
-                        Message::FocusAction,
-                        Some(Message::Menu(Menu::Vault(menu::VaultSubMenu::Settings(
+                    .push(
+                        ActionButton::new(
+                            landing_control_id(cube_id, "Vault", "rescan-pick-date"),
+                            localized_copy("Pick a date"),
+                            ActionKind::Secondary,
+                            Message::FocusAction,
+                        )
+                        .compact()
+                        .on_press(Message::Menu(Menu::Vault(menu::VaultSubMenu::Settings(
                             Some(menu::SettingsOption::Node),
                         )))),
-                        theme::button::secondary,
-                    ))
-                    .push(landing_button(
-                        landing_control_id(cube_id, "Vault", "rescan-dismiss"),
-                        localized_copy("Dismiss"),
-                        Some(cross_icon()),
-                        Message::FocusAction,
-                        Some(Message::HideRescanPrompt),
-                        theme::button::secondary,
-                    )),
+                    )
+                    .push(
+                        ActionButton::new(
+                            landing_control_id(cube_id, "Vault", "rescan-dismiss"),
+                            localized_copy("Dismiss"),
+                            ActionKind::Secondary,
+                            Message::FocusAction,
+                        )
+                        .icon(cross_icon())
+                        .compact()
+                        .on_press(Message::HideRescanPrompt),
+                    ),
             ),
     )
     .padding(25)
@@ -283,14 +289,20 @@ fn protection_strip<'a>(
                     .spacing(15)
                     .align_y(Alignment::Center)
                     .push(text(copy).size(P1_SIZE).width(Length::Fill))
-                    .push(landing_button(
-                        landing_control_id(cube_id, "Vault", control),
-                        label,
-                        icon,
-                        Message::FocusAction,
-                        Some(Message::Menu(route)),
-                        theme::button::secondary,
-                    )),
+                    .push({
+                        let action = ActionButton::new(
+                            landing_control_id(cube_id, "Vault", control),
+                            label,
+                            ActionKind::Secondary,
+                            Message::FocusAction,
+                        )
+                        .compact()
+                        .on_press(Message::Menu(route));
+                        match icon {
+                            Some(icon) => action.icon(icon),
+                            None => action,
+                        }
+                    }),
             )
         });
     Some(
@@ -385,25 +397,17 @@ pub fn vault_overview_view<'a>(
             AmountVisibility::Shown
         },
         [
-            landing_button(
-                landing_control_id(cube_id, "Vault", "send-btc"),
-                localized_copy("Send"),
-                None,
-                Message::FocusAction,
-                Some(Message::Menu(Menu::Vault(VaultSubMenu::Send))),
-                theme::button::primary,
-            )
-            .width(Length::Fixed(90.0))
-            .into(),
-            landing_button(
+            coincube_ui::component::tenshu::receive_action(
                 landing_control_id(cube_id, "Vault", "receive-btc"),
-                localized_copy("Receive"),
-                None,
                 Message::FocusAction,
                 Some(Message::Menu(Menu::Vault(VaultSubMenu::Receive))),
-                theme::button::orange_outline,
             )
-            .width(Length::Fixed(90.0))
+            .into(),
+            coincube_ui::component::tenshu::send_action(
+                landing_control_id(cube_id, "Vault", "send-btc"),
+                Message::FocusAction,
+                Some(Message::Menu(Menu::Vault(VaultSubMenu::Send))),
+            )
             .into(),
         ],
     );

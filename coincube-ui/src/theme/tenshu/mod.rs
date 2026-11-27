@@ -30,15 +30,17 @@ pub mod radius {
     /// Status and account chips. Square like every other button since
     /// canvas v122.
     pub const CHIP: f32 = 8.0;
-    /// 36px Send/Receive actions (`.pill`). Square since canvas v122.
-    pub const PILL: f32 = 8.0;
+    /// 40px Receive and Send actions (`.pill`): 10px since canvas v337
+    /// (Phase 1 D4). Every other button stays at [`CONTROL`].
+    pub const PILL: f32 = 10.0;
     /// The labelled pill toggle (`.tog`), which keeps its rounded track.
     pub const TOGGLE: f32 = 16.0;
 }
 
 /// Control and row dimensions.
 pub mod size {
-    pub const PILL_HEIGHT: f32 = 36.0;
+    /// `.pill`: the Receive and Send pair and other second-choice pills.
+    pub const PILL_HEIGHT: f32 = 40.0;
     pub const BUTTON_HEIGHT: f32 = 32.0;
     pub const CHIP_HEIGHT: f32 = 32.0;
     /// Square icon-only actions such as the balance eye.
