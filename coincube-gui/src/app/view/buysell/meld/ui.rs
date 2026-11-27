@@ -839,11 +839,7 @@ pub(crate) fn region_selection_ux<'a>(
                     Some(icon::cross_icon()),
                     localized_copy("Select Your Region"),
                 )
-                .style(|th, st| {
-                    let mut base = theme::button::secondary(th, st);
-                    base.border = iced::Border::default().rounded(2);
-                    base
-                })
+                .style(theme::button::secondary)
             }
         },
     ]

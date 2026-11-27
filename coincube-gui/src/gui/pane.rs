@@ -24,6 +24,28 @@ pub enum Message {
     },
 }
 
+/// A tab's right-click menu: quiet rows on the shared menu panel, which
+/// carries the surface, edge and shadow the overlay itself lacks.
+fn tab_context_menu<'a>(index: usize, can_split: bool) -> Element<'a, ViewMessage> {
+    let row = |label: &'static str, message: ViewMessage| {
+        Button::new(p1_regular(label))
+            .style(theme::button::shell_nav)
+            .padding([6, 10])
+            .width(Length::Fill)
+            .on_press(message)
+    };
+    Container::new(
+        Column::new()
+            .spacing(2)
+            .width(Length::Fixed(120.0))
+            .push(row("Close", ViewMessage::CloseTab(index)))
+            .push(can_split.then(|| row("Split", ViewMessage::SplitTab(index)))),
+    )
+    .padding(4)
+    .style(theme::tenshu::surface::panel)
+    .into()
+}
+
 #[cfg(test)]
 mod launcher_delete_tests {
     use super::*;
@@ -843,24 +865,7 @@ impl Pane {
             };
 
             menu = menu.push(ContextMenu::new(tab_content, move || {
-                Column::new()
-                    .push(
-                        Button::new(p1_regular("Close"))
-                            .style(theme::button::secondary)
-                            .on_press(ViewMessage::CloseTab(i))
-                            .width(100),
-                    )
-                    .push(if tabs_len > 1 {
-                        Some(
-                            Button::new(p1_regular("Split"))
-                                .style(theme::button::secondary)
-                                .on_press(ViewMessage::SplitTab(i))
-                                .width(100),
-                        )
-                    } else {
-                        None
-                    })
-                    .into()
+                tab_context_menu(i, tabs_len > 1)
             }));
         }
         menu = menu.push(
@@ -887,5 +892,31 @@ impl Pane {
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
+    }
+}
+
+#[cfg(test)]
+mod tab_menu_tests {
+    use coincube_ui::theme;
+    use iced::{widget::button::Status, Background};
+
+    /// The tab menu's panel is opaque with an edge and a shadow, and its rows
+    /// are quiet: no outline, the hover fill under the pointer.
+    #[test]
+    fn the_tab_menu_is_a_panel_of_quiet_rows() {
+        for t in [theme::Theme::dark(), theme::Theme::light()] {
+            let shell = t.colors.shell;
+            let panel = theme::tenshu::surface::panel(&t);
+            assert_eq!(panel.background, Some(Background::Color(shell.panel)));
+            assert!(panel.shadow.blur_radius > 0.0);
+            let rest = theme::button::shell_nav(&t, Status::Active);
+            assert_eq!(rest.border.width, 0.0);
+            let hover = theme::button::shell_nav(&t, Status::Hovered);
+            assert_eq!(hover.background, Some(Background::Color(shell.hover)));
+            assert_eq!(hover.border.width, 0.0);
+            // The builder still offers Split only with more than one tab.
+            let _one = super::tab_context_menu(0, false);
+            let _two = super::tab_context_menu(1, true);
+        }
     }
 }
