@@ -7511,7 +7511,6 @@ mod shared_adoption_generation_tests {
                     1,
                     tab::Message::Load(loader::Message::WalletsLoaded {
                         cube_signer: None,
-                        spark_backend: None,
                         cache,
                         wallet,
                         config: app::Config::new(false),
@@ -8439,7 +8438,7 @@ mod single_open_lifecycle_tests {
                             cube_signer: Err(app::cube_signer::CubeSignerError::Signer(
                                 "fixture".into(),
                             )),
-                            spark_backend: None,
+                            spark: app::breez_spark::SparkStartup::none(),
                             config: app::Config::new(false),
                             datadir: root.clone(),
                             network: bitcoin::Network::Bitcoin,

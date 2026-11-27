@@ -111,13 +111,15 @@ pub struct Loader {
     pub cube_signer: Option<app::cube_signer::CubeSigner>,
     pub connect_client: Option<crate::services::coincube::CoincubeClient>,
     pub cube_encryption_key: Option<Arc<crate::services::connect::crypto::CubeEncryptionKey>>,
-    /// Optional Spark backend loaded alongside `cube_signer` in the PIN
-    /// flow. `None` when the cube has no Spark signer or when the bridge
-    /// subprocess failed to spawn — panels that depend on Spark surface a
-    /// "Spark unavailable" placeholder in that case. Propagated unchanged
-    /// from [`crate::gui::tab::Message::WalletsLoadedAfterUnlock`] through
-    /// [`Message::WalletsLoaded`] into [`app::App::new`].
-    pub spark_backend: Option<std::sync::Arc<app::wallets::SparkBackend>>,
+    /// The Spark load the unlock started, running beside this Loader's
+    /// daemon start (see [`app::breez_spark::SparkStartup`]). The App is
+    /// built once it has settled; it settles to `None` when the Cube has no
+    /// Spark signer or the bridge failed, and panels that depend on Spark
+    /// then show a "Spark unavailable" placeholder. A Retry keeps the same
+    /// load; dropping the Loader aborts one still under way.
+    pub(crate) spark: app::breez_spark::SparkStartup,
+    /// A Vault that finished loading before Spark, waiting for it.
+    held_for_spark: HeldForSpark,
     fork_session_revoked: bool,
     /// The resync this loader started and still waits for, if any.
     fork_resync: Option<u64>,
@@ -130,6 +132,41 @@ pub struct Loader {
     step: Step,
     quote_provider: QuoteProvider,
     current_quote: Quote,
+}
+
+/// A loaded Vault ([`Message::WalletsLoaded`]) waiting for the Spark load.
+/// Its daemon is started and no [`Step`] names it, so a Loader dropped
+/// without [`Loader::stop`] still stops it here, off the UI thread.
+#[derive(Default)]
+struct HeldForSpark(Option<Message>);
+
+impl HeldForSpark {
+    fn take_resources(&mut self) -> (Option<Arc<dyn Daemon + Sync + Send>>, Option<Bitcoind>) {
+        match self.0.take() {
+            Some(Message::WalletsLoaded {
+                daemon, bitcoind, ..
+            }) => (Some(daemon), bitcoind),
+            _ => (None, None),
+        }
+    }
+}
+
+impl Drop for HeldForSpark {
+    fn drop(&mut self) {
+        let (daemon, node) = self.take_resources();
+        match daemon.filter(|daemon| daemon.backend().is_embedded()) {
+            Some(daemon) => crate::daemon::stopping::stop_in_background(daemon, move || {
+                if let Some(node) = node {
+                    node.stop();
+                }
+            }),
+            None => {
+                if let Some(node) = node {
+                    node.stop();
+                }
+            }
+        }
+    }
 }
 
 pub enum Step {
@@ -181,7 +218,6 @@ pub enum Message {
     ),
     WalletsLoaded {
         cube_signer: Option<app::cube_signer::CubeSigner>,
-        spark_backend: Option<std::sync::Arc<app::wallets::SparkBackend>>,
         cache: Cache,
         wallet: Arc<Wallet>,
         config: app::Config,
@@ -190,6 +226,10 @@ pub enum Message {
         bitcoind: Option<Bitcoind>,
         cube_settings: CubeSettings,
     },
+    /// The Spark load this Loader waits for settled. Carries nothing: the
+    /// Loader reads its own load, so a late one from another Loader is
+    /// harmless.
+    SparkSettled,
     Started(StartedResult),
     /// The Bitcoin Blake2b chain data was deleted for a resync (or why not),
     /// for the resync `token` names.
@@ -215,7 +255,7 @@ impl Loader {
         wallet_settings: Option<WalletSettings>,
         cube_settings: CubeSettings,
         cube_signer: Option<app::cube_signer::CubeSigner>,
-        spark_backend: Option<std::sync::Arc<app::wallets::SparkBackend>>,
+        spark: impl Into<app::breez_spark::SparkStartup>,
     ) -> (Self, Task<Message>) {
         Self::build(
             datadir_path,
@@ -226,7 +266,7 @@ impl Loader {
             wallet_settings,
             cube_settings,
             cube_signer,
-            spark_backend,
+            spark.into(),
             None,
             None,
         )
@@ -245,7 +285,7 @@ impl Loader {
         wallet_settings: WalletSettings,
         cube_settings: CubeSettings,
         cube_signer: Option<app::cube_signer::CubeSigner>,
-        spark_backend: Option<std::sync::Arc<app::wallets::SparkBackend>>,
+        spark: impl Into<app::breez_spark::SparkStartup>,
         connect_client: Option<crate::services::coincube::CoincubeClient>,
     ) -> (Self, Task<Message>) {
         Self::build(
@@ -257,7 +297,7 @@ impl Loader {
             Some(wallet_settings),
             cube_settings,
             cube_signer,
-            spark_backend,
+            spark.into(),
             connect_client,
             None,
         )
@@ -283,7 +323,7 @@ impl Loader {
             Some(wallet_settings),
             cube_settings,
             None,
-            None,
+            app::breez_spark::SparkStartup::none(),
             Some(client),
             Some(cube_encryption_key),
         )
@@ -311,7 +351,7 @@ impl Loader {
             Some(wallet_settings),
             cube_settings,
             None,
-            None,
+            app::breez_spark::SparkStartup::none(),
             connect_client.filter(|c| c.token().is_some()),
             Some(cube_encryption_key),
         )
@@ -340,7 +380,7 @@ impl Loader {
         wallet_settings: Option<WalletSettings>,
         cube_settings: CubeSettings,
         cube_signer: Option<app::cube_signer::CubeSigner>,
-        spark_backend: Option<Arc<app::wallets::SparkBackend>>,
+        spark: app::breez_spark::SparkStartup,
         connect_client: Option<crate::services::coincube::CoincubeClient>,
         cube_encryption_key: Option<Arc<crate::services::connect::crypto::CubeEncryptionKey>>,
     ) -> (Self, Task<Message>) {
@@ -382,7 +422,7 @@ impl Loader {
                         })
                         || cube_encryption_key.is_none()
                         || cube_signer.is_some()
-                        || spark_backend.is_some()
+                        || !matches!(spark.outcome(), Some(None))
                         || backup.is_some()
                         || wallet_settings
                             .as_ref()
@@ -451,7 +491,8 @@ impl Loader {
                 cube_settings,
                 backup,
                 cube_signer,
-                spark_backend,
+                spark,
+                held_for_spark: HeldForSpark::default(),
                 connect_client,
                 cube_encryption_key,
                 quote_provider,
@@ -802,25 +843,48 @@ impl Loader {
         }
         self.cancel_fork_resync();
         info!("Close requested");
+        // A Vault held for Spark owns a started daemon that no step names.
+        let (held_daemon, held_node) = self.held_for_spark.take_resources();
         // NOTE: we take() the internal_bitcoind here to make sure the debug.log reader
         // subscription is dropped.
-        let bitcoind = self.internal_bitcoind.take();
-        if let Step::Syncing { daemon, .. } = &mut self.step {
-            if daemon.backend().is_embedded() {
-                if in_background {
-                    crate::daemon::stopping::stop_in_background(daemon.clone(), move || {
-                        if let Some(bitcoind) = bitcoind {
-                            bitcoind.stop();
-                        }
-                    });
-                    return;
-                }
-                Self::stop_embedded_daemon(daemon.as_ref());
+        let bitcoind = self.internal_bitcoind.take().or(held_node);
+        let daemon = match &self.step {
+            Step::Syncing { daemon, .. } => Some(daemon.clone()),
+            _ => held_daemon,
+        };
+        if let Some(daemon) = daemon.filter(|daemon| daemon.backend().is_embedded()) {
+            if in_background {
+                crate::daemon::stopping::stop_in_background(daemon, move || {
+                    if let Some(bitcoind) = bitcoind {
+                        bitcoind.stop();
+                    }
+                });
+                return;
             }
+            Self::stop_embedded_daemon(daemon.as_ref());
         }
         if let Some(bitcoind) = bitcoind {
             bitcoind.stop();
         }
+    }
+
+    /// Hold a loaded Vault ([`Message::WalletsLoaded`]) until the Spark load
+    /// settles, and wake the Loader then. The wait does not keep the Spark
+    /// load alive: dropping the Loader still aborts it.
+    pub(crate) fn hold_for_spark(&mut self, loaded: Message) -> Task<Message> {
+        debug_assert!(matches!(loaded, Message::WalletsLoaded { .. }));
+        // A Vault already held (never expected) is stopped as it drops.
+        drop(std::mem::replace(
+            &mut self.held_for_spark,
+            HeldForSpark(Some(loaded)),
+        ));
+        Task::perform(self.spark.settled(), |()| Message::SparkSettled)
+    }
+
+    /// The Vault held for Spark, once Spark has settled.
+    pub(crate) fn release_held_for_spark(&mut self) -> Option<Message> {
+        self.spark.outcome()?;
+        self.held_for_spark.0.take()
     }
 
     fn stop_embedded_daemon(daemon: &(dyn Daemon + Sync + Send)) {
@@ -850,7 +914,7 @@ impl Loader {
             self.wallet_settings.clone(),
             self.cube_settings.clone(),
             self.cube_signer.clone(),
-            self.spark_backend.clone(),
+            self.spark.clone(),
             self.connect_client.clone(),
             self.cube_encryption_key.clone(),
         );
@@ -3995,7 +4059,7 @@ mod bootstrap_backend_selection_tests {
             wallet_settings,
             cube(chain),
             None,
-            None,
+            app::breez_spark::SparkStartup::none(),
             client,
             key,
         )

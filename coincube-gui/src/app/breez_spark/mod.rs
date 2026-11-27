@@ -21,10 +21,12 @@
 pub mod assets;
 pub mod client;
 pub mod config;
+pub mod startup;
 
 pub use assets::SparkAsset;
 pub use client::{SparkClient, SparkClientError, SparkClientEvent};
 pub use config::{SparkConfig, SparkConfigError};
+pub use startup::SparkStartup;
 
 use std::path::Path;
 use std::sync::Arc;
