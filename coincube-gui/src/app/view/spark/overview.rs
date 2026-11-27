@@ -16,7 +16,8 @@ use coincube_ui::localized_format;
 
 use crate::app::wallets::DomainPaymentStatus;
 use coincube_ui::component::tenshu::{
-    asset_row, fit_row, ActionButton, ActionKind, AmountVisibility, BalanceValue, Figure,
+    asset_row, fit_row, receive_action, send_action, ActionButton, ActionKind, AmountVisibility,
+    BalanceValue, Figure,
 };
 use coincube_ui::{
     component::{amount::*, text::*},
@@ -32,8 +33,8 @@ use iced::{
 use crate::app::settings::display::DisplayMode;
 use crate::app::state::spark::overview::SparkBalanceSnapshot;
 use crate::app::view::shared::landing::{
-    amount_cell, landing_balance_section, landing_button, landing_card_style, landing_control_id,
-    AmountCell, AmountTier,
+    amount_cell, landing_balance_section, landing_card_style, landing_control_id, AmountCell,
+    AmountTier,
 };
 use crate::app::view::spark::settings::lightning_address::LN_ADDRESS_DOMAIN;
 use crate::app::view::vault::fiat::FiatAmount;
@@ -524,25 +525,17 @@ fn connected_view<'a>(
     let usdb_units = usdb_balance.map_or(0, |sb| sb.balance);
     let send_receive = |asset: &str, send: SparkOverviewMessage, receive: SparkOverviewMessage| {
         vec![
-            landing_button(
-                landing_control_id(cube_id, "Spark", &format!("send-{asset}")),
-                "Send",
-                None,
-                SparkOverviewMessage::FocusAction,
-                Some(send),
-                theme::button::primary,
-            )
-            .width(Length::Fixed(90.0))
-            .into(),
-            landing_button(
+            receive_action(
                 landing_control_id(cube_id, "Spark", &format!("receive-{asset}")),
-                "Receive",
-                None,
                 SparkOverviewMessage::FocusAction,
                 Some(receive),
-                theme::button::orange_outline,
             )
-            .width(Length::Fixed(90.0))
+            .into(),
+            send_action(
+                landing_control_id(cube_id, "Spark", &format!("send-{asset}")),
+                SparkOverviewMessage::FocusAction,
+                Some(send),
+            )
             .into(),
         ]
     };
