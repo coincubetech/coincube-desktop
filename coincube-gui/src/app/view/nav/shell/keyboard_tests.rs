@@ -1819,8 +1819,9 @@ async fn region_dividers_are_the_quiet_rule_and_the_sidebar_has_no_inner_rules()
             let case = format!("{:?} {}x{}", mode, width, height);
 
             // Under the top bar: its column is the bar, then the rule, which
-            // paints over the bar's rail fill as a CSS border does.
-            let bar = &node.children()[0];
+            // paints over the bar's rail fill as a CSS border does. Both sit
+            // in the container a dialog's scrim leaves undimmed (S1).
+            let bar = &node.children()[0].children()[0].children()[0];
             let top_rule = bar.children()[1].bounds();
             assert_eq!(top_rule.height, 1.0, "{}", case);
             for x in [width / 2, width - 8] {
