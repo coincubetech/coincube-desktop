@@ -606,6 +606,20 @@ pub(crate) mod capture {
                 .unwrap_or_else(|| panic!("no focusable {:?}", id))
         }
 
+        /// Writes the frame to `$<var>/<name>.png` when `var` is set, for
+        /// looking at a drawn check against its board.
+        pub fn save_if(&self, var: &str, name: &str) {
+            let Ok(directory) = std::env::var(var) else {
+                return;
+            };
+            std::fs::create_dir_all(&directory).unwrap();
+            let height = self.rgba.len() as u32 / 4 / self.width;
+            image::RgbaImage::from_raw(self.width, height, self.rgba.clone())
+                .expect("frame size")
+                .save(std::path::Path::new(&directory).join(format!("{}.png", name)))
+                .unwrap();
+        }
+
         pub fn at(&self, x: u32, y: u32) -> iced::Color {
             let i = (y * self.width + x) as usize * 4;
             iced::Color::from_rgb8(self.rgba[i], self.rgba[i + 1], self.rgba[i + 2])
