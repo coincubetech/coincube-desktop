@@ -182,14 +182,18 @@ pub(crate) fn network_control<'a, M: Clone + 'static>(
     );
     FocusableAction::new(Id::new(NETWORK_CONTROL_ID), chip, focus)
         .padding([6, 10])
+        // A dropdown in content (`.mx-chip`): the ink outline, and the light
+        // fill while hovered or while its menu is open.
         .style(move |theme: &theme::Theme, status| {
-            let mut style = theme::button::transparent(theme, status);
-            if open {
-                style.background = Some(iced::Background::Color(theme.colors.shell.selected));
-            }
-            style.text_color = theme.colors.shell.ink;
-            style.border.radius = 8.0.into();
-            style
+            theme::tenshu::button::outline(
+                theme,
+                status,
+                if open {
+                    theme::tenshu::button::OutlineState::Open
+                } else {
+                    theme::tenshu::button::OutlineState::Rest
+                },
+            )
         })
         .on_press_maybe(toggle)
         .into()
@@ -602,4 +606,64 @@ pub(crate) async fn rendered_labels<M>(element: Element<'_, M>) -> Vec<String> {
         .as_widget_mut()
         .operate(&mut tree, Layout::new(&node), &renderer, &mut labels);
     labels.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::app::view::shared::landing::capture;
+
+    #[derive(Debug, Clone)]
+    enum Probe {
+        Toggle,
+        Focus,
+    }
+
+    fn near(a: iced::Color, b: iced::Color) -> bool {
+        (a.r - b.r).abs() < 0.05 && (a.g - b.g).abs() < 0.05 && (a.b - b.b).abs() < 0.05
+    }
+
+    /// Drawn: the wizards' network dropdown is a content button with a 1px ink
+    /// edge, closed or open, in both themes; open, it keeps the light fill.
+    #[test]
+    fn network_dropdown_draws_an_ink_edge() {
+        for (light, theme) in [(false, theme::Theme::dark()), (true, theme::Theme::light())] {
+            let shell = theme.colors.shell;
+            for open in [false, true] {
+                let control: Element<'_, Probe> = iced::widget::Container::new(network_control(
+                    ChainId::Bitcoin,
+                    light,
+                    Some(Probe::Toggle),
+                    open,
+                    |_| Probe::Focus,
+                ))
+                .padding(12)
+                .into();
+                let pixels = capture::render_pixels(control, (420, 80), &theme, None);
+                let b = pixels.bounds(&Id::new(NETWORK_CONTROL_ID));
+                let (x, y) = (b.x as u32, (b.y + b.height / 2.0) as u32);
+                assert!(
+                    near(pixels.at(x, y), shell.ink),
+                    "light {} open {}: edge {:?}",
+                    light,
+                    open,
+                    pixels.at(x, y)
+                );
+                let inside = pixels.at(x + 4, y);
+                let fill = if open {
+                    theme::tenshu::over(shell.panel, shell.hover)
+                } else {
+                    shell.panel
+                };
+                assert!(
+                    near(inside, fill),
+                    "light {} open {}: inside {:?}, want {:?}",
+                    light,
+                    open,
+                    inside,
+                    fill
+                );
+            }
+        }
+    }
 }

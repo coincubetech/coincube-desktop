@@ -402,25 +402,10 @@ fn quiet_action<'a>(
     .into()
 }
 
+/// A content button: the button rule's 1px ink outline, ink text and the
+/// light fill on hover (`theme::button::secondary`).
 fn quiet_button_style(theme: &theme::Theme, status: ButtonStatus) -> ButtonStyle {
-    let shell = &theme.colors.shell;
-    ButtonStyle {
-        background: Some(Background::Color(match status {
-            ButtonStatus::Hovered | ButtonStatus::Pressed => shell.hover,
-            _ => shell.panel,
-        })),
-        text_color: if matches!(status, ButtonStatus::Disabled) {
-            shell.muted
-        } else {
-            shell.ink
-        },
-        border: Border {
-            color: shell.line,
-            width: 1.0,
-            radius: 8.0.into(),
-        },
-        ..Default::default()
-    }
+    theme::button::secondary(theme, status)
 }
 
 /// The footer's primary action. It only dispatches `Generate` when the draft
@@ -1730,6 +1715,40 @@ fn spend_compose_heading<'a>(
 mod tests {
     use super::*;
     use crate::app::menu::VaultSubMenu;
+
+    /// Drawn: Add recipient, Back and Clear are content buttons with a 1px
+    /// ink edge and no panel fill, in both themes.
+    #[test]
+    fn quiet_actions_draw_the_content_outline() {
+        use crate::app::view::shared::landing::capture;
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let shell = theme.colors.shell;
+            let back: Element<'_, Message> = Container::new(quiet_action(
+                "spend.test.back",
+                None,
+                "Back",
+                Message::CreateSpend(CreateSpendMessage::Clear),
+            ))
+            .padding(12)
+            .into();
+            let pixels = capture::render_pixels(back, (200, 60), &theme, None);
+            let b = pixels.bounds(&iced::advanced::widget::Id::new("spend.test.back"));
+            let (x, y) = (b.x as u32, (b.y + b.height / 2.0) as u32);
+            let near = |a: iced::Color, b: iced::Color| {
+                (a.r - b.r).abs() < 0.05 && (a.g - b.g).abs() < 0.05 && (a.b - b.b).abs() < 0.05
+            };
+            assert!(
+                near(pixels.at(x, y), shell.ink),
+                "edge {:?}",
+                pixels.at(x, y)
+            );
+            assert!(
+                near(pixels.at(x + 3, y), shell.panel),
+                "fill {:?}",
+                pixels.at(x + 3, y)
+            );
+        }
+    }
     use crate::{
         app::cache::FiatPriceRequest,
         services::fiat::{Currency, PriceSource},

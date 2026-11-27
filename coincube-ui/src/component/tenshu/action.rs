@@ -218,6 +218,36 @@ pub fn icon_action<'a, M: Clone + 'static>(
         .into()
 }
 
+/// A round icon-only button in page content, such as Swap's reverse arrows
+/// (`.flip`): the content rule's 1px ink outline around an ink glyph, with
+/// the light fill on hover. The heading eye stays [`icon_action`], which has
+/// no box.
+pub fn outline_icon_action<'a, M: Clone + 'static>(
+    id: impl Into<Id>,
+    glyph: Text<'a>,
+    focus_intent: fn(Id) -> M,
+    on_press: Option<M>,
+) -> Element<'a, M> {
+    const SIZE: f32 = 36.0;
+    let content = Container::new(glyph.size(size::ICON))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_x(alignment::Horizontal::Center)
+        .align_y(alignment::Vertical::Center);
+    Action::new(id, content, focus_intent)
+        .style(|theme, status| {
+            let mut style = style::outline(theme, status, style::OutlineState::Rest);
+            style.border.radius = (SIZE / 2.0).into();
+            style
+        })
+        .width(Length::Fixed(SIZE))
+        .height(Length::Fixed(SIZE))
+        .padding(0.0)
+        .focus_radius(SIZE / 2.0)
+        .on_press_maybe(on_press)
+        .into()
+}
+
 /// The Overview's Transfer action: a secondary pill with the transfer glyph.
 pub fn transfer_action<'a, M: Clone + 'static>(
     id: impl Into<Id>,

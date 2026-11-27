@@ -148,6 +148,52 @@ fn fill_for_pointer(
     }
 }
 
+/// Where a content control built on [`outline`] stands.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OutlineState {
+    /// At rest: the ink outline alone.
+    Rest,
+    /// A dropdown whose menu is open (`[aria-expanded="true"]`): it keeps
+    /// the hover fill.
+    Open,
+    /// A filter chip that is on (`.tg[aria-pressed="true"]`): the selected
+    /// fill under the same ink outline.
+    On,
+}
+
+/// Content dropdowns, filter chips and small icon or text buttons
+/// (`.mx-chip`, `.netchip`, `.flip`, `.nmax`, `.tg` in `cc-buttons v1`): a 1px
+/// ink outline, ink text and radius 8 with no fill at rest. Hover and an open
+/// menu add the light fill, a chip that is on takes the selected fill, and
+/// the outline stays ink throughout. Disabled fades to `DISABLED_ALPHA`.
+pub fn outline(theme: &Theme, status: Status, state: OutlineState) -> Style {
+    let shell = &theme.colors.shell;
+    let pointer = matches!(status, Status::Hovered | Status::Pressed);
+    let fill = match (state, pointer) {
+        (OutlineState::On, true) => Some(over(shell.selected, shell.hover)),
+        (OutlineState::On, false) => Some(shell.selected),
+        (OutlineState::Open, _) | (OutlineState::Rest, true) => Some(shell.hover),
+        (OutlineState::Rest, false) => None,
+    };
+    let fade = |color: Color| {
+        if status == Status::Disabled {
+            faded(color, DISABLED_ALPHA)
+        } else {
+            color
+        }
+    };
+    Style {
+        background: fill.map(|color| Background::Color(fade(color))),
+        text_color: fade(shell.ink),
+        border: Border {
+            color: fade(shell.ink),
+            width: 1.0,
+            radius: radius::CONTROL.into(),
+        },
+        ..Style::default()
+    }
+}
+
 /// Two hover layers over an unknown surface, kept translucent.
 fn stacked(hover: Color) -> Color {
     let alpha = 1.0 - (1.0 - hover.a) * (1.0 - hover.a);
@@ -220,6 +266,46 @@ mod tests {
                 assert_eq!(fill(&off).unwrap().a, DISABLED_ALPHA, "{name} {shape:?}");
                 assert_eq!(off.text_color.a, DISABLED_ALPHA, "{name} {shape:?}");
             }
+        }
+    }
+
+    /// Content dropdowns and filter chips: ink outline in every state; the
+    /// fill says whether the pointer is over it, its menu is open, or it is on.
+    #[test]
+    fn content_controls_keep_the_ink_outline_in_every_state() {
+        for (name, theme) in themes() {
+            let shell = theme.colors.shell;
+            for state in [OutlineState::Rest, OutlineState::Open, OutlineState::On] {
+                for status in [Status::Active, Status::Hovered, Status::Pressed] {
+                    let style = outline(&theme, status, state);
+                    assert_eq!(style.border.width, 1.0, "{name} {state:?} {status:?}");
+                    assert_eq!(style.border.color, shell.ink, "{name} {state:?} {status:?}");
+                    assert_eq!(style.border.radius.top_left, 8.0, "{name} {state:?}");
+                    assert_eq!(style.text_color, shell.ink, "{name} {state:?} {status:?}");
+                }
+            }
+            assert_eq!(
+                fill(&outline(&theme, Status::Active, OutlineState::Rest)),
+                None
+            );
+            assert_eq!(
+                fill(&outline(&theme, Status::Hovered, OutlineState::Rest)),
+                Some(shell.hover),
+                "{name}"
+            );
+            assert_eq!(
+                fill(&outline(&theme, Status::Active, OutlineState::Open)),
+                Some(shell.hover),
+                "{name}"
+            );
+            assert_eq!(
+                fill(&outline(&theme, Status::Active, OutlineState::On)),
+                Some(shell.selected),
+                "{name}"
+            );
+            let off = outline(&theme, Status::Disabled, OutlineState::Rest);
+            assert_eq!(off.border.color.a, DISABLED_ALPHA, "{name}");
+            assert_eq!(off.text_color.a, DISABLED_ALPHA, "{name}");
         }
     }
 
