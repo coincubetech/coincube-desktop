@@ -151,7 +151,8 @@ pub fn path(
             }),
     )
     .padding(10)
-    .style(theme::card::border)
+    // The path frame holds panel-filled key cards, so it keeps its outline (R4).
+    .style(theme::card::outlined)
     .into()
 }
 

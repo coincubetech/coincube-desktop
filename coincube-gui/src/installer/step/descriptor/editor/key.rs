@@ -1780,7 +1780,8 @@ impl SelectKeySource {
         )
         .width(Length::Fill)
         .padding(25)
-        .style(theme::card::border);
+        // Inside a modal whose fill differs by theme: keeps its outline (R4).
+        .style(theme::card::outlined);
 
         // Reuse the existing detected-devices rendering. Gated on `hws`
         // alone: this screen no longer carries the "Already used sources"
