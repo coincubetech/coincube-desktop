@@ -48,7 +48,7 @@ use tokio::runtime::Handle;
 use tracing::{error, info, warn};
 
 pub use coincube_core::miniscript::bitcoin;
-use coincube_ui::{component::network_banner, widget::Element};
+use coincube_ui::{component::network_banner, theme::notification::ToastTone, widget::Element};
 pub use coincubed::{
     commands::CoinStatus,
     config::{BitcoindRpcAuth, Config as DaemonConfig},
@@ -736,10 +736,11 @@ pub struct App {
     /// unoptimised builds give every temporary its own stack slot, so the
     /// function's frame alone approached the 2 MiB test-thread stack.
     panels: Box<Panels>,
-    /// Toasts, oldest first: id, expiry deadline, level, content. The
+    /// Toasts, oldest first: id, expiry deadline, tone, content. The
     /// deadline is set only while the toast is on screen (see
-    /// `arm_toast_timers`).
-    errors: Vec<(usize, Option<std::time::Instant>, log::Level, ToastContent)>,
+    /// `arm_toast_timers`). The tone is kept rather than a `log::Level`, so a
+    /// success can show as one (there is no success level in `log`).
+    errors: Vec<(usize, Option<std::time::Instant>, ToastTone, ToastContent)>,
     current_error_id: usize,
     /// True while a check_bitcoind_sync_progress probe is in flight; prevents
     /// multiple concurrent RPC calls from piling up across subscription ticks.
@@ -9022,15 +9023,14 @@ impl App {
             Message::View(view::Message::CopyWithToast(text, notice)) => {
                 return clipboard::write(text.clone()).chain(clipboard::read().map(
                     move |copied| {
-                        let (level, message) = if copied.as_deref() == Some(text.as_str()) {
-                            (log::Level::Info, notice.clone())
+                        if copied.as_deref() == Some(text.as_str()) {
+                            Message::View(view::Message::ShowSuccess(notice.clone()))
                         } else {
-                            (
+                            Message::View(view::Message::ShowToast(
                                 log::Level::Error,
                                 "Could not copy to clipboard. Please try again.".to_string(),
-                            )
-                        };
-                        Message::View(view::Message::ShowToast(level, message))
+                            ))
+                        }
                     },
                 ));
             }
@@ -9064,21 +9064,21 @@ impl App {
                 )));
             }
             Message::View(view::Message::ShowSuccess(msg)) => {
-                return self.update_dispatch(Message::View(view::Message::ShowToast(
-                    log::Level::Info,
-                    msg,
-                )));
+                return self.push_toast(ToastTone::Success, msg);
             }
             Message::View(view::Message::ShowToast(level, msg)) => {
-                // Show toast with specified level
-                self.errors
-                    .push((self.current_error_id, None, level, ToastContent::Text(msg)));
-                self.current_error_id += 1;
-                return self.arm_toast_timers();
+                return self.push_toast(level.into(), msg);
             }
             _ => {}
         }
         Task::none()
+    }
+
+    fn push_toast(&mut self, tone: ToastTone, msg: String) -> Task<Message> {
+        self.errors
+            .push((self.current_error_id, None, tone, ToastContent::Text(msg)));
+        self.current_error_id += 1;
+        self.arm_toast_timers()
     }
 
     fn route_node_observation(&mut self, message: Message) -> Task<Message> {
@@ -10419,12 +10419,12 @@ impl App {
         Task::batch(timers)
     }
 
-    fn displayed_toasts(&self) -> impl Iterator<Item = (usize, log::Level, String)> + '_ {
+    fn displayed_toasts(&self) -> impl Iterator<Item = (usize, ToastTone, String)> + '_ {
         let masked = self.cache.balance_amounts_masked();
         let unit = self.cache.bitcoin_unit;
         self.errors
             .iter()
-            .map(move |(id, _, level, content)| (*id, *level, content.display(unit, masked)))
+            .map(move |(id, _, tone, content)| (*id, *tone, content.display(unit, masked)))
     }
 
     fn active_panel_view(&self) -> Element<'_, view::Message> {
@@ -17811,6 +17811,39 @@ mod toast_timer_tests {
     fn make_due(app: &mut super::App, id: usize) {
         let toast = app.errors.iter_mut().find(|(i, ..)| *i == id).unwrap();
         toast.1 = Some(Instant::now() - Duration::from_millis(1));
+    }
+
+    /// A success shows as a success (green), not as information. Before this,
+    /// `ShowSuccess` was routed through `log::Level::Info`, which has no
+    /// success level, so the success tone could never be reached.
+    #[test]
+    fn each_kind_of_toast_keeps_its_tone() {
+        use coincube_ui::theme::notification::ToastTone;
+        let _guard = crate::app::session::test_guard();
+        let root = std::env::temp_dir().join(format!("toast-tones-{}", uuid::Uuid::new_v4()));
+        let (mut app, _) = super::shell_tests::bitcoin_app(&root);
+        app.errors.clear();
+        for message in [
+            super::view::Message::ShowSuccess("Address copied".into()),
+            super::view::Message::ShowToast(log::Level::Info, "Syncing".into()),
+            super::view::Message::ShowToast(log::Level::Warn, "Slow node".into()),
+            super::view::Message::ShowError("Payment failed".into()),
+        ] {
+            drop(app.update(super::Message::View(message)));
+        }
+        let tones: Vec<ToastTone> = app.errors.iter().map(|(_, _, tone, _)| *tone).collect();
+        assert_eq!(
+            tones,
+            [
+                ToastTone::Success,
+                ToastTone::Info,
+                ToastTone::Warning,
+                ToastTone::Error
+            ]
+        );
+        // The overlay gets the same tones it draws with.
+        let drawn: Vec<ToastTone> = app.displayed_toasts().map(|(_, tone, _)| tone).collect();
+        assert_eq!(drawn, tones);
     }
 
     /// Only shown toasts run their clock, so a burst past the cap can't
