@@ -2,6 +2,17 @@
 
 We distribute the application as a zipped [MacOS app bundle](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW5).
 
+## App icon (light and dark)
+
+macOS 26 shows a light, dark or tinted app icon to match the person's icon style (System
+Settings → Appearance), but only from an Icon Composer file compiled into `Assets.car`; an
+`.icns` or an asset catalog with dark variants gives one icon. [`appicon/`](appicon/) holds the
+compiled `Assets.car` and actool's `AppIcon.icns` (the fallback for older macOS). Both come from
+`design/icons/app/build_icons.py --install-desktop`, which writes the Icon Composer file and
+compiles it with Xcode 26's `actool`; they are committed so CI needs no Xcode 26. The release
+copies them into `Contents/Resources/` and sets `CFBundleIconName` and `CFBundleIconFile` to
+`AppIcon`. `Assets.car` is not byte-reproducible (actool stamps it); `AppIcon.icns` is.
+
 ## Bundle identity and entitlements
 
 | | |
