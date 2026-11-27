@@ -4962,7 +4962,14 @@ mod tests {
                         },
                         palette.with_worldview(mode),
                     );
-                    assert_eq!(shown.images, Some(1), "only the line Cube, no artwork");
+                    assert_eq!(
+                        shown.drawn_images(),
+                        capture::DrawnImages {
+                            raster: 0,
+                            vector: 1
+                        },
+                        "only the line Cube, no artwork"
+                    );
                     assert!(shown.contains(&quote.text));
                     let status = render_in(language, || Stage::Spark.text());
                     assert!(shown.contains(status));
