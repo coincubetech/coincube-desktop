@@ -1,8 +1,9 @@
 //! Desktop V3 Phase 1 (V6): the screens that used to draw Worldview artwork
-//! now show text only. Each is mounted in every worldview, both themes and
-//! both languages (invariant R8): the quote stays (R7), the worldview's
-//! wording stays (R2), and nothing else replaces the picture: every screen
-//! is drawn with the software renderer and must queue no image or SVG.
+//! now show text and the Opening brand mark only. Each is mounted in every
+//! worldview, both themes and both languages (invariant R8): the quote stays (R7), the worldview's
+//! wording stays (R2). Every screen is drawn with the software renderer:
+//! Opening keeps exactly its line-Cube SVG (R9), and the other screens
+//! must queue no image or SVG.
 
 use coincube_ui::component::{
     amount::BitcoinDisplayUnit,
@@ -38,7 +39,7 @@ fn fixture_quote(id: &str) -> Quote {
 }
 
 #[test]
-fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
+fn quote_screens_keep_only_the_opening_brand_in_every_worldview_theme_and_language() {
     let loading = fixture_quote("loading");
     let empty = fixture_quote("empty");
     let error = fixture_quote("error");
@@ -78,7 +79,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 assert!(opened.contains("— Author, Source"));
                 // The Opening rail above the stage draws the brand mark and
                 // the network coin, which are not artwork (R9); the loading
-                // stage under it draws no picture.
+                // stage under it keeps only the line Cube (R9), never artwork.
                 let stage = capture::inspect_rendered_filled(
                     &scenario("opening-stage"),
                     render_in(language, || {
@@ -95,7 +96,12 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                     "{}",
                     scenario("opening-stage")
                 );
-                assert!(stage.draws_no_image(), "{}", scenario("opening-stage"));
+                assert_eq!(
+                    stage.images,
+                    Some(1),
+                    "{}: only the line Cube",
+                    scenario("opening-stage")
+                );
 
                 let failed = capture::inspect_rendered_filled(
                     &scenario("startup-error"),
@@ -110,7 +116,12 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 assert!(failed.contains(headline), "{}", scenario("startup-error"));
                 assert!(failed.contains(&error.text));
                 assert!(failed.contains("Fixture startup error"));
-                assert!(failed.draws_no_image(), "{}", scenario("startup-error"));
+                assert_eq!(
+                    failed.images,
+                    Some(1),
+                    "{}: only the line Cube",
+                    scenario("startup-error")
+                );
 
                 let history = capture::inspect_rendered_full_window(
                     &scenario("empty-history"),

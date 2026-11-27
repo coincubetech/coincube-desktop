@@ -44,6 +44,11 @@ pub const APP_PREFERENCES: &str = "App preferences";
 
 /// `.brand`'s cube.
 pub const CUBE: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
+/// The same Cube with the lighter line the brand brief (2026-11-26, section
+/// 3) gives it from 48 to 128 px.
+const CUBE_DISPLAY: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
+/// And with the line it takes above 128 px.
+const CUBE_HERO: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="0.75" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
 /// The eye while balances are shown.
 pub const EYE_OPEN: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>"##;
 /// The eye while balances are hidden or not yet known.
@@ -157,6 +162,24 @@ fn mark<'a, M: 'a>(
             color: Some(colour(theme)),
         })
         .into()
+}
+
+/// The line Cube alone, `side` square, in the shell's ink at `opacity`: the
+/// Opening's mark, where the ink artwork used to be. Its line lightens as it
+/// grows, so it never reads heavier than the bar's 20 px Cube.
+pub fn display_cube<'a, M: 'a>(side: f32, opacity: f32) -> Element<'a, M> {
+    mark(display_cube_source(side), side, move |theme| {
+        theme.colors.shell.ink.scale_alpha(opacity)
+    })
+}
+
+/// 1 unit of line up to 128 px, 0.75 above.
+fn display_cube_source(side: f32) -> &'static str {
+    if side > 128.0 {
+        CUBE_HERO
+    } else {
+        CUBE_DISPLAY
+    }
 }
 
 fn ink(theme: &Theme, muted: bool) -> Color {
@@ -539,6 +562,22 @@ impl<'a, M: 'a> From<AccessibleLabel<'a, M>> for Element<'a, M> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The Opening's Cube is the bar's drawing with a lighter line as it
+    /// grows: 1 unit up to 128 px, 0.75 above (brand brief, section 3).
+    #[test]
+    fn the_display_cube_is_the_bar_cube_with_a_lighter_line() {
+        let as_bar = |svg: &str, width: &str| {
+            svg.replace(
+                &format!(r#"stroke-width="{width}""#),
+                r#"stroke-width="1.5""#,
+            )
+        };
+        assert_eq!(as_bar(display_cube_source(96.0), "1"), CUBE);
+        assert_eq!(as_bar(display_cube_source(128.0), "1"), CUBE);
+        assert_eq!(as_bar(display_cube_source(160.0), "0.75"), CUBE);
+    }
+
     use crate::font;
     use iced::advanced::renderer::Headless;
     use iced::advanced::widget::operation::{focusable, Focusable, Outcome};

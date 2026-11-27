@@ -41,7 +41,7 @@ use iced::{Alignment, Length, Task};
 
 use coincube_ui::{
     component::{
-        quote_display::{self, Quote, QuoteDisplayProps},
+        quote_display::{self, Quote},
         text::{p1_regular, text},
     },
     theme,
@@ -482,9 +482,7 @@ impl PasskeyUnlock {
                     .spacing(20)
                     .align_x(Alignment::Center)
                     .push(Space::new().height(Length::Fill))
-                    .push(quote_display::display(&QuoteDisplayProps::new(
-                        &self.loading_quote,
-                    )))
+                    .push(crate::loader::cube_and_quote(&self.loading_quote))
                     .push(crate::loading::loading_indicator(None))
                     .push(text(CopyText::LoadingYourCube.get()).style(theme::text::secondary))
                     .push(Space::new().height(Length::Fill)),
@@ -613,6 +611,34 @@ mod tests {
         );
         assert!(shown.contains("Desbloquear con llave de acceso"));
         assert!(shown.contains("Se canceló la comprobación con Touch ID"));
+    }
+
+    #[test]
+    fn passkey_opening_keeps_the_line_cube_and_quote() {
+        use crate::app::view::shared::landing::capture;
+        use coincube_ui::locale::{render_in, Language};
+        for language in [Language::English, Language::Spanish] {
+            for palette in [theme::Theme::dark(), theme::Theme::light()] {
+                let mut screen = screen();
+                screen.phase = Phase::Opening;
+                let shown = capture::inspect_rendered_filled(
+                    "passkey-opening-brand",
+                    render_in(language, || screen.view_with_theme(palette.mode)),
+                    (1024, 768),
+                    if palette.mode == theme::palette::ThemeMode::Light {
+                        "light"
+                    } else {
+                        "dark"
+                    },
+                    palette,
+                );
+                assert_eq!(shown.images, Some(1), "only the line Cube, no artwork");
+                let quote = render_in(language, || screen.loading_quote.localized_text());
+                assert!(shown.contains(&quote));
+                let status = render_in(language, || CopyText::LoadingYourCube.get());
+                assert!(shown.contains(status));
+            }
+        }
     }
 
     /// Losing the session between a successful assertion and the wallet load
