@@ -13,7 +13,6 @@ use tokio::runtime::Handle;
 use tracing::{debug, error, info, warn};
 
 use coincube_core::miniscript::bitcoin;
-use iced::widget::image;
 
 use coincube_ui::{
     component::{
@@ -131,7 +130,6 @@ pub struct Loader {
     step: Step,
     quote_provider: QuoteProvider,
     current_quote: Quote,
-    current_image_handle: image::Handle,
 }
 
 pub enum Step {
@@ -430,7 +428,6 @@ impl Loader {
         } else {
             "loading"
         });
-        let current_image_handle = quote_display::image_handle_for_context("loading");
 
         (
             Loader {
@@ -459,7 +456,6 @@ impl Loader {
                 cube_encryption_key,
                 quote_provider,
                 current_quote,
-                current_image_handle,
             },
             task,
         )
@@ -498,7 +494,6 @@ impl Loader {
 
     fn set_quote_context(&mut self, context: &str) {
         self.current_quote = self.quote_provider.select(context);
-        self.current_image_handle = quote_display::image_handle_for_context(context);
     }
 
     fn is_first_esplora_scan(&self, wallet_settings: &WalletSettings) -> bool {
@@ -1034,7 +1029,6 @@ impl Loader {
             scene,
             &self.step,
             &self.current_quote,
-            &self.current_image_handle,
             !self.can_retry(),
         )
         .map(Message::View)
@@ -1347,18 +1341,13 @@ pub enum ViewMessage {
     SetupVault,
 }
 
-pub fn view<'a>(
-    step: &'a Step,
-    quote: &'a Quote,
-    image_handle: &'a image::Handle,
-) -> Element<'a, ViewMessage> {
-    view_with_retry(step, quote, image_handle, true)
+pub fn view<'a>(step: &'a Step, quote: &'a Quote) -> Element<'a, ViewMessage> {
+    view_with_retry(step, quote, true)
 }
 
 pub(crate) fn view_with_retry<'a>(
     step: &'a Step,
     quote: &'a Quote,
-    image_handle: &'a image::Handle,
     allow_retry: bool,
 ) -> Element<'a, ViewMessage> {
     match &step {
@@ -1368,11 +1357,7 @@ pub(crate) fn view_with_retry<'a>(
                 .width(Length::Fill)
                 .spacing(20)
                 .align_x(Alignment::Center)
-                .push(quote_display::display(&QuoteDisplayProps::new(
-                    "loading",
-                    quote,
-                    image_handle,
-                )))
+                .push(quote_display::display(&QuoteDisplayProps::new(quote)))
                 .push(crate::loading::loading_indicator(None))
                 .push(text(CopyText::StartingDaemon.get()).style(theme::text::secondary)),
         ),
@@ -1382,11 +1367,7 @@ pub(crate) fn view_with_retry<'a>(
                 .width(Length::Fill)
                 .spacing(10)
                 .align_x(Alignment::Center)
-                .push(quote_display::display(&QuoteDisplayProps::new(
-                    "syncing",
-                    quote,
-                    image_handle,
-                )))
+                .push(quote_display::display(&QuoteDisplayProps::new(quote)))
                 .push(crate::loading::loading_indicator(None))
                 .push(text(CopyText::ScanningTheBlockchain.get()).style(theme::text::secondary))
                 .push_maybe(
@@ -1402,11 +1383,7 @@ pub(crate) fn view_with_retry<'a>(
                 .width(Length::Fill)
                 .spacing(20)
                 .align_x(Alignment::Center)
-                .push(quote_display::display(&QuoteDisplayProps::new(
-                    "loading",
-                    quote,
-                    image_handle,
-                )))
+                .push(quote_display::display(&QuoteDisplayProps::new(quote)))
                 .push(crate::loading::loading_indicator(None))
                 .push(text(CopyText::ConnectingToDaemon.get()).style(theme::text::secondary)),
         ),
@@ -1420,11 +1397,7 @@ pub(crate) fn view_with_retry<'a>(
                 .width(Length::Fill)
                 .spacing(5)
                 .align_x(Alignment::Center)
-                .push(quote_display::display(&QuoteDisplayProps::new(
-                    "syncing",
-                    quote,
-                    image_handle,
-                )))
+                .push(quote_display::display(&QuoteDisplayProps::new(quote)))
                 .push(crate::loading::loading_indicator(None))
                 .push(
                     text(if *progress > 0.98 {
@@ -1460,11 +1433,7 @@ pub(crate) fn view_with_retry<'a>(
                     .spacing(20)
                     .width(Length::Fill)
                     .align_x(Alignment::Center)
-                    .push(quote_display::display(&QuoteDisplayProps::new(
-                        "error",
-                        quote,
-                        image_handle,
-                    )))
+                    .push(quote_display::display(&QuoteDisplayProps::new(quote)))
                     .push(text(headline))
                     .push({
                         let actions = Row::new().spacing(10).push(
@@ -2843,13 +2812,12 @@ mod tests {
         use crate::app::view::shared::landing::capture;
         let mut quote_provider = QuoteProvider::new();
         let quote = quote_provider.select("error");
-        let image = quote_display::image_handle_for_context("error");
         let label = CopyText::ResyncForkNodeChainData.get();
 
         let step = Step::Error(Box::new(pruned_revalidation_error()));
         let shown = capture::inspect(
             "loader-pruned-revalidation",
-            view(&step, &quote, &image),
+            view(&step, &quote),
             (1024, 768),
             "dark",
             theme::Theme::dark(),
@@ -2860,7 +2828,7 @@ mod tests {
         let step = Step::Error(Box::new(Error::Unexpected("other".into())));
         let shown = capture::inspect(
             "loader-other-error",
-            view(&step, &quote, &image),
+            view(&step, &quote),
             (1024, 768),
             "dark",
             theme::Theme::dark(),
@@ -2951,24 +2919,17 @@ mod tests {
     fn loader_standalone_views_cover_steps_and_error_copy() {
         let mut quote_provider = QuoteProvider::new();
         let quote = quote_provider.select("loading");
-        let image_handle = quote_display::image_handle_for_context("loading");
 
-        let _ = view(&Step::Connecting, &quote, &image_handle);
-        let _ = view(
-            &Step::StartingDaemon { progress: 0.5 },
-            &quote,
-            &image_handle,
-        );
-        let _ = view(&Step::FullScan { progress: 0.5 }, &quote, &image_handle);
+        let _ = view(&Step::Connecting, &quote);
+        let _ = view(&Step::StartingDaemon { progress: 0.5 }, &quote);
+        let _ = view(&Step::FullScan { progress: 0.5 }, &quote);
         let _ = view(
             &Step::Error(Box::new(Error::Config(ConfigError::FileNotFound))),
             &quote,
-            &image_handle,
         );
         let _ = view(
             &Step::Error(Box::new(Error::Daemon(DaemonError::NoAnswer))),
             &quote,
-            &image_handle,
         );
         let _ = cover::<ViewMessage, _>(
             Some(("warn", &Error::Unexpected("details".to_string()))),
@@ -2984,10 +2945,8 @@ mod tests {
 
         let mut quote_provider = QuoteProvider::new();
         let quote = quote_provider.select("loading");
-        let image = quote_display::image_handle_for_context("loading");
         let step = Step::FullScan { progress: 0.5 };
-        let rendered =
-            worldview_copy::render_in(WorldviewMode::Luke, || view(&step, &quote, &image));
+        let rendered = worldview_copy::render_in(WorldviewMode::Luke, || view(&step, &quote));
         let shown = capture::inspect(
             "worldview-voice-fallback-scan",
             rendered,

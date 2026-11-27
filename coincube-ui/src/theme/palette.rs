@@ -52,15 +52,6 @@ pub struct ShellPalette {
     /// canvas `color-mix(in srgb, var(--ink) 10%, transparent)`.
     pub rule: iced::Color,
     pub shadow: iced::Color,
-    /// Suitcoiner's accent (antique gold), for the worldview's own marks such
-    /// as the rule over the Overview voice line. See [`Theme::worldview_accent`].
-    ///
-    /// [`Theme::worldview_accent`]: crate::theme::Theme::worldview_accent
-    pub suitcoiner: iced::Color,
-    /// Luke's accent (oxblood). See [`Theme::worldview_accent`].
-    ///
-    /// [`Theme::worldview_accent`]: crate::theme::Theme::worldview_accent
-    pub luke: iced::Color,
 }
 
 impl ShellPalette {
@@ -83,8 +74,6 @@ impl ShellPalette {
             hover: iced::color!(0xf5f0e8, 0.06),
             rule: iced::color!(0xf5f0e8, 0.10),
             shadow: iced::color!(0x000000, 0.45),
-            suitcoiner: iced::color!(0xd9b968),
-            luke: iced::color!(0xe39a8f),
         }
     }
 
@@ -107,8 +96,6 @@ impl ShellPalette {
             hover: iced::color!(0x202020, 0.05),
             rule: iced::color!(0x202020, 0.10),
             shadow: iced::color!(0x3c280a, 0.18),
-            suitcoiner: iced::color!(0x7a5a12),
-            luke: iced::color!(0x8f2e1d),
         }
     }
 }

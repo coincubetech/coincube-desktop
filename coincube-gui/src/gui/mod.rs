@@ -4516,13 +4516,7 @@ impl GUI {
     }
 
     pub fn theme(&self) -> coincube_ui::theme::Theme {
-        let mode = self.worldview();
-        let theme = coincube_ui::theme::Theme::from_mode(self.theme_mode).with_worldview(mode);
-        if let Some(accepted) = self.preferences.accepted() {
-            theme.with_artwork(accepted.preferences.artwork.get(mode))
-        } else {
-            theme
-        }
+        coincube_ui::theme::Theme::from_mode(self.theme_mode).with_worldview(self.worldview())
     }
 }
 

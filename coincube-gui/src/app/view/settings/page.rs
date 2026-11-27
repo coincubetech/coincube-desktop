@@ -38,38 +38,20 @@ pub fn muted<'a>(content: impl Into<Cow<'a, str>>) -> Text<'a> {
     tenshu::caption(content.into()).size(13)
 }
 
-/// A compact illustrated step shared by backup authentication and Recovery Kit.
-/// The supporting image has a fixed slot so long instructions wrap beside it.
-pub fn illustrated_flow<'a, M: 'a>(
-    title: &'a str,
-    detail: &'a str,
-    art: iced::widget::image::Handle,
-    slot: coincube_ui::illustration::Slot,
-) -> Column<'a, M> {
+/// A compact step heading shared by backup authentication and Recovery Kit:
+/// the title and the line under it. Desktop V3 draws no spot illustration.
+pub fn flow_intro<'a, M: 'a>(title: &'a str, detail: &'a str) -> Column<'a, M> {
     Column::new()
         .width(Length::Fill)
         .max_width(640)
         .spacing(24)
         .push(Space::new().height(8))
         .push(
-            Row::new()
+            Column::new()
                 .width(Length::Fill)
-                .spacing(24)
-                .align_y(Alignment::Center)
-                .push(
-                    Column::new()
-                        .width(Length::Fill)
-                        .spacing(6)
-                        .push(tenshu::heading(title))
-                        .push(tenshu::body(detail).style(theme::tenshu::text::muted)),
-                )
-                .push(coincube_ui::illustration::image(
-                    Some(slot),
-                    art,
-                    Length::Fixed(88.0),
-                    Length::Fixed(88.0),
-                    iced::ContentFit::Contain,
-                )),
+                .spacing(6)
+                .push(tenshu::heading(title))
+                .push(tenshu::body(detail).style(theme::tenshu::text::muted)),
         )
 }
 
