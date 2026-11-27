@@ -48,7 +48,7 @@ A budget alert is useful but is **not** a spending cap.
 
 ## 2. GitHub environments and OIDC
 
-Create both environments in `coincubetech/coincube` **before** enabling federation.
+Create both environments in `coincubetech/coincube-desktop` **before** enabling federation.
 GitHub can otherwise auto-create an environment without the intended protections.
 
 | Environment | Deployment branch/tag policy | Required approval |
@@ -70,8 +70,15 @@ Add two federated credentials to the Entra app:
 |---|---|
 | Issuer | `https://token.actions.githubusercontent.com` |
 | Audience | `api://AzureADTokenExchange` |
-| Release subject | `repo:coincubetech/coincube:environment:windows-release-signing` |
-| Nightly subject | `repo:coincubetech/coincube:environment:windows-nightly-signing` |
+| Release subject | `repo:coincubetech@34013524/coincube-desktop@1472708662:environment:windows-release-signing` |
+| Nightly subject | `repo:coincubetech@34013524/coincube-desktop@1472708662:environment:windows-nightly-signing` |
+
+The repository was created after GitHub's July 2026 switch to immutable subject
+claims, so its tokens carry the owner and repository IDs, not just their names.
+Confirm the prefix before adding or rotating a credential:
+`gh api repos/coincubetech/coincube-desktop/actions/oidc/customization/sub`
+(`sub_claim_prefix`). A subject without the IDs never matches and the Azure
+login fails.
 
 Use exact subjects, not wildcard/repository-wide trust. Both credentials use the
 same certificate profile, within Basic's one-Public-Trust-profile allowance.
