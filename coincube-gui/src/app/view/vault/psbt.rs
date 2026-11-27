@@ -1760,7 +1760,7 @@ fn container_from_fg(
                 coincube_ui::widget::Text::new(fg.to_string()),
                 tooltip::Position::Bottom,
             )
-            .style(theme::card::simple),
+            .style(theme::card::tooltip),
         )
     } else {
         Container::new(text(fg.to_string()))
@@ -2805,7 +2805,8 @@ fn signing_path_card(path: SigningPath, action_scope: u64) -> Element<'static, M
 
     Container::new(col)
         .padding(10)
-        .style(theme::card::border)
+        // Inside the panel-filled sign modal; its key rows stay panel-filled on this inset (R4).
+        .style(theme::card::inset)
         .into()
 }
 

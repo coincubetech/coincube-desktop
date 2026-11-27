@@ -999,6 +999,74 @@ mod capture_tests {
         }
     }
 
+    /// The Vault page's three legacy boxes at once: the rescan prompt, the
+    /// node-sync notice and the protection strip (Desktop V3, V5: fill only).
+    /// Opt-in: `TOP_BAR_CAPTURE_DIR=<dir> cargo test -p coincube-gui --lib
+    /// legacy_boxes_capture_vault -- --ignored`.
+    #[test]
+    #[ignore = "writes PNG frames; needs a GPU adapter"]
+    fn legacy_boxes_capture_vault() {
+        use crate::app::state::preferences::BalancePrivacy;
+        use crate::app::view::nav::shell::capture_tests;
+        let Some(directory) = capture_tests::directory() else {
+            return;
+        };
+        let mut renderer = capture_tests::renderer();
+        let menu = Menu::Vault(VaultSubMenu::Overview);
+        let balance = bitcoin::Amount::from_sat(1_250_000);
+        let zero = bitcoin::Amount::ZERO;
+        let expiring = [bitcoin::OutPoint::null()];
+        for (appearance, palette) in capture_tests::themes() {
+            let mut cache = capture_tests::cache(appearance == "light", BalancePrivacy::Shown);
+            cache.has_vault = true;
+            let cache = &cache;
+            let (balance, zero, expiring) = (&balance, &zero, &expiring);
+            capture_tests::save_page_head_frames(
+                &mut renderer,
+                &directory,
+                "vault-boxes",
+                appearance,
+                &palette,
+                || {
+                    crate::app::view::dashboard_with_detail(
+                        &menu,
+                        cache,
+                        move || {
+                            crate::app::state::vault::overview::VaultOverview::page_head_for_tests(
+                                cache,
+                                Some(crate::app::view::global_home::WalletTransferEntry::Ready),
+                            )
+                        },
+                        move || {
+                            vault_overview_view(
+                                balance,
+                                zero,
+                                &Some(1_440),
+                                None,
+                                expiring,
+                                None,
+                                "synthetic-cube",
+                                crate::chain::ChainId::Bitcoin,
+                                &SyncStatus::Synced,
+                                true,
+                                false,
+                                BitcoinDisplayUnit::Sats,
+                                Some(0.42),
+                                Some(true),
+                                true,
+                                DisplayMode::BitcoinNative,
+                                false,
+                                1,
+                                None,
+                            )
+                        },
+                        || None,
+                    )
+                },
+            );
+        }
+    }
+
     #[test]
     fn hidden_overview_redacts_balance() {
         let balance = bitcoin::Amount::from_sat(12_345_678);

@@ -163,7 +163,7 @@ pub fn recovery_path_view<'a>(
                                             coincube_ui::widget::Text::new(fg.to_string()),
                                             tooltip::Position::Top,
                                         )
-                                        .style(theme::card::simple),
+                                        .style(theme::card::tooltip),
                                     )
                                 } else {
                                     Container::new(text(fg.to_string()))
