@@ -22,6 +22,22 @@ Precedence when sources disagree: on a screen the v175 delta touches, the v175
 plan and Robert's decisions on it come first (see "v175 delta" below); then
 review doc > artboard source > brief.
 
+## Desktop V3 Phase 2 (2026-11-27)
+
+Phase 1 shipped to `master` on 2026-11-27. Phase 2 brings the app the rest of the way to the prototype. The plan is `plans/desktop-v3-phase2/` in the company brain: slices W0–W8, and every decision in it is settled. The integration branch is `feature/desktop-v3-phase2`. The acceptance target is still canvas version 345, exported in `canvas/` and `screens/`.
+
+| Slice | What | Boards |
+| --- | --- | --- |
+| W1 | The button rule for the remaining legacy buttons: secondary restyled at the theme level, primary hover `#ff9a3f`, content dropdowns, filter chips, flip and Max | every `P-` board, `/* cc-buttons v1 */` |
+| Type scale | Page title 26, main amount 46 (`BalanceTier`), card amounts 26, section titles 20, 12.5 becomes 13, the PSBT 34 becomes 46 | `MV-Type-*`, `P-Overview` |
+| W2 | Launcher bar: one network menu, the count at the foot beside the page dots, no "hidden" and no "Clear filters" | `P-Launcher`, `W-LauncherBar` |
+| W3 | Notices in the toast anatomy, option D: warning and error panels washed 8% in their tone. The test-network tag beside the wordmark replaces the blue bar. The backup reminder is one line | `D4-Notices*`, `MV-Notices-Proposed`, `P-Overview` |
+| W4 | Toasts: title and detail, the D tint on warning and error, centred on the content | the `/* cc-toasts v1 */` layer |
+| W5 | Receive and Send tiles: no card, lists that lead with the method, stablecoins as one row per coin with network chips, and the tile reads "USDt on Tron" once one is picked | `P-Receive`, `P-Send`, `MV-Receive-*`, `MV-Send-*` |
+| W6 | One-line Cube switcher, page subtitles without the network, and the coin in the subtitle | `P-Overview`, `P-Settings` |
+| W7 | Line Cube icon and splash. Already landed or in progress in separate PRs (#9, #10, #24, #26, #29, #30, #32) | |
+| W8 | Acceptance walk | all |
+
 ## Desktop V3 Phase 1 delta (2026-11-25)
 
 On 2026-11-25 Robert reviewed Desktop against the COINCUBE Mobile V3 design and
