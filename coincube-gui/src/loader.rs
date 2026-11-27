@@ -17,7 +17,7 @@ use coincube_core::miniscript::bitcoin;
 use coincube_ui::{
     component::{
         button, notification,
-        quote_display::{self, Quote, QuoteProvider},
+        quote_display::{self, Quote, QuoteDisplayProps, QuoteProvider},
         text::{p2_regular, text},
     },
     theme,
@@ -1351,7 +1351,7 @@ pub(crate) fn opening_quote<'a, M: 'a>(quote: &'a Quote) -> Element<'a, M> {
     Container::new(
         Column::new()
             .align_x(Alignment::Center)
-            .push(quote_display::quote_block(quote)),
+            .push(quote_display::display(&QuoteDisplayProps::new(quote))),
     )
     .center_x(Length::Fill)
     .max_width(448)

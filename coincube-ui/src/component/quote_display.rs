@@ -219,15 +219,7 @@ impl<'a> QuoteDisplayProps<'a> {
 /// └─────────────────────────────┘
 /// ```
 pub fn display<'a, M: 'a>(props: &QuoteDisplayProps<'a>) -> Container<'a, M> {
-    Container::new(quote_block(props.quote))
-        .center_x(Length::Fill)
-        .max_width(448)
-}
-
-/// The quote and its attribution as [`display`] sets them, without the
-/// width cap, for a screen that puts the Cube above it.
-pub fn quote_block<'a, M: 'a>(quote: &'a Quote) -> Column<'a, M> {
-    let quote_text = iced::widget::text(quote.localized_text())
+    let quote_text = iced::widget::text(props.quote.localized_text())
         .size(P2_SIZE)
         .font(font::REGULAR)
         .style(theme::text::secondary)
@@ -241,7 +233,7 @@ pub fn quote_block<'a, M: 'a>(quote: &'a Quote) -> Column<'a, M> {
         .padding(24)
         .push(quote_text);
 
-    if let Some(attribution) = format_attribution(quote) {
+    if let Some(attribution) = format_attribution(props.quote) {
         let attr_text = iced::widget::text(attribution)
             .size(CAPTION_SIZE)
             .font(font::ITALIC)
@@ -253,7 +245,9 @@ pub fn quote_block<'a, M: 'a>(quote: &'a Quote) -> Column<'a, M> {
         quote_col = quote_col.push(attr_text);
     }
 
-    quote_col
+    Container::new(quote_col)
+        .center_x(Length::Fill)
+        .max_width(448)
 }
 
 /// Format the attribution line for a quote.

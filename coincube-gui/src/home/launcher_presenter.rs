@@ -4899,6 +4899,72 @@ mod tests {
     }
 
     #[test]
+    fn live_opening_body_shows_the_quote_and_status_without_a_picture() {
+        use super::super::launcher_opening::Stage;
+        use coincube_ui::locale::{render_in, Language};
+        let cube = crate::app::settings::CubeSettings::new_with_raw_id(
+            "fixture".into(),
+            "Everyday".into(),
+            ChainId::Bitcoin,
+        );
+        let quote = Quote {
+            id: "brand".into(),
+            text: "A stable opening quote".into(),
+            author: "Author".into(),
+            source: "Source".into(),
+            category: "loading".into(),
+            length: "short".into(),
+            contexts: Vec::new(),
+        };
+        for language in [Language::English, Language::Spanish] {
+            for palette in [theme::Theme::dark(), theme::Theme::light()] {
+                for mode in [
+                    theme::WorldviewMode::Samurai,
+                    theme::WorldviewMode::Suitcoiner,
+                    theme::WorldviewMode::Luke,
+                ] {
+                    let face = OpeningFace {
+                        cube: &cube,
+                        quote: &quote,
+                        outgoing: None,
+                        stage: Stage::Spark,
+                        stalled: false,
+                        cancel: || (),
+                        without_spark: || (),
+                    };
+                    let (_, body) = render_in(language, || {
+                        coincube_ui::worldview_copy::render_in(mode, || {
+                            opening_content(&face, false, 1.0, 520.0, [0.9, 0.25, 0.25])
+                        })
+                    });
+                    let shown = capture::inspect_rendered_filled(
+                        "live-opening-brand",
+                        body,
+                        (1024, 768),
+                        if palette.mode == theme::palette::ThemeMode::Light {
+                            "light"
+                        } else {
+                            "dark"
+                        },
+                        palette.with_worldview(mode),
+                    );
+                    assert_eq!(
+                        shown.drawn_images(),
+                        capture::DrawnImages {
+                            raster: 0,
+                            vector: 0
+                        },
+                        "the Cube loader shows the quote and no picture"
+                    );
+                    assert!(shown.contains(&quote.text));
+                    let status = render_in(language, || Stage::Spark.text());
+                    assert!(shown.contains(status));
+                }
+            }
+        }
+    }
+
+    #[test]
     fn live_opening_keeps_status_and_stall_actions_in_every_worldview() {
         use super::super::launcher_opening::{Opening, Stage};
         use coincube_ui::theme::WorldviewMode;
