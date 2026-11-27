@@ -1791,17 +1791,16 @@ fn vertical_rule<'a>() -> Element<'a, Message> {
         .into()
 }
 
-/// The sheet surface (`.sheet`): panel fill, 1px line, 12px radius and the
-/// drop shadow.
+/// The sheet surface (`.sheet`): panel fill, 12px radius and the drop
+/// shadow; it floats, so it has no outline (`.sheet{border:0}`).
 fn sheet_style(theme: &theme::Theme) -> container::Style {
     let shell = &theme.colors.shell;
     container::Style {
         text_color: Some(shell.ink),
         background: Some(iced::Background::Color(shell.panel)),
         border: iced::Border {
-            color: shell.line,
-            width: 1.0,
             radius: 12.0.into(),
+            ..Default::default()
         },
         shadow: iced::Shadow {
             color: shell.shadow,
@@ -1835,6 +1834,16 @@ mod tests {
         Layout,
     };
     use iced::{keyboard, mouse, Event, Rectangle, Size};
+
+    /// `.sheet{border:0}`: the sheet floats on its shadow, without an outline.
+    #[test]
+    fn the_sheet_has_a_shadow_and_no_outline() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let style = sheet_style(&theme);
+            assert_eq!(style.border.width, 0.0);
+            assert!(style.shadow.color.a > 0.0 && style.shadow.blur_radius > 0.0);
+        }
+    }
 
     fn renderer() -> iced::Renderer {
         for bytes in coincube_ui::font::load() {
