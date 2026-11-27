@@ -222,8 +222,8 @@ pub fn top_bar_with_privacy<'a>(
     }))
     .chip(connect)
     .into();
-    // `.top { border-bottom: 1px }`, under the bar as on the Launcher.
-    let mut bar = column![top, rule::horizontal(1)];
+    // The quiet rule under the bar, as on the Launcher.
+    let mut bar = column![top, bar::rule()];
     // The panel hangs from the control's trailing edge, clear of App
     // preferences, and covers the page rather than pushing it down.
     if ctx.connect.panel_open {
@@ -1034,21 +1034,19 @@ pub fn sidebar<'a>(menu: &Menu, ctx: &NavContext<'a>, state: ShellState) -> Elem
     middle = append_wallet_rows(middle, menu, ctx, settings_active);
     middle = append_marketplace_rows(middle, menu, ctx);
 
-    let foot = column![
-        rule::horizontal(1),
-        container(nav_row(
-            "Settings",
-            Some(NavIcon::Glyph(glyph::GEAR)),
-            settings_active,
-            Some(Message::Menu(Menu::Cube(CubeSubMenu::Settings(
-                CubeSettingsOption::General
-            )))),
-            false,
-            None
-        ))
-        .id("cube-sidebar-settings"),
-    ]
-    .spacing(8)
+    // No rule above Settings: the foot keeps its inset and Settings its place
+    // at the bottom; the middle group takes the 9px the line and its gap used.
+    let foot = column![container(nav_row(
+        "Settings",
+        Some(NavIcon::Glyph(glyph::GEAR)),
+        settings_active,
+        Some(Message::Menu(Menu::Cube(CubeSubMenu::Settings(
+            CubeSettingsOption::General
+        )))),
+        false,
+        None
+    ))
+    .id("cube-sidebar-settings"),]
     .padding([8, 10]);
 
     let mut sidebar: Column<Message> = Column::new()
@@ -1074,11 +1072,17 @@ pub fn sidebar<'a>(menu: &Menu, ctx: &NavContext<'a>, state: ShellState) -> Elem
         .push(scrollable(middle).id(MIDDLE_SCROLL_ID).height(Length::Fill))
         .push_maybe(state.backup_attention.then(backup_attention))
         .push(foot);
-    container(sidebar)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .style(theme::container::shell_rail)
-        .into()
+    // `.side { border-right: 1px solid var(--rule) }`: the rail's one edge,
+    // painted over the rail's fill as a CSS border is.
+    container(
+        row![sidebar, rule::vertical(1).style(theme::rule::quiet),]
+            .width(Length::Fill)
+            .height(Length::Fill),
+    )
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .style(theme::container::shell_sidebar)
+    .into()
 }
 
 /// What the runtime does with one event, for tests that drive the shell

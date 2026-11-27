@@ -1772,3 +1772,138 @@ fn a_blake2b_connect_panel_shows_the_account_and_live_updates() {
         }
     }
 }
+
+/// V3 V1, "the quiet rule": the rule under the top bar and the line beside the
+/// sidebar are `shell.rule` (ink at 10%), and the sidebar has no rule of its
+/// own under the Cube switcher or above Settings.
+#[tokio::test]
+async fn region_dividers_are_the_quiet_rule_and_the_sidebar_has_no_inner_rules() {
+    use super::capture_tests::assert_quiet_rule;
+    load_fonts();
+    for (mode, theme) in [
+        (
+            coincube_ui::theme::palette::ThemeMode::Dark,
+            theme::Theme::dark(),
+        ),
+        (
+            coincube_ui::theme::palette::ThemeMode::Light,
+            theme::Theme::light(),
+        ),
+    ] {
+        for (width, height) in [(1024u32, 768u32), (1440, 900)] {
+            let mut ctx = fixture_context();
+            ctx.theme_mode = mode;
+            let mut element = shell_tree(&ctx, ShellState::default());
+            let mut renderer = <iced::Renderer as Headless>::new(
+                coincube_ui::font::REGULAR,
+                iced::Pixels(14.0),
+                Some("tiny-skia"),
+            )
+            .await
+            .unwrap();
+            let mut tree = Tree::new(element.as_widget());
+            let size = Size::new(width as f32, height as f32);
+            let node = element.as_widget_mut().layout(
+                &mut tree,
+                &renderer,
+                &layout::Limits::new(Size::ZERO, size),
+            );
+            let targets = focus_snapshot(&mut element, &mut tree, &node, &renderer);
+            test_draw(&mut element, &mut tree, &node, &mut renderer, &theme, size);
+            let pixels =
+                renderer.screenshot(Size::new(width, height), 1.0, theme.colors.shell.background);
+            let at = |x: u32, y: u32| {
+                let i = ((y * width + x) * 4) as usize;
+                [pixels[i], pixels[i + 1], pixels[i + 2]]
+            };
+            let case = format!("{:?} {}x{}", mode, width, height);
+
+            // Under the top bar: its column is the bar, then the rule, which
+            // paints over the bar's rail fill as a CSS border does.
+            let bar = &node.children()[0];
+            let top_rule = bar.children()[1].bounds();
+            assert_eq!(top_rule.height, 1.0, "{}", case);
+            for x in [width / 2, width - 8] {
+                assert_quiet_rule(
+                    &pixels,
+                    width,
+                    (x, top_rule.y as u32),
+                    &theme,
+                    theme.colors.shell.rail,
+                    &format!("top bar rule, {}", case),
+                );
+            }
+
+            // Beside the sidebar: the rail's last column, full height, over
+            // the rail's own fill.
+            // Child nodes are placed relative to their parent.
+            let split = &node.children()[1];
+            let sidebar = split.children()[0].bounds() + Vector::new(0.0, split.bounds().y);
+            let edge = (sidebar.x + sidebar.width) as u32 - 1;
+            for y in [
+                sidebar.y as u32 + 1,
+                (sidebar.y + sidebar.height / 2.0) as u32,
+                height - 2,
+            ] {
+                assert_quiet_rule(
+                    &pixels,
+                    width,
+                    (edge, y),
+                    &theme,
+                    theme.colors.shell.rail,
+                    &format!("sidebar rule, {}", case),
+                );
+            }
+            // The rail itself has no outline: its first column is rail.
+            let rail = theme.colors.shell.rail;
+            let rail = [rail.r, rail.g, rail.b].map(|c| (c * 255.0).round() as u8);
+            let is_rail = |pixel: [u8; 3]| {
+                pixel
+                    .iter()
+                    .zip(rail)
+                    .all(|(actual, expected)| actual.abs_diff(expected) <= 2)
+            };
+            let left_edge = at(0, (sidebar.y + sidebar.height / 2.0) as u32);
+            assert!(
+                is_rail(left_edge),
+                "rail outline at x=0, {}: {:?}",
+                case,
+                left_edge
+            );
+
+            // No rule inside the sidebar: nothing but rail between the Cube
+            // switcher and Overview, or between the last row and Settings,
+            // down the rail's middle. Nothing is hovered or focused, so the
+            // rows themselves draw no fill there.
+            let switcher = bounds_of(&targets.bounds, CUBE_SWITCHER_ID);
+            let overview = bounds_of(&targets.bounds, "tenshu.shell.nav.Overview");
+            let settings = bounds_of(&targets.bounds, SETTINGS_ID);
+            let last_wallet = bounds_of(&targets.bounds, "tenshu.shell.nav.Vault");
+            let x = (sidebar.x + sidebar.width / 2.0) as u32;
+            for (gap, from, to) in [
+                (
+                    "under the Cube switcher",
+                    switcher.y + switcher.height,
+                    overview.y,
+                ),
+                (
+                    "above Settings",
+                    last_wallet.y + last_wallet.height,
+                    settings.y,
+                ),
+            ] {
+                assert!(from < to, "{}: no gap to check, {}", gap, case);
+                for y in from.ceil() as u32..to.floor() as u32 {
+                    assert!(
+                        is_rail(at(x, y)),
+                        "a rule {} at y={}, {}: {:?}",
+                        gap,
+                        y,
+                        case,
+                        at(x, y)
+                    );
+                }
+            }
+        }
+    }
+}
