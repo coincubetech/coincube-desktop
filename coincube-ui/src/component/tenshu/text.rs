@@ -16,7 +16,7 @@ fn base<'a>(content: impl IntoFragment<'a>, size: f32) -> Text<'a> {
         .line_height(LineHeight::Relative(type_size::LINE_HEIGHT))
 }
 
-/// Page title, 22px semibold (`.phead h1`).
+/// Page title, 26px semibold (`.phead h1`).
 pub fn title<'a>(content: impl IntoFragment<'a>) -> Text<'a> {
     base(content, type_size::TITLE)
         .font(font::SEMIBOLD)
