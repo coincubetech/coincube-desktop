@@ -356,7 +356,9 @@ fn title_text<'a>(title: &'static str) -> iced::widget::Text<'a, theme::Theme> {
 }
 
 /// The network menu, dropped under the header's network control: an
-/// undrawn copy of the title and divider puts it under the chip.
+/// undrawn copy of the title and divider puts it under the chip. It opens
+/// over the sheet, whose fill it shares, so it keeps its line border beside
+/// the shadow (`P-Restore` `.menu`; a box never sits on its own fill unseen).
 pub(crate) fn network_menu<'a, M: 'a>(title: &'static str, rows: Element<'a, M>) -> Element<'a, M> {
     let menu = Container::new(rows)
         .width(Length::Fixed(340.0))

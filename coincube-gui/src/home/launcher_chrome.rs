@@ -888,15 +888,16 @@ fn activity_status(home: &Home) -> String {
     }
 }
 
-/// A dock menu's panel: 10px radius, a line border and a deep shadow.
-fn menu_panel(theme: &theme::Theme) -> container::Style {
+/// A Launcher menu's panel: 10px radius and a deep shadow. It floats, so the
+/// fill and the shadow set it apart and it has no outline.
+pub(super) fn menu_panel(theme: &theme::Theme) -> container::Style {
     container::Style {
         background: Some(iced::Background::Color(theme.colors.shell.panel)),
         border: Border {
-            color: theme.colors.shell.line,
-            width: 1.0,
             radius: 10.0.into(),
+            ..Default::default()
         },
+        // `0 18px 40px -12px rgba(0,0,0,.5)`; Iced has no spread.
         shadow: iced::Shadow {
             color: Color::from_rgba(0.0, 0.0, 0.0, 0.35),
             offset: iced::Vector::new(0.0, 18.0),
@@ -1776,12 +1777,10 @@ fn brand_footprint<'a, M: 'a>() -> Element<'a, M> {
                 .width(Length::Fixed(20.0))
                 .height(Length::Fixed(20.0)),
         )
-        .push(
-            text("COINCUBE")
-                .size(top_bar::BRAND_WORD)
-                .font(font::SPACE_GROTESK_BOLD)
-                .color(Color::TRANSPARENT),
-        )
+        .push(coincube_ui::component::wordmark::wordmark_in(
+            top_bar::BRAND_WORD,
+            |_: &theme::Theme| Color::TRANSPARENT,
+        ))
         .into()
 }
 
@@ -1885,21 +1884,7 @@ pub(super) fn network_layer<'a>(
     let menu = Container::new(rows.push(note))
         .width(Length::Fixed(NETWORK_MENU_WIDTH))
         .padding(6)
-        .style(|theme: &theme::Theme| container::Style {
-            background: Some(iced::Background::Color(theme.colors.shell.panel)),
-            border: Border {
-                color: theme.colors.shell.line,
-                width: 1.0,
-                radius: 10.0.into(),
-            },
-            // `0 18px 40px -12px rgba(0,0,0,.5)`; Iced has no spread.
-            shadow: iced::Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.35),
-                offset: iced::Vector::new(0.0, 18.0),
-                blur_radius: 40.0,
-            },
-            ..Default::default()
-        });
+        .style(menu_panel);
     // `.menu { top: 40px }` from the chip, which sits 16px down the bar. An
     // undrawn copy of the brand and separator puts it under the chip.
     let placed = Column::new()
@@ -2214,6 +2199,20 @@ pub(crate) fn quiet_dock<'a, M: 'a>(chrome: &ChromeSnapshot) -> Element<'a, M> {
 #[cfg(test)]
 mod tests {
     use super::{count_text, KeyNetworks};
+
+    /// The Network, plan and activity menus float over the floor on a
+    /// shadow, so they have no outline.
+    #[test]
+    fn launcher_menus_have_a_shadow_and_no_outline() {
+        for theme in [
+            coincube_ui::theme::Theme::dark(),
+            coincube_ui::theme::Theme::light(),
+        ] {
+            let style = super::menu_panel(&theme);
+            assert_eq!(style.border.width, 0.0);
+            assert!(style.shadow.color.a > 0.0 && style.shadow.blur_radius > 0.0);
+        }
+    }
     use crate::chain::ChainId;
 
     #[test]
@@ -2502,7 +2501,14 @@ mod top_bar_tests {
         };
         let settings = at(&launcher_catalog::settings_id());
         assert_eq!((settings.width, settings.height), (32.0, 32.0));
-        assert_eq!(settings.x + settings.width, 1024.0 - super::GUTTER);
+        // The fill space left after the tracked wordmark's fractional glyph
+        // widths carries float rounding; a hundredth of a pixel is not drawn.
+        let right_edge = settings.x + settings.width;
+        assert!(
+            (right_edge - (1024.0 - super::GUTTER)).abs() < 0.01,
+            "App preferences ends at {}, not the gutter",
+            right_edge
+        );
         let labels: Vec<_> = live
             .text
             .iter()
@@ -2542,7 +2548,7 @@ mod top_bar_tests {
             .unwrap()
             .1;
         assert_eq!((label.width, label.height), (32.0, 32.0));
-        assert_eq!(label.x + label.width, 1024.0 - super::GUTTER);
+        assert!((label.x + label.width - (1024.0 - super::GUTTER)).abs() < 0.01);
         assert!(!quiet
             .text
             .iter()

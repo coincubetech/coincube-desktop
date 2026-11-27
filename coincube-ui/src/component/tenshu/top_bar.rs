@@ -17,7 +17,6 @@ use iced::advanced::{Clipboard, Shell};
 use iced::widget::{button, container, svg, text, tooltip, Space};
 use iced::{mouse, Alignment, Background, Border, Color, Event, Length, Rectangle, Size, Vector};
 
-use crate::font;
 use crate::theme::Theme;
 use crate::widget::action::Action;
 use crate::widget::{Container, Element, Renderer, Row};
@@ -177,16 +176,11 @@ fn brand_row<'a, M: 'a>(mark: Element<'a, M>, word: Element<'a, M>) -> Row<'a, M
         .push(word)
 }
 
-/// The brand word: "COINCUBE" in Space Grotesk Bold at [`BRAND_WORD`], in
-/// one ink that `color` picks per theme — the same ink as the cube beside it.
+/// The brand word: "COINCUBE" in Space Grotesk Bold at [`BRAND_WORD`],
+/// tracked 0.08em, in one ink that `color` picks per theme — the same ink as
+/// the cube beside it.
 fn brand_word<'a, M: 'a>(color: impl Fn(&Theme) -> Color + 'a) -> Element<'a, M> {
-    text("COINCUBE")
-        .size(BRAND_WORD)
-        .font(font::SPACE_GROTESK_BOLD)
-        .style(move |theme: &Theme| text::Style {
-            color: Some(color(theme)),
-        })
-        .into()
+    crate::component::wordmark::wordmark_in(BRAND_WORD, color).into()
 }
 
 /// `.brand` where it is not a control: the cube and the COINCUBE wordmark,
@@ -542,6 +536,7 @@ impl<'a, M: 'a> From<AccessibleLabel<'a, M>> for Element<'a, M> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::font;
     use iced::advanced::renderer::Headless;
     use iced::advanced::widget::operation::{focusable, Focusable, Outcome};
 
