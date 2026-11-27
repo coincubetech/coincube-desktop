@@ -264,8 +264,21 @@ fn top_bar_capture_cube() {
                 );
             }
         }
-        // Each control's focus ring, between its neighbours and the gutter.
+        // The same bar in Spanish, so long labels can be checked by eye.
         let cache = cache(light, BalancePrivacy::Shown);
+        for (width, height) in WINDOWS {
+            coincube_ui::locale::render_in(coincube_ui::locale::Language::Spanish, || {
+                save(
+                    &mut renderer,
+                    dashboard(&cache),
+                    Size::new(width, height),
+                    &palette,
+                    None,
+                    directory.join(format!("cube-{appearance}-shown-es-{width}x{height}.png")),
+                )
+            });
+        }
+        // Each control's focus ring, between its neighbours and the gutter.
         for (id, name) in [
             (super::LAUNCHER_RETURN_ID, "brand"),
             (super::BALANCE_PRIVACY_ID, "eye"),
@@ -329,6 +342,24 @@ fn side_panel_capture() {
                     )),
                 );
             }
+        }
+        // The side panel in Spanish, at the narrower window, where long
+        // labels have least room.
+        for (page, menu) in &pages {
+            coincube_ui::locale::render_in(coincube_ui::locale::Language::Spanish, || {
+                save(
+                    &mut renderer,
+                    crate::app::view::dashboard(
+                        menu,
+                        &cache,
+                        iced::widget::column![iced::widget::text("Synthetic page").size(24)],
+                    ),
+                    Size::new(1024.0, 768.0),
+                    &palette,
+                    None,
+                    directory.join(format!("side-panel-{appearance}-{page}-es-1024x768.png")),
+                )
+            });
         }
         let (_, send) = &pages[1];
         save(
