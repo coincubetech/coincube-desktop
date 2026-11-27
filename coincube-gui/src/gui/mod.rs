@@ -4471,11 +4471,13 @@ impl GUI {
                 let foreground = preferences_view::view(&sheet.page, self.preferences_view_model())
                     .map(Message::PreferencesSheet);
                 // P-AppPrefs keeps the Launcher's top bar above the sheet;
-                // over an open Cube (P-AppPrefs-InCube) the sheet covers it.
+                // over an open Cube (P-AppPrefs-InCube) the sheet covers it,
+                // except on a test network, whose tag must stay readable (S1).
                 return compose_overlay(
                     background,
                     foreground,
-                    matches!(sheet.origin.source, tab::PreferencesSource::Home),
+                    matches!(sheet.origin.source, tab::PreferencesSource::Home)
+                        || self.origin_on_test_network(&sheet.origin),
                 );
             }
         }
@@ -4485,11 +4487,14 @@ impl GUI {
                     let foreground = crate::app::view::connect::connect_sheet(account, sheet.page)
                         .map(Message::ConnectSheet);
                     // P-Connect keeps the Launcher's top bar above the sheet;
-                    // over an open Cube (P-Connect-InCube) the sheet covers it.
+                    // over an open Cube (P-Connect-InCube) the sheet covers
+                    // it, except on a test network, whose tag must stay
+                    // readable (S1).
                     return compose_overlay(
                         background,
                         foreground,
-                        matches!(sheet.origin.source, tab::PreferencesSource::Home),
+                        matches!(sheet.origin.source, tab::PreferencesSource::Home)
+                            || self.origin_on_test_network(&sheet.origin),
                     );
                 }
             }
@@ -4612,6 +4617,20 @@ impl GUI {
     /// Whether `origin` still names the same visible state. Lock, sign-out,
     /// deletion, duress or a replaced Cube change the visible tab or its App
     /// generation, so closing the overlay must not restore into it.
+    /// Whether the sheet's origin is a Cube open on a test network, whose
+    /// top bar carries the test-network tag.
+    fn origin_on_test_network(&self, origin: &OverlayOrigin) -> bool {
+        self.panes
+            .get(origin.pane)
+            .and_then(|pane| pane.tabs.iter().find(|tab| tab.id == origin.tab_id))
+            .is_some_and(|tab| match &tab.state {
+                tab::State::App(app) => {
+                    crate::chain::test_network_name(app.cube_settings().network).is_some()
+                }
+                _ => false,
+            })
+    }
+
     pub fn overlay_origin_is_current(&self, origin: &OverlayOrigin) -> bool {
         self.visible_pane()
             .filter(|(pane, _)| *pane == origin.pane)
@@ -4731,6 +4750,30 @@ mod connect_sheet_followup_tests;
 mod app_preferences_sheet_tests {
     use super::*;
     use crate::app::settings::preferences::{LauncherStyle, MotionPreference, PreferenceChange};
+
+    /// S1: over a Cube on a test network, the Preferences and Connect sheets
+    /// keep the top bar, and its test-network tag, above the sheet; over a
+    /// mainnet Cube they still cover it (P-AppPrefs-InCube).
+    #[test]
+    fn sheets_keep_the_top_bar_only_over_a_test_network_cube() {
+        let _guard = crate::app::session::test_guard();
+        let root = tempfile::tempdir().unwrap();
+        let (testnet, _) = crate::app::shell_tests::bitcoin_app_with_settings(
+            root.path(),
+            crate::app::settings::CubeSettings::new("Test".into(), crate::chain::ChainId::Testnet4),
+        );
+        let (mainnet, _) = crate::app::shell_tests::bitcoin_app(root.path());
+        let gui = GUI::reviewer_claim_gui(testnet, mainnet);
+        let pane = gui.focus.unwrap();
+        let origin = |tab_id| OverlayOrigin {
+            pane,
+            tab_id,
+            source: tab::PreferencesSource::App(0),
+            focus: None,
+        };
+        assert!(gui.origin_on_test_network(&origin(1)));
+        assert!(!gui.origin_on_test_network(&origin(2)));
+    }
 
     #[test]
     fn settings_restore_intent_stays_in_cube_without_opening_account_sheet() {
