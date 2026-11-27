@@ -9,7 +9,7 @@ Settings → Appearance), but only from an Icon Composer file compiled into `Ass
 `.icns` or an asset catalog with dark variants gives one icon. [`appicon/`](appicon/) holds the
 compiled `Assets.car` and actool's `AppIcon.icns` (the fallback for older macOS). Both come from
 `design/icons/app/build_icons.py --install-desktop`, which writes the Icon Composer file and
-compiles it with Xcode 26's `actool`; they are committed so CI needs no Xcode 26. The release
+compiles it with Xcode's `actool` (26 or later; the committed files were built with Xcode 27.2); they are committed so CI needs no Xcode 26. The release
 copies them into `Contents/Resources/` and sets `CFBundleIconName` and `CFBundleIconFile` to
 `AppIcon`. `Assets.car` is not byte-reproducible (actool stamps it); `AppIcon.icns` is.
 
