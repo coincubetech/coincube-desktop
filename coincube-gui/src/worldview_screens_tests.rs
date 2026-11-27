@@ -2,7 +2,9 @@
 //! now show text only. Each is mounted in every worldview, both themes and
 //! both languages (invariant R8): the quote stays (R7), the worldview's
 //! wording stays (R2), and nothing else replaces the picture: every screen
-//! is drawn with the software renderer and must queue no image or SVG.
+//! is drawn with the software renderer and must queue no image or SVG. The
+//! Opening paths are the exception: they draw the line Cube (an SVG) above
+//! the quote, per the brand brief of 2026-11-26, and still no raster art.
 
 use coincube_ui::component::{
     amount::BitcoinDisplayUnit,
@@ -78,7 +80,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 assert!(opened.contains("— Author, Source"));
                 // The Opening rail above the stage draws the brand mark and
                 // the network coin, which are not artwork (R9); the loading
-                // stage under it draws no picture.
+                // stage under it draws the line Cube and no raster art.
                 let stage = capture::inspect_rendered_filled(
                     &scenario("opening-stage"),
                     render_in(language, || {
@@ -95,7 +97,15 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                     "{}",
                     scenario("opening-stage")
                 );
-                assert!(stage.draws_no_image(), "{}", scenario("opening-stage"));
+                assert_eq!(
+                    stage.drawn_images(),
+                    capture::DrawnImages {
+                        raster: 0,
+                        vector: 1
+                    },
+                    "{}",
+                    scenario("opening-stage")
+                );
 
                 let failed = capture::inspect_rendered_filled(
                     &scenario("startup-error"),
@@ -110,7 +120,12 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 assert!(failed.contains(headline), "{}", scenario("startup-error"));
                 assert!(failed.contains(&error.text));
                 assert!(failed.contains("Fixture startup error"));
-                assert!(failed.draws_no_image(), "{}", scenario("startup-error"));
+                assert_eq!(
+                    failed.drawn_images().raster,
+                    0,
+                    "{}",
+                    scenario("startup-error")
+                );
 
                 let history = capture::inspect_rendered_full_window(
                     &scenario("empty-history"),
@@ -215,7 +230,13 @@ fn the_image_probe_counts_a_drawn_picture() {
         "dark",
         Theme::dark(),
     );
-    assert_eq!(drawn.images, Some(1));
+    assert_eq!(
+        drawn.images,
+        Some(capture::DrawnImages {
+            raster: 1,
+            vector: 0
+        })
+    );
     assert!(!drawn.draws_no_image());
 
     // Below a 768 px window's fold the picture is skipped, which is why the
@@ -237,7 +258,7 @@ fn the_image_probe_counts_a_drawn_picture() {
         "dark",
         Theme::dark(),
     );
-    assert_eq!(short.images, Some(0));
+    assert!(short.draws_no_image());
     let tall = capture::inspect_rendered_full_window(
         "image-probe-tall",
         below_fold(),
@@ -245,7 +266,7 @@ fn the_image_probe_counts_a_drawn_picture() {
         "dark",
         Theme::dark(),
     );
-    assert_eq!(tall.images, Some(1));
+    assert_eq!(tall.drawn_images().raster, 1);
 }
 
 #[test]
@@ -332,4 +353,129 @@ fn a_mode_switch_changes_network_names_and_voice_lines_and_no_colour() {
         );
         assert_eq!(lines.len(), modes.len(), "each mode has its own voice line");
     }
+}
+
+/// The Opening paths draw the line Cube and no artwork: the Launcher's
+/// Opening face, the loader (connecting, starting, scanning and its error),
+/// and `loader::cube_and_quote`. The passkey Opening draws the turning Cube
+/// on a canvas instead and has its own tests in `passkey_unlock`. Counted
+/// from what the software renderer actually drew, so a picture cannot hide
+/// in a view the text probe passes over: no raster image (the ink art was
+/// raster), and at least one SVG (the Cube) on every Opening view.
+#[test]
+fn every_opening_draws_the_cube_and_no_raster_art() {
+    let quote = quote_display::random_quote("loading");
+    let error = crate::loader::Step::Error(Box::new(crate::loader::Error::Unexpected(
+        "Fixture startup error".into(),
+    )));
+    let steps = [
+        ("connecting", crate::loader::Step::Connecting),
+        (
+            "starting",
+            crate::loader::Step::StartingDaemon { progress: 0.4 },
+        ),
+        ("scanning", crate::loader::Step::FullScan { progress: 0.4 }),
+    ];
+    for (mode, name) in [
+        (WorldviewMode::Samurai, "samurai"),
+        (WorldviewMode::Suitcoiner, "suitcoiner"),
+        (WorldviewMode::Luke, "luke"),
+    ] {
+        for (appearance, theme) in [("dark", Theme::dark()), ("light", Theme::light())] {
+            let theme = theme.with_worldview(mode);
+            let mut views: Vec<(String, capture::Inspection)> = vec![
+                (
+                    "launcher-opening".into(),
+                    capture::inspect_rendered_filled(
+                        &format!("opening-cube-{name}-launcher"),
+                        opening_body(
+                            project_opening("Everyday", ChainId::Bitcoin),
+                            &crate::loader::Step::Connecting,
+                            &quote,
+                            false,
+                        ),
+                        (1024, 768),
+                        appearance,
+                        theme,
+                    ),
+                ),
+                (
+                    "cube-and-quote".into(),
+                    capture::inspect_rendered_filled(
+                        &format!("opening-cube-{name}-cube-and-quote"),
+                        crate::loader::cube_and_quote::<()>(&quote),
+                        (1024, 768),
+                        appearance,
+                        theme,
+                    ),
+                ),
+            ];
+            for (step_name, step) in &steps {
+                views.push((
+                    format!("loader-{step_name}"),
+                    capture::inspect_rendered_filled(
+                        &format!("opening-cube-{name}-loader-{step_name}"),
+                        crate::loader::view(step, &quote),
+                        (1024, 768),
+                        appearance,
+                        theme,
+                    ),
+                ));
+            }
+            let failed = capture::inspect_rendered_filled(
+                &format!("opening-cube-{name}-loader-error"),
+                crate::loader::view(&error, &quote),
+                (1024, 768),
+                appearance,
+                theme,
+            );
+            assert!(failed.contains("COINCUBE Desktop failed to start"));
+            assert_eq!(
+                failed.drawn_images().raster,
+                0,
+                "{} {}: the startup error draws raster art",
+                name,
+                appearance
+            );
+            for (view, inspection) in &views {
+                let drawn = inspection.drawn_images();
+                assert_eq!(
+                    drawn.raster, 0,
+                    "{} {} {}: draws raster art",
+                    name, appearance, view
+                );
+                assert!(
+                    drawn.vector >= 1,
+                    "{} {} {}: the line Cube is missing",
+                    name,
+                    appearance,
+                    view
+                );
+            }
+        }
+    }
+}
+
+/// The counter behind the Opening test sees a drawn raster image and a drawn
+/// SVG, so that test cannot pass because nothing is counted.
+#[test]
+fn the_drawn_image_counter_sees_raster_and_svg() {
+    let pixels = vec![255u8; 4 * 4 * 4];
+    let picture: coincube_ui::widget::Element<'_, ()> = iced::widget::column![
+        iced::widget::image(iced::widget::image::Handle::from_rgba(4, 4, pixels))
+            .width(40)
+            .height(40),
+        coincube_ui::component::tenshu::top_bar::display_cube(64.0, 1.0),
+    ]
+    .into();
+    let drawn = capture::inspect_rendered_filled(
+        "drawn-image-counter-probe",
+        picture,
+        (1024, 768),
+        "dark",
+        Theme::dark(),
+    )
+    .drawn_images();
+    assert_eq!(drawn.raster, 1);
+    assert_eq!(drawn.vector, 1);
 }

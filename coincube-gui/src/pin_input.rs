@@ -218,7 +218,11 @@ impl PinInput {
         )
         .on_press(Message::ToggleShow)
         .width(Length::Fixed(50.0))
-        .padding(15);
+        .padding(15)
+        .style({
+            let shown = !self.hidden;
+            move |theme: &coincube_ui::theme::Theme, status| eye_style(theme, status, shown)
+        });
 
         Row::new()
             .spacing(10)
@@ -229,12 +233,39 @@ impl PinInput {
     }
 }
 
+/// The PIN reveal toggle (`.pineye`): an icon with no box at rest, a line
+/// edge while hovered or while the digits are shown. Both PIN rows use it, so
+/// the delete and settings rows no longer fall back to the theme's filled
+/// orange default (found in the Desktop V3 acceptance walk).
+fn eye_style(
+    theme: &coincube_ui::theme::Theme,
+    status: iced::widget::button::Status,
+    shown: bool,
+) -> iced::widget::button::Style {
+    use iced::widget::button;
+    let shell = theme.colors.shell;
+    let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
+    button::Style {
+        background: None,
+        text_color: if shown { shell.ink } else { shell.muted },
+        border: iced::Border {
+            color: if shown || hovered {
+                shell.line
+            } else {
+                iced::Color::TRANSPARENT
+            },
+            width: 1.0,
+            radius: 8.0.into(),
+        },
+        ..Default::default()
+    }
+}
+
 impl PinInput {
     /// The Launcher unlock face's `.pinrow`: four 48px `.dg` boxes 10px
     /// apart and the 40px `.pineye` toggle 4px after them. The installer and
     /// settings keep [`PinInput::view`].
     pub fn face_view(&self) -> Element<Message> {
-        use coincube_ui::theme;
         use iced::widget::{button, text_input};
         let mut row = Row::new().spacing(10).align_y(Alignment::Center);
         for i in 0..4 {
@@ -270,24 +301,7 @@ impl PinInput {
         .width(Length::Fixed(40.0))
         .height(Length::Fixed(40.0))
         .padding(0)
-        .style(move |theme: &theme::Theme, status| {
-            let shell = theme.colors.shell;
-            let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
-            button::Style {
-                background: None,
-                text_color: if shown { shell.ink } else { shell.muted },
-                border: iced::Border {
-                    color: if shown || hovered {
-                        shell.line
-                    } else {
-                        iced::Color::TRANSPARENT
-                    },
-                    width: 1.0,
-                    radius: 8.0.into(),
-                },
-                ..Default::default()
-            }
-        });
+        .style(move |theme: &coincube_ui::theme::Theme, status| eye_style(theme, status, shown));
         // `.pineye { margin-left: 4px }` on top of the row's 10px gap.
         row.push(
             coincube_ui::widget::Container::new(eye).padding(iced::Padding {
@@ -422,5 +436,36 @@ mod tests {
         let _ = pin.update(Message::DigitChanged(1, String::new()));
         assert!(pin.digits[0].is_empty(), "prior slot should be cleared");
         assert!(pin.digits[1].is_empty());
+    }
+}
+
+#[cfg(test)]
+mod eye_style_tests {
+    use super::*;
+    use iced::widget::button::Status;
+
+    /// The reveal toggle is never a filled button: no background in any
+    /// state, no edge at rest, and a line edge when hovered or shown, in both
+    /// themes.
+    #[test]
+    fn the_reveal_eye_is_never_filled() {
+        for theme in [
+            coincube_ui::theme::Theme::dark(),
+            coincube_ui::theme::Theme::light(),
+        ] {
+            for status in [Status::Active, Status::Hovered, Status::Pressed] {
+                for shown in [false, true] {
+                    let style = eye_style(&theme, status, shown);
+                    assert!(style.background.is_none(), "{:?} {}", status, shown);
+                    let edged = shown || !matches!(status, Status::Active);
+                    let expected = if edged {
+                        theme.colors.shell.line
+                    } else {
+                        iced::Color::TRANSPARENT
+                    };
+                    assert_eq!(style.border.color, expected, "{:?} {}", status, shown);
+                }
+            }
+        }
     }
 }

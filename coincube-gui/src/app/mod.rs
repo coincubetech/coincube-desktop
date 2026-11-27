@@ -48,7 +48,7 @@ use tokio::runtime::Handle;
 use tracing::{error, info, warn};
 
 pub use coincube_core::miniscript::bitcoin;
-use coincube_ui::{component::network_banner, widget::Element};
+use coincube_ui::{component::network_banner, theme::notification::ToastTone, widget::Element};
 pub use coincubed::{
     commands::CoinStatus,
     config::{BitcoindRpcAuth, Config as DaemonConfig},
@@ -736,10 +736,11 @@ pub struct App {
     /// unoptimised builds give every temporary its own stack slot, so the
     /// function's frame alone approached the 2 MiB test-thread stack.
     panels: Box<Panels>,
-    /// Toasts, oldest first: id, expiry deadline, level, content. The
+    /// Toasts, oldest first: id, expiry deadline, tone, content. The
     /// deadline is set only while the toast is on screen (see
-    /// `arm_toast_timers`).
-    errors: Vec<(usize, Option<std::time::Instant>, log::Level, ToastContent)>,
+    /// `arm_toast_timers`). The tone is kept rather than a `log::Level`, so a
+    /// success can show as one (there is no success level in `log`).
+    errors: Vec<(usize, Option<std::time::Instant>, ToastTone, ToastContent)>,
     current_error_id: usize,
     /// True while a check_bitcoind_sync_progress probe is in flight; prevents
     /// multiple concurrent RPC calls from piling up across subscription ticks.
@@ -9010,15 +9011,14 @@ impl App {
             Message::View(view::Message::CopyWithToast(text, notice)) => {
                 return clipboard::write(text.clone()).chain(clipboard::read().map(
                     move |copied| {
-                        let (level, message) = if copied.as_deref() == Some(text.as_str()) {
-                            (log::Level::Info, notice.clone())
+                        if copied.as_deref() == Some(text.as_str()) {
+                            Message::View(view::Message::ShowSuccess(notice.clone()))
                         } else {
-                            (
+                            Message::View(view::Message::ShowToast(
                                 log::Level::Error,
                                 "Could not copy to clipboard. Please try again.".to_string(),
-                            )
-                        };
-                        Message::View(view::Message::ShowToast(level, message))
+                            ))
+                        }
                     },
                 ));
             }
@@ -9052,21 +9052,21 @@ impl App {
                 )));
             }
             Message::View(view::Message::ShowSuccess(msg)) => {
-                return self.update_dispatch(Message::View(view::Message::ShowToast(
-                    log::Level::Info,
-                    msg,
-                )));
+                return self.push_toast(ToastTone::Success, msg);
             }
             Message::View(view::Message::ShowToast(level, msg)) => {
-                // Show toast with specified level
-                self.errors
-                    .push((self.current_error_id, None, level, ToastContent::Text(msg)));
-                self.current_error_id += 1;
-                return self.arm_toast_timers();
+                return self.push_toast(level.into(), msg);
             }
             _ => {}
         }
         Task::none()
+    }
+
+    fn push_toast(&mut self, tone: ToastTone, msg: String) -> Task<Message> {
+        self.errors
+            .push((self.current_error_id, None, tone, ToastContent::Text(msg)));
+        self.current_error_id += 1;
+        self.arm_toast_timers()
     }
 
     fn route_node_observation(&mut self, message: Message) -> Task<Message> {
@@ -10402,12 +10402,12 @@ impl App {
         Task::batch(timers)
     }
 
-    fn displayed_toasts(&self) -> impl Iterator<Item = (usize, log::Level, String)> + '_ {
+    fn displayed_toasts(&self) -> impl Iterator<Item = (usize, ToastTone, String)> + '_ {
         let masked = self.cache.balance_amounts_masked();
         let unit = self.cache.bitcoin_unit;
         self.errors
             .iter()
-            .map(move |(id, _, level, content)| (*id, *level, content.display(unit, masked)))
+            .map(move |(id, _, tone, content)| (*id, *tone, content.display(unit, masked)))
     }
 
     fn active_panel_view(&self) -> Element<'_, view::Message> {
@@ -14156,6 +14156,102 @@ pub(crate) mod tests {
         assert_eq!(reconcile_stable_balance(None, false, false), InSync);
     }
 
+    /// Messages an `App` task produces, in order. Ready outputs only: a task
+    /// that waits on the Spark bridge is not one of these.
+    fn task_outputs(task: Task<Message>) -> Vec<Message> {
+        use iced_runtime::futures::futures::StreamExt;
+        let Some(stream) = iced_runtime::task::into_stream(task) else {
+            return Vec::new();
+        };
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(
+                stream
+                    .filter_map(|action| async move {
+                        match action {
+                            iced_runtime::Action::Output(message) => Some(message),
+                            _ => None,
+                        }
+                    })
+                    .collect(),
+            )
+    }
+
+    /// A failed "Auto-convert received bitcoin" save reaches the user as a
+    /// plain-language error toast. The bridge's `SparkClientError` text is
+    /// logged under the reference and must not be the toast, and the
+    /// in-flight guard is released so another save can start.
+    #[test]
+    fn a_failed_auto_convert_save_hides_the_bridge_error_in_the_toast() {
+        let _guard = crate::app::session::test_guard();
+        let root =
+            std::env::temp_dir().join(format!("auto-convert-toast-{}", uuid::Uuid::new_v4()));
+        let mut app = local_app(&root);
+        assert!(app.panels.spark_overview.try_start_stable_balance_save());
+        let detail = "SparkClientError: Rpc { code: -32000, message: \"sdk rejected toggle\" }";
+        let produced = task_outputs(app.update(Message::View(view::Message::SparkSettings(
+            view::SparkSettingsMessage::StableBalanceSaved(Err(detail.to_string())),
+        ))));
+        let toast = produced.into_iter().find_map(|message| match message {
+            Message::View(view::Message::ShowError(text)) => Some(text),
+            _ => None,
+        });
+        let toast = toast.expect("the save failure raises one error toast");
+        assert!(!toast.contains("SparkClientError"), "{}", toast);
+        assert!(!toast.contains("sdk rejected toggle"), "{}", toast);
+        assert!(
+            toast.starts_with("Couldn't change auto-convert"),
+            "{}",
+            toast
+        );
+        assert!(toast.contains(crate::user_error::CC_SPK), "{}", toast);
+        assert!(
+            app.panels.spark_overview.try_start_stable_balance_save(),
+            "a failed save must release the in-flight guard"
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    /// Connect's stable-balance field is this device's decision only when
+    /// the device has never made one. A registration answer that disagrees
+    /// with a decision already stored is a stale response to an earlier
+    /// request and must not replace it.
+    #[test]
+    fn a_connect_stable_balance_answer_is_kept_only_when_this_device_has_none() {
+        let _guard = crate::app::session::test_guard();
+        let root =
+            std::env::temp_dir().join(format!("auto-convert-stale-{}", uuid::Uuid::new_v4()));
+        let mut app = local_app(&root);
+        app.cube_settings.spark_stable_balance = Some(false);
+        app.cache.spark_notice = Some(cache::SparkNotice::StableBalanceOffWithHolding);
+        let stale = task_outputs(app.update(Message::SparkStableBalanceFromConnect(Some(true))));
+        assert!(
+            stale.is_empty(),
+            "a disagreeing answer writes nothing: {:?}",
+            stale
+        );
+        assert_eq!(app.cube_settings.spark_stable_balance, Some(false));
+        assert_eq!(
+            app.cache.spark_notice,
+            Some(cache::SparkNotice::StableBalanceOffWithHolding)
+        );
+
+        app.cube_settings.spark_stable_balance = None;
+        let adopted = task_outputs(app.update(Message::SparkStableBalanceFromConnect(Some(true))));
+        assert_eq!(app.cube_settings.spark_stable_balance, Some(true));
+        assert!(app.cache.spark_notice.is_none());
+        assert!(
+            adopted
+                .iter()
+                .any(|message| matches!(message, Message::SettingsSaved)),
+            "adopting the only decision records it: {:?}",
+            adopted
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
     #[test]
     fn recovery_alerts_prompt_answered_flag_defaults_false_and_round_trips() {
         // Old settings.json without the field parses as "not answered".
@@ -17778,6 +17874,39 @@ mod toast_timer_tests {
     fn make_due(app: &mut super::App, id: usize) {
         let toast = app.errors.iter_mut().find(|(i, ..)| *i == id).unwrap();
         toast.1 = Some(Instant::now() - Duration::from_millis(1));
+    }
+
+    /// A success shows as a success (green), not as information. Before this,
+    /// `ShowSuccess` was routed through `log::Level::Info`, which has no
+    /// success level, so the success tone could never be reached.
+    #[test]
+    fn each_kind_of_toast_keeps_its_tone() {
+        use coincube_ui::theme::notification::ToastTone;
+        let _guard = crate::app::session::test_guard();
+        let root = std::env::temp_dir().join(format!("toast-tones-{}", uuid::Uuid::new_v4()));
+        let (mut app, _) = super::shell_tests::bitcoin_app(&root);
+        app.errors.clear();
+        for message in [
+            super::view::Message::ShowSuccess("Address copied".into()),
+            super::view::Message::ShowToast(log::Level::Info, "Syncing".into()),
+            super::view::Message::ShowToast(log::Level::Warn, "Slow node".into()),
+            super::view::Message::ShowError("Payment failed".into()),
+        ] {
+            drop(app.update(super::Message::View(message)));
+        }
+        let tones: Vec<ToastTone> = app.errors.iter().map(|(_, _, tone, _)| *tone).collect();
+        assert_eq!(
+            tones,
+            [
+                ToastTone::Success,
+                ToastTone::Info,
+                ToastTone::Warning,
+                ToastTone::Error
+            ]
+        );
+        // The overlay gets the same tones it draws with.
+        let drawn: Vec<ToastTone> = app.displayed_toasts().map(|(_, tone, _)| tone).collect();
+        assert_eq!(drawn, tones);
     }
 
     /// Only shown toasts run their clock, so a burst past the cap can't

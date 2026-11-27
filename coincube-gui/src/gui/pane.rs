@@ -25,7 +25,8 @@ pub enum Message {
 }
 
 /// A tab's right-click menu: quiet rows on the shared menu panel, which
-/// carries the surface, edge and shadow the overlay itself lacks.
+/// carries the surface and shadow the overlay itself lacks. It floats on
+/// that shadow, so it has no outline.
 fn tab_context_menu<'a>(index: usize, can_split: bool) -> Element<'a, ViewMessage> {
     let row = |label: &'static str, message: ViewMessage| {
         Button::new(p1_regular(label))
@@ -900,7 +901,7 @@ mod tab_menu_tests {
     use coincube_ui::theme;
     use iced::{widget::button::Status, Background};
 
-    /// The tab menu's panel is opaque with an edge and a shadow, and its rows
+    /// The tab menu's panel is opaque with a shadow and no outline, and its rows
     /// are quiet: no outline, the hover fill under the pointer.
     #[test]
     fn the_tab_menu_is_a_panel_of_quiet_rows() {
@@ -909,6 +910,7 @@ mod tab_menu_tests {
             let panel = theme::tenshu::surface::panel(&t);
             assert_eq!(panel.background, Some(Background::Color(shell.panel)));
             assert!(panel.shadow.blur_radius > 0.0);
+            assert_eq!(panel.border.width, 0.0);
             let rest = theme::button::shell_nav(&t, Status::Active);
             assert_eq!(rest.border.width, 0.0);
             let hover = theme::button::shell_nav(&t, Status::Hovered);
