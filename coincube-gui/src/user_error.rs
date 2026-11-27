@@ -218,13 +218,15 @@ impl UserError {
 /// never dropped (invariant S7). Any other line, including a plain message
 /// that happens to hold a dash, stays one line with no detail.
 pub fn split_toast(line: &str) -> (&str, Option<&str>) {
-    let referenced = [" (Ref: ", " (Ref.: "].iter().any(|marker| {
+    const MARKERS: [&str; 2] = [" (Ref: ", " (Ref.: "];
+    let referenced = MARKERS.iter().any(|marker| {
         line.rsplit_once(marker)
             .is_some_and(|(_, code)| code.len() > 1 && code.ends_with(')'))
     });
     if referenced {
         if let Some((title, detail)) = line.split_once(" — ") {
-            if !title.is_empty() && !title.contains(" (Ref") && !detail.is_empty() {
+            let title_has_reference = MARKERS.iter().any(|marker| title.contains(marker));
+            if !title.is_empty() && !title_has_reference && !detail.is_empty() {
                 return (title, Some(detail));
             }
         }
@@ -990,6 +992,53 @@ mod tests {
         assert_eq!(
             split_toast(spanish),
             ("Título", Some("Haz esto. (Ref.: CC-NET-TIMEOUT)"))
+        );
+    }
+
+    /// End to end in Spanish: a real `UserError` line, translated by
+    /// `locale::notice` as the toast overlay does, still splits into a title
+    /// and a detail that keeps the reference. Fails if `notice`'s Spanish
+    /// shape drifts from what `split_toast` expects.
+    #[test]
+    fn a_spanish_user_error_toast_splits_and_keeps_the_reference() {
+        use coincube_ui::locale::{copy, notice, render_in, Language};
+        let u = UserError::new(
+            "Something went wrong",
+            "Try again. If this keeps happening, contact support and quote the reference below.",
+            CC_UNEXPECTED,
+            true,
+        );
+        let (line, title, guidance) = render_in(Language::Spanish, || {
+            (
+                notice(u.toast()),
+                copy(&u.title).to_owned(),
+                copy(&u.guidance).to_owned(),
+            )
+        });
+        assert_ne!(title, u.title, "the title has a Spanish translation");
+        assert_ne!(line, u.toast(), "the line was translated");
+        let (split_title, detail) = split_toast(&line);
+        assert_eq!(split_title, title, "{:?}", line);
+        let detail = detail.unwrap_or_else(|| panic!("no detail in {:?}", line));
+        assert!(detail.starts_with(&guidance), "{:?}", detail);
+        assert!(detail.contains(CC_UNEXPECTED), "{:?}", detail);
+        assert!(
+            detail.ends_with(&format!("(Ref.: {})", CC_UNEXPECTED)),
+            "{:?}",
+            detail
+        );
+    }
+
+    /// A title that merely mentions a refund or referral is not a reference.
+    #[test]
+    fn a_title_mentioning_a_refund_still_splits() {
+        let line = "Refund failed (Refund pending) — Try again. (Ref: CC-UNEXPECTED)";
+        assert_eq!(
+            split_toast(line),
+            (
+                "Refund failed (Refund pending)",
+                Some("Try again. (Ref: CC-UNEXPECTED)")
+            )
         );
     }
 
