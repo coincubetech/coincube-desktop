@@ -3228,8 +3228,7 @@ fn overview_total<'a>(
     };
 
     // `.hero`: the balance on the left and, at the far right on the same
-    // baseline, the worldview's voice line and art, over a hairline. The
-    // art is decorative and stays while balances are hidden.
+    // baseline, the worldview's voice line.
     let total_balance_row = coincube_ui::component::tenshu::worldview_hero(
         Column::new()
             .spacing(6)
@@ -3246,15 +3245,12 @@ fn overview_total<'a>(
             .style(theme::text::warning)
         }),
     );
+    // No hairline under the total (`P-Overview`, canvas 345): Wallets sits
+    // 36px below it (`.wh { margin-top: 36px }`), 4 here plus the caller's
+    // 12 + 8 + 12.
     Column::new()
         .push(total_balance_block)
-        .push(Space::new().height(Length::Fixed(28.0)))
-        .push(
-            Container::new(Space::new())
-                .width(Length::Fill)
-                .height(Length::Fixed(1.0))
-                .style(theme::tenshu::control::divider),
-        )
+        .push(Space::new().height(Length::Fixed(4.0)))
 }
 
 /// The Overview page (`P-Overview`): its head with the Transfer action, the
