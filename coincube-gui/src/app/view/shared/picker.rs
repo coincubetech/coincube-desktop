@@ -180,6 +180,9 @@ where
     .into()
 }
 
+/// A dropdown's floating list. It shares the fill of the route tiles it
+/// opens over and is as wide as them, so it keeps its line border beside the
+/// shadow (R4: a shadow alone does not separate same-fill boxes).
 pub fn dropdown_menu_style(theme: &theme::Theme) -> container::Style {
     let shell = &theme.colors.shell;
     container::Style {
@@ -350,5 +353,26 @@ fn dropdown_option_style(
             ..Default::default()
         },
         ..Default::default()
+    }
+}
+
+#[cfg(test)]
+mod menu_style_tests {
+    use super::*;
+
+    /// R4: the dropdown shares the route tiles' fill, so it keeps its line
+    /// as well as its shadow.
+    #[test]
+    fn the_dropdown_keeps_its_border_over_same_fill_tiles() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let style = dropdown_menu_style(&theme);
+            assert_eq!(
+                style.background,
+                Some(Background::Color(theme.colors.shell.background))
+            );
+            assert_eq!(style.border.width, 1.0);
+            assert_eq!(style.border.color, theme.colors.shell.line);
+            assert!(style.shadow.color.a > 0.0 && style.shadow.blur_radius > 0.0);
+        }
     }
 }

@@ -204,7 +204,7 @@ fn coin_label_popover<'a>(
     )
     .padding(20)
     .width(320)
-    .style(theme::tenshu::surface::panel);
+    .style(label_popover_style);
     let floating = Floating::new(panel).gap(8.0).fit_to_window();
     if saving {
         floating.into()
@@ -924,6 +924,35 @@ pub fn expire_message_units(sequence: u32) -> Vec<String> {
                 }
             })
             .collect()
+    }
+}
+
+/// The label popover: the floating panel with its line border back. It opens
+/// over the coin table, whose card shares the panel fill, so a shadow alone
+/// would not set it apart (R4).
+fn label_popover_style(theme: &theme::Theme) -> iced::widget::container::Style {
+    let mut style = theme::tenshu::surface::panel(theme);
+    style.border.width = 1.0;
+    style.border.color = theme.colors.shell.line;
+    style
+}
+
+#[cfg(test)]
+mod label_popover_style_tests {
+    use super::*;
+
+    /// R4: the popover shares the coin table's fill, so it keeps its line.
+    #[test]
+    fn the_label_popover_keeps_its_border_over_the_coin_table() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let style = label_popover_style(&theme);
+            assert_eq!(style.border.width, 1.0);
+            assert_eq!(style.border.color, theme.colors.shell.line);
+            assert_eq!(
+                style.background,
+                Some(iced::Background::Color(theme.colors.shell.panel))
+            );
+        }
     }
 }
 

@@ -5293,13 +5293,8 @@ mod tests {
         (coincube_ui::theme::WorldviewMode::Suitcoiner, "suitcoiner"),
         (coincube_ui::theme::WorldviewMode::Luke, "luke"),
     ];
-    const ARTWORK: [(coincube_ui::theme::ArtworkStyle, &str); 2] = [
-        (coincube_ui::theme::ArtworkStyle::Scene, "scene"),
-        (coincube_ui::theme::ArtworkStyle::Existing, "existing"),
-    ];
-
-    /// The Overview's worldview hero in every mode, artwork style and
-    /// appearance: the voice line (where the mode has one) at the far right
+    /// The Overview's worldview hero in every mode and appearance, with no
+    /// artwork: the voice line (where the mode has one) at the far right
     /// of the Total balance row and level with its SATS line, never above the
     /// balance; under the balance once the column is too narrow for the row;
     /// still there while balances are hidden.
@@ -5317,12 +5312,12 @@ mod tests {
         };
         for (mode, name) in WORLDVIEWS {
             let line = VoiceLine::Overview.for_mode(mode);
-            for (artwork, art) in ARTWORK {
+            {
                 for (appearance, base) in [
                     ("dark", theme::Theme::dark()),
                     ("light", theme::Theme::light()),
                 ] {
-                    let theme = base.with_worldview(mode).with_artwork(artwork);
+                    let theme = base.with_worldview(mode);
                     let render = |masked: bool| {
                         let mut config = fixture.config(0, None, None);
                         config.light_theme = appearance == "light";
@@ -5330,7 +5325,7 @@ mod tests {
                         worldview_copy::render_in(mode, || overview(config))
                     };
                     for masked in [false, true] {
-                        let scenario = format!("overview-hero-{name}-{art}");
+                        let scenario = format!("overview-hero-{name}-{appearance}");
                         let wide = capture::inspect(
                             &scenario,
                             render(masked),
@@ -5340,6 +5335,16 @@ mod tests {
                         );
                         let title = find(&wide, "Total balance").expect("the Total balance title");
                         let Some(line) = line else {
+                            // A mode without a line leaves the total alone.
+                            assert!(
+                                !wide.text.iter().any(|(_, bounds)| {
+                                    bounds.y >= title.y
+                                        && bounds.y <= title.y + 100.0
+                                        && bounds.x > title.x + 400.0
+                                }),
+                                "{}: nothing stands at the far right of the row",
+                                scenario
+                            );
                             continue;
                         };
                         let said =
@@ -5414,7 +5419,7 @@ mod tests {
         }
     }
 
-    /// The Overview in each worldview, artwork style and appearance under the
+    /// The Overview in each worldview and appearance under the
     /// app shell, for before/after review of the worldview hero. Opt-in:
     /// `TOP_BAR_CAPTURE_DIR=<dir> cargo test -p coincube-gui --lib
     /// overview_worldview_hero_capture -- --ignored`.
@@ -5432,15 +5437,15 @@ mod tests {
         let activity = overview_activity();
         let menu = Menu::Cube(crate::app::menu::CubeSubMenu::Overview);
         for (mode, name) in WORLDVIEWS {
-            for (artwork, art) in ARTWORK {
+            {
                 for (appearance, palette) in capture_tests::themes() {
                     let light = appearance == "light";
-                    let palette = palette.with_worldview(mode).with_artwork(artwork);
+                    let palette = palette.with_worldview(mode);
                     let cache = capture_tests::cache(light, BalancePrivacy::Shown);
                     capture_tests::save_page_head_frames(
                         &mut renderer,
                         &directory,
-                        &format!("overview-{name}-{art}"),
+                        &format!("overview-{name}"),
                         appearance,
                         &palette,
                         || {

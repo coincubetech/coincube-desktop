@@ -881,15 +881,16 @@ fn activity_status(home: &Home) -> String {
     }
 }
 
-/// A dock menu's panel: 10px radius, a line border and a deep shadow.
-fn menu_panel(theme: &theme::Theme) -> container::Style {
+/// A Launcher menu's panel: 10px radius and a deep shadow. It floats, so the
+/// fill and the shadow set it apart and it has no outline.
+pub(super) fn menu_panel(theme: &theme::Theme) -> container::Style {
     container::Style {
         background: Some(iced::Background::Color(theme.colors.shell.panel)),
         border: Border {
-            color: theme.colors.shell.line,
-            width: 1.0,
             radius: 10.0.into(),
+            ..Default::default()
         },
+        // `0 18px 40px -12px rgba(0,0,0,.5)`; Iced has no spread.
         shadow: iced::Shadow {
             color: Color::from_rgba(0.0, 0.0, 0.0, 0.35),
             offset: iced::Vector::new(0.0, 18.0),
@@ -1769,12 +1770,10 @@ fn brand_footprint<'a, M: 'a>() -> Element<'a, M> {
                 .width(Length::Fixed(20.0))
                 .height(Length::Fixed(20.0)),
         )
-        .push(
-            text("COINCUBE")
-                .size(top_bar::BRAND_WORD)
-                .font(font::SPACE_GROTESK_BOLD)
-                .color(Color::TRANSPARENT),
-        )
+        .push(coincube_ui::component::wordmark::wordmark_in(
+            top_bar::BRAND_WORD,
+            |_: &theme::Theme| Color::TRANSPARENT,
+        ))
         .into()
 }
 
@@ -1878,21 +1877,7 @@ pub(super) fn network_layer<'a>(
     let menu = Container::new(rows.push(note))
         .width(Length::Fixed(NETWORK_MENU_WIDTH))
         .padding(6)
-        .style(|theme: &theme::Theme| container::Style {
-            background: Some(iced::Background::Color(theme.colors.shell.panel)),
-            border: Border {
-                color: theme.colors.shell.line,
-                width: 1.0,
-                radius: 10.0.into(),
-            },
-            // `0 18px 40px -12px rgba(0,0,0,.5)`; Iced has no spread.
-            shadow: iced::Shadow {
-                color: Color::from_rgba(0.0, 0.0, 0.0, 0.35),
-                offset: iced::Vector::new(0.0, 18.0),
-                blur_radius: 40.0,
-            },
-            ..Default::default()
-        });
+        .style(menu_panel);
     // `.menu { top: 40px }` from the chip, which sits 16px down the bar. An
     // undrawn copy of the brand and separator puts it under the chip.
     let placed = Column::new()
@@ -2210,6 +2195,20 @@ mod tests {
         bar_button, chip_style, count_text, dock_button, menu_button_style, segment_style,
         KeyNetworks,
     };
+
+    /// The Network, plan and activity menus float over the floor on a
+    /// shadow, so they have no outline.
+    #[test]
+    fn launcher_menus_have_a_shadow_and_no_outline() {
+        for theme in [
+            coincube_ui::theme::Theme::dark(),
+            coincube_ui::theme::Theme::light(),
+        ] {
+            let style = super::menu_panel(&theme);
+            assert_eq!(style.border.width, 0.0);
+            assert!(style.shadow.color.a > 0.0 && style.shadow.blur_radius > 0.0);
+        }
+    }
     use crate::chain::ChainId;
     use coincube_ui::theme::{
         self,
@@ -2375,7 +2374,6 @@ mod top_bar_tests {
             widget::{operation::Focusable, Id, Operation, Tree},
             Layout,
         },
-        widget::rule,
         Rectangle, Size,
     };
 
@@ -2593,7 +2591,14 @@ mod top_bar_tests {
         };
         let settings = at(&launcher_catalog::settings_id());
         assert_eq!((settings.width, settings.height), (32.0, 32.0));
-        assert_eq!(settings.x + settings.width, 1024.0 - super::GUTTER);
+        // The fill space left after the tracked wordmark's fractional glyph
+        // widths carries float rounding; a hundredth of a pixel is not drawn.
+        let right_edge = settings.x + settings.width;
+        assert!(
+            (right_edge - (1024.0 - super::GUTTER)).abs() < 0.01,
+            "App preferences ends at {}, not the gutter",
+            right_edge
+        );
         let labels: Vec<_> = live
             .text
             .iter()
@@ -2633,11 +2638,64 @@ mod top_bar_tests {
             .unwrap()
             .1;
         assert_eq!((label.width, label.height), (32.0, 32.0));
-        assert_eq!(label.x + label.width, 1024.0 - super::GUTTER);
+        assert!((label.x + label.width - (1024.0 - super::GUTTER)).abs() < 0.01);
         assert!(!quiet
             .text
             .iter()
             .any(|(value, _)| value.to_lowercase().contains("balances")));
+    }
+
+    /// V3 V1: the rule under the Launcher's top bar is the quiet rule
+    /// (`shell.rule`, ink at 10%) over the bar's rail fill, in both themes.
+    #[test]
+    fn the_launcher_top_bar_sits_on_the_quiet_rule() {
+        use crate::app::view::nav::shell::capture_tests::assert_quiet_rule;
+        use iced::advanced::renderer::Style;
+        for (appearance, palette) in themes() {
+            let home = home(appearance == "light");
+            let mut element = launcher_catalog::launcher_view(&home);
+            let mut renderer =
+                iced::futures::executor::block_on(<iced::Renderer as Headless>::new(
+                    coincube_ui::font::REGULAR,
+                    iced::Pixels(14.0),
+                    Some("tiny-skia"),
+                ))
+                .unwrap();
+            let (width, height) = (1024u32, 768u32);
+            let size = Size::new(width as f32, height as f32);
+            let mut tree = Tree::new(element.as_widget());
+            let node = element.as_widget_mut().layout(
+                &mut tree,
+                &renderer,
+                &layout::Limits::new(Size::ZERO, size),
+            );
+            element.as_widget().draw(
+                &tree,
+                &mut renderer,
+                &palette,
+                &Style {
+                    text_color: palette.colors.shell.ink,
+                },
+                Layout::new(&node),
+                iced::mouse::Cursor::Unavailable,
+                &Rectangle::with_size(size),
+            );
+            let pixels = renderer.screenshot(
+                Size::new(width, height),
+                1.0,
+                palette.colors.shell.background,
+            );
+            for x in [super::GUTTER as u32, width / 2, width - 8] {
+                assert_quiet_rule(
+                    &pixels,
+                    width,
+                    (x, super::BAR_HEIGHT as u32),
+                    &palette,
+                    palette.colors.shell.rail,
+                    &format!("Launcher top bar rule, {}", appearance),
+                );
+            }
+        }
     }
 
     #[test]
@@ -2683,9 +2741,9 @@ mod top_bar_tests {
             let chrome = super::snapshot(&home, &projection);
             let bars = iced::widget::column![
                 super::top_bar(&home, &projection, false),
-                rule::horizontal(1),
+                coincube_ui::component::tenshu::top_bar::rule(),
                 super::quiet_top_bar(&chrome),
-                rule::horizontal(1),
+                coincube_ui::component::tenshu::top_bar::rule(),
             ];
             save(
                 &mut renderer,

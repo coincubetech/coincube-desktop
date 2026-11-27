@@ -97,12 +97,16 @@ const TOAST_BORDER_ALPHA: f32 = 0.4;
 const TOAST_TILE_ALPHA: f32 = 0.13;
 
 /// Toast surface: the menu/popover panel (`tenshu::surface::panel`) with a
-/// tone-tinted border on warnings and errors.
+/// line border, tone-tinted on warnings and errors. Notices keep their
+/// border: the tint is part of what a warning says.
 pub fn toast(theme: &Theme, tone: ToastTone) -> Style {
     let mut style = super::tenshu::surface::panel(theme);
-    if tone.needs_attention() {
-        style.border.color = super::tenshu::faded(tone.color(theme), TOAST_BORDER_ALPHA);
-    }
+    style.border.width = 1.0;
+    style.border.color = if tone.needs_attention() {
+        super::tenshu::faded(tone.color(theme), TOAST_BORDER_ALPHA)
+    } else {
+        theme.colors.shell.line
+    };
     style
 }
 
@@ -135,6 +139,20 @@ mod toast_tests {
         ToastTone::Error,
         ToastTone::Debug,
     ];
+
+    /// Notices keep their border when the menu panel they share loses its own.
+    #[test]
+    fn every_toast_keeps_its_border() {
+        for theme in [Theme::dark(), Theme::light()] {
+            for tone in TONES {
+                let style = toast(&theme, tone);
+                assert_eq!(style.border.width, 1.0, "{tone:?}");
+                if !tone.needs_attention() {
+                    assert_eq!(style.border.color, theme.colors.shell.line, "{tone:?}");
+                }
+            }
+        }
+    }
 
     #[test]
     fn log_levels_map_to_tones() {

@@ -23,3 +23,12 @@ pub fn default(theme: &Theme) -> Style {
         snap: true,
     }
 }
+
+/// The quiet region divider: the shell's `rule` token (ink at 10%), under the
+/// top bar, beside the sidebar and under the pinned page head.
+pub fn quiet(theme: &Theme) -> Style {
+    Style {
+        color: theme.colors.shell.rule,
+        ..default(theme)
+    }
+}

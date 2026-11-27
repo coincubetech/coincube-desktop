@@ -182,12 +182,7 @@ impl<'a, M: Clone + 'static> PageHead<'a, M> {
                     ..Default::default()
                 }),
             )
-            .push(iced::widget::rule::horizontal(1).style(|theme: &Theme| {
-                iced::widget::rule::Style {
-                    color: theme.colors.shell.line,
-                    ..crate::theme::rule::default(theme)
-                }
-            }))
+            .push(iced::widget::rule::horizontal(1).style(crate::theme::rule::quiet))
             .width(Length::Fill)
             .into()
     }
@@ -626,5 +621,69 @@ mod tests {
             (size.height - (HEAD_TOP + title.height + HEAD_BOTTOM + 1.0)).abs() < 0.5,
             "{title:?} {size:?}"
         );
+    }
+
+    /// The head's bottom edge is the quiet rule (ink at 10%) over the page
+    /// background, in both themes, with or without a row on it.
+    #[test]
+    fn the_head_rule_is_the_quiet_rule() {
+        use iced::advanced::renderer::Style;
+        for theme in [Theme::dark(), Theme::light()] {
+            for head in [
+                page_head::<Msg>("Settings", Msg::Focus),
+                page_head::<Msg>("Send", Msg::Focus)
+                    .rule(crate::component::tenshu::steps(&["Details", "Sent"], 0)),
+            ] {
+                let mut renderer = renderer();
+                let mut element = head.view(gutter);
+                let mut tree = Tree::new(element.as_widget());
+                let node = element.as_widget_mut().layout(
+                    &mut tree,
+                    &renderer,
+                    &layout::Limits::new(Size::ZERO, Size::new(1024.0, 768.0)),
+                );
+                let size = node.size();
+                let viewport = Rectangle::with_size(size);
+                element.as_widget().draw(
+                    &tree,
+                    &mut renderer,
+                    &theme,
+                    &Style {
+                        text_color: theme.colors.shell.ink,
+                    },
+                    Layout::new(&node),
+                    iced::mouse::Cursor::Unavailable,
+                    &viewport,
+                );
+                // The title's line height can leave the rule on a half pixel;
+                // the rule snaps it to a whole row.
+                let rule_y = node.children()[1].bounds().y.round() as u32;
+                let (width, height) = (size.width as u32, rule_y + 1);
+                let pixels = renderer.screenshot(
+                    Size::new(width, height),
+                    1.0,
+                    theme.colors.shell.background,
+                );
+                // Right of the page column, clear of the steps' underline.
+                let at = |x: u32, y: u32| {
+                    let i = ((y * width + x) * 4) as usize;
+                    [pixels[i], pixels[i + 1], pixels[i + 2]]
+                };
+                let rule = crate::theme::rule::quiet(&theme).color;
+                let under = theme.colors.shell.background;
+                let expected = [(rule.r, under.r), (rule.g, under.g), (rule.b, under.b)].map(
+                    |(top, under)| ((top * rule.a + under * (1.0 - rule.a)) * 255.0).round() as u8,
+                );
+                let actual = at(width - 8, rule_y);
+                assert!(
+                    actual
+                        .iter()
+                        .zip(expected)
+                        .all(|(actual, expected)| actual.abs_diff(expected) <= 2),
+                    "head rule {actual:?} != quiet rule {expected:?}"
+                );
+                assert_eq!(rule, theme.colors.shell.rule);
+            }
+        }
     }
 }

@@ -21,6 +21,7 @@ pub mod text;
 pub mod toast;
 pub mod tooltip;
 pub mod transaction;
+pub mod wordmark;
 
 use bitcoin::Network;
 pub use tooltip::{tooltip, tooltip_custom};

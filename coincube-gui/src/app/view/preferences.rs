@@ -23,9 +23,8 @@ use iced::{advanced::widget::Id, widget::container, Alignment, Length};
 
 use crate::app::{
     settings::preferences::{
-        ArtworkStyle, DevicePreferences, EffectivePreferences, Language, LauncherStyle,
-        MotionPreference, NetworkActivitySource, PreferenceChange, ThemePreference, WorldviewMode,
-        Zoom,
+        DevicePreferences, EffectivePreferences, Language, LauncherStyle, MotionPreference,
+        NetworkActivitySource, PreferenceChange, ThemePreference, WorldviewMode, Zoom,
     },
     state::preferences::{AboutPage, BalancePrivacy, PreferencesPageState, Section},
 };
@@ -323,79 +322,6 @@ fn worldview_panel_style(theme: &theme::Theme) -> container::Style {
     }
 }
 
-fn artwork_row<'a>(saved: DevicePreferences, enabled: bool) -> Element<'a, Message> {
-    use coincube_ui::{illustration, theme::tenshu::control};
-
-    let mode = saved.worldview;
-    let (mode_name, existing_name, scene_name) = match mode {
-        WorldviewMode::Samurai => ("Samurai", "Kage", "Mountain Watch"),
-        WorldviewMode::Suitcoiner => ("Suitcoiner", "Gilded Wall Street", "Gilded Exchange"),
-        WorldviewMode::Luke => ("Luke", "Purist’s Woodcut", "The Stone Crossing"),
-    };
-    let mut options = [
-        (
-            ArtworkStyle::Existing,
-            existing_name,
-            localized_copy("Existing set"),
-            "tenshu.preferences.artwork.existing",
-        ),
-        (
-            ArtworkStyle::Scene,
-            scene_name,
-            localized_copy("Full scenes"),
-            "tenshu.preferences.artwork.scene",
-        ),
-    ];
-    if ArtworkStyle::default_for(mode) == ArtworkStyle::Scene {
-        options.swap(0, 1);
-    }
-    let choices = IntoIterator::into_iter(options).fold(
-        Row::new().spacing(8),
-        |row, (style, name, label, id)| {
-            let selected = saved.artwork.get(mode) == style;
-            let thumbnail = illustration::artwork_thumbnail(mode, style).map(|image| {
-                iced::widget::image(image)
-                    .width(Length::Fixed(88.0))
-                    .height(Length::Fixed(88.0))
-                    .content_fit(iced::ContentFit::Contain)
-            });
-            let caption = Row::new()
-                .spacing(4)
-                .align_y(Alignment::Center)
-                .push(selected.then(|| check_circle_icon().size(12)))
-                .push(tenshu_text::caption(name).font(font::MEDIUM));
-            let content = Column::new()
-                .spacing(4)
-                .align_x(Alignment::Center)
-                .width(Length::Fill)
-                .push(thumbnail)
-                .push(caption)
-                .push(tenshu_text::caption(label).style(theme::text::secondary));
-            row.push(
-                FocusableAction::new(id, content, Message::FocusAction)
-                    .width(Length::Fixed(139.0))
-                    .padding([7, 5])
-                    .style(move |theme, status| control::choice_chip(theme, status, selected))
-                    .on_press_maybe(
-                        enabled.then_some(Message::Change(PreferenceChange::Artwork(mode, style))),
-                    ),
-            )
-        },
-    );
-    setting_row(localized_copy("Artwork"), choices)
-        .tag(CopyText::ThisDevice.get())
-        .trailing_tag()
-        .description(coincube_ui::localized_format!(
-            "Choose the artwork set for {mode_name}.",
-            "Elige la colección de ilustraciones de {mode_name}."
-        ))
-        .note(
-            localized_copy("Each worldview remembers its own choice."),
-            Tone::Muted,
-        )
-        .into()
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Action {
     Close,
@@ -487,7 +413,8 @@ const THIRD_PARTY_LICENCES: &str = include_str!("../../../assets/THIRD_PARTY_LIC
 #[derive(Debug, Default, Clone, Copy)]
 pub struct WorldviewSharing {
     pub status: &'static str,
-    pub shared_selection: Option<(&'static str, &'static str)>,
+    /// The shared Worldview's name, shown as "Shared with Mobile · {mode}".
+    pub shared_selection: Option<&'static str>,
     pub can_refresh: bool,
     pub can_publish: bool,
     pub can_revoke: bool,
@@ -529,8 +456,8 @@ fn worldview_sharing_row<'a>(sharing: &WorldviewSharing) -> Element<'a, Message>
             )
         },
     );
-    let status = if let Some((mode, art)) = sharing.shared_selection {
-        format!("{} · {mode} · {art}", sharing.status)
+    let status = if let Some(mode) = sharing.shared_selection {
+        format!("{} · {mode}", sharing.status)
     } else {
         sharing.status.to_owned()
     };
@@ -538,7 +465,7 @@ fn worldview_sharing_row<'a>(sharing: &WorldviewSharing) -> Element<'a, Message>
         .spacing(8)
         .push(tenshu_text::label(localized_copy("Share with Mobile")))
         .push(
-            tenshu_text::body(localized_copy("Once sharing is enabled, saved Worldview and artwork changes automatically update COINCUBE Mobile on your Connect account."))
+            tenshu_text::body(localized_copy("Once sharing is enabled, saved Worldview changes automatically update COINCUBE Mobile on your Connect account."))
                 .size(13)
                 .style(theme::tenshu::text::muted),
         )
@@ -887,7 +814,6 @@ fn appearance_rows<'a>(
     );
     rows.push(language_row(saved.language, enabled));
     rows.push(worldview_row(saved, enabled));
-    rows.push(artwork_row(saved, enabled));
     rows.push(worldview_sharing_row(&model.worldview_sharing));
     let max_zoom = model.max_zoom.unwrap_or(Zoom::LARGEST);
     let (zoom_selected, zoom_note) = zoom_choice(saved.zoom, max_zoom);
@@ -1865,17 +1791,16 @@ fn vertical_rule<'a>() -> Element<'a, Message> {
         .into()
 }
 
-/// The sheet surface (`.sheet`): panel fill, 1px line, 12px radius and the
-/// drop shadow.
+/// The sheet surface (`.sheet`): panel fill, 12px radius and the drop
+/// shadow; it floats, so it has no outline (`.sheet{border:0}`).
 fn sheet_style(theme: &theme::Theme) -> container::Style {
     let shell = &theme.colors.shell;
     container::Style {
         text_color: Some(shell.ink),
         background: Some(iced::Background::Color(shell.panel)),
         border: iced::Border {
-            color: shell.line,
-            width: 1.0,
             radius: 12.0.into(),
+            ..Default::default()
         },
         shadow: iced::Shadow {
             color: shell.shadow,
@@ -1909,6 +1834,16 @@ mod tests {
         Layout,
     };
     use iced::{keyboard, mouse, Event, Rectangle, Size};
+
+    /// `.sheet{border:0}`: the sheet floats on its shadow, without an outline.
+    #[test]
+    fn the_sheet_has_a_shadow_and_no_outline() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let style = sheet_style(&theme);
+            assert_eq!(style.border.width, 0.0);
+            assert!(style.shadow.color.a > 0.0 && style.shadow.blur_radius > 0.0);
+        }
+    }
 
     fn renderer() -> iced::Renderer {
         for bytes in coincube_ui::font::load() {
@@ -2271,26 +2206,20 @@ mod tests {
         }
     }
 
+    /// Desktop V3: Bitcoin Worldview is wording only. Appearance offers the
+    /// three worldviews and no Artwork row, in every mode and theme.
     #[test]
-    fn artwork_picker_uses_the_active_worldview_and_fits_appearance() {
+    fn appearance_has_no_artwork_row_in_any_worldview() {
         use crate::app::view::shared::landing::capture;
         use coincube_ui::theme::Theme;
         let page = PreferencesPageState {
             section: Section::Appearance,
             ..Default::default()
         };
-        for (worldview, existing, scene) in [
-            (WorldviewMode::Samurai, "Kage", "Mountain Watch"),
-            (
-                WorldviewMode::Suitcoiner,
-                "Gilded Wall Street",
-                "Gilded Exchange",
-            ),
-            (
-                WorldviewMode::Luke,
-                "Purist’s Woodcut",
-                "The Stone Crossing",
-            ),
+        for worldview in [
+            WorldviewMode::Samurai,
+            WorldviewMode::Suitcoiner,
+            WorldviewMode::Luke,
         ] {
             let model = ViewModel {
                 saved: Some(DevicePreferences {
@@ -2299,43 +2228,46 @@ mod tests {
                 }),
                 ..Default::default()
             };
-            for (id, style) in [
-                (
-                    "tenshu.preferences.artwork.existing",
-                    ArtworkStyle::Existing,
-                ),
-                ("tenshu.preferences.artwork.scene", ArtworkStyle::Scene),
+            for id in [
+                "tenshu.preferences.artwork.existing",
+                "tenshu.preferences.artwork.scene",
             ] {
                 let (focused, messages) =
                     activate(model, Section::Appearance, id, keyboard::key::Named::Enter);
-                assert!(focused);
-                assert_eq!(
-                    messages,
-                    vec![Message::Change(PreferenceChange::Artwork(worldview, style))]
-                );
-                let (focused, messages) = activate(
-                    ViewModel {
-                        saving: true,
-                        ..model
-                    },
-                    Section::Appearance,
-                    id,
-                    keyboard::key::Named::Space,
-                );
-                assert!(!focused);
+                assert!(!focused, "{}", id);
                 assert!(messages.is_empty());
             }
             for (appearance, theme) in [("light", Theme::light()), ("dark", Theme::dark())] {
                 let mounted = capture::inspect_filled(
-                    &format!("artwork-picker-{worldview:?}"),
+                    &format!("appearance-no-artwork-{worldview:?}"),
                     view(&page, model),
                     (1024, 768),
                     appearance,
                     theme.with_worldview(worldview),
                     (1024, 768),
                 );
-                assert!(mounted.contains(existing));
-                assert!(mounted.contains(scene));
+                assert!(mounted.contains("Samurai"));
+                assert!(mounted.contains("Suitcoiner"));
+                assert!(mounted.contains("Luke"));
+                for gone in [
+                    "Artwork",
+                    "Existing set",
+                    "Full scenes",
+                    "Kage",
+                    "Mountain Watch",
+                    "Gilded Wall Street",
+                    "Gilded Exchange",
+                    "Purist’s Woodcut",
+                    "The Stone Crossing",
+                ] {
+                    assert!(
+                        !mounted.contains(gone),
+                        "{:?} {}: {}",
+                        worldview,
+                        appearance,
+                        gone
+                    );
+                }
             }
         }
     }
@@ -2786,7 +2718,7 @@ mod tests {
             saved: Some(DevicePreferences::default()),
             worldview_sharing: WorldviewSharing {
                 status: "Shared with Mobile",
-                shared_selection: Some(("Luke", "The Stone Crossing")),
+                shared_selection: Some("Luke"),
                 can_refresh: true,
                 can_publish: true,
                 can_revoke: true,
@@ -2835,7 +2767,7 @@ mod tests {
                 coincube_ui::locale::render_in(language, || {
                     let sharing = WorldviewSharing {
                         status: localized_copy("Shared with Mobile"),
-                        shared_selection: Some(("Suitcoiner", "Gilded Wall Street")),
+                        shared_selection: Some("Suitcoiner"),
                         can_refresh: true,
                         can_publish: true,
                         can_revoke: true,
@@ -2849,7 +2781,18 @@ mod tests {
                         (700, 220),
                     );
                     assert!(shown.contains(localized_copy("Share saved selection")));
-                    assert!(shown.contains("Gilded Wall Street"));
+                    assert!(shown.contains(&format!(
+                        "{} · Suitcoiner",
+                        localized_copy("Shared with Mobile")
+                    )));
+                    assert!(shown.contains(localized_copy(
+                        "Once sharing is enabled, saved Worldview changes automatically update COINCUBE Mobile on your Connect account."
+                    )));
+                    assert!(!shown.contains("Gilded Wall Street"));
+                    assert!(!shown.text.iter().any(|(text, _)| {
+                        let text = text.to_lowercase();
+                        text.contains("artwork") || text.contains("ilustraciones")
+                    }));
                 });
             }
         }

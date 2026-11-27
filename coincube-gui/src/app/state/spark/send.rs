@@ -666,7 +666,6 @@ pub struct SparkSend {
     sent_total_display: String,
     /// Quote and image handle for the celebration screen.
     sent_quote: coincube_ui::component::quote_display::Quote,
-    sent_image_handle: iced::widget::image::Handle,
     /// Last few payments fetched from the bridge, rendered under the
     /// send form. Populated on reload and after each successful send.
     recent_transactions: Vec<SparkRecentTransaction>,
@@ -771,9 +770,6 @@ impl SparkSend {
             sent_total_display: String::new(),
             sent_celebration_context: "lightning-send".to_string(),
             sent_quote: coincube_ui::component::quote_display::random_quote("lightning-send"),
-            sent_image_handle: coincube_ui::component::quote_display::image_handle_for_context(
-                "lightning-send",
-            ),
             recent_transactions: Vec::new(),
             cross_chain: None,
             detected: None,
@@ -2005,8 +2001,6 @@ impl SparkSend {
         };
         self.sent_celebration_context = context.to_string();
         self.sent_quote = coincube_ui::component::quote_display::random_quote(context);
-        self.sent_image_handle =
-            coincube_ui::component::quote_display::image_handle_for_context(context);
         refresh
     }
 
@@ -2107,7 +2101,6 @@ impl State for SparkSend {
                 sent_fee_display: &self.sent_fee_display,
                 sent_total_display: &self.sent_total_display,
                 sent_quote: &self.sent_quote,
-                sent_image_handle: &self.sent_image_handle,
                 recent_transactions: &self.recent_transactions,
                 balance_sats: self.balance_sats,
                 balances: crate::app::view::spark::SparkBalances::new(

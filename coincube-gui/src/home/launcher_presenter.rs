@@ -2410,7 +2410,7 @@ fn floor_stage<'a, M: 'a + 'static>(
         .width(Length::Fill)
         .height(Length::Fill)
         .push(launcher_chrome::quiet_top_bar(&context.chrome))
-        .push(rule::horizontal(1))
+        .push(top_bar::rule())
         .push(stage.clip(true))
         .push(Space::new().height(Length::Fill))
         .push(rule::horizontal(1))
@@ -2606,7 +2606,6 @@ fn opening_content<'a, M: 'a>(
     light: bool,
     alpha: f32,
     quote_width: f32,
-    artwork_size: f32,
 ) -> (Element<'a, M>, Element<'a, M>) {
     use coincube_ui::font;
     let network = face.cube.network;
@@ -2639,11 +2638,6 @@ fn opening_content<'a, M: 'a>(
     let ready = face.stage == super::launcher_opening::Stage::Ready;
     let mut body = Column::new()
         .align_x(Alignment::Center)
-        .push(coincube_ui::illustration::opening_image(
-            artwork_size,
-            alpha,
-        ))
-        .push(Space::new().height(Length::Fixed(16.0)))
         .push(opening_quotes(face, alpha, quote_width))
         .push(Space::new().height(Length::Fixed(40.0)))
         .push(
@@ -2726,17 +2720,13 @@ fn opening_details<'a, M: 'a>(
         .into()
 }
 
-fn opening_art_size(height: f32) -> f32 {
-    (height - 430.0).clamp(96.0, 160.0)
-}
-
 fn opening_face_content<'a, M: 'a>(
     face: &OpeningFace<'a, M>,
     light: bool,
     alpha: f32,
     side: f32,
 ) -> Element<'a, M> {
-    let (heading, body) = opening_content(face, light, alpha, 520.0, opening_art_size(side));
+    let (heading, body) = opening_content(face, light, alpha, 520.0);
     let k = side / launcher_scene::OPEN_FACE_SIZE;
     Container::new(opening_details(heading, body, 44.0 * k, 72.0 * k))
         .width(Length::Fixed(side))
@@ -2802,8 +2792,7 @@ pub(crate) fn opening_full_screen<'a, M: 'a + 'static>(
     let alpha = opening.content(now);
     let scene = project_opening(&face.cube.name, face.cube.network);
     let stage = responsive(move |size: Size| {
-        let (heading, body) =
-            opening_content(&face, light, alpha, 640.0, opening_art_size(size.height));
+        let (heading, body) = opening_content(&face, light, alpha, 640.0);
         let top = (size.height * 0.09).min(64.0);
         Stack::new()
             .width(Length::Fill)
@@ -2823,7 +2812,7 @@ pub(crate) fn opening_full_screen<'a, M: 'a + 'static>(
         .width(Length::Fill)
         .height(Length::Fill)
         .push(opening_rail(&scene))
-        .push(rule::horizontal(1))
+        .push(top_bar::rule())
         .push(stage)
         .into()
 }
@@ -2880,25 +2869,19 @@ pub(crate) fn opening_body<'a>(
     scene: OpeningScene,
     step: &'a loader::Step,
     quote: &'a Quote,
-    image: &'a iced::widget::image::Handle,
     restricted_claim: bool,
 ) -> Element<'a, loader::ViewMessage> {
     let rail = opening_rail(&scene);
-    let stage = Container::new(loader::view_with_retry(
-        step,
-        quote,
-        image,
-        !restricted_claim,
-    ))
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .center_x(Length::Fill)
-    .center_y(Length::Fill);
+    let stage = Container::new(loader::view_with_retry(step, quote, !restricted_claim))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .center_x(Length::Fill)
+        .center_y(Length::Fill);
     Column::new()
         .width(Length::Fill)
         .height(Length::Fill)
         .push(rail)
-        .push(rule::horizontal(1))
+        .push(top_bar::rule())
         .push(stage)
         .into()
 }
@@ -4882,9 +4865,9 @@ mod tests {
     }
 
     #[test]
-    fn artwork_picker_live_opening_keeps_status_and_stall_actions() {
+    fn live_opening_keeps_status_and_stall_actions_in_every_worldview() {
         use super::super::launcher_opening::{Opening, Stage};
-        use coincube_ui::theme::{ArtworkStyle, WorldviewMode};
+        use coincube_ui::theme::WorldviewMode;
         use std::time::{Duration, Instant};
 
         let cube = crate::app::settings::CubeSettings::new_with_raw_id(
@@ -4894,7 +4877,7 @@ mod tests {
         );
         let quote = Quote {
             id: "fixture".into(),
-            text: "Verify the network before you send. An illustration can change with your worldview, while the network and the next action stay the same.".into(),
+            text: "Verify the network before you send. The wording can change with your worldview, while the network and the next action stay the same.".into(),
             author: "Author".into(),
             source: "Source".into(),
             category: "loading".into(),
@@ -4906,7 +4889,11 @@ mod tests {
         for height in [768, 512] {
             for floor in [None, Some(floor_context(&cube))] {
                 let opening = Opening::new(floor, false, Stage::Spark, started);
-                for artwork in [ArtworkStyle::Existing, ArtworkStyle::Scene] {
+                for mode in [
+                    WorldviewMode::Samurai,
+                    WorldviewMode::Suitcoiner,
+                    WorldviewMode::Luke,
+                ] {
                     let face = OpeningFace {
                         cube: &cube,
                         quote: &quote,
@@ -4916,9 +4903,7 @@ mod tests {
                         cancel: || (),
                         without_spark: || (),
                     };
-                    let theme = theme::Theme::dark()
-                        .with_worldview(WorldviewMode::Suitcoiner)
-                        .with_artwork(artwork);
+                    let theme = theme::Theme::dark().with_worldview(mode);
                     let (layout, element) = match opening.floor() {
                         Some(context) => (
                             "floor",
@@ -4927,7 +4912,7 @@ mod tests {
                         None => ("list", opening_full_screen(face, theme.mode, &opening, now)),
                     };
                     let mounted = capture::inspect_filled(
-                        &format!("artwork-live-opening-{layout}-{artwork:?}"),
+                        &format!("live-opening-{layout}-{mode:?}"),
                         element,
                         (1024, height),
                         "dark",
@@ -4935,6 +4920,7 @@ mod tests {
                         (1024, height),
                     );
                     assert!(mounted.contains("Loading your Spark wallet"));
+                    assert!(mounted.contains("The wording can change"));
                     let action = mounted
                         .text
                         .iter()
@@ -4957,9 +4943,6 @@ mod tests {
             length: "short".into(),
             contexts: Vec::new(),
         };
-        let (bytes, _) =
-            coincube_ui::component::quote_display::default_image_for_context("loading");
-        let image = iced::widget::image::Handle::from_bytes(bytes);
         for (step, expected) in [
             (loader::Step::Connecting, "Connecting to daemon..."),
             (
@@ -4974,7 +4957,7 @@ mod tests {
             ] {
                 let mounted = capture::inspect(
                     "v113-opening",
-                    opening_body(scene.clone(), &step, &quote, &image, false),
+                    opening_body(scene.clone(), &step, &quote, false),
                     (1024, 768),
                     appearance,
                     palette,
@@ -5003,9 +4986,6 @@ mod tests {
             length: "short".into(),
             contexts: Vec::new(),
         };
-        let (bytes, _) =
-            coincube_ui::component::quote_display::default_image_for_context("loading");
-        let image = iced::widget::image::Handle::from_bytes(bytes);
         let step = loader::Step::Connecting;
         for raw_name in ["W".repeat(80), "旅".repeat(80)] {
             let scene = project_opening(&raw_name, ChainId::Bitcoin);
@@ -5017,7 +4997,7 @@ mod tests {
                 // bound stays inside its compact viewport.
                 let mounted = capture::inspect(
                     "v113-opening-long-name",
-                    opening_body(scene.clone(), &step, &quote, &image, false),
+                    opening_body(scene.clone(), &step, &quote, false),
                     (1024, 768),
                     appearance,
                     palette,

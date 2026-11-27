@@ -167,7 +167,6 @@ pub struct SparkReceive {
     received_celebration_context: String,
     /// Quote and image handle for the celebration screen.
     received_quote: coincube_ui::component::quote_display::Quote,
-    received_image_handle: iced::widget::image::Handle,
     /// Last few payments fetched from the bridge, rendered under the
     /// receive form. Populated on reload and after an incoming payment.
     recent_transactions: Vec<SparkRecentTransaction>,
@@ -552,8 +551,6 @@ impl SparkReceive {
             };
             self.received_celebration_context = context.to_string();
             self.received_quote = coincube_ui::component::quote_display::random_quote(context);
-            self.received_image_handle =
-                coincube_ui::component::quote_display::image_handle_for_context(context);
         }
         self.phase = SparkReceivePhase::Received {
             amount_sat: running_total,
@@ -839,9 +836,6 @@ impl SparkReceive {
             received_quote: coincube_ui::component::quote_display::random_quote(
                 "lightning-receive",
             ),
-            received_image_handle: coincube_ui::component::quote_display::image_handle_for_context(
-                "lightning-receive",
-            ),
             recent_transactions: Vec::new(),
         }
     }
@@ -1013,9 +1007,7 @@ impl State for SparkReceive {
                 cube_name: &cache.cube_name,
                 received_amount_display: &self.received_amount_display,
                 received_payment_id: self.received_payment_id.as_deref(),
-                received_celebration_context: &self.received_celebration_context,
                 received_quote: &self.received_quote,
-                received_image_handle: &self.received_image_handle,
                 recent_transactions: &self.recent_transactions,
                 balance_sats: self.balance_sats,
                 balances: crate::app::view::spark::SparkBalances::new(

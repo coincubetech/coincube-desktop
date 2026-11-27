@@ -64,7 +64,6 @@ pub struct SparkSendView<'a> {
     pub sent_fee_display: &'a str,
     pub sent_total_display: &'a str,
     pub sent_quote: &'a coincube_ui::component::quote_display::Quote,
-    pub sent_image_handle: &'a iced::widget::image::Handle,
     pub recent_transactions: &'a [SparkRecentTransaction],
     /// Unified balance (sats: BTC + Stable Balance), shown on the YOU SEND card.
     pub balance_sats: u64,
@@ -260,9 +259,7 @@ impl<'a> SparkSendView<'a> {
         payment_result(
             outcome,
             self.sent_amount_display,
-            self.sent_celebration_context,
             self.sent_quote,
-            self.sent_image_handle,
             Message::SparkSend(crate::app::view::SparkSendMessage::Reset),
         )
         .rows(rows)
@@ -2830,7 +2827,6 @@ mod tests {
         network: Network,
         countdown: Option<cross_chain::QuoteCountdown>,
         quote: Quote,
-        image: iced::widget::image::Handle,
         stable: Option<coincube_spark_protocol::UsdbBalanceSnapshot>,
         pay_from: coincube_spark_protocol::WalletAsset,
         usdb_unavailable: Option<&'static str>,
@@ -2866,7 +2862,6 @@ mod tests {
                     length: String::new(),
                     contexts: Vec::new(),
                 },
-                image: iced::widget::image::Handle::from_rgba(1, 1, vec![0u8; 4]),
                 stable: None,
                 pay_from: coincube_spark_protocol::WalletAsset::Bitcoin,
                 usdb_unavailable: Some("You have no USDB."),
@@ -2930,7 +2925,6 @@ mod tests {
                 sent_fee_display: "",
                 sent_total_display: "",
                 sent_quote: &self.quote,
-                sent_image_handle: &self.image,
                 recent_transactions: &[],
                 balance_sats: SYNTHETIC_BALANCE_SATS,
                 balances: crate::app::view::spark::SparkBalances {

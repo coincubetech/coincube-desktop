@@ -2326,7 +2326,7 @@ fn launcher_screen(
         .width(Length::Fill)
         .height(Length::Fill)
         .push(super::launcher_chrome::top_bar(home, &projection, quiet))
-        .push(rule::horizontal(1))
+        .push(coincube_ui::component::tenshu::top_bar::rule())
         .push(body);
     let screen = if with_dock {
         screen.push(rule::horizontal(1)).push(dock)

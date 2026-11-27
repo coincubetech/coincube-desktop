@@ -645,11 +645,9 @@ fn batch_transaction_label<'a>(
 
 /// Full-screen celebration view when a vault payment is received.
 pub fn received_celebration_page<'a>(
-    context: &str,
     amount_display: &'a str,
     txid: Option<&str>,
     quote: &'a coincube_ui::component::quote_display::Quote,
-    image_handle: &'a iced::widget::image::Handle,
 ) -> Element<'a, Message> {
     use coincube_ui::component::payment_result::{payment_result, short_id, Outcome, ReceiptRow};
     let id_row = txid.map(|id| {
@@ -663,9 +661,7 @@ pub fn received_celebration_page<'a>(
     payment_result(
         Outcome::Received,
         amount_display,
-        context,
         quote,
-        image_handle,
         Message::DismissReceivedCelebration,
     )
     .detail(localized_copy("Into Vault"))
