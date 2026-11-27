@@ -34,8 +34,10 @@ pub const ICON_BUTTON: f32 = 32.0;
 const GLYPH: f32 = 16.0;
 /// `.brand svg { width: 20px }`.
 const BRAND_MARK: f32 = 20.0;
-/// `.tbtn { border-radius: 6px }`, also the brand's.
+/// `.brand { border-radius: 6px }`.
 const RADIUS: f32 = 6.0;
+/// `.tbtn { border-radius: 8px }` (`cc-buttons v1`: bar buttons are radius 8).
+pub const BUTTON_RADIUS: f32 = 8.0;
 
 /// The accessible name of the App preferences control on every bar.
 pub const APP_PREFERENCES: &str = "App preferences";
@@ -258,7 +260,7 @@ pub fn button_style(theme: &Theme, status: button::Status, pressed: bool) -> but
         border: Border {
             color: Color::TRANSPARENT,
             width: 0.0,
-            radius: RADIUS.into(),
+            radius: BUTTON_RADIUS.into(),
         },
         ..Default::default()
     }
@@ -349,7 +351,7 @@ impl<'a, M: Clone + 'static> From<IconAction<'a, M>> for Element<'a, M> {
             .height(Length::Fixed(ICON_BUTTON))
             .padding(0.0)
             .style(move |theme, status| button_style(theme, status, pressed))
-            .focus_radius(RADIUS)
+            .focus_radius(BUTTON_RADIUS)
             .on_press_maybe(on_press);
         tooltip(
             AccessibleLabel::new(control, label.clone()),
@@ -551,6 +553,19 @@ mod tests {
     }
 
     const WIDTH: f32 = 1024.0;
+
+    /// `cc-buttons v1` rounds bar buttons at 8, like the sidebar rows; the
+    /// brand link keeps its own 6.
+    #[test]
+    fn bar_buttons_are_radius_8() {
+        let theme = Theme::dark();
+        for pressed in [false, true] {
+            for status in [button::Status::Active, button::Status::Hovered] {
+                let style = button_style(&theme, status, pressed);
+                assert_eq!(style.border.radius, 8.0.into());
+            }
+        }
+    }
 
     /// Bar buttons are quiet (`cc-buttons v1`): no outline in any state, the
     /// light fill on hover, the selected fill while pressed. Pressed carries
