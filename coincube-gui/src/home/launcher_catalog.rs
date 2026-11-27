@@ -1291,17 +1291,13 @@ pub(super) fn split_wallet_id() -> Id {
 pub(super) fn clear_query_id() -> Id {
     control_id("clear-query")
 }
-/// An All / Live / Test networks chip.
+/// The Network menu's All / Live / Test networks row.
 pub(super) fn filter_id(name: &str) -> Id {
     control_id(&format!("filter-{name}"))
 }
-/// The top bar's "Clear filters" link.
-pub(super) fn clear_filters_id() -> Id {
-    control_id("clear-filters")
-}
-/// "Clear filters" in the empty state when every Cube is filtered out.
-pub(super) fn clear_filters_empty_id() -> Id {
-    control_id("clear-filters-empty")
+/// "Show all networks" in the no-match state when the filter shows no Cube.
+pub(super) fn show_all_networks_id() -> Id {
+    control_id("show-all-networks")
 }
 pub(super) fn create_id() -> Id {
     control_id("create")
@@ -2297,6 +2293,8 @@ fn launcher_screen(
     let dock = super::launcher_chrome::dock(home, &projection, quiet);
     let error = home.error.clone().filter(|_| !home.showing_create_form());
     let floor_visible = projection.floor_eligible(home.catalog.mode);
+    let count = super::launcher_chrome::count_text(&projection, home.catalog.mode);
+    let anything_listed = !(projection.locals.is_empty() && projection.remotes.is_empty());
     // The floor's stage fills the visible body, so it is laid out against
     // the body's own height rather than the scrolled content's.
     let body = responsive(move |size: Size| {
@@ -2309,15 +2307,26 @@ fn launcher_screen(
             } else {
                 super::launcher_presenter::list_body_with_worldview(home, worldview)
             });
+        // The List, or the floor too narrow to stand, takes the count
+        // bottom-left of the body; the floor puts it beside its page dots.
+        let listed = !floor_visible || size.width < super::launcher_presenter::FLOOR_MIN_WIDTH;
         let body_content = if floor_visible {
             body_content
         } else {
             body_content.padding([20.0, GUTTER])
         };
-        scrollable(body_content)
+        let scroll = scrollable(body_content)
             .id(CATALOG_SCROLL_ID)
             .width(Length::Fill)
+            .height(Length::Fill);
+        // Under the scrolled rows, so it never covers one.
+        let foot = (listed && anything_listed)
+            .then(|| super::launcher_presenter::list_foot(count.clone()));
+        Column::new()
+            .width(Length::Fill)
             .height(Length::Fill)
+            .push(scroll)
+            .push(foot)
             .into()
     })
     .width(Length::Fill)
@@ -2830,15 +2839,14 @@ mod tests {
 
     #[test]
     fn presses_inside_the_network_menu_do_not_close_it() {
-        use super::super::launcher_chrome::network_option_id;
         let mut home = rows(2);
         catalog(&mut home, CatalogMessage::NetworkMenu(true));
         let row = bounds_of(
             &focus_bounds_window(launcher_view(&home), 1440.0, 900.0),
-            &network_option_id(home.network),
+            &filter_id("all"),
         );
-        // The filter note sits under the last row, inside the menu.
-        let note = iced::Point::new(row.x + 20.0, row.y + row.height + 24.0);
+        // The divider sits under All networks, inside the menu.
+        let note = iced::Point::new(row.x + 20.0, row.y + row.height + 6.0);
         let mut mounted = mount_window(launcher_view(&home), 1440.0, 900.0);
         let cursor = iced::mouse::Cursor::Available(note);
         let mut messages = mounted.send(
@@ -4962,6 +4970,22 @@ mod tests {
         fn contains(&self, needle: &str) -> bool {
             self.text.iter().any(|(value, _)| value.contains(needle))
         }
+        /// Where the text equal to `value` is drawn.
+        fn text_bounds(&self, value: &str) -> Rectangle {
+            self.text
+                .iter()
+                .find(|(text, _)| text == value)
+                .map(|(_, bounds)| *bounds)
+                .unwrap_or_else(|| panic!("{:?} not drawn: {:?}", value, self.text))
+        }
+        /// Every text drawn in the top bar.
+        fn bar_text(&self) -> Vec<&str> {
+            self.text
+                .iter()
+                .filter(|(_, bounds)| bounds.y + bounds.height <= TOP_BAR_HEIGHT)
+                .map(|(value, _)| value.as_str())
+                .collect()
+        }
         fn scroll(&self, id: &Id) -> (Rectangle, Rectangle, iced::Vector) {
             let (_, bounds, content) = self
                 .scrollables
@@ -5415,7 +5439,7 @@ mod tests {
 
     /// Bounds of the container carrying `id` in a window-sized layout.
     #[test]
-    fn the_network_chip_opens_the_prototype_menu_and_filters_by_network() {
+    fn the_network_button_opens_the_prototype_menu_and_filters_by_network() {
         use super::super::launcher_chrome::network_option_id;
         let mut home = rows(2);
         home.displayed_networks = vec![ChainId::Bitcoin, ChainId::Testnet4];
@@ -5424,7 +5448,11 @@ mod tests {
             &network_id(),
         );
         assert!(field.y + field.height <= TOP_BAR_HEIGHT, "{:?}", field);
-        assert!(field.width < 220.0, "the chip hugs its label: {:?}", field);
+        assert!(
+            field.width < 220.0,
+            "the button hugs its label: {:?}",
+            field
+        );
         assert!(matches!(
             activate_chrome(&home, network_id(), Press::Pointer),
             ViewMessage::Catalog(CatalogMessage::NetworkMenu(true))
@@ -5432,9 +5460,14 @@ mod tests {
 
         catalog(&mut home, CatalogMessage::NetworkMenu(true));
         let tree = home_tree("network-menu", &home, WIDE, "dark", theme::Theme::dark());
-        assert!(tree.contains("Filters change what is shown, never a Cube's network."));
+        // No note at the menu's foot (Robert, 2026-11-26).
+        assert!(!tree.contains("Filters change"));
         assert!(tree.contains("Bitcoin mainnet"));
         assert!(tree.contains("Testnet4"));
+        // All networks heads the menu; Live and Test wait for Developer mode.
+        assert!(tree.has(&filter_id("all")));
+        assert!(!tree.has(&filter_id("live")));
+        assert!(!tree.has(&filter_id("test")));
         let option = bounds_of(
             &focus_bounds_window(launcher_view(&home), 1440.0, 900.0),
             &network_option_id(ChainId::Testnet4),
@@ -5565,44 +5598,281 @@ mod tests {
         assert_eq!(projection.hidden, 5);
         assert!(projection.no_matches());
         let tree = home_tree("filtered-out", &home, WIDE, "dark", theme::Theme::dark());
-        assert!(tree.contains("No Cubes match these filters"));
-        assert!(tree.contains("5 Cubes hidden."));
-        assert!(tree.has(&clear_filters_empty_id()));
+        assert!(tree.contains("No Cubes on Regtest"));
+        assert!(!tree.contains("hidden"), "no hidden count: {:?}", tree.text);
+        assert!(!tree.contains("Clear filters"));
+        assert!(tree.has(&show_all_networks_id()));
+        for press in [Press::Pointer, Press::Enter] {
+            assert!(matches!(
+                activate_chrome(&home, show_all_networks_id(), press),
+                ViewMessage::Catalog(CatalogMessage::Filter(NetworkFilter::All))
+            ));
+        }
+        catalog(&mut home, CatalogMessage::Filter(NetworkFilter::All));
+        assert_eq!(names(&home).len(), 5, "Show all networks shows every Cube");
+        // The scopes name themselves, in the List too.
+        home.catalog.mode = LauncherMode::List;
+        home.catalog.filter = NetworkFilter::Test;
+        home.network_catalog.clear();
+        let tree = home_tree(
+            "filtered-out-list",
+            &home,
+            WIDE,
+            "dark",
+            theme::Theme::dark(),
+        );
+        assert!(
+            tree.contains("No Cubes on test networks"),
+            "{:?}",
+            tree.text
+        );
+        assert!(tree.has(&show_all_networks_id()));
+        // Search keeps its own no-match.
+        home.catalog.filter = NetworkFilter::All;
+        catalog(&mut home, CatalogMessage::Query("zzz".to_string()));
+        let tree = home_tree("search-no-match", &home, WIDE, "dark", theme::Theme::dark());
+        assert!(tree.contains("No Cubes match"));
+        assert!(!tree.has(&show_all_networks_id()));
+    }
+
+    #[test]
+    fn the_bar_shows_one_network_button_with_the_current_choice() {
+        let mut home = all_networks();
+        for (filter, label) in [
+            (NetworkFilter::All, "All networks"),
+            (NetworkFilter::Live, "Live networks"),
+            (NetworkFilter::Test, "Test networks"),
+            (NetworkFilter::Network(ChainId::Signet), "Signet"),
+            (NetworkFilter::Network(ChainId::Bitcoin), "Bitcoin mainnet"),
+        ] {
+            home.catalog.filter = filter;
+            let tree = home_tree("bar", &home, WIDE, "dark", theme::Theme::dark());
+            let bar = tree.bar_text();
+            let button = tree.bounds(&network_id());
+            assert!(bar.contains(&label), "{:?}: {:?}", filter, bar);
+            let drawn = tree.text_bounds(label);
+            assert!(
+                button.contains(drawn.center()),
+                "{:?} is the button's label",
+                label
+            );
+            // One button: no chips, no count and no Clear filters in the bar.
+            for absent in [
+                "Network",
+                "Network: Signet",
+                "Clear filters",
+                "hidden",
+                "Cubes",
+            ] {
+                assert!(
+                    !bar.iter().any(|text| text.contains(absent)),
+                    "{:?} in the bar under {:?}: {:?}",
+                    absent,
+                    filter,
+                    bar
+                );
+            }
+            for scope in ["all", "live", "test"] {
+                assert!(!tree.has(&filter_id(scope)), "no {} chip", scope);
+            }
+        }
+        // Without Developer mode, one network: still the one button.
+        let mut plain = home_with(&[("a", "Alpha")]);
+        plain.catalog.mode = LauncherMode::Cubes;
+        let tree = home_tree("bar-plain", &plain, WIDE, "dark", theme::Theme::dark());
+        assert_eq!(
+            tree.bar_text()
+                .iter()
+                .filter(|text| text.contains("networks"))
+                .count(),
+            1
+        );
+        assert!(tree.bar_text().contains(&"All networks"));
+    }
+
+    #[test]
+    fn the_network_menu_lists_the_scopes_only_in_developer_mode() {
+        use super::super::launcher_chrome::network_option_id;
+        let mut home = all_networks();
+        catalog(&mut home, CatalogMessage::NetworkMenu(true));
+        let tree = home_tree("menu-dev", &home, WIDE, "dark", theme::Theme::dark());
+        let y = |id: Id| tree.bounds(&id).y;
+        // All, Live, Test, a divider, then each network.
+        let order = [
+            y(filter_id("all")),
+            y(filter_id("live")),
+            y(filter_id("test")),
+            y(network_option_id(ChainId::Bitcoin)),
+            y(network_option_id(ChainId::Testnet4)),
+            y(network_option_id(ChainId::Regtest)),
+        ];
+        assert!(
+            order.windows(2).all(|pair| pair[0] < pair[1]),
+            "{:?}",
+            order
+        );
+        assert!(
+            order[3] - order[2] > 34.0,
+            "a divider sits between the scopes and the networks: {:?}",
+            order
+        );
+        // Every row counts its Cubes.
+        let row_count = |id: Id, count: &str| {
+            let row = tree.bounds(&id);
+            assert!(
+                tree.text
+                    .iter()
+                    .any(|(text, bounds)| text == count && row.contains(bounds.center())),
+                "{:?} does not count {:?}",
+                id,
+                count
+            );
+        };
+        row_count(filter_id("all"), "5");
+        row_count(filter_id("live"), "2");
+        row_count(filter_id("test"), "3");
+        row_count(network_option_id(ChainId::Testnet4), "2");
+        row_count(network_option_id(ChainId::Regtest), "0");
+        for press in [Press::Pointer, Press::Enter] {
+            assert!(matches!(
+                activate_chrome(&home, filter_id("test"), press),
+                ViewMessage::Catalog(CatalogMessage::Filter(NetworkFilter::Test))
+            ));
+        }
+
+        home.developer_mode = false;
+        home.refresh_displayed_networks();
+        let tree = home_tree("menu-plain", &home, WIDE, "dark", theme::Theme::dark());
+        assert!(tree.has(&filter_id("all")));
+        assert!(!tree.has(&filter_id("live")));
+        assert!(!tree.has(&filter_id("test")));
+        assert!(!tree.contains("Live networks"));
+        assert!(!tree.contains("Test networks"));
+    }
+
+    #[test]
+    fn choosing_all_networks_clears_the_filter() {
+        let mut home = all_networks();
+        catalog(&mut home, CatalogMessage::Filter(NetworkFilter::Live));
+        assert_eq!(names(&home).len(), 2);
+        catalog(&mut home, CatalogMessage::NetworkMenu(true));
+        for press in [Press::Pointer, Press::Enter] {
+            assert!(matches!(
+                activate_chrome(&home, filter_id("all"), press),
+                ViewMessage::Catalog(CatalogMessage::Filter(NetworkFilter::All))
+            ));
+        }
+        catalog(&mut home, CatalogMessage::Filter(NetworkFilter::All));
+        assert_eq!(home.catalog.filter, NetworkFilter::All);
+        assert!(!home.catalog.network_menu, "a choice closes the menu");
+        assert_eq!(names(&home).len(), 5);
+        // All networks, already chosen, only closes the menu.
+        catalog(&mut home, CatalogMessage::NetworkMenu(true));
         assert!(matches!(
-            activate_chrome(&home, clear_filters_id(), Press::Pointer),
-            ViewMessage::Catalog(CatalogMessage::Filter(NetworkFilter::All))
+            activate_chrome(&home, filter_id("all"), Press::Pointer),
+            ViewMessage::Catalog(CatalogMessage::NetworkMenu(false))
         ));
     }
 
     #[test]
-    fn the_top_bar_shows_the_canvas_chips_count_and_clear_link() {
+    fn the_count_sits_at_the_foot_in_grid_and_list() {
+        let (width, height) = (WIDE.0 as f32, WIDE.1 as f32);
+        // Two pages of Cubes on the floor: the count, then the page dots.
+        let mut home = rows(9);
+        home.catalog.mode = LauncherMode::Cubes;
+        let tree = home_tree("count-grid", &home, WIDE, "dark", theme::Theme::dark());
+        assert!(!tree.bar_text().iter().any(|text| text.contains("Cubes")));
+        let count = tree.text_bounds("9 Cubes");
+        let dock_top = height - TOP_BAR_HEIGHT - 1.0;
+        let foot_gap = dock_top - (count.y + count.height);
+        assert!(
+            (12.0..=24.0).contains(&foot_gap),
+            "the count sits at the pager's height: {:?}",
+            count
+        );
+        let dot = tree.bounds(&Id::from("tenshu.launcher.page.dot.0"));
+        assert!(dot.x > count.x + count.width, "{:?} {:?}", count, dot);
+        assert!(
+            (dot.center_y() - count.center_y()).abs() < 2.0,
+            "the count and the dots share a line: {:?} {:?}",
+            count,
+            dot
+        );
+        // One page: the count alone, still at the foot and centred.
+        let mut home = rows(3);
+        home.catalog.mode = LauncherMode::Cubes;
+        let tree = home_tree("count-grid-one", &home, WIDE, "dark", theme::Theme::dark());
+        let count = tree.text_bounds("3 Cubes");
+        assert!((count.center_x() - width / 2.0).abs() < 2.0, "{:?}", count);
+        assert!(!tree.has(&Id::from("tenshu.launcher.page.dot.0")));
+        assert!(dock_top - (count.y + count.height) <= 24.0, "{:?}", count);
+
+        // The List puts it bottom-left.
+        let mut home = rows(9);
+        home.catalog.mode = LauncherMode::List;
+        let tree = home_tree("count-list", &home, WIDE, "dark", theme::Theme::dark());
+        assert!(!tree.bar_text().iter().any(|text| text.contains("Cubes")));
+        let count = tree.text_bounds("9 Cubes");
+        assert!((count.x - 24.0).abs() < 1.0, "{:?}", count);
+        let foot_gap = dock_top - (count.y + count.height);
+        assert!((10.0..=24.0).contains(&foot_gap), "{:?}", count);
+    }
+
+    #[test]
+    fn the_bar_menu_count_and_no_match_are_spanish() {
+        use coincube_ui::locale::{render_in, Language};
         let mut home = all_networks();
-        let tree = home_tree("filters", &home, WIDE, "dark", theme::Theme::dark());
-        for label in [
+        home.remote_cubes = vec![remote("r-1", "Cloud copy", true, true, false, false)];
+        catalog(&mut home, CatalogMessage::NetworkMenu(true));
+        let tree = render_in(Language::Spanish, || {
+            home_tree("spanish-menu", &home, WIDE, "dark", theme::Theme::dark())
+        });
+        for spanish in [
+            "Todas las redes",
+            "Redes principales",
+            "Redes de prueba",
+            "2 + 1 en Connect",
+            "5 Cubes · 1 solo en Connect",
+        ] {
+            assert!(
+                tree.contains(spanish),
+                "missing {:?}: {:?}",
+                spanish,
+                tree.text
+            );
+        }
+        for english in [
             "All networks",
             "Live networks",
             "Test networks",
-            "Network",
-            "5 Cubes",
+            "in Connect",
+            "Unavailable",
+            "Filters change",
         ] {
-            assert!(tree.contains(label), "missing {:?}", label);
+            assert!(
+                !tree.contains(english),
+                "{:?} leaks: {:?}",
+                english,
+                tree.text
+            );
         }
-        assert!(!tree.contains("Clear filters"));
-        catalog(&mut home, CatalogMessage::Filter(NetworkFilter::Live));
-        let tree = home_tree("filters-live", &home, WIDE, "dark", theme::Theme::dark());
-        assert!(tree.contains("2 of 5 Cubes · 3 hidden"));
-        assert!(tree.has(&clear_filters_id()));
-        assert!(matches!(
-            activate_chrome(&home, filter_id("test"), Press::Pointer),
-            ViewMessage::Catalog(CatalogMessage::Filter(NetworkFilter::Test))
-        ));
-        // Without Developer mode: one network, so no group chips at all.
-        let mut plain = home_with(&[("a", "Alpha")]);
-        plain.catalog.mode = LauncherMode::Cubes;
-        let tree = home_tree("filters-plain", &plain, WIDE, "dark", theme::Theme::dark());
-        assert!(!tree.contains("All networks"));
-        assert!(!tree.contains("Live networks"));
-        assert!(tree.contains("Network"));
+        catalog(
+            &mut home,
+            CatalogMessage::Filter(NetworkFilter::Network(ChainId::Regtest)),
+        );
+        let tree = render_in(Language::Spanish, || {
+            home_tree(
+                "spanish-no-match",
+                &home,
+                WIDE,
+                "dark",
+                theme::Theme::dark(),
+            )
+        });
+        assert!(tree.contains("No hay Cubes en Regtest"), "{:?}", tree.text);
+        assert!(tree.contains("Mostrar todas las redes"));
+        assert!(!tree.contains("Show all networks"));
+        assert!(!tree.contains("No Cubes"));
     }
 
     #[test]
@@ -5726,7 +5996,7 @@ mod tests {
             "dark",
             theme::Theme::dark(),
         );
-        assert!(tree.contains("No Cubes match these filters"));
+        assert!(tree.contains("No Cubes on Regtest"));
         // Live hides only the test networks' Cubes, and Bitcoin has none
         // local here: its restore row must stay reachable.
         if let State::Cubes { cubes, .. } = &mut home.state {
@@ -5738,7 +6008,7 @@ mod tests {
         assert!(!projection.no_matches());
         let tree = home_tree("live-remotes", &home, WIDE, "dark", theme::Theme::dark());
         assert!(tree.contains("Cloud copy"), "the restore row is gone");
-        assert!(!tree.contains("No Cubes match these filters"));
+        assert!(!tree.contains("No Cubes on live networks"));
     }
 
     #[test]
@@ -6367,7 +6637,8 @@ mod tests {
             catalog(&mut no_match, CatalogMessage::Query("zzz".to_string()));
             let tree = home_tree("r05b-no-match", &no_match, compact, appearance, theme);
             assert!(tree.contains("No Cubes match"));
-            assert!(tree.contains("0 of 9 Cubes"));
+            // Nothing listed, so no count at the foot.
+            assert!(!tree.contains("9 Cubes"));
             assert!(!tree.has(&select_id(&key("cube-0"))));
 
             let (mut remote_only, theme) = themed(home_with(&[]), appearance);
@@ -7036,9 +7307,8 @@ mod tests {
         assert_eq!(projection.floor_len(), 0);
         assert_eq!((projection.hidden, projection.hidden_ghosts), (0, 2));
         let tree = home_tree("filtered-ghosts", &home, WIDE, "dark", theme::Theme::dark());
-        assert!(tree.contains("No Cubes match these filters"));
-        assert!(tree.contains("2 Cubes hidden."));
-        assert!(tree.has(&clear_filters_empty_id()));
+        assert!(tree.contains("No Cubes on Regtest"));
+        assert!(tree.has(&show_all_networks_id()));
         assert!(!tree.has(&empty_create_id()));
         // Clearing the filter brings the ghosts back to the floor.
         home.catalog.filter = NetworkFilter::All;

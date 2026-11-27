@@ -31,7 +31,7 @@ use crate::{
 
 /// `.top` and `.bottom`: 64px bars with a 24px gutter, as the shared top bar.
 pub(super) const BAR_HEIGHT: f32 = top_bar::HEIGHT;
-const GUTTER: f32 = top_bar::GUTTER;
+pub(super) const GUTTER: f32 = top_bar::GUTTER;
 /// `.keycard`: 300px wide with one column, 440px with the Connect column,
 /// 8px above the bar.
 const KEY_CARD_WIDTH: f32 = 300.0;
@@ -80,9 +80,6 @@ pub(super) enum Ink {
     Good,
     /// `--on-accent`, text and icons on the primary fill.
     OnAccent,
-    /// Lays out like the bar's brand without drawing it, to align a menu.
-    /// Text only: Iced's SVG tint ignores alpha.
-    Clear,
     /// A disabled dock action's content: the muted ink, faded like its border.
     Faded,
     /// A disabled primary action's content on its faded fill.
@@ -107,7 +104,6 @@ fn ink(theme: &theme::Theme, tone: Ink) -> Color {
         Ink::Warn => shell.warn,
         Ink::Good => shell.good,
         Ink::OnAccent => ON_ACCENT,
-        Ink::Clear => Color::TRANSPARENT,
         // Solid blends toward the dock's rail: Iced's SVG tint ignores alpha,
         // and `dock_button` fades a disabled fill and border to 45%.
         Ink::Faded => blend(shell.muted, shell.rail, 0.55),
@@ -208,18 +204,39 @@ pub(crate) fn network_name(chain: ChainId) -> &'static str {
 /// up to the per-network limit the dock and the Create gate count.
 fn network_menu_count(projection: &Projection<'_>, chain: ChainId, local: usize) -> String {
     if projection.unread.contains(&chain) {
-        return "Unavailable".to_string();
+        return localized_copy("Unavailable").to_string();
     }
-    let remote = projection
+    menu_count(local, remote_on(projection, chain))
+}
+
+/// Cubes registered in Connect on `chain` with no copy on this device.
+fn remote_on(projection: &Projection<'_>, chain: ChainId) -> usize {
+    projection
         .usage
         .iter()
         .find(|usage| usage.chain == chain)
-        .map_or(0, |usage| usage.remote);
+        .map_or(0, |usage| usage.remote)
+}
+
+fn menu_count(local: usize, remote: usize) -> String {
     if remote > 0 {
-        format!("{local} + {remote} in Connect")
+        localized_format!("{} + {} in Connect", "{} + {} en Connect", local, remote)
     } else {
         local.to_string()
     }
+}
+
+/// A scope row's count: the listed networks it shows, added up the same way
+/// as each network's row. A network whose list could not be read adds nothing.
+fn scope_menu_count(projection: &Projection<'_>, scope: NetworkFilter) -> String {
+    let (local, remote) = projection
+        .network_counts
+        .iter()
+        .filter(|(chain, _)| scope.matches(*chain) && !projection.unread.contains(chain))
+        .fold((0, 0), |(local, remote), (chain, count)| {
+            (local + count, remote + remote_on(projection, *chain))
+        });
+    menu_count(local, remote)
 }
 
 /// A network's menu name (`CH.menu`), for the Network chip and menu.
@@ -384,137 +401,60 @@ pub(super) fn connect_control<'a>(
     )
 }
 
-/// One `.chip`: a 32px filter toggle, `.chip.on` while it applies. `menu` is
-/// `Some(open)` for a chip that opens a menu.
-fn filter_chip<'a>(
-    id: Id,
-    label: String,
-    on: bool,
-    quiet: bool,
-    menu: Option<bool>,
-    message: ViewMessage,
-) -> Element<'a, ViewMessage> {
-    let on = on && !quiet;
-    let open = menu == Some(true);
-    let mut content = Row::new().spacing(6).align_y(Alignment::Center).push(words(
-        label,
-        13.0,
-        if on { font::MEDIUM } else { font::REGULAR },
-        body(quiet),
-    ));
-    if menu.is_some() {
-        content = content.push(glyph(CHEVRON, 14.0, body(quiet)));
-    }
-    Action::new(id, Container::new(content).center_y(Length::Fill), focus)
-        .height(Length::Fixed(32.0))
-        .padding([0.0, 12.0])
-        .style(move |theme: &theme::Theme, status| {
-            let mut style = chip_style(on)(theme, status);
-            // An open menu keeps the hover fill.
-            if open && !on {
-                style.background = Some(iced::Background::Color(theme.colors.shell.hover));
-            }
-            style
-        })
-        .on_press(message)
-        .into()
-}
-
-/// The chips that narrow the Launcher by network, as on the canvas: "All
-/// networks" when more than one network is listed, "Live" and "Test" in
-/// Developer mode, then the Network menu.
-fn filter_chips<'a>(home: &Home, filter: NetworkFilter, quiet: bool) -> Row<'a, ViewMessage> {
-    let pick = |filter| ViewMessage::Catalog(CatalogMessage::Filter(filter));
-    let mut chips = Row::new().spacing(8).align_y(Alignment::Center);
-    for (filter_kind, label, id) in group_chips(home) {
-        chips = chips.push(filter_chip(
-            launcher_catalog::filter_id(id),
-            label.to_string(),
-            filter == filter_kind,
-            quiet,
-            None,
-            pick(filter_kind),
-        ));
-    }
-    let (label, on) = match filter {
-        NetworkFilter::Network(chain) => (format!("Network: {}", network_menu_name(chain)), true),
-        _ => ("Network".to_string(), false),
-    };
-    chips.push(filter_chip(
-        launcher_catalog::network_id(),
-        label,
-        on,
-        quiet,
-        Some(home.catalog.network_menu),
-        ViewMessage::Catalog(CatalogMessage::NetworkMenu(!home.catalog.network_menu)),
-    ))
-}
-
-/// The Network menu, placed under the Network chip: undrawn copies of the
-/// All / Live / Test chips take their widths and their 8px gaps.
-fn under_network_chip<'a>(home: &Home, menu: Element<'a, ViewMessage>) -> Row<'a, ViewMessage> {
-    let mut row = Row::new().spacing(8);
-    for (_, label, _) in group_chips(home) {
-        row = row.push(
-            Container::new(words(label, 13.0, font::REGULAR, Ink::Clear))
-                .height(Length::Fixed(32.0))
-                .padding([0.0, 12.0]),
-        );
-    }
-    row.push(menu)
-}
-
-/// The All / Live / Test chips this Home shows.
-fn group_chips(home: &Home) -> Vec<(NetworkFilter, &'static str, &'static str)> {
-    let mut chips = Vec::new();
-    if home.displayed_networks.len() > 1 {
-        chips.push((NetworkFilter::All, "All networks", "all"));
-    }
+/// The scope rows the Network menu lists above its networks: All networks
+/// always, then Live and Test in Developer mode only.
+fn scope_rows(home: &Home) -> Vec<(NetworkFilter, &'static str)> {
+    let mut rows = vec![(NetworkFilter::All, "all")];
     if home.developer_mode() {
-        chips.push((NetworkFilter::Live, "Live networks", "live"));
-        chips.push((NetworkFilter::Test, "Test networks", "test"));
+        rows.push((NetworkFilter::Live, "live"));
+        rows.push((NetworkFilter::Test, "test"));
     }
-    chips
+    rows
 }
 
-/// `.linkbtn` "Clear filters": 13px ink with the accent underline.
-fn clear_filters<'a>(id: Id) -> Element<'a, ViewMessage> {
+/// What the Network button and its menu call a filter: the scope, or the one
+/// network's menu name, which is a proper name and stays as it is.
+pub(super) fn filter_label(filter: NetworkFilter) -> String {
+    match filter {
+        NetworkFilter::All => localized_copy("All networks").to_string(),
+        NetworkFilter::Live => localized_copy("Live networks").to_string(),
+        NetworkFilter::Test => localized_copy("Test networks").to_string(),
+        NetworkFilter::Network(chain) => network_menu_name(chain).to_string(),
+    }
+}
+
+/// The bar's one Network button (P-Launcher's `.chip` in `.top`): quiet, the
+/// current choice and a chevron. A filter other than All takes the selected
+/// fill, and an open menu keeps the hover fill. The bar's button has no
+/// outline, as every bar control.
+fn network_button<'a>(home: &Home, filter: NetworkFilter, quiet: bool) -> Element<'a, ViewMessage> {
+    let on = filter != NetworkFilter::All && !quiet;
+    let open = home.catalog.network_menu;
+    let content = Row::new()
+        .spacing(6)
+        .align_y(Alignment::Center)
+        .push(words(
+            filter_label(filter),
+            13.0,
+            if on { font::MEDIUM } else { font::REGULAR },
+            body(quiet),
+        ))
+        .push(glyph(CHEVRON, 14.0, body(quiet)));
     Action::new(
-        id,
-        iced::widget::Stack::new()
-            .push(
-                Column::new()
-                    .push(words(
-                        localized_copy("Clear filters"),
-                        13.0,
-                        font::REGULAR,
-                        Ink::Body,
-                    ))
-                    .push(Space::new().height(Length::Fixed(3.0))),
-            )
-            .push(
-                Column::new()
-                    .height(Length::Fill)
-                    .push(Space::new().height(Length::Fill))
-                    .push(
-                        Container::new(Space::new())
-                            .width(Length::Fill)
-                            .height(Length::Fixed(1.0))
-                            .style(|theme: &theme::Theme| container::Style {
-                                background: Some(iced::Background::Color(
-                                    theme.colors.shell.accent,
-                                )),
-                                ..Default::default()
-                            }),
-                    ),
-            ),
+        launcher_catalog::network_id(),
+        Container::new(content).center_y(Length::Fill),
         focus,
     )
-    .padding([2.0, 4.0])
-    .style(|_theme: &theme::Theme, _status| iced_button::Style::default())
-    .on_press(ViewMessage::Catalog(CatalogMessage::Filter(
-        NetworkFilter::All,
-    )))
+    .height(Length::Fixed(32.0))
+    .padding([0.0, 12.0])
+    .style(move |theme: &theme::Theme, status| {
+        let mut style = chip_style(on)(theme, status);
+        if open && !on {
+            style.background = Some(iced::Background::Color(theme.colors.shell.hover));
+        }
+        style
+    })
+    .on_press(ViewMessage::Catalog(CatalogMessage::NetworkMenu(!open)))
     .into()
 }
 
@@ -530,19 +470,14 @@ fn separator<'a, M: 'a>() -> Element<'a, M> {
         .into()
 }
 
-/// `.top` on the shared bar: brand, network chips and count; then balances,
-/// Connect and App preferences. The theme lives in App preferences, as in the
-/// prototype.
+/// `.top` on the shared bar: brand and the one Network button; then Connect
+/// and App preferences. The Cube count sits at the foot of the stage, beside
+/// the page dots (Robert, 2026-11-26).
 pub(super) fn top_bar<'a>(
     home: &'a Home,
     projection: &Projection<'_>,
     quiet: bool,
 ) -> Element<'a, ViewMessage> {
-    let count = count_text(
-        projection.locals.len(),
-        projection.local_total,
-        projection.connect_only(home.catalog.mode),
-    );
     let preferences = top_bar::preferences(
         launcher_catalog::settings_id(),
         focus,
@@ -552,12 +487,7 @@ pub(super) fn top_bar<'a>(
     .muted(quiet);
     top_bar::top_bar(top_bar::brand_mark(quiet), preferences)
         .lead(separator())
-        .lead(filter_chips(home, projection.filter, quiet))
-        .lead(words(count, 13.0, font::REGULAR, Ink::Muted))
-        .lead(
-            (projection.filter != NetworkFilter::All)
-                .then(|| clear_filters(launcher_catalog::clear_filters_id())),
-        )
+        .lead(network_button(home, projection.filter, quiet))
         .chip(connect_entry(home, quiet))
         .into()
 }
@@ -1781,10 +1711,76 @@ fn brand_footprint<'a, M: 'a>() -> Element<'a, M> {
 /// a "7 + 7 in Connect" count on one line.
 const NETWORK_MENU_WIDTH: f32 = 320.0;
 
-/// `.menu`: 320px under the chip, one `.mi` row per listed network and the
-/// filter note. Each row counts the network's Cubes against its plan limit:
-/// the ones on this device, plus "+ N in Connect" for Cubes registered in
-/// Connect but not here, which use a slot too. A click outside it closes it.
+/// One `.mi` row: the tick, the label and the count. The chosen row has the
+/// selected fill, as a hovered one does.
+fn network_menu_row<'a>(
+    id: Id,
+    label: String,
+    count: String,
+    on: bool,
+    message: ViewMessage,
+) -> Element<'a, ViewMessage> {
+    let row = Row::new()
+        .spacing(8)
+        .align_y(Alignment::Center)
+        .push(
+            Container::new(on.then(|| glyph(TICK, 14.0, Ink::Body)))
+                .width(Length::Fixed(14.0))
+                .height(Length::Fixed(14.0)),
+        )
+        .push(words(
+            label,
+            13.0,
+            if on { font::SEMIBOLD } else { font::REGULAR },
+            Ink::Body,
+        ))
+        .push(Space::new().width(Length::Fill))
+        .push(words(count, 12.0, font::REGULAR, Ink::Muted));
+    Action::new(id, Container::new(row).center_y(Length::Fill), focus)
+        .width(Length::Fill)
+        .height(Length::Fixed(34.0))
+        .padding([0.0, 10.0])
+        .style(move |theme: &theme::Theme, status| {
+            let shell = theme.colors.shell;
+            let hovered = matches!(
+                status,
+                iced_button::Status::Hovered | iced_button::Status::Pressed
+            );
+            iced_button::Style {
+                background: (on || hovered).then_some(iced::Background::Color(shell.selected)),
+                text_color: shell.ink,
+                border: Border {
+                    radius: 6.0.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        })
+        .on_press(message)
+        .into()
+}
+
+/// `.msep`: the rule between the scope rows and the networks.
+fn menu_divider<'a>() -> Element<'a, ViewMessage> {
+    Container::new(
+        Container::new(Space::new())
+            .width(Length::Fill)
+            .height(Length::Fixed(1.0))
+            .style(|theme: &theme::Theme| container::Style {
+                background: Some(iced::Background::Color(theme.colors.shell.line)),
+                ..Default::default()
+            }),
+    )
+    .padding([6.0, 6.0])
+    .into()
+}
+
+/// `.menu`: 320px under the Network button. All networks first, then Live
+/// and Test in Developer mode, a divider, then one `.mi` row per listed
+/// network. Each row counts its Cubes against the plan limit: the ones on
+/// this device, plus "+ N in Connect" for Cubes registered in Connect but not
+/// here, which use a slot too. Choosing All networks clears a filter. A click
+/// outside the menu closes it.
 pub(super) fn network_layer<'a>(
     home: &Home,
     projection: &Projection<'_>,
@@ -1793,93 +1789,47 @@ pub(super) fn network_layer<'a>(
         return None;
     }
     let close = ViewMessage::Catalog(CatalogMessage::NetworkMenu(false));
+    let pick = |filter| ViewMessage::Catalog(CatalogMessage::Filter(filter));
     let mut rows = Column::new().spacing(0);
+    for (scope, name) in scope_rows(home) {
+        let on = projection.filter == scope;
+        rows = rows.push(network_menu_row(
+            launcher_catalog::filter_id(name),
+            filter_label(scope),
+            scope_menu_count(projection, scope),
+            on,
+            // As for a network: a scope that still has to move the current
+            // network can be chosen again to retry.
+            if on && home.filter_target(scope).is_none() {
+                close.clone()
+            } else {
+                pick(scope)
+            },
+        ));
+    }
+    rows = rows.push(menu_divider());
     for (chain, count) in &projection.network_counts {
         let chain = *chain;
         let on = projection.filter == NetworkFilter::Network(chain);
-        let row = Row::new()
-            .spacing(8)
-            .align_y(Alignment::Center)
-            .push(
-                Container::new(on.then(|| glyph(TICK, 14.0, Ink::Body)))
-                    .width(Length::Fixed(14.0))
-                    .height(Length::Fixed(14.0)),
-            )
-            .push(words(
-                network_menu_name(chain),
-                13.0,
-                if on { font::SEMIBOLD } else { font::REGULAR },
-                Ink::Body,
-            ))
-            .push(Space::new().width(Length::Fill))
-            .push(words(
-                network_menu_count(projection, chain, *count),
-                12.0,
-                font::REGULAR,
-                Ink::Muted,
-            ));
-        rows = rows.push(
-            Action::new(
-                network_option_id(chain),
-                Container::new(row).center_y(Length::Fill),
-                focus,
-            )
-            .width(Length::Fill)
-            .height(Length::Fixed(34.0))
-            .padding([0.0, 10.0])
-            .style(|theme: &theme::Theme, status| {
-                let shell = theme.colors.shell;
-                iced_button::Style {
-                    background: matches!(
-                        status,
-                        iced_button::Status::Hovered | iced_button::Status::Pressed
-                    )
-                    .then_some(iced::Background::Color(shell.selected)),
-                    text_color: shell.ink,
-                    border: Border {
-                        radius: 6.0.into(),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                }
-            })
+        rows = rows.push(network_menu_row(
+            network_option_id(chain),
+            network_menu_name(chain).to_string(),
+            network_menu_count(projection, chain, *count),
+            on,
             // Retry is possible while the filtered network is not yet current.
-            .on_press(if on && chain == home.network {
+            if on && chain == home.network {
                 close.clone()
             } else {
-                ViewMessage::Catalog(CatalogMessage::Filter(NetworkFilter::Network(chain)))
-            }),
-        );
-    }
-    let note = Column::new()
-        .padding(Padding {
-            top: 6.0,
-            right: 6.0,
-            bottom: 4.0,
-            left: 6.0,
-        })
-        .push(
-            Container::new(Space::new())
-                .width(Length::Fill)
-                .height(Length::Fixed(1.0))
-                .style(|theme: &theme::Theme| container::Style {
-                    background: Some(iced::Background::Color(theme.colors.shell.line)),
-                    ..Default::default()
-                }),
-        )
-        .push(Space::new().height(Length::Fixed(8.0)))
-        .push(words(
-            localized_copy("Filters change what is shown, never a Cube's network."),
-            12.0,
-            font::REGULAR,
-            Ink::Muted,
+                pick(NetworkFilter::Network(chain))
+            },
         ));
-    let menu = Container::new(rows.push(note))
+    }
+    let menu = Container::new(rows)
         .width(Length::Fixed(NETWORK_MENU_WIDTH))
         .padding(6)
         .style(menu_panel);
-    // `.menu { top: 40px }` from the chip, which sits 16px down the bar. An
-    // undrawn copy of the brand and separator puts it under the chip.
+    // `.menu { top: 40px }` from the button, which sits 16px down the bar. An
+    // undrawn copy of the brand and separator puts it under the button.
     let placed = Column::new()
         .push(Space::new().height(Length::Fixed((BAR_HEIGHT - 32.0) / 2.0 + 40.0)))
         .push(
@@ -1887,8 +1837,8 @@ pub(super) fn network_layer<'a>(
                 .spacing(16)
                 .push(brand_footprint())
                 .push(Space::new().width(Length::Fixed(1.0)))
-                // Presses on the menu's own padding and note stay in it.
-                .push(under_network_chip(home, iced::widget::opaque(menu))),
+                // Presses on the menu's own padding stay in it.
+                .push(iced::widget::opaque(menu)),
         )
         .padding([0.0, GUTTER]);
     Some(
@@ -1946,11 +1896,10 @@ pub(super) fn key_layer<'a>(
 /// exactly as they stood when the Cube was opened from the floor.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct ChromeSnapshot {
-    /// The filter chips' labels, the Network chip last.
-    chips: Vec<String>,
-    /// Whether "Clear filters" shows.
-    filtered: bool,
-    count: String,
+    /// The Network button's label.
+    network: String,
+    /// The Cube count at the foot of the stage.
+    pub(super) count: String,
     connect: Vec<(String, Ink, f32, bool)>,
     links: Vec<&'static str>,
     /// The dock's plan button: its label, and whether the current network is
@@ -1979,20 +1928,8 @@ pub(super) fn snapshot(home: &Home, projection: &Projection<'_>) -> ChromeSnapsh
         links.push("Recover a Vault");
     }
     ChromeSnapshot {
-        chips: group_chips(home)
-            .into_iter()
-            .map(|(_, label, _)| label.to_string())
-            .chain(std::iter::once(match projection.filter {
-                NetworkFilter::Network(chain) => format!("Network: {}", network_menu_name(chain)),
-                _ => "Network".to_string(),
-            }))
-            .collect(),
-        filtered: projection.filter != NetworkFilter::All,
-        count: count_text(
-            projection.locals.len(),
-            projection.local_total,
-            projection.connect_only(home.catalog.mode),
-        ),
+        network: filter_label(projection.filter),
+        count: count_text(projection, home.catalog.mode),
         connect,
         links,
         plan: (format!("{} plan", projection.tier), projection.at_limit()),
@@ -2001,26 +1938,38 @@ pub(super) fn snapshot(home: &Home, projection: &Projection<'_>) -> ChromeSnapsh
     }
 }
 
-/// P-Launcher's `countText`: this device's Cubes, then the ghosts beside
-/// them, which are Connect's and never counted as this device's.
-fn count_text(shown: usize, total: usize, in_connect: usize) -> String {
-    let connect = if in_connect > 0 {
-        format!(" · {in_connect} in Connect only")
+/// P-Launcher's `countText`, at the foot of the stage: the Cubes on this
+/// device the filter shows, then the ghosts beside them, which are Connect's
+/// and never counted as this device's. A filter narrows it without saying
+/// how many it hides (Robert, 2026-11-26).
+pub(super) fn count_text(
+    projection: &Projection<'_>,
+    mode: launcher_catalog::LauncherMode,
+) -> String {
+    count_line(
+        projection.locals.len(),
+        projection.local_total,
+        projection.connect_only(mode),
+    )
+}
+
+fn count_line(shown: usize, total: usize, in_connect: usize) -> String {
+    let cubes = if total == 0 && in_connect > 0 {
+        localized_copy("No Cubes on this device").to_string()
+    } else if shown == 1 {
+        localized_copy("1 Cube").to_string()
     } else {
-        String::new()
+        localized_format!("{} Cubes", "{} Cubes", shown)
     };
-    if total == 0 && in_connect > 0 {
-        format!("No Cubes on this device{connect}")
-    } else if shown == total {
-        format!(
-            "{total} {}{connect}",
-            if total == 1 { "Cube" } else { "Cubes" }
+    if in_connect > 0 {
+        localized_format!(
+            "{} · {} in Connect only",
+            "{} · {} solo en Connect",
+            cubes,
+            in_connect
         )
     } else {
-        format!(
-            "{shown} of {total} Cubes{connect} · {} hidden",
-            total - shown
-        )
+        cubes
     }
 }
 
@@ -2049,23 +1998,22 @@ fn resting<'a, M: 'a>(
 /// The `.top.quiet` bar under a Cube that is being unlocked.
 pub(crate) fn quiet_top_bar<'a, M: 'a>(chrome: &ChromeSnapshot) -> Element<'a, M> {
     let quiet = true;
-    // `.quiet .chip.on` drops the fill and the weight, so every chip rests.
-    let last = chrome.chips.len().saturating_sub(1);
-    let mut chips = Row::new().spacing(8).align_y(Alignment::Center);
-    for (index, label) in chrome.chips.iter().enumerate() {
-        let mut content = Row::new().spacing(6).align_y(Alignment::Center).push(words(
-            label.clone(),
-            13.0,
-            font::REGULAR,
-            body(quiet),
-        ));
-        if index == last {
-            content = content.push(glyph(CHEVRON, 14.0, body(quiet)));
-        }
-        chips = chips.push(resting(content, 32.0, 12.0, |theme| {
-            chip_style(false)(theme, iced_button::Status::Active)
-        }));
-    }
+    // `.quiet .chip.on` drops the fill and the weight, so the button rests.
+    let network = resting(
+        Row::new()
+            .spacing(6)
+            .align_y(Alignment::Center)
+            .push(words(
+                chrome.network.clone(),
+                13.0,
+                font::REGULAR,
+                body(quiet),
+            ))
+            .push(glyph(CHEVRON, 14.0, body(quiet))),
+        32.0,
+        12.0,
+        |theme| chip_style(false)(theme, iced_button::Status::Active),
+    );
     let mut connect =
         Row::new()
             .spacing(8)
@@ -2089,17 +2037,7 @@ pub(crate) fn quiet_top_bar<'a, M: 'a>(chrome: &ChromeSnapshot) -> Element<'a, M
         top_bar::resting_icon(SLIDERS, APP_PREFERENCES),
     )
     .lead(separator())
-    .lead(chips)
-    .lead(words(chrome.count.clone(), 13.0, font::REGULAR, Ink::Muted))
-    .lead(chrome.filtered.then(|| {
-        Container::new(words(
-            localized_copy("Clear filters"),
-            13.0,
-            font::REGULAR,
-            Ink::Muted,
-        ))
-        .padding([2.0, 4.0])
-    }))
+    .lead(network)
     .chip(resting(connect, 32.0, 10.0, resting_bar))
     .into()
 }
@@ -2192,7 +2130,7 @@ pub(crate) fn quiet_dock<'a, M: 'a>(chrome: &ChromeSnapshot) -> Element<'a, M> {
 #[cfg(test)]
 mod tests {
     use super::{
-        bar_button, chip_style, count_text, dock_button, menu_button_style, segment_style,
+        bar_button, chip_style, count_line, dock_button, menu_button_style, segment_style,
         KeyNetworks,
     };
     use crate::chain::ChainId;
@@ -2346,16 +2284,41 @@ mod tests {
 
     #[test]
     fn the_count_names_this_devices_cubes_and_the_ghosts_apart() {
-        assert_eq!(count_text(2, 2, 0), "2 Cubes");
-        assert_eq!(count_text(1, 1, 2), "1 Cube · 2 in Connect only");
+        assert_eq!(count_line(2, 2, 0), "2 Cubes");
+        assert_eq!(count_line(1, 1, 2), "1 Cube · 2 in Connect only");
         assert_eq!(
-            count_text(0, 0, 2),
+            count_line(0, 0, 2),
             "No Cubes on this device · 2 in Connect only"
         );
-        assert_eq!(
-            count_text(1, 3, 1),
-            "1 of 3 Cubes · 1 in Connect only · 2 hidden"
-        );
+        // A filter narrows the count; it never says how many it hides.
+        assert_eq!(count_line(1, 3, 1), "1 Cube · 1 in Connect only");
+        assert_eq!(count_line(9, 15, 2), "9 Cubes · 2 in Connect only");
+    }
+
+    #[test]
+    fn the_count_and_the_menu_counts_are_spanish() {
+        use coincube_ui::locale::{render_in, Language};
+        render_in(Language::Spanish, || {
+            assert_eq!(count_line(1, 1, 0), "1 Cube");
+            assert_eq!(count_line(9, 15, 2), "9 Cubes · 2 solo en Connect");
+            assert_eq!(
+                count_line(0, 0, 2),
+                "No hay Cubes en este dispositivo · 2 solo en Connect"
+            );
+            assert_eq!(super::menu_count(3, 2), "3 + 2 en Connect");
+            assert_eq!(
+                super::filter_label(super::NetworkFilter::All),
+                "Todas las redes"
+            );
+            assert_eq!(
+                super::filter_label(super::NetworkFilter::Live),
+                "Redes principales"
+            );
+            assert_eq!(
+                super::filter_label(super::NetworkFilter::Test),
+                "Redes de prueba"
+            );
+        });
     }
 }
 
@@ -2639,6 +2602,19 @@ mod top_bar_tests {
             .1;
         assert_eq!((label.width, label.height), (32.0, 32.0));
         assert!((label.x + label.width - (1024.0 - super::GUTTER)).abs() < 0.01);
+        // The unlock face's copy of the bar: the one Network button, and no
+        // count, which sits at the foot of the stage.
+        let texts: Vec<_> = quiet.text.iter().map(|(value, _)| value.as_str()).collect();
+        assert!(texts.contains(&"All networks"), "{:?}", texts);
+        assert!(
+            !texts
+                .iter()
+                .any(|text| text.contains("Cubes") || text.contains("Network")),
+            "{:?}",
+            texts
+        );
+        assert_eq!(chrome.count, "4 Cubes");
+        assert!(!live.text.iter().any(|(value, _)| value.contains("Cubes")));
         assert!(!quiet
             .text
             .iter()
