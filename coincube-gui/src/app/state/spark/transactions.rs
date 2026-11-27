@@ -16,7 +16,6 @@ use coincube_ui::{
     component::quote_display::{self, Quote},
     widget::Element,
 };
-use iced::widget::image;
 use iced::Task;
 
 use crate::app::cache::Cache;
@@ -51,10 +50,9 @@ pub struct SparkTransactions {
     /// When `Some`, render the detail pane for this payment instead
     /// of the list. Cleared via `Message::Close` (the back button).
     selected_payment: Option<SparkRecentTransaction>,
-    /// Empty-state Kage quote + image. Picked once when the panel is
+    /// Empty-state quote. Picked once when the panel is
     /// constructed so repeated reloads don't re-randomize the quote.
     empty_state_quote: Quote,
-    empty_state_image_handle: image::Handle,
     /// Page currently displayed (0-indexed).
     current_page: u32,
     /// Target page of an in-flight Prev/Next fetch. Committed to
@@ -73,7 +71,6 @@ pub struct SparkTransactions {
 impl SparkTransactions {
     pub fn new(backend: Option<Arc<SparkBackend>>) -> Self {
         let empty_state_quote = quote_display::random_quote("empty-wallet");
-        let empty_state_image_handle = quote_display::image_handle_for_context("empty-wallet");
         Self {
             backend,
             payments: Vec::new(),
@@ -83,7 +80,6 @@ impl SparkTransactions {
             modal: SparkTransactionsModal::None,
             selected_payment: None,
             empty_state_quote,
-            empty_state_image_handle,
             current_page: 0,
             pending_page: None,
             fetch_token: 0,
@@ -396,7 +392,6 @@ impl State for SparkTransactions {
                 bitcoin_unit: cache.bitcoin_unit,
                 show_direction_badges: cache.show_direction_badges,
                 empty_state_quote: &self.empty_state_quote,
-                empty_state_image_handle: &self.empty_state_image_handle,
                 current_page: self.current_page,
                 is_last_page: self.is_last_page,
                 processing: self.processing,

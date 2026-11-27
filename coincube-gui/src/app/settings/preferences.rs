@@ -34,42 +34,39 @@ impl From<ThemeMode> for ThemePreference {
 }
 
 pub use coincube_ui::locale::Language;
-pub use coincube_ui::theme::{ArtworkStyle, WorldviewMode};
+pub use coincube_ui::theme::WorldviewMode;
 
-/// Save one choice per worldview using stable, named fields.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(default)]
-pub struct ArtworkChoices {
-    samurai: ArtworkStyle,
-    suitcoiner: ArtworkStyle,
-    luke: ArtworkStyle,
+/// The `artwork` half of the Worldview selection shared with COINCUBE Mobile
+/// (`services::coincube::worldview::Selection`). Desktop draws no artwork and
+/// saves no artwork choice (Desktop V3); this type exists only so the shared
+/// selection keeps its wire format, which Mobile V3 still reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ArtworkStyle {
+    Scene,
+    Existing,
 }
 
-impl Default for ArtworkChoices {
-    fn default() -> Self {
-        Self {
-            samurai: ArtworkStyle::default_for(WorldviewMode::Samurai),
-            suitcoiner: ArtworkStyle::default_for(WorldviewMode::Suitcoiner),
-            luke: ArtworkStyle::default_for(WorldviewMode::Luke),
+impl ArtworkStyle {
+    /// What each worldview drew by default before artwork was removed.
+    pub const fn default_for(worldview: WorldviewMode) -> Self {
+        match worldview {
+            WorldviewMode::Samurai => Self::Existing,
+            WorldviewMode::Suitcoiner | WorldviewMode::Luke => Self::Scene,
         }
     }
 }
 
-impl ArtworkChoices {
+/// The artwork Desktop reports in the shared selection: always the
+/// worldview's former default. Not saved; any `artwork` object an earlier
+/// build wrote to `global_settings.json` is ignored on load and kept as-is
+/// on rewrite (invariant R6).
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct SharedArtwork;
+
+impl SharedArtwork {
     pub fn get(self, mode: WorldviewMode) -> ArtworkStyle {
-        match mode {
-            WorldviewMode::Samurai => self.samurai,
-            WorldviewMode::Suitcoiner => self.suitcoiner,
-            WorldviewMode::Luke => self.luke,
-        }
-    }
-
-    pub(super) fn set(&mut self, mode: WorldviewMode, style: ArtworkStyle) {
-        match mode {
-            WorldviewMode::Samurai => self.samurai = style,
-            WorldviewMode::Suitcoiner => self.suitcoiner = style,
-            WorldviewMode::Luke => self.luke = style,
-        }
+        ArtworkStyle::default_for(mode)
     }
 }
 
@@ -213,7 +210,9 @@ pub struct DevicePreferences {
     pub theme: ThemePreference,
     pub worldview: WorldviewMode,
     pub language: Language,
-    pub artwork: ArtworkChoices,
+    /// Not a setting: the shared selection's artwork, derived from the
+    /// worldview. See [`SharedArtwork`].
+    pub artwork: SharedArtwork,
     pub launcher_style: LauncherStyle,
     pub hide_balances: bool,
     pub motion: MotionPreference,
@@ -231,7 +230,7 @@ impl Default for DevicePreferences {
             theme: ThemePreference::System,
             worldview: WorldviewMode::default(),
             language: Language::default(),
-            artwork: ArtworkChoices::default(),
+            artwork: SharedArtwork,
             launcher_style: LauncherStyle::Cubes,
             hide_balances: false,
             motion: MotionPreference::FollowSystem,
@@ -281,7 +280,6 @@ pub enum PreferenceChange {
     Theme(ThemePreference),
     Worldview(WorldviewMode),
     Language(Language),
-    Artwork(WorldviewMode, ArtworkStyle),
     LauncherStyle(LauncherStyle),
     HideBalances(bool),
     Motion(MotionPreference),
