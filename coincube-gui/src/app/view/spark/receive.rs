@@ -954,9 +954,9 @@ fn kv_row<'a>(label: &'a str, value: String) -> Element<'a, Message> {
 
 /// The way back to a cross-network conversion that isn't on screen: it keeps
 /// running while the user is elsewhere, and its page (Shift ID, refund
-/// address, progress) is one click away. Shown on Spark's Receive when the
-/// conversion is set aside for another rail, and on Spark's Overview.
-/// Inside Receive's panel card, the notice takes the page background.
+/// address, progress) is one click away. This one is shown inside Receive's
+/// panel card, when the conversion is set aside for another rail, so it takes
+/// the page background. The Spark page uses [`conversion_notice_on_page`].
 pub(crate) fn conversion_notice<'a>(
     option: DepositOption,
     arrived: bool,
@@ -973,6 +973,28 @@ pub(crate) fn conversion_notice_on_page<'a>(
     on_view: Message,
 ) -> Element<'a, Message> {
     conversion_notice_on(option, arrived, on_view, conversion_notice_page_style)
+}
+
+/// The Spark page's recent activity. A cross-network receive still running
+/// (or arrived and not yet closed) isn't a payment yet, so Activity can't
+/// list it: the notice says so above it, with the way back to its page. It
+/// sits on the page background, so it is the on-page notice.
+pub(crate) fn spark_page_recent<'a>(
+    conversion: Option<(DepositOption, bool)>,
+    recent: Element<'a, Message>,
+) -> Element<'a, Message> {
+    match conversion {
+        Some((option, arrived)) => Column::new()
+            .spacing(16)
+            .push(conversion_notice_on_page(
+                option,
+                arrived,
+                Message::SparkOverview(crate::app::view::SparkOverviewMessage::ViewConversion),
+            ))
+            .push(recent)
+            .into(),
+        None => recent,
+    }
 }
 
 fn conversion_notice_on<'a>(
@@ -1406,6 +1428,69 @@ fn generated_receive_body<'a>(
 #[cfg(test)]
 mod notice_style_tests {
     use super::*;
+    use coincube_ui::theme::tenshu::separation::{delta_e, JUST_NOTICEABLE_DELTA_E};
+
+    /// Screen level: the Spark page's recent section draws the conversion
+    /// notice with the panel fill on the page background, with no outline,
+    /// and leaves Activity alone when there is no conversion.
+    #[test]
+    fn the_spark_page_uses_the_on_page_conversion_notice() {
+        use crate::app::view::shared::landing::capture;
+        let option = deposit_options()[0];
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let shell = theme.colors.shell;
+            let pixels = capture::render_pixels(
+                Container::new(spark_page_recent(
+                    Some((option, false)),
+                    Space::new().height(Length::Fixed(40.0)).into(),
+                ))
+                .padding(20)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .style(theme::tenshu::surface::page)
+                .into(),
+                (600, 160),
+                &theme,
+                None,
+            );
+            // Inside the notice, left of its text, and the page outside it.
+            let (notice, page_fill) = (pixels.at(23, 40), pixels.at(5, 40));
+            assert!(
+                delta_e(notice, shell.panel) < 1.0,
+                "{}: the notice is not the panel fill: {:?}",
+                name,
+                notice
+            );
+            assert!(delta_e(page_fill, shell.background) < 1.0, "{}", name);
+            assert!(
+                delta_e(notice, page_fill) >= JUST_NOTICEABLE_DELTA_E,
+                "{}",
+                name
+            );
+            // No outline: the notice's left edge goes straight from page to panel.
+            let edge: Vec<_> = (17..=23).map(|x| pixels.at(x, 40)).collect();
+            assert!(
+                edge.iter().all(|pixel| {
+                    delta_e(*pixel, shell.background) < 1.0 || delta_e(*pixel, shell.panel) < 1.0
+                }),
+                "{}: an outline at the notice's edge: {:?}",
+                name,
+                edge
+            );
+        }
+        let without = capture::inspect(
+            "spark-page-recent-without-conversion",
+            spark_page_recent(None, text("Recent activity").into()),
+            (1440, 900),
+            "dark",
+            theme::Theme::dark(),
+        );
+        assert!(without.contains("Recent activity"));
+        assert!(!without.contains("conversion"));
+    }
 
     /// The conversion notice is fill only. Inside Receive's card it takes the
     /// page background; on the Spark page it takes the panel fill, so in
@@ -1426,6 +1511,12 @@ mod notice_style_tests {
                 Some(Background::Color(shell.background))
             );
             assert_eq!(on_page.background, Some(Background::Color(shell.panel)));
+            // Each reads against what is behind it: the card, or the page.
+            assert!(
+                delta_e(shell.background, shell.panel) >= JUST_NOTICEABLE_DELTA_E,
+                "{}",
+                name
+            );
         }
     }
 }
@@ -1733,6 +1824,116 @@ mod tests {
 
     /// Each tile's menu opens under that tile, as wide as it, and only while
     /// it is the open one.
+    /// Screen-level check that Receive draws its route tiles with the shared
+    /// tile styles: one border at each tile's edge, line grey at rest and ink
+    /// when hovered or open (the old hard-coded ORANGE hover sat under a
+    /// second, line-grey border). Pixels come from the software renderer on
+    /// the card's panel fill.
+    #[test]
+    fn receive_route_tiles_draw_one_border_line_at_rest_ink_when_engaged() {
+        use coincube_ui::theme::tenshu::separation::{delta_e, JUST_NOTICEABLE_DELTA_E};
+        let render = |theme: &theme::Theme, open, pointer: Option<&'static str>| {
+            // Inset from the frame so the scan has card pixels outside each tile.
+            let cards = |open| {
+                Container::new(spark_receive_cards(
+                    SparkReceiveMethod::Bolt11,
+                    None,
+                    false,
+                    Network::Bitcoin,
+                    open,
+                ))
+                .padding(20)
+            };
+            let probe = capture::render_pixels(cards(None).into(), (900, 200), theme, None);
+            let pointer =
+                pointer.map(|id| probe.bounds(&iced::advanced::widget::Id::new(id)).center());
+            capture::render_pixels(cards(open).into(), (900, 200), theme, pointer)
+        };
+        // The pixels across a tile's left edge at its vertical middle.
+        let edge = |pixels: &capture::Pixels, id: &'static str| {
+            let bounds = pixels.bounds(&iced::advanced::widget::Id::new(id));
+            let (x, y) = (bounds.x.round() as u32, bounds.center_y().round() as u32);
+            ((x - 3)..=(x + 3))
+                .map(|x| pixels.at(x, y))
+                .collect::<Vec<_>>()
+        };
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let shell = theme.colors.shell;
+            for id in [SENDER_PICKER_ACTION_ID, RECEIVER_PICKER_ACTION_ID] {
+                let open_menu = if id == SENDER_PICKER_ACTION_ID {
+                    ReceiveMenu::TheySend
+                } else {
+                    ReceiveMenu::YouReceive
+                };
+                for (state, pixels, border) in [
+                    ("rest", render(&theme, None, None), shell.line),
+                    ("hovered", render(&theme, None, Some(id)), shell.ink),
+                    ("open", render(&theme, Some(open_menu), None), shell.ink),
+                ] {
+                    let row = edge(&pixels, id);
+                    // A 1px border at a fractional x is split over two pixels.
+                    // For each adjacent pair, recover the border colour as
+                    // p1 + p2 - (outside + inside) / 2 per channel, and take
+                    // the pair that comes closest to the expected border.
+                    let (outside, inside) = (row[0], row[row.len() - 1]);
+                    let nearest = row
+                        .windows(2)
+                        .map(|pair| {
+                            let channel = |p1: f32, p2: f32, o: f32, i: f32| {
+                                (p1 + p2 - (o + i) / 2.0).clamp(0.0, 1.0)
+                            };
+                            let estimate = iced::Color::from_rgb(
+                                channel(pair[0].r, pair[1].r, outside.r, inside.r),
+                                channel(pair[0].g, pair[1].g, outside.g, inside.g),
+                                channel(pair[0].b, pair[1].b, outside.b, inside.b),
+                            );
+                            delta_e(estimate, border)
+                        })
+                        .fold(f32::INFINITY, f32::min);
+                    assert!(
+                        nearest < 6.0,
+                        "{} {} {}: no {:?} border at the edge: {:?}",
+                        name,
+                        id,
+                        state,
+                        border,
+                        row
+                    );
+                    // One border: pixels that are neither the card outside nor
+                    // the tile inside span at most the 1px line and its
+                    // antialiased neighbour.
+                    let ring = row
+                        .iter()
+                        .filter(|pixel| {
+                            delta_e(**pixel, outside) > JUST_NOTICEABLE_DELTA_E
+                                && delta_e(**pixel, inside) > JUST_NOTICEABLE_DELTA_E
+                        })
+                        .count();
+                    assert!(
+                        ring <= 2,
+                        "{} {} {}: {} edge pixels: {:?}",
+                        name,
+                        id,
+                        state,
+                        ring,
+                        row
+                    );
+                    if state == "rest" {
+                        assert!(
+                            delta_e(inside, outside) >= JUST_NOTICEABLE_DELTA_E,
+                            "{} {}: the tile's fill does not read on the card",
+                            name,
+                            id
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn route_menus_open_under_their_own_tile() {
         let closed = capture::inspect(
