@@ -2285,7 +2285,6 @@ mod top_bar_tests {
             widget::{operation::Focusable, Id, Operation, Tree},
             Layout,
         },
-        widget::rule,
         Rectangle, Size,
     };
 
@@ -2550,6 +2549,59 @@ mod top_bar_tests {
             .any(|(value, _)| value.to_lowercase().contains("balances")));
     }
 
+    /// V3 V1: the rule under the Launcher's top bar is the quiet rule
+    /// (`shell.rule`, ink at 10%) over the bar's rail fill, in both themes.
+    #[test]
+    fn the_launcher_top_bar_sits_on_the_quiet_rule() {
+        use crate::app::view::nav::shell::capture_tests::assert_quiet_rule;
+        use iced::advanced::renderer::Style;
+        for (appearance, palette) in themes() {
+            let home = home(appearance == "light");
+            let mut element = launcher_catalog::launcher_view(&home);
+            let mut renderer =
+                iced::futures::executor::block_on(<iced::Renderer as Headless>::new(
+                    coincube_ui::font::REGULAR,
+                    iced::Pixels(14.0),
+                    Some("tiny-skia"),
+                ))
+                .unwrap();
+            let (width, height) = (1024u32, 768u32);
+            let size = Size::new(width as f32, height as f32);
+            let mut tree = Tree::new(element.as_widget());
+            let node = element.as_widget_mut().layout(
+                &mut tree,
+                &renderer,
+                &layout::Limits::new(Size::ZERO, size),
+            );
+            element.as_widget().draw(
+                &tree,
+                &mut renderer,
+                &palette,
+                &Style {
+                    text_color: palette.colors.shell.ink,
+                },
+                Layout::new(&node),
+                iced::mouse::Cursor::Unavailable,
+                &Rectangle::with_size(size),
+            );
+            let pixels = renderer.screenshot(
+                Size::new(width, height),
+                1.0,
+                palette.colors.shell.background,
+            );
+            for x in [super::GUTTER as u32, width / 2, width - 8] {
+                assert_quiet_rule(
+                    &pixels,
+                    width,
+                    (x, super::BAR_HEIGHT as u32),
+                    &palette,
+                    palette.colors.shell.rail,
+                    &format!("Launcher top bar rule, {}", appearance),
+                );
+            }
+        }
+    }
+
     #[test]
     #[ignore = "writes PNG frames; needs a GPU adapter"]
     fn top_bar_capture_launcher() {
@@ -2593,9 +2645,9 @@ mod top_bar_tests {
             let chrome = super::snapshot(&home, &projection);
             let bars = iced::widget::column![
                 super::top_bar(&home, &projection, false),
-                rule::horizontal(1),
+                coincube_ui::component::tenshu::top_bar::rule(),
                 super::quiet_top_bar(&chrome),
-                rule::horizontal(1),
+                coincube_ui::component::tenshu::top_bar::rule(),
             ];
             save(
                 &mut renderer,

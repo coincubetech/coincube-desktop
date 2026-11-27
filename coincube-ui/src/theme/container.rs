@@ -130,6 +130,15 @@ pub fn shell_rail(theme: &Theme) -> Style {
     }
 }
 
+/// The Cube sidebar's fill, without an outline: its only edge is the quiet
+/// rule beside it ([`super::rule::quiet`]).
+pub fn shell_sidebar(theme: &Theme) -> Style {
+    Style {
+        background: Some(Background::Color(theme.colors.shell.rail)),
+        ..Default::default()
+    }
+}
+
 pub fn shell_menu(theme: &Theme) -> Style {
     Style {
         background: Some(Background::Color(theme.colors.shell.panel)),

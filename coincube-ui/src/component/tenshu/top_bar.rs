@@ -125,6 +125,16 @@ impl<'a, M: 'a> From<TopBar<'a, M>> for Element<'a, M> {
     }
 }
 
+/// `.top { border-bottom: 1px solid var(--rule) }`: the 1px quiet rule that
+/// goes under the bar. Like a CSS border it paints over the bar's own rail
+/// fill, not over whatever lies behind the bar.
+pub fn rule<'a, M: 'a>() -> Element<'a, M> {
+    Container::new(iced::widget::rule::horizontal(1).style(crate::theme::rule::quiet))
+        .width(Length::Fill)
+        .style(rail)
+        .into()
+}
+
 fn rail(theme: &Theme) -> container::Style {
     container::Style {
         background: Some(Background::Color(theme.colors.shell.rail)),

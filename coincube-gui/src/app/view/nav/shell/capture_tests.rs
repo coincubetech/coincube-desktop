@@ -379,3 +379,38 @@ pub(crate) fn save_page_head_frames<'a>(
         );
     }
 }
+
+/// The colour the quiet region rule (`shell.rule`, ink at 10%) paints over
+/// `under`, as 8-bit RGB.
+pub(crate) fn quiet_rule_over(theme: &theme::Theme, under: iced::Color) -> [u8; 3] {
+    let rule = theme.colors.shell.rule;
+    [(rule.r, under.r), (rule.g, under.g), (rule.b, under.b)]
+        .map(|(top, under)| ((top * rule.a + under * (1.0 - rule.a)) * 255.0).round() as u8)
+}
+
+/// Asserts the pixel at (`x`, `y`) of an RGBA frame `width` wide is the quiet
+/// rule over `under`, within rounding.
+pub(crate) fn assert_quiet_rule(
+    pixels: &[u8],
+    width: u32,
+    (x, y): (u32, u32),
+    theme: &theme::Theme,
+    under: iced::Color,
+    what: &str,
+) {
+    let i = ((y * width + x) * 4) as usize;
+    let actual = [pixels[i], pixels[i + 1], pixels[i + 2]];
+    let expected = quiet_rule_over(theme, under);
+    assert!(
+        actual
+            .iter()
+            .zip(expected)
+            .all(|(actual, expected)| actual.abs_diff(expected) <= 2),
+        "{} at ({}, {}) is {:?}, not the quiet rule {:?}",
+        what,
+        x,
+        y,
+        actual,
+        expected
+    );
+}
