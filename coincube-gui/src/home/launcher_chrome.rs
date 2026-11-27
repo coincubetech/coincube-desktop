@@ -1803,13 +1803,11 @@ pub(super) fn network_layer<'a>(
             filter_label(scope),
             scope_menu_count(projection, scope),
             on,
-            // As for a network: a scope that still has to move the current
-            // network can be chosen again to retry.
-            if on && home.filter_target(scope).is_none() {
-                close.clone()
-            } else {
-                pick(scope)
-            },
+            // Choosing the stored filter again applies it again: that closes
+            // the menu, returns focus to the Network button and retries a
+            // network switch. Under a stored Live or Test filter that
+            // Developer mode off has hidden, All networks really sets All.
+            pick(scope),
         ));
     }
     rows = rows.push(menu_divider());
@@ -1821,12 +1819,9 @@ pub(super) fn network_layer<'a>(
             network_menu_name(chain).to_string(),
             network_menu_count(projection, chain, *count),
             on,
-            // Retry is possible while the filtered network is not yet current.
-            if on && chain == home.network {
-                close.clone()
-            } else {
-                pick(NetworkFilter::Network(chain))
-            },
+            // As for a scope: choosing it again closes the menu with focus
+            // on the button, and retries while it is not yet current.
+            pick(NetworkFilter::Network(chain)),
         ));
     }
     let menu = Container::new(rows)
