@@ -847,13 +847,11 @@ pub struct App {
     /// that write lands.
     spark_nickname_queued: Option<Option<String>>,
     received_celebration_amount: String,
-    received_celebration_context: String,
     /// The receipt's "Into …" line for the payment shown, untranslated.
     received_celebration_wallet: &'static str,
     /// The receipt's ID row: its untranslated label and the full ID.
     received_celebration_id: Option<(&'static str, String)>,
     received_celebration_quote: coincube_ui::component::quote_display::Quote,
-    received_celebration_image: iced::widget::image::Handle,
     /// Set when the user clicked "Switch to COINCUBE | Connect" on Vault →
     /// Settings → Node while not signed in to Connect. We routed them to the
     /// Connect tab to sign in; on the next auth transition (false → true) we
@@ -3878,16 +3876,11 @@ impl App {
             spark_nickname_in_flight: None,
             spark_nickname_queued: None,
             received_celebration_amount: String::new(),
-            received_celebration_context: "transaction-received".to_string(),
             received_celebration_wallet: "",
             received_celebration_id: None,
             received_celebration_quote: coincube_ui::component::quote_display::random_quote(
                 "transaction-received",
             ),
-            received_celebration_image:
-                coincube_ui::component::quote_display::image_handle_for_context(
-                    "transaction-received",
-                ),
             pending_switch_to_connect_after_login: false,
             connect_auth: connect_auth_arc,
             connect_email,
@@ -4187,16 +4180,11 @@ impl App {
                 spark_nickname_in_flight: None,
                 spark_nickname_queued: None,
                 received_celebration_amount: String::new(),
-                received_celebration_context: "transaction-received".to_string(),
                 received_celebration_wallet: "",
                 received_celebration_id: None,
                 received_celebration_quote: coincube_ui::component::quote_display::random_quote(
                     "transaction-received",
                 ),
-                received_celebration_image:
-                    coincube_ui::component::quote_display::image_handle_for_context(
-                        "transaction-received",
-                    ),
                 pending_switch_to_connect_after_login: false,
                 connect_auth: None,
                 connect_email: None,
@@ -9281,9 +9269,6 @@ impl App {
                 );
                 self.received_celebration_quote =
                     coincube_ui::component::quote_display::random_quote(&context);
-                self.received_celebration_image =
-                    coincube_ui::component::quote_display::image_handle_for_context(&context);
-                self.received_celebration_context = context.clone();
                 self.received_celebration_wallet = "Into Spark";
                 self.received_celebration_id = payment_id
                     .filter(|id| !id.is_empty())
@@ -10362,9 +10347,7 @@ impl App {
         let mut page = payment_result(
             Outcome::Received,
             displayed_amount,
-            &self.received_celebration_context,
             &self.received_celebration_quote,
-            &self.received_celebration_image,
             view::Message::DismissReceivedCelebration,
         )
         .voice(coincube_ui::worldview_copy::VoiceLine::PaymentReceived.get())
@@ -10510,23 +10493,7 @@ impl App {
                         view::activity::RecentScope::Wallet(view::activity::WalletFilter::Spark),
                         None,
                     );
-                    // A cross-network receive still running (or arrived and not
-                    // yet closed) isn't a payment yet, so Activity can't list it:
-                    // say so above it, with the way back to its page.
-                    match conversion {
-                        Some((option, arrived)) => iced::widget::Column::new()
-                            .spacing(16)
-                            .push(view::spark::receive::conversion_notice(
-                                option,
-                                arrived,
-                                view::Message::SparkOverview(
-                                    view::SparkOverviewMessage::ViewConversion,
-                                ),
-                            ))
-                            .push(recent)
-                            .into(),
-                        None => recent,
-                    }
+                    view::spark::receive::spark_page_recent(conversion, recent)
                 },
                 move || {
                     view::activity::wallet_activity_detail(

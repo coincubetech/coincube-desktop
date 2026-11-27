@@ -390,7 +390,8 @@ pub(crate) fn address_selection_ux<'a>(
                     )
                     .padding(5)
                     .max_height(180.0)
-                    .style(theme::card::simple)
+                    // Inside the panel-filled quote card below: background fill (R4).
+                    .style(theme::card::inset)
                     .width(iced::Length::Fill)
                 };
 
@@ -603,8 +604,7 @@ pub(crate) fn quote_selection_ux<'a>(
                 .spacing(25),
                 widget::Space::new().width(iced::Length::Fill),
                 // separator
-                widget::container(widget::Space::default().width(1).height(100))
-                    .style(theme::card::border),
+                widget::container(widget::rule::vertical(1)).height(100),
                 widget::Space::new().width(25),
                 // payment details
                 widget::column![
@@ -839,11 +839,7 @@ pub(crate) fn region_selection_ux<'a>(
                     Some(icon::cross_icon()),
                     localized_copy("Select Your Region"),
                 )
-                .style(|th, st| {
-                    let mut base = theme::button::secondary(th, st);
-                    base.border = iced::Border::default().rounded(2);
-                    base
-                })
+                .style(theme::button::secondary)
             }
         },
     ]

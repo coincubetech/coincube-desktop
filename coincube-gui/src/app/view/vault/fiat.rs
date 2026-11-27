@@ -231,7 +231,7 @@ impl FiatAmountConverter {
                     self.requested_at().elapsed().as_secs()
                 ))),
         )
-        .style(theme::card::simple)
+        .style(theme::card::tooltip)
         .padding(10)
     }
 }

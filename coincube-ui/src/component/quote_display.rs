@@ -1,7 +1,6 @@
 use std::collections::{HashMap, VecDeque};
 use std::sync::LazyLock;
 
-use iced::widget::image;
 use iced::{Alignment, Length};
 use rand::seq::SliceRandom;
 use serde::Deserialize;
@@ -56,58 +55,6 @@ impl Quote {
             }
         }
         &self.text
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Embedded images (context defaults)
-// ---------------------------------------------------------------------------
-
-const IMG_CUBE_ACTIVE: &[u8] = include_bytes!("../../static/images/cube/cube-active.png");
-const IMG_CUBE_SEALED: &[u8] = include_bytes!("../../static/images/cube/cube-sealed.png");
-const IMG_KAGE: &[u8] = include_bytes!("../../static/images/kage/kage.png");
-const IMG_KAGE_SEATED: &[u8] = include_bytes!("../../static/images/kage/kage-seated.png");
-const IMG_KAGE_FRONT: &[u8] = include_bytes!("../../static/images/kage/kage-front.png");
-const IMG_KAGE_BUST: &[u8] = include_bytes!("../../static/images/kage/kage-bust.png");
-const IMG_KAGE_P2P_SUCCESS: &[u8] = include_bytes!("../../static/images/kage/kage-p2p-success.png");
-const IMG_KAGE_LIGHTNING_SEND: &[u8] =
-    include_bytes!("../../static/images/kage/kage-lightning-send.png");
-const IMG_KAGE_LIGHTNING_RECEIVE: &[u8] =
-    include_bytes!("../../static/images/kage/kage-lightning-receive.png");
-const IMG_KAGE_NOTE_SEND: &[u8] = include_bytes!("../../static/images/kage/kage-note-send.png");
-const IMG_KAGE_NOTE_RECEIVE: &[u8] =
-    include_bytes!("../../static/images/kage/kage-note-receive.png");
-const IMG_KAGE_SPARK_SEND: &[u8] = include_bytes!("../../static/images/kage/kage-spark-send.png");
-const IMG_KAGE_SPARK_RECEIVE: &[u8] =
-    include_bytes!("../../static/images/kage/kage-spark-receive.png");
-const IMG_KAGE_BITCOIN_SEND: &[u8] =
-    include_bytes!("../../static/images/kage/kage-bitcoin-send.png");
-const IMG_KAGE_BITCOIN_RECEIVE: &[u8] =
-    include_bytes!("../../static/images/kage/kage-bitcoin-receive.png");
-
-/// Returns the default `(image_bytes, image_height_px)` for a given context key.
-pub fn default_image_for_context(context: &str) -> (&'static [u8], u16) {
-    match context {
-        "loading" | "syncing" => (IMG_CUBE_ACTIVE, 160),
-        "first-launch" => (IMG_KAGE, 400),
-        "empty-wallet" => (IMG_KAGE_SEATED, 240),
-        "transaction-sent" => (IMG_KAGE_FRONT, 240),
-        "transaction-received" => (IMG_KAGE_P2P_SUCCESS, 240),
-        "transaction-confirm" => (IMG_CUBE_SEALED, 160),
-        "backup-reminder" => (IMG_KAGE_FRONT, 240),
-        "error" => (IMG_KAGE_BUST, 160),
-        "idle" => (IMG_KAGE_FRONT, 240),
-        "balance-update" => (IMG_CUBE_ACTIVE, 120),
-        // Network-specific celebration images
-        "lightning-send" => (IMG_KAGE_LIGHTNING_SEND, 240),
-        "lightning-receive" => (IMG_KAGE_LIGHTNING_RECEIVE, 240),
-        "note-send" => (IMG_KAGE_NOTE_SEND, 240),
-        "note-receive" => (IMG_KAGE_NOTE_RECEIVE, 240),
-        "spark-send" => (IMG_KAGE_SPARK_SEND, 240),
-        "spark-receive" => (IMG_KAGE_SPARK_RECEIVE, 240),
-        "bitcoin-send" => (IMG_KAGE_BITCOIN_SEND, 240),
-        "bitcoin-receive" => (IMG_KAGE_BITCOIN_RECEIVE, 240),
-        _ => (IMG_KAGE_SEATED, 240),
     }
 }
 
@@ -251,118 +198,34 @@ impl QuoteProvider {
 // QuoteDisplay — stateless display component
 // ---------------------------------------------------------------------------
 
-/// Create a cached `image::Handle` for a given context key.
-///
-/// Call this once when entering a context and store the result. Do NOT call
-/// on every render — that causes the image to flicker because Iced treats
-/// each new `Handle` as a different image.
-pub fn image_handle_for_context(context: &str) -> image::Handle {
-    let (bytes, _) = default_image_for_context(context);
-    image::Handle::from_bytes(bytes)
-}
-
-/// Props for the [`quote_display`] component.
+/// Props for the [`display`] component.
 pub struct QuoteDisplayProps<'a> {
-    slot: Option<crate::illustration::Slot>,
-    payment: Option<crate::illustration::PaymentArt>,
-    existing_only: bool,
     pub quote: &'a Quote,
-    pub image_handle: &'a image::Handle,
-    pub image_size: u16,
-    pub show_quote: bool,
-    pub show_separator: bool,
 }
 
 impl<'a> QuoteDisplayProps<'a> {
-    pub fn new(context: &str, quote: &'a Quote, image_handle: &'a image::Handle) -> Self {
-        let (_, default_size) = default_image_for_context(context);
-        Self {
-            slot: match context {
-                "loading" | "syncing" => Some(crate::illustration::Slot::Opening),
-                "empty-wallet" => Some(crate::illustration::Slot::EmptyHistory),
-                "first-launch" | "idle" | "backup-reminder" | "error" => {
-                    Some(crate::illustration::Slot::Mascot)
-                }
-                _ => None,
-            },
-            payment: crate::illustration::PaymentArt::from_context(context),
-            existing_only: false,
-            quote,
-            image_handle,
-            image_size: default_size,
-            show_quote: true,
-            show_separator: true,
-        }
-    }
-
-    pub(crate) fn illustration_slot(mut self, slot: crate::illustration::Slot) -> Self {
-        self.slot = Some(slot);
-        self
-    }
-
-    pub fn image_size(mut self, size: u16) -> Self {
-        self.image_size = size;
-        self
-    }
-
-    pub fn show_quote(mut self, show: bool) -> Self {
-        self.show_quote = show;
-        self
-    }
-
-    pub fn show_separator(mut self, show: bool) -> Self {
-        self.show_separator = show;
-        self
+    pub fn new(quote: &'a Quote) -> Self {
+        Self { quote }
     }
 }
 
-/// Renders an image paired with a contextual quote.
+/// Renders a contextual quote and its attribution. Desktop V3 draws no
+/// artwork with it: the quote is text (invariant R7 keeps its selection).
 ///
 /// ```text
 /// ┌─────────────────────────────┐
-/// │        [Image]              │
-/// ├─────────────────────────────┤  ← 1px separator
 /// │  "Quote text here..."       │
 /// │  — Author, Source           │
 /// └─────────────────────────────┘
 /// ```
 pub fn display<'a, M: 'a>(props: &QuoteDisplayProps<'a>) -> Container<'a, M> {
-    // Image — uses a pre-built handle to avoid flicker from recreating on every render
-    let img = crate::illustration::quote_image(
-        props.slot,
-        props.image_handle.clone(),
-        props.image_size,
-        props.payment,
-        props.existing_only,
-    );
-
-    let img_container = Container::new(img).center_x(Length::Fill);
-
-    let mut col = Column::new().align_x(Alignment::Center).push(img_container);
-
-    // Separator (1px line, same pattern as component::separation)
-    if props.show_separator && props.show_quote {
-        col = col.push(
-            Container::new(
-                Container::new(Column::new().push(iced::widget::space()))
-                    .style(theme::container::border)
-                    .height(Length::Fixed(1.0))
-                    .width(Length::Fill),
-            )
-            .padding(16),
-        );
-    }
-
-    // Quote + attribution
-    if props.show_quote {
-        col = col.push(quote_block(props.quote));
-    }
-
-    Container::new(col).center_x(Length::Fill).max_width(448)
+    Container::new(quote_block(props.quote))
+        .center_x(Length::Fill)
+        .max_width(448)
 }
 
 /// The quote and its attribution as [`display`] sets them, without the
-/// artwork, for a screen that puts the Cube above it instead.
+/// width cap, for a screen that puts the Cube above it.
 pub fn quote_block<'a, M: 'a>(quote: &'a Quote) -> Column<'a, M> {
     let quote_text = iced::widget::text(quote.localized_text())
         .size(P2_SIZE)
@@ -391,18 +254,6 @@ pub fn quote_block<'a, M: 'a>(quote: &'a Quote) -> Column<'a, M> {
     }
 
     quote_col
-}
-
-/// The artwork alone, as [`display`] draws it, for layouts that place the
-/// quote themselves.
-pub(crate) fn artwork<'a, M: 'a>(props: &QuoteDisplayProps<'a>) -> crate::widget::Element<'a, M> {
-    crate::illustration::quote_image(
-        props.slot,
-        props.image_handle.clone(),
-        props.image_size,
-        props.payment,
-        props.existing_only,
-    )
 }
 
 /// Format the attribution line for a quote.

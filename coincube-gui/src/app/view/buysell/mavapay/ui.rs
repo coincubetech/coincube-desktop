@@ -232,8 +232,7 @@ fn sell_input_form<'a>(
 
             widget::column![
                 text::h3(localized_copy("Setup Bank Details (Nigeria)")),
-                widget::container(widget::Space::default().width(iced::Length::Fill).height(2))
-                    .style(theme::card::border),
+                widget::rule::horizontal(1),
                 widget::space().width(iced::Length::Fill),
                 sat_amount_input(state.sat_amount, state.btc_price),
                 input_field(
@@ -308,8 +307,7 @@ fn sell_input_form<'a>(
 
             widget::column![
                 text::h3(localized_copy("Setup Bank Details (South Africa)")),
-                widget::container(widget::Space::default().width(iced::Length::Fill).height(2))
-                    .style(theme::card::border),
+                widget::rule::horizontal(1),
                 widget::space().width(iced::Length::Fill),
                 sat_amount_input(state.sat_amount, state.btc_price),
                 input_field(name, "Enter the Recipient's Name", "ZAR.name"),
@@ -356,8 +354,7 @@ fn sell_input_form<'a>(
 
             widget::column![
                 text::h3(localized_copy("Setup Mobile Money Details (Kenya-MPESA)")),
-                widget::container(widget::Space::default().width(iced::Length::Fill).height(2))
-                    .style(theme::card::border),
+                widget::rule::horizontal(1),
                 widget::space().width(iced::Length::Fill),
                 sat_amount_input(state.sat_amount, state.btc_price),
                 input_field(
@@ -395,7 +392,14 @@ fn sell_input_form<'a>(
         widget::Space::new().height(12),
         widget::row![
             widget::row![
-                card::simple(widget::space().height(iced::Length::Fill).width(5)).padding(1),
+                // A solid 5 px marker bar in the line colour, not a box.
+                widget::container(widget::space().height(iced::Length::Fill).width(5))
+                    .padding(1)
+                    .style(|th: &coincube_ui::theme::Theme| widget::container::Style {
+                        background: Some(iced::Background::Color(th.colors.shell.line)),
+                        border: iced::Border::default().rounded(3),
+                        ..Default::default()
+                    }),
                 widget::space().width(10),
                 text::p2_medium(localized_copy("Sell Bitcoin to Fiat Money")).center(),
             ]
@@ -510,8 +514,7 @@ fn summary_card<'a>(
         .width(iced::Length::Fill)
         .align_x(Alignment::Center)
         .align_y(Alignment::Center),
-        widget::container(widget::Space::default().width(iced::Length::Fill).height(2))
-            .style(theme::card::border),
+        widget::rule::horizontal(1),
         widget::row![
             widget::space().width(iced::Length::Fill),
             widget::column![
@@ -552,7 +555,8 @@ fn instructions_card<'a>(
     };
 
     // TODO: Generally rework this, for light mode too
-    card::simple(
+    // Inside the panel-filled checkout card: background fill (R4).
+    card::inset(
         widget::column![
             widget::row![
                 widget::container(
@@ -615,7 +619,8 @@ fn instructions_card<'a>(
                     text::p2_medium(localized_copy("This helps us match your payment to your order. Without this reference, your order may be delayed."))
                     .style(theme::text::secondary)
                 ].width(Length::Fill)
-            ).style(theme::card::modal),
+            // Panel fill on the inset instructions card around it (R4).
+            ),
             widget::Space::new().height(20),
             text::p2_medium(localized_copy("STEP 3: WAIT FOR CONFIRMATION")),
             widget::Space::new().height(10),
@@ -633,7 +638,8 @@ fn instructions_card<'a>(
 }
 
 fn notes_card<'a>() -> widget::Container<'a, BuySellMessage, theme::Theme> {
-    card::simple(
+    // Inside the panel-filled checkout card: background fill (R4).
+    card::inset(
         widget::column![
             text::p1_bold(localized_copy("Important Notes")),
             widget::Space::new().height(10),

@@ -1506,7 +1506,6 @@ pub fn broadcast_action<'a>(
     error: Option<String>,
     spend_amount_display: &'a str,
     sent_quote: &'a coincube_ui::component::quote_display::Quote,
-    sent_image_handle: &'a iced::widget::image::Handle,
     is_self_transfer: bool,
 ) -> Element<'a, Message> {
     broadcast_action_with_identity_review(
@@ -1517,7 +1516,6 @@ pub fn broadcast_action<'a>(
         error,
         spend_amount_display,
         sent_quote,
-        sent_image_handle,
         is_self_transfer,
         None,
         BroadcastReceipt::default(),
@@ -1555,7 +1553,6 @@ pub fn broadcast_action_with_identity_review<'a>(
     error: Option<String>,
     spend_amount_display: &'a str,
     sent_quote: &'a coincube_ui::component::quote_display::Quote,
-    sent_image_handle: &'a iced::widget::image::Handle,
     is_self_transfer: bool,
     identity_review: Option<Element<'a, Message>>,
     receipt: BroadcastReceipt<'a>,
@@ -1565,7 +1562,6 @@ pub fn broadcast_action_with_identity_review<'a>(
         saved_broadcast_result(
             spend_amount_display,
             sent_quote,
-            sent_image_handle,
             is_self_transfer,
             replaces_pending,
             receipt,
@@ -1760,7 +1756,7 @@ fn container_from_fg(
                 coincube_ui::widget::Text::new(fg.to_string()),
                 tooltip::Position::Bottom,
             )
-            .style(theme::card::simple),
+            .style(theme::card::tooltip),
         )
     } else {
         Container::new(text(fg.to_string()))
@@ -2805,7 +2801,8 @@ fn signing_path_card(path: SigningPath, action_scope: u64) -> Element<'static, M
 
     Container::new(col)
         .padding(10)
-        .style(theme::card::border)
+        // Inside the panel-filled sign modal; its key rows stay panel-filled on this inset (R4).
+        .style(theme::card::inset)
         .into()
 }
 
@@ -3159,7 +3156,6 @@ pub fn update_spend_success_view<'a>() -> Element<'a, Message> {
 fn saved_broadcast_result<'a>(
     spend_amount_display: &'a str,
     sent_quote: &'a coincube_ui::component::quote_display::Quote,
-    sent_image_handle: &'a iced::widget::image::Handle,
     is_self_transfer: bool,
     replaces_pending: bool,
     receipt: BroadcastReceipt<'a>,
@@ -3173,9 +3169,7 @@ fn saved_broadcast_result<'a>(
     let mut page = payment_result(
         Outcome::Confirming,
         spend_amount_display,
-        "bitcoin-send",
         sent_quote,
-        sent_image_handle,
         Message::Spend(super::super::SpendTxMessage::Cancel),
     )
     .detail(detail)
@@ -3442,10 +3436,6 @@ mod tests {
             length: "short".to_string(),
             contexts: vec!["bitcoin-send".to_string()],
         }
-    }
-
-    fn image_handle() -> iced::widget::image::Handle {
-        iced::widget::image::Handle::from_rgba(1, 1, vec![255, 255, 255, 255])
     }
 
     fn signing_row(
@@ -4033,7 +4023,6 @@ mod tests {
         use crate::chain::ChainId;
 
         let quote = quote();
-        let image = image_handle();
         for (chain, expected, other) in [
             (
                 ChainId::Bitcoin,
@@ -4056,7 +4045,6 @@ mod tests {
                     None,
                     "40,000 sats",
                     &quote,
-                    &image,
                     false,
                     None,
                     BroadcastReceipt::default(),
@@ -4083,7 +4071,6 @@ mod tests {
         conflicts.insert(Txid::from_str(&format!("{:064x}", 1)).unwrap());
         conflicts.insert(Txid::from_str(&format!("{:064x}", 2)).unwrap());
         let quote = quote();
-        let image = image_handle();
 
         let _ = save_action(false);
         let _ = save_action(true);
@@ -4108,7 +4095,6 @@ mod tests {
             None,
             "40,000 sats",
             &quote,
-            &image,
             false,
         );
         let _ = broadcast_action(
@@ -4118,7 +4104,6 @@ mod tests {
             Some("mempool rejected".to_string()),
             "40,000 sats",
             &quote,
-            &image,
             false,
         );
         let _ = broadcast_action(
@@ -4128,7 +4113,6 @@ mod tests {
             None,
             "40,000 sats",
             &quote,
-            &image,
             true,
         );
     }
@@ -4139,7 +4123,6 @@ mod tests {
     #[test]
     fn a_broadcast_in_flight_says_it_is_sending() {
         let quote = quote();
-        let image = image_handle();
         let render = |name, broadcasting| {
             capture::inspect_full_window(
                 name,
@@ -4151,7 +4134,6 @@ mod tests {
                     None,
                     "40,000 sats",
                     &quote,
-                    &image,
                     true,
                     None,
                     BroadcastReceipt::default(),
@@ -4502,7 +4484,6 @@ mod tests {
         use std::str::FromStr;
 
         let quote = quote();
-        let image = image_handle();
         let txid =
             Txid::from_str("4e0ca17b9c2d6f1a8b3e5d7c9f0a1b2c3d4e5f60718293a4b5c6d7e866d20f19")
                 .unwrap();
@@ -4516,7 +4497,6 @@ mod tests {
                 None,
                 "150,000 SATS",
                 &quote,
-                &image,
                 false,
                 None,
                 BroadcastReceipt {

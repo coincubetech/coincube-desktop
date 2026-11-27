@@ -10,7 +10,7 @@ use std::borrow::Cow;
 
 use iced::advanced::text::Shaping;
 use iced::advanced::widget::Id;
-use iced::{alignment, Alignment, Length};
+use iced::{alignment, Alignment, Length, Padding};
 
 use crate::component::tenshu::balance::AmountVisibility;
 use crate::font;
@@ -33,7 +33,7 @@ pub struct ActionButton<'a, M> {
 }
 
 impl<'a, M: Clone + 'static> ActionButton<'a, M> {
-    /// A 36px pill action. `focus_intent` must apply Iced's whole-tree focus
+    /// A 40px pill action. `focus_intent` must apply Iced's whole-tree focus
     /// operation for the given `Id`, as [`Action::new`] requires.
     pub fn new(
         id: impl Into<Id>,
@@ -103,26 +103,36 @@ impl<'a, M: Clone + 'static> From<ActionButton<'a, M>> for Element<'a, M> {
             on_press,
         } = action;
         let (text_size, weight, height, padding) = match (shape, kind) {
-            (ActionShape::Pill | ActionShape::Compact, ActionKind::Quiet) => {
-                (type_size::BODY, font::MEDIUM, Length::Shrink, [4.0, 2.0])
-            }
+            (ActionShape::Pill | ActionShape::Compact, ActionKind::Quiet) => (
+                type_size::BODY,
+                font::MEDIUM,
+                Length::Shrink,
+                Padding::from([4.0, 2.0]),
+            ),
+            // `.pill { padding: 0 16px 0 14px }`: the leading glyph sits
+            // closer to the edge than the label's end.
             (ActionShape::Pill, _) => (
                 type_size::BODY,
                 font::SEMIBOLD,
                 Length::Fixed(size::PILL_HEIGHT),
-                [0.0, 20.0],
+                Padding {
+                    top: 0.0,
+                    right: 16.0,
+                    bottom: 0.0,
+                    left: if icon.is_some() { 14.0 } else { 16.0 },
+                },
             ),
             (ActionShape::Compact, _) => (
                 type_size::CHIP,
                 font::MEDIUM,
                 Length::Fixed(size::BUTTON_HEIGHT),
-                [0.0, 14.0],
+                Padding::from([0.0, 14.0]),
             ),
             (ActionShape::Chip, _) | (ActionShape::Icon, _) => (
                 type_size::CHIP,
                 font::REGULAR,
                 Length::Fixed(size::CHIP_HEIGHT),
-                [0.0, 12.0],
+                Padding::from([0.0, 12.0]),
             ),
         };
         let label: Text<'a> = iced::widget::text(label)
@@ -133,7 +143,10 @@ impl<'a, M: Clone + 'static> From<ActionButton<'a, M>> for Element<'a, M> {
             Some(icon) => Row::new()
                 .spacing(8)
                 .align_y(Alignment::Center)
-                .push(icon.size(size::ICON_SMALL))
+                .push(
+                    icon.size(size::ICON_SMALL)
+                        .width(Length::Fixed(size::ICON_SMALL)),
+                )
                 .push(label)
                 .into(),
             None => label.into(),
@@ -218,6 +231,40 @@ pub fn transfer_action<'a, M: Clone + 'static>(
         focus_intent,
     )
     .icon(icon::arrow_down_up_icon())
+    .on_press_maybe(on_press)
+}
+
+/// Receive (`.pill.out`): the secondary half of a wallet's pair, a neutral
+/// outline with a down arrow. It goes before [`send_action`].
+pub fn receive_action<'a, M: Clone + 'static>(
+    id: impl Into<Id>,
+    focus_intent: fn(Id) -> M,
+    on_press: Option<M>,
+) -> ActionButton<'a, M> {
+    ActionButton::new(
+        id,
+        localized_copy("Receive"),
+        ActionKind::Secondary,
+        focus_intent,
+    )
+    .icon(icon::arrow_down())
+    .on_press_maybe(on_press)
+}
+
+/// Send (`.pill.fill`): the primary half of a wallet's pair, filled accent
+/// with an up arrow. It follows [`receive_action`].
+pub fn send_action<'a, M: Clone + 'static>(
+    id: impl Into<Id>,
+    focus_intent: fn(Id) -> M,
+    on_press: Option<M>,
+) -> ActionButton<'a, M> {
+    ActionButton::new(
+        id,
+        localized_copy("Send"),
+        ActionKind::Primary,
+        focus_intent,
+    )
+    .icon(icon::arrow_up())
     .on_press_maybe(on_press)
 }
 

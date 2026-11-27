@@ -523,7 +523,8 @@ fn key_step<'a>(
                 ),
         )
         .padding(12)
-        .style(theme::card::border)
+        // Inside the panel-filled step card: background fill keeps it apart (R4).
+        .style(theme::card::inset)
         .width(Length::Fill)
         .into(),
         (None, Some(error)) => p2_regular(coincube_ui::locale::notice(error.clone()))
@@ -574,7 +575,8 @@ fn key_step<'a>(
                     iced::widget::QRCode::<coincube_ui::theme::Theme>::new(qr).total_size(148),
                 )
                 .padding(8)
-                .style(theme::card::border),
+                // Inside the panel-filled step card: background fill keeps it apart (R4).
+                .style(theme::card::inset),
             )
             .push(details)
             .into(),
@@ -1128,7 +1130,8 @@ fn sent_step<'a>(confirmations: u32) -> Element<'a, Message> {
                 )
                 .padding(16)
                 .style(if confirmations > 0 {
-                    theme::card::border
+                    // Inside the panel-filled step card: background fill keeps it apart (R4).
+                    theme::card::inset
                 } else {
                     theme::card::warning
                 })

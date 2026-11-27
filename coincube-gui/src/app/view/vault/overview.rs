@@ -2,6 +2,7 @@ use chrono::{DateTime, Local, Utc};
 use coincube_ui::locale::copy as localized_copy;
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::localized_format;
+use coincube_ui::{component::tenshu::ActionButton, theme::tenshu::button::ActionKind};
 use std::{collections::HashMap, time::Duration, vec};
 
 use iced::{
@@ -28,7 +29,7 @@ use crate::{
         view::{
             dashboard_headed,
             message::Message,
-            shared::landing::{landing_balance_section, landing_button, landing_control_id},
+            shared::landing::{landing_balance_section, landing_control_id},
             vault::coins,
             vault::label,
             vault_page_head,
@@ -57,24 +58,29 @@ fn rescan_date_prompt<'a>(cube_id: &str) -> Element<'a, Message> {
                 Row::new()
                     .spacing(5)
                     .push(Space::new().width(Length::Fill))
-                    .push(landing_button(
-                        landing_control_id(cube_id, "Vault", "rescan-pick-date"),
-                        localized_copy("Pick a date"),
-                        None,
-                        Message::FocusAction,
-                        Some(Message::Menu(Menu::Vault(menu::VaultSubMenu::Settings(
+                    .push(
+                        ActionButton::new(
+                            landing_control_id(cube_id, "Vault", "rescan-pick-date"),
+                            localized_copy("Pick a date"),
+                            ActionKind::Secondary,
+                            Message::FocusAction,
+                        )
+                        .compact()
+                        .on_press(Message::Menu(Menu::Vault(menu::VaultSubMenu::Settings(
                             Some(menu::SettingsOption::Node),
                         )))),
-                        theme::button::secondary,
-                    ))
-                    .push(landing_button(
-                        landing_control_id(cube_id, "Vault", "rescan-dismiss"),
-                        localized_copy("Dismiss"),
-                        Some(cross_icon()),
-                        Message::FocusAction,
-                        Some(Message::HideRescanPrompt),
-                        theme::button::secondary,
-                    )),
+                    )
+                    .push(
+                        ActionButton::new(
+                            landing_control_id(cube_id, "Vault", "rescan-dismiss"),
+                            localized_copy("Dismiss"),
+                            ActionKind::Secondary,
+                            Message::FocusAction,
+                        )
+                        .icon(cross_icon())
+                        .compact()
+                        .on_press(Message::HideRescanPrompt),
+                    ),
             ),
     )
     .padding(25)
@@ -283,14 +289,20 @@ fn protection_strip<'a>(
                     .spacing(15)
                     .align_y(Alignment::Center)
                     .push(text(copy).size(P1_SIZE).width(Length::Fill))
-                    .push(landing_button(
-                        landing_control_id(cube_id, "Vault", control),
-                        label,
-                        icon,
-                        Message::FocusAction,
-                        Some(Message::Menu(route)),
-                        theme::button::secondary,
-                    )),
+                    .push({
+                        let action = ActionButton::new(
+                            landing_control_id(cube_id, "Vault", control),
+                            label,
+                            ActionKind::Secondary,
+                            Message::FocusAction,
+                        )
+                        .compact()
+                        .on_press(Message::Menu(route));
+                        match icon {
+                            Some(icon) => action.icon(icon),
+                            None => action,
+                        }
+                    }),
             )
         });
     Some(
@@ -385,25 +397,17 @@ pub fn vault_overview_view<'a>(
             AmountVisibility::Shown
         },
         [
-            landing_button(
-                landing_control_id(cube_id, "Vault", "send-btc"),
-                localized_copy("Send"),
-                None,
-                Message::FocusAction,
-                Some(Message::Menu(Menu::Vault(VaultSubMenu::Send))),
-                theme::button::primary,
-            )
-            .width(Length::Fixed(90.0))
-            .into(),
-            landing_button(
+            coincube_ui::component::tenshu::receive_action(
                 landing_control_id(cube_id, "Vault", "receive-btc"),
-                localized_copy("Receive"),
-                None,
                 Message::FocusAction,
                 Some(Message::Menu(Menu::Vault(VaultSubMenu::Receive))),
-                theme::button::orange_outline,
             )
-            .width(Length::Fixed(90.0))
+            .into(),
+            coincube_ui::component::tenshu::send_action(
+                landing_control_id(cube_id, "Vault", "send-btc"),
+                Message::FocusAction,
+                Some(Message::Menu(Menu::Vault(VaultSubMenu::Send))),
+            )
             .into(),
         ],
     );
@@ -641,11 +645,9 @@ fn batch_transaction_label<'a>(
 
 /// Full-screen celebration view when a vault payment is received.
 pub fn received_celebration_page<'a>(
-    context: &str,
     amount_display: &'a str,
     txid: Option<&str>,
     quote: &'a coincube_ui::component::quote_display::Quote,
-    image_handle: &'a iced::widget::image::Handle,
 ) -> Element<'a, Message> {
     use coincube_ui::component::payment_result::{payment_result, short_id, Outcome, ReceiptRow};
     let id_row = txid.map(|id| {
@@ -659,9 +661,7 @@ pub fn received_celebration_page<'a>(
     payment_result(
         Outcome::Received,
         amount_display,
-        context,
         quote,
-        image_handle,
         Message::DismissReceivedCelebration,
     )
     .detail(localized_copy("Into Vault"))
@@ -981,6 +981,74 @@ mod capture_tests {
                                 BitcoinDisplayUnit::Sats,
                                 None,
                                 None,
+                                true,
+                                DisplayMode::BitcoinNative,
+                                false,
+                                1,
+                                None,
+                            )
+                        },
+                        || None,
+                    )
+                },
+            );
+        }
+    }
+
+    /// The Vault page's three legacy boxes at once: the rescan prompt, the
+    /// node-sync notice and the protection strip (Desktop V3, V5: fill only).
+    /// Opt-in: `TOP_BAR_CAPTURE_DIR=<dir> cargo test -p coincube-gui --lib
+    /// legacy_boxes_capture_vault -- --ignored`.
+    #[test]
+    #[ignore = "writes PNG frames; needs a GPU adapter"]
+    fn legacy_boxes_capture_vault() {
+        use crate::app::state::preferences::BalancePrivacy;
+        use crate::app::view::nav::shell::capture_tests;
+        let Some(directory) = capture_tests::directory() else {
+            return;
+        };
+        let mut renderer = capture_tests::renderer();
+        let menu = Menu::Vault(VaultSubMenu::Overview);
+        let balance = bitcoin::Amount::from_sat(1_250_000);
+        let zero = bitcoin::Amount::ZERO;
+        let expiring = [bitcoin::OutPoint::null()];
+        for (appearance, palette) in capture_tests::themes() {
+            let mut cache = capture_tests::cache(appearance == "light", BalancePrivacy::Shown);
+            cache.has_vault = true;
+            let cache = &cache;
+            let (balance, zero, expiring) = (&balance, &zero, &expiring);
+            capture_tests::save_page_head_frames(
+                &mut renderer,
+                &directory,
+                "vault-boxes",
+                appearance,
+                &palette,
+                || {
+                    crate::app::view::dashboard_with_detail(
+                        &menu,
+                        cache,
+                        move || {
+                            crate::app::state::vault::overview::VaultOverview::page_head_for_tests(
+                                cache,
+                                Some(crate::app::view::global_home::WalletTransferEntry::Ready),
+                            )
+                        },
+                        move || {
+                            vault_overview_view(
+                                balance,
+                                zero,
+                                &Some(1_440),
+                                None,
+                                expiring,
+                                None,
+                                "synthetic-cube",
+                                crate::chain::ChainId::Bitcoin,
+                                &SyncStatus::Synced,
+                                true,
+                                false,
+                                BitcoinDisplayUnit::Sats,
+                                Some(0.42),
+                                Some(true),
                                 true,
                                 DisplayMode::BitcoinNative,
                                 false,

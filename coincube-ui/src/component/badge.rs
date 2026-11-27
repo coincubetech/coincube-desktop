@@ -2,7 +2,7 @@ use crate::locale::copy as localized_copy;
 use iced::{widget::tooltip, Length};
 
 use crate::widget::Container;
-use crate::{component::text, icon, image, theme};
+use crate::{component::text, icon, theme};
 
 pub fn badge<T>(icon: crate::widget::Text<'static>) -> Container<'static, T> {
     Container::new(icon.width(Length::Fixed(20.0)))
@@ -28,13 +28,6 @@ pub fn cycle<T>() -> Container<'static, T> {
 
 pub fn spend<T>() -> Container<'static, T> {
     Container::new(icon::send_icon().width(Length::Fixed(20.0)))
-        .style(theme::badge::simple)
-        .center_x(Length::Fixed(40.0))
-        .center_y(Length::Fixed(40.0))
-}
-
-pub fn coin<T: 'static>() -> Container<'static, T> {
-    Container::new(image::coincube_wordmark_gray(10.0))
         .style(theme::badge::simple)
         .center_x(Length::Fixed(40.0))
         .center_y(Length::Fixed(40.0))
@@ -119,7 +112,7 @@ pub fn badge_pill<'a, T: 'a>(label: &'a str, tooltip: &'a str) -> Container<'a, 
                 .style(theme::pill::simple),
             Container::new(text::p1_regular(tooltip))
                 .padding(10)
-                .style(theme::card::simple),
+                .style(theme::card::tooltip),
             tooltip::Position::Top,
         )
     })

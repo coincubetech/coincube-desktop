@@ -679,10 +679,10 @@ impl<M: Clone> overlay::Overlay<M, Theme, Renderer> for Menu<'_, '_, M> {
         renderer.fill_quad(
             renderer::Quad {
                 bounds,
+                // It floats with a shadow, so it has no outline.
                 border: Border {
-                    color: shell.line,
-                    width: 1.0,
                     radius: radius::MENU.into(),
+                    ..Border::default()
                 },
                 shadow: Shadow {
                     color: shell.shadow,

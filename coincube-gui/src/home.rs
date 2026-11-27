@@ -659,8 +659,6 @@ pub struct Home {
     advisory_notice: Option<&'static crate::hw_advisory::Advisory>,
     #[allow(dead_code)]
     welcome_quote: coincube_ui::component::quote_display::Quote,
-    #[allow(dead_code)]
-    welcome_image_handle: iced::widget::image::Handle,
 }
 
 impl Home {
@@ -805,8 +803,6 @@ impl Home {
                 recovery_method_modal: None,
                 advisory_notice: pending_advisory_notice(&datadir_path),
                 welcome_quote: coincube_ui::component::quote_display::random_quote("first-launch"),
-                welcome_image_handle:
-                    coincube_ui::component::quote_display::image_handle_for_context("first-launch"),
             },
             // Kick a Connect session check alongside the datadir probe
             // so the sidebar reflects authenticated state immediately
@@ -6149,7 +6145,8 @@ impl Home {
                     .push(
                         self.error
                             .as_ref()
-                            .map(|e| card::simple(text(coincube_ui::locale::notice(e.clone())))),
+                            // Inside the panel-filled journey sheet: background fill (R4).
+                            .map(|e| card::inset(text(coincube_ui::locale::notice(e.clone())))),
                     )
                     .push(creation_backup_view(
                         step,
@@ -6673,7 +6670,8 @@ impl Home {
                 )
                 .padding(12)
                 .width(Length::Fill)
-                .style(theme::card::simple),
+                // Inside the panel-filled journey sheet: background fill (R4).
+                .style(theme::card::inset),
             );
         }
         content.into()
@@ -7640,7 +7638,8 @@ fn create_cube_form<'a>(
     // left because it is the default.
     if feature_flags::PASSKEY_CREATION_AVAILABLE && !importing_bitcoin {
         column = column.push(
-            card::simple(
+            // Drawn on the page and inside the panel-filled journey sheet: keeps its outline (R4).
+            card::outlined(
                 Row::new()
                     .spacing(20)
                     .align_y(Alignment::Center)

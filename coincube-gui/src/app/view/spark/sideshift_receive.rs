@@ -103,7 +103,8 @@ fn setup_body(flow: &SparkSideshiftReceiveFlow) -> Element<'_, Msg> {
     let refund_card = Container::new(refund)
         .padding(16)
         .width(Length::Fill)
-        .style(theme::card::simple);
+        // Inside the panel-filled Spark receive card: background fill (R4).
+        .style(theme::card::inset);
 
     // Master invariant 9: name the third party and the jurisdictional caveat.
     // The user is handing funds to SideShift, not to us, and they should know
@@ -120,7 +121,8 @@ fn setup_body(flow: &SparkSideshiftReceiveFlow) -> Element<'_, Msg> {
     )
     .padding([8, 12])
     .width(Length::Fill)
-    .style(theme::card::simple);
+    // Inside the panel-filled Spark receive card: background fill (R4).
+    .style(theme::card::inset);
 
     let generate_btn = if flow.is_loading() {
         button::primary(None, localized_copy("Generating…")).width(Length::Fill)

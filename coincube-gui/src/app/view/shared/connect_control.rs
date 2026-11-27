@@ -33,11 +33,30 @@ pub fn chip_button(
     style
 }
 
-/// `.chip`: the shell's chip surface with the design's 8px corners.
-pub fn chip_style(t: &theme::Theme) -> iced::widget::container::Style {
-    let mut style = theme::container::shell_chip(t);
-    style.border.radius = CHIP_RADIUS.into();
-    style
+/// The chip's press target. While its menu is open the chip's container
+/// already carries the hover fill, so the target adds none on top of it.
+fn chip_press_style(
+    open: bool,
+) -> impl Fn(&theme::Theme, iced::widget::button::Status) -> iced::widget::button::Style {
+    move |t, status| {
+        let mut style = chip_button(t, status);
+        if open {
+            style.background = None;
+        }
+        style
+    }
+}
+
+/// `.chip` in a bar: quiet, with no surface or outline of its own (the button
+/// rule, `cc-buttons v1`). Its press target supplies the hover fill.
+pub fn chip_style(_t: &theme::Theme) -> iced::widget::container::Style {
+    iced::widget::container::Style {
+        border: iced::Border {
+            radius: CHIP_RADIUS.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
 }
 
 /// The light colours (`--alert`, `--amber`): stronger than the text tones,
@@ -229,16 +248,16 @@ pub fn connect_control<'a, M: Clone + 'static>(
             focus,
         )
         .padding([0, 10])
-        .style(chip_button)
+        .style(chip_press_style(open))
         .focus_radius(CHIP_RADIUS)
         .on_press_maybe(on_press),
     )
     .max_width(300)
     .style(move |t: &theme::Theme| {
         let mut style = chip_style(t);
+        // An open menu keeps the hover fill.
         if open {
-            style.background = Some(t.colors.shell.selected.into());
-            style.border.color = t.colors.shell.selected;
+            style.background = Some(t.colors.shell.hover.into());
         }
         style
     });
@@ -248,6 +267,26 @@ pub fn connect_control<'a, M: Clone + 'static>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// An open menu shows one hover fill, hovered or not; a closed chip
+    /// fills only on hover. No state draws an outline.
+    #[test]
+    fn an_open_connect_chip_keeps_one_fill() {
+        use iced::widget::button::Status;
+        for t in [theme::Theme::dark(), theme::Theme::light()] {
+            let hover = Some(iced::Background::Color(t.colors.shell.hover));
+            for status in [Status::Active, Status::Hovered, Status::Pressed] {
+                assert_eq!(chip_press_style(true)(&t, status).background, None);
+                assert_eq!(chip_press_style(true)(&t, status).border.width, 0.0);
+            }
+            assert_eq!(
+                chip_press_style(false)(&t, Status::Hovered).background,
+                hover
+            );
+            assert_eq!(chip_style(&t).border.width, 0.0);
+            assert_eq!(chip_style(&t).background, None);
+        }
+    }
 
     #[test]
     fn chip_account_keeps_short_accounts() {

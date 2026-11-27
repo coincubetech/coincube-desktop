@@ -456,7 +456,7 @@ fn policy_signer_names<'a>(
                         text(k.to_string()),
                         iced_tooltip::Position::Bottom,
                     )
-                    .style(theme::card::simple),
+                    .style(theme::card::tooltip),
                 )
             } else {
                 Container::new(text(format!("[{}]", k)).bold())
@@ -1745,7 +1745,8 @@ pub fn start_internal_bitcoind<'a>(
                 )),
             );
         if show_advanced {
-            col = col.push(card::simple(node_resources_controls(
+            // Drawn on the page and inside the panel-filled restore sheet: keeps its outline (R4).
+            col = col.push(card::outlined(node_resources_controls(
                 prune,
                 max_mempool,
                 |v| Message::InternalBitcoind(message::InternalBitcoindMsg::PruneEdited(v)),
@@ -1842,14 +1843,14 @@ pub fn start_internal_bitcoind<'a>(
     )
 }
 
-/// A Recovery Kit or phone restore's Done: Kage holding the sealed Cube,
+/// A Recovery Kit or phone restore's Done: a plain check mark,
 /// "[Cube] is restored" and one line. Open Cube is the frame's footer.
 pub fn restored<'a>(cube_name: &str, warning: Option<&'a String>) -> Element<'a, Message> {
     Column::new()
         .spacing(16)
         .width(Length::Fill)
         .align_x(Alignment::Center)
-        .push(crate::home::restore_frame::done_art(false))
+        .push(crate::home::restore_frame::done_mark())
         .push(text::h3(CopyText::CubeRestored.get().replacen(
             "{cube_name}",
             cube_name,
@@ -1935,7 +1936,8 @@ pub fn install_titled<'a>(
                 Container::new(Space::new().height(Length::Fixed(25.0)))
             })
             .push(connect_vault_caption.map(|caption| {
-                card::simple(
+                // Drawn on the page and inside the panel-filled restore sheet: keeps its outline (R4).
+                card::outlined(
                     text(coincube_ui::locale::notice(caption)).style(theme::text::secondary),
                 )
                 .padding(10)
@@ -2811,10 +2813,14 @@ fn restore_cube_choice<'a>(
     )
     .width(Length::Fill)
     .padding([10, 18])
-    .style(if chosen {
-        theme::button::orange_outline
-    } else {
-        theme::button::secondary
+    // A selectable row: the chosen Cube keeps the outline and takes the
+    // selected fill (`.tg[aria-pressed="true"]`).
+    .style(move |t: &theme::Theme, status| {
+        let mut style = theme::button::secondary(t, status);
+        if chosen {
+            style.background = Some(t.colors.shell.selected.into());
+        }
+        style
     })
     .on_press_maybe(available.then_some(Message::RecoveryKitRestore(
         RecoveryKitRestoreMsg::SelectCube(id),
@@ -3031,7 +3037,8 @@ pub fn recovery_kit_restore<'a>(
         .push(p2_regular(step_detail).style(theme::text::secondary));
 
     if let Some(e) = error {
-        content = content.push(card::simple(
+        // Drawn on the page and inside the panel-filled restore sheet: keeps its outline (R4).
+        content = content.push(card::outlined(
             text::text(coincube_ui::locale::notice(e.to_string())).style(theme::text::warning),
         ));
     }
@@ -3075,7 +3082,8 @@ pub fn recovery_kit_restore<'a>(
             content = restore_password_panel(content, ui_instance, selected, password, processing);
         }
         RestorePhase::Decrypting { .. } => {
-            content = content.push(card::simple(
+            // Drawn on the page and inside the panel-filled restore sheet: keeps its outline (R4).
+            content = content.push(card::outlined(
                 p1_regular(localized_copy(
                     "Decrypting your Recovery Kit. This takes a moment.",
                 ))
@@ -3084,7 +3092,8 @@ pub fn recovery_kit_restore<'a>(
         }
         RestorePhase::Ready { selected, .. } => {
             content = content
-                .push(card::simple(
+                // Drawn on the page and inside the panel-filled restore sheet: keeps its outline (R4).
+                .push(card::outlined(
                     Column::new()
                         .spacing(8)
                         .push(p1_bold(localized_format!(
@@ -3110,7 +3119,8 @@ pub fn recovery_kit_restore<'a>(
         }
         RestorePhase::Error { message } => {
             content = content
-                .push(card::simple(
+                // Drawn on the page and inside the panel-filled restore sheet: keeps its outline (R4).
+                .push(card::outlined(
                     Column::new()
                         .spacing(8)
                         .push(p1_bold(localized_copy("Recovery needs attention")))

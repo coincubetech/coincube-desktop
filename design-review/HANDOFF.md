@@ -56,6 +56,25 @@ plan and the steps below.
 
 The Phase 2 plan is `plans/desktop-v3-phase2/` in the company brain.
 
+**Phase 1 is implemented on `feature/desktop-v3`** (2026-11-27), against canvas
+version 345, as one PR per slice and a final assembly PR that merges them all:
+
+| Slice | What | PR |
+| --- | --- | --- |
+| V1 | The quiet rule for the region dividers | #12 |
+| V2 | One-colour wordmark; menus on a shadow without an outline | #14 |
+| V3 | The button rule: Receive and Send pills, bar buttons without an outline, one primary hover | #15 |
+| V4 | Boxes without outlines: the newer surfaces | #16 |
+| V5 | Boxes without outlines: the legacy cards | #17 |
+| V6 | No artwork; Worldview as wording only | #11 |
+| V7 | No Worldview accent colours | #13 |
+| V8 | Assembly, acceptance walk and clean-up | the `V3 V8: assemble Phase 1 and acceptance` PR |
+
+What Phase 1 left for Phase 2 (type scale, the test-network tag, notices and
+toasts in the `cc-toasts` style, the Receive and Send tile lists, the Launcher
+network menu, the one-line switcher and subtitles, the brand icon) is listed
+in the V8 PR's acceptance table.
+
 ## v175 delta (2026-10-29)
 
 On 2026-10-29 Robert reviewed a page-header study and had it folded into the

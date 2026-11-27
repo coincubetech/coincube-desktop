@@ -382,11 +382,38 @@ impl Opening {
                 || self.ready_since.is_some())
     }
 
+    /// The three progress dots under the quote (`P-Opening` `.dots`): each
+    /// pulses from 25% to 95% ink over 1.5 s, half a second after the one
+    /// before it. Reduced motion holds the first lit and the others dim.
+    pub fn dots(&self, now: Instant) -> [f32; 3] {
+        if self.reduced {
+            return [DOT_LIT, DOT_DIM, DOT_DIM];
+        }
+        let t = self.since(self.started, now).as_secs_f32();
+        std::array::from_fn(|i| {
+            let phase = ((t - DOT_DELAY * i as f32) / DOT_PERIOD).rem_euclid(1.0);
+            // Keyframes: dim at 0% and 100%, brightest at 33%.
+            let rise = if phase < 1.0 / 3.0 {
+                phase * 3.0
+            } else {
+                (1.0 - phase) * 1.5
+            };
+            DOT_DIM + (DOT_PEAK - DOT_DIM) * launcher_scene::ease(rise)
+        })
+    }
+
     /// Whether the light still changes on its own: the flicker and breath.
     pub fn breathes(&self) -> bool {
         !self.reduced
     }
 }
+
+/// The progress dots' opacities and timing (`P-Opening` `.dots`).
+const DOT_DIM: f32 = 0.25;
+const DOT_PEAK: f32 = 0.95;
+const DOT_LIT: f32 = 0.9;
+const DOT_PERIOD: f32 = 1.5;
+const DOT_DELAY: f32 = 0.5;
 
 /// How long each loading quote stays before the next one replaces it.
 const QUOTE_HOLD: Duration = Duration::from_secs(8);
@@ -743,5 +770,29 @@ mod tests {
         opening.set_stage(Stage::Spark, t0 + ms(30_000));
         let fastest = breath_period(&opening, t0 + ms(30_000) + LEVEL_FADE);
         assert!(fastest > ms(1000) && fastest < ms(1200), "{:?}", fastest);
+    }
+
+    /// P-Opening's three dots: one after another, half a second apart,
+    /// between 25% and 95%; under reduced motion the first stays lit.
+    #[test]
+    fn progress_dots_pulse_in_turn_and_hold_under_reduced_motion() {
+        let t0 = Instant::now();
+        let reduced = Opening::new(None, true, Stage::Connecting, t0);
+        assert_eq!(reduced.dots(t0 + ms(700)), [0.9, 0.25, 0.25]);
+
+        let opening = Opening::new(None, false, Stage::Connecting, t0);
+        let close = |a: f32, b: f32| (a - b).abs() < 0.01;
+        let start = opening.dots(t0);
+        assert!(close(start[0], 0.25), "{:?}", start);
+        let first_peak = opening.dots(t0 + ms(500));
+        assert!(close(first_peak[0], 0.95), "{:?}", first_peak);
+        let second_peak = opening.dots(t0 + ms(1000));
+        assert!(close(second_peak[1], 0.95), "{:?}", second_peak);
+        assert!(second_peak[0] < 0.95 && second_peak[2] < 0.95);
+        for step in 0..60 {
+            for dot in opening.dots(t0 + ms(step * 50)) {
+                assert!((0.25..=0.951).contains(&dot), "{}", dot);
+            }
+        }
     }
 }

@@ -94,6 +94,7 @@ pub fn spark_notice_banner(notice: &SparkNotice) -> Element<'_, Message> {
                 .color(color::BLACK)
                 .width(Length::Fill),
             button::secondary(None, "Spark Settings")
+                .style(on_warning_button(true))
                 .padding([6, 14])
                 .width(Length::Fixed(140.0))
                 .on_press(Message::Menu(Menu::Spark(
@@ -105,7 +106,7 @@ pub fn spark_notice_banner(notice: &SparkNotice) -> Element<'_, Message> {
                     .align_y(Alignment::Center),
             )
             .padding([8, 10])
-            .style(theme::button::secondary)
+            .style(on_warning_button(false))
             .on_press(Message::DismissSparkNotice),
         ]
         .spacing(10)
@@ -116,6 +117,44 @@ pub fn spark_notice_banner(notice: &SparkNotice) -> Element<'_, Message> {
     .style(theme::notification::warning);
 
     page(body, PageWidth::Reading).vertical(8.0, 8.0).into()
+}
+
+/// A button on the warning banner's orange, in the banner's own dark text
+/// rather than the shell ink (ink on the orange is about 3.4:1 in dark).
+/// `boxed` adds the content rule's 1px outline in that colour; the close ×
+/// has no box. Hover darkens the orange slightly.
+fn on_warning_button(
+    boxed: bool,
+) -> impl Fn(&theme::Theme, iced::widget::button::Status) -> iced::widget::button::Style {
+    move |_theme, status| {
+        use iced::widget::button::Status;
+        let fade = |c: iced::Color| {
+            if status == Status::Disabled {
+                coincube_ui::theme::tenshu::faded(c, coincube_ui::theme::tenshu::DISABLED_ALPHA)
+            } else {
+                c
+            }
+        };
+        iced::widget::button::Style {
+            background: matches!(status, Status::Hovered | Status::Pressed).then(|| {
+                iced::Background::Color(iced::Color {
+                    a: 0.08,
+                    ..color::BLACK
+                })
+            }),
+            text_color: fade(color::BLACK),
+            border: iced::Border {
+                color: if boxed {
+                    fade(color::BLACK)
+                } else {
+                    iced::Color::TRANSPARENT
+                },
+                width: if boxed { 1.0 } else { 0.0 },
+                radius: coincube_ui::theme::tenshu::radius::CONTROL.into(),
+            },
+            ..Default::default()
+        }
+    }
 }
 
 /// A Cube page with no head of its own. Settings and the Vault's Tools still
@@ -1652,6 +1691,43 @@ mod page_head_tests {
                 "{:?}",
                 menu
             );
+        }
+    }
+}
+
+#[cfg(test)]
+mod spark_notice_button_tests {
+    use super::on_warning_button;
+    use coincube_ui::{
+        color,
+        theme::{self, tenshu::contrast},
+    };
+    use iced::widget::button::Status;
+
+    /// The banner's buttons use its own dark text, which reads on the
+    /// warning orange where the shell ink does not; Spark Settings keeps the
+    /// content rule's 1px outline in that colour and the close × has no box.
+    #[test]
+    fn warning_banner_buttons_read_on_the_orange() {
+        for t in [theme::Theme::dark(), theme::Theme::light()] {
+            let orange = t.colors.notifications.warning.background;
+            assert!(contrast(color::BLACK, orange) >= 4.5);
+            for status in [Status::Active, Status::Hovered, Status::Pressed] {
+                let boxed = on_warning_button(true)(&t, status);
+                assert_eq!(boxed.text_color, color::BLACK);
+                assert_eq!(boxed.border.width, 1.0);
+                assert_eq!(boxed.border.color, color::BLACK);
+                let close = on_warning_button(false)(&t, status);
+                assert_eq!(close.text_color, color::BLACK);
+                assert_eq!(close.border.width, 0.0);
+            }
+            assert_eq!(
+                on_warning_button(false)(&t, Status::Active).background,
+                None
+            );
+            assert!(on_warning_button(false)(&t, Status::Hovered)
+                .background
+                .is_some());
         }
     }
 }

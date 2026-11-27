@@ -5,9 +5,9 @@ use iced::{
     window::icon,
 };
 
+use crate::component::wordmark::Wordmark;
 use crate::theme::Theme;
-use crate::widget::{Column, Row};
-use crate::{color, font};
+use crate::widget::Column;
 
 pub fn coincube_window_icon() -> icon::Icon {
     let bytes = include_bytes!("../static/logos/tenshu-window-256.png");
@@ -20,15 +20,10 @@ pub fn coincube_window_icon() -> icon::Icon {
     icon::from_rgba(buffer, width, height).unwrap()
 }
 
-/// COINCUBE wordmark using Space Grotesk Bold at a given size.
-/// One ink throughout: the whole word takes the theme's primary text color
-/// (white on the dark theme), with no orange "COIN".
-pub fn coincube_wordmark<'a, M: 'a>(size: f32) -> Row<'a, M> {
-    use crate::theme;
-    iced::widget::row![iced::widget::text("COINCUBE")
-        .font(font::SPACE_GROTESK_BOLD)
-        .size(size)
-        .style(theme::text::primary),]
+/// COINCUBE wordmark using Space Grotesk Bold at a given size, in one ink
+/// (the theme's ink) and tracked 0.08em, as Mobile draws it.
+pub fn coincube_wordmark<'a, M: 'a>(size: f32) -> Wordmark<'a, M> {
+    crate::component::wordmark::wordmark(size)
 }
 
 /// The app-chrome brand mark: the sumi-e castle keep inside an orange
@@ -80,21 +75,6 @@ pub fn theme_toggle_button<'a, M: Clone + 'a>(
     .on_press(on_press)
     .style(crate::theme::button::transparent)
     .padding([8, 12])
-}
-
-/// COINCUBE wordmark in gray tones using Space Grotesk Bold.
-/// "COIN" is medium gray; "CUBE" is lighter gray.
-pub fn coincube_wordmark_gray<'a, M: 'a>(size: f32) -> Row<'a, M> {
-    iced::widget::row![
-        iced::widget::text("COIN")
-            .font(font::SPACE_GROTESK_BOLD)
-            .size(size)
-            .color(color::GREY_3),
-        iced::widget::text("CUBE")
-            .font(font::SPACE_GROTESK_BOLD)
-            .size(size)
-            .color(color::GREY_2),
-    ]
 }
 
 const SUCCESS_MARK_ICON: &[u8] = include_bytes!("../static/icons/success-mark.svg");
@@ -322,46 +302,6 @@ pub fn asset_network_logo<'a, M: 'a>(
     .width(Length::Fixed(total))
     .height(Length::Fixed(total))
     .into()
-}
-
-const KAGE_CUBE_SEALED: &[u8] = include_bytes!("../static/images/kage/kage-cube-sealed.png");
-static KAGE_CUBE_SEALED_HANDLE: LazyLock<iced::widget::image::Handle> =
-    LazyLock::new(|| iced::widget::image::Handle::from_bytes(KAGE_CUBE_SEALED));
-
-/// Kage holding the sealed Cube (Sumi-e), on a transparent background:
-/// the wizards' Done art. 320×480, drawn at 240×360.
-pub fn kage_cube_sealed() -> iced::widget::image::Handle {
-    KAGE_CUBE_SEALED_HANDLE.clone()
-}
-
-// Small sumi-e object studies for Recovery Kit flows. Decode once per app.
-static RECOVERY_KIT_PROTECTED: LazyLock<iced::widget::image::Handle> = LazyLock::new(|| {
-    iced::widget::image::Handle::from_bytes(
-        include_bytes!("../static/images/recovery/kit-protected.png").as_slice(),
-    )
-});
-static RECOVERY_KIT_WITHDRAWN: LazyLock<iced::widget::image::Handle> = LazyLock::new(|| {
-    iced::widget::image::Handle::from_bytes(
-        include_bytes!("../static/images/recovery/kit-withdrawn.png").as_slice(),
-    )
-});
-
-static PIN_UNLOCK_LOCK: LazyLock<iced::widget::image::Handle> = LazyLock::new(|| {
-    iced::widget::image::Handle::from_bytes(
-        include_bytes!("../static/images/recovery/pin-lock.png").as_slice(),
-    )
-});
-
-pub fn pin_unlock_lock() -> iced::widget::image::Handle {
-    PIN_UNLOCK_LOCK.clone()
-}
-
-pub fn recovery_kit_protected() -> iced::widget::image::Handle {
-    RECOVERY_KIT_PROTECTED.clone()
-}
-
-pub fn recovery_kit_withdrawn() -> iced::widget::image::Handle {
-    RECOVERY_KIT_WITHDRAWN.clone()
 }
 
 #[cfg(test)]

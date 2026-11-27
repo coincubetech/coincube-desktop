@@ -44,7 +44,7 @@ catalog! {
     CheckAgain => ("Check again", "Volver a comprobar"),
     CheckingForYourPhoneKey => ("Checking for your phone key…", "Buscando la clave de tu teléfono…"),
     ChooseAPassword => ("Choose a password", "Elige una contraseña"),
-    WorldviewDescription => ("Worldview Modes change how COINCUBE looks and speaks. Your wallets, networks, and security settings remain unchanged.", "Los modos cambian el aspecto y la voz de COINCUBE. Tus carteras, redes y ajustes de seguridad se mantienen."),
+    WorldviewDescription => ("Worldview Modes change how COINCUBE speaks: network names and wording. Your wallets, networks, and security settings remain unchanged.", "Los modos cambian cómo habla COINCUBE: los nombres de las redes y los textos. Tus carteras, redes y ajustes de seguridad se mantienen."),
     ChooseARecoveryPassword => ("Choose a recovery password", "Elige una contraseña de recuperación"),
     ChooseHowToProtectYourRecoveryKit => ("Choose how to protect your Recovery Kit", "Elige cómo proteger tu Kit de recuperación"),
     Close => ("Close", "Cerrar"),

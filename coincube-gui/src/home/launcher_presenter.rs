@@ -629,34 +629,18 @@ fn face_link<'a>(id: Id, label: &'static str, message: ViewMessage) -> Element<'
         .into()
 }
 
-/// `.btn.primary`, hovering to `#ffa54d`; disabled at `opacity: .45`.
+/// `.btn.primary`: the app's one primary (`ActionKind::Primary`), hovering to
+/// `ACCENT_HOVER`; disabled at `opacity: .45`.
 pub(crate) fn face_primary_style(
     theme: &theme::Theme,
     status: iced_button::Status,
 ) -> iced_button::Style {
-    let fill = match status {
-        iced_button::Status::Hovered | iced_button::Status::Pressed => iced::color!(0xffa54d),
-        _ => theme.colors.shell.accent,
-    };
-    let alpha = if matches!(status, iced_button::Status::Disabled) {
-        0.45
-    } else {
-        1.0
-    };
-    let fade = |c: iced::Color| iced::Color {
-        a: c.a * alpha,
-        ..c
-    };
-    iced_button::Style {
-        background: Some(iced::Background::Color(fade(fill))),
-        text_color: fade(iced::color!(0x201407)),
-        border: iced::Border {
-            color: fade(fill),
-            width: 1.0,
-            radius: 8.0.into(),
-        },
-        ..Default::default()
-    }
+    theme::tenshu::button::action(
+        theme,
+        status,
+        theme::tenshu::button::ActionKind::Primary,
+        theme::tenshu::button::ActionShape::Compact,
+    )
 }
 
 /// A `.btn` label: 14px medium in the button's own text colour.
@@ -2616,6 +2600,35 @@ fn opening_quotes<'a, M: 'a>(
         .into()
 }
 
+/// The loading face's three progress dots (`P-Opening` `.dots`): 8 px ink
+/// circles 10 px apart, each at its own opacity from `Opening::dots`.
+fn opening_dots<'a, M: 'a>(dots: [f32; 3], alpha: f32) -> Element<'a, M> {
+    dots.iter()
+        .copied()
+        .fold(
+            Row::new().spacing(10).height(Length::Fixed(10.0)),
+            |row, dot| {
+                row.push(
+                    Container::new(Space::new())
+                        .width(Length::Fixed(8.0))
+                        .height(Length::Fixed(8.0))
+                        .style(move |theme: &theme::Theme| iced::widget::container::Style {
+                            background: Some(iced::Background::Color(
+                                theme.colors.shell.ink.scale_alpha(dot * alpha),
+                            )),
+                            border: iced::Border {
+                                radius: 4.0.into(),
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        }),
+                )
+            },
+        )
+        .align_y(Alignment::Center)
+        .into()
+}
+
 /// `.lhead`, `.lquote`, `.lstage` and `.lslow`: the loading face's content.
 fn opening_content<'a, M: 'a>(
     face: &OpeningFace<'a, M>,
@@ -2623,6 +2636,7 @@ fn opening_content<'a, M: 'a>(
     alpha: f32,
     quote_width: f32,
     artwork_size: f32,
+    dots: [f32; 3],
 ) -> (Element<'a, M>, Element<'a, M>) {
     use coincube_ui::font;
     let network = face.cube.network;
@@ -2661,7 +2675,9 @@ fn opening_content<'a, M: 'a>(
         ))
         .push(Space::new().height(Length::Fixed(16.0)))
         .push(opening_quotes(face, alpha, quote_width))
-        .push(Space::new().height(Length::Fixed(40.0)))
+        .push(Space::new().height(Length::Fixed(32.0)))
+        .push(opening_dots(dots, alpha))
+        .push(Space::new().height(Length::Fixed(14.0)))
         .push(
             opening_words(
                 face.stage.text(),
@@ -2751,8 +2767,9 @@ fn opening_face_content<'a, M: 'a>(
     light: bool,
     alpha: f32,
     side: f32,
+    dots: [f32; 3],
 ) -> Element<'a, M> {
-    let (heading, body) = opening_content(face, light, alpha, 520.0, opening_art_size(side));
+    let (heading, body) = opening_content(face, light, alpha, 520.0, opening_art_size(side), dots);
     let k = side / launcher_scene::OPEN_FACE_SIZE;
     Container::new(opening_details(heading, body, 44.0 * k, 72.0 * k))
         .width(Length::Fixed(side))
@@ -2782,7 +2799,7 @@ pub(crate) fn opening_on_floor<'a, M: 'a + 'static>(
         let overlay = (alpha > 0.0).then(|| {
             (
                 layout.open_target().1 - side / 2.0,
-                opening_face_content(&face, light, alpha, side),
+                opening_face_content(&face, light, alpha, side, opening.dots(now)),
             )
         });
         floor_stage(
@@ -2818,8 +2835,14 @@ pub(crate) fn opening_full_screen<'a, M: 'a + 'static>(
     let alpha = opening.content(now);
     let scene = project_opening(&face.cube.name, face.cube.network);
     let stage = responsive(move |size: Size| {
-        let (heading, body) =
-            opening_content(&face, light, alpha, 640.0, opening_art_size(size.height));
+        let (heading, body) = opening_content(
+            &face,
+            light,
+            alpha,
+            640.0,
+            opening_art_size(size.height),
+            opening.dots(now),
+        );
         let top = (size.height * 0.09).min(64.0);
         Stack::new()
             .width(Length::Fill)
@@ -4892,9 +4915,9 @@ mod tests {
     }
 
     #[test]
-    fn artwork_picker_live_opening_keeps_status_and_stall_actions() {
+    fn live_opening_keeps_status_and_stall_actions_in_every_worldview() {
         use super::super::launcher_opening::{Opening, Stage};
-        use coincube_ui::theme::{ArtworkStyle, WorldviewMode};
+        use coincube_ui::theme::WorldviewMode;
         use std::time::{Duration, Instant};
 
         let cube = crate::app::settings::CubeSettings::new_with_raw_id(
@@ -4904,7 +4927,7 @@ mod tests {
         );
         let quote = Quote {
             id: "fixture".into(),
-            text: "Verify the network before you send. An illustration can change with your worldview, while the network and the next action stay the same.".into(),
+            text: "Verify the network before you send. The wording can change with your worldview, while the network and the next action stay the same.".into(),
             author: "Author".into(),
             source: "Source".into(),
             category: "loading".into(),
@@ -4916,7 +4939,11 @@ mod tests {
         for height in [768, 512] {
             for floor in [None, Some(floor_context(&cube))] {
                 let opening = Opening::new(floor, false, Stage::Spark, started);
-                for artwork in [ArtworkStyle::Existing, ArtworkStyle::Scene] {
+                for mode in [
+                    WorldviewMode::Samurai,
+                    WorldviewMode::Suitcoiner,
+                    WorldviewMode::Luke,
+                ] {
                     let face = OpeningFace {
                         cube: &cube,
                         quote: &quote,
@@ -4926,9 +4953,7 @@ mod tests {
                         cancel: || (),
                         without_spark: || (),
                     };
-                    let theme = theme::Theme::dark()
-                        .with_worldview(WorldviewMode::Suitcoiner)
-                        .with_artwork(artwork);
+                    let theme = theme::Theme::dark().with_worldview(mode);
                     let (layout, element) = match opening.floor() {
                         Some(context) => (
                             "floor",
@@ -4937,7 +4962,7 @@ mod tests {
                         None => ("list", opening_full_screen(face, theme.mode, &opening, now)),
                     };
                     let mounted = capture::inspect_filled(
-                        &format!("artwork-live-opening-{layout}-{artwork:?}"),
+                        &format!("live-opening-{layout}-{mode:?}"),
                         element,
                         (1024, height),
                         "dark",
@@ -4945,6 +4970,7 @@ mod tests {
                         (1024, height),
                     );
                     assert!(mounted.contains("Loading your Spark wallet"));
+                    assert!(mounted.contains("The wording can change"));
                     let action = mounted
                         .text
                         .iter()
