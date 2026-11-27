@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 .tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff}
@@ -17,7 +17,7 @@ body{margin:0}
 .tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
 .tenshu.reduced *{animation:none!important;transition:none!important}
-a{color:#f3821d}a:hover{color:#ffa54d}
+a{color:#f3821d}a:hover{color:#ff9a3f}
 
 /* scene tokens copied from V3-Launcher-Spin; the floor here is static (no transitions) */
 .tenshu{--floor:#1b1c1a;--floor-rule:#2b2c29;--face-t:#41423e;--face-l:#2e2f2c;--face-r:#262724;--edge-btc:rgba(243,130,29,.6);--edge-b2b:rgba(212,166,42,.6);--edge-test:rgba(185,187,181,.6);--shadow:rgba(0,0,0,.6);--on-accent:#1a1208;--skel:#2c2d2b;font-variant-numeric:tabular-nums}
@@ -80,12 +80,13 @@ a.tbtn,a.tbtn:hover{color:var(--ink);text-decoration:none}
 .sheet{position:absolute;left:200px;top:28px;width:1040px;bottom:28px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 64px -16px rgba(0,0,0,.55);overflow:hidden;z-index:4}
 .light .sheet{box-shadow:0 24px 64px -20px rgba(70,52,30,.35)}
 .shead{height:72px;flex:none;display:flex;align-items:center;gap:16px;padding:0 24px 0 28px;border-bottom:1px solid var(--line)}
-.shead h1{margin:0;font-size:22px;font-weight:600}
+.shead h1{margin:0;font-size:26px;font-weight:600}
 .btn.close{gap:6px;padding:0 12px 0 10px}
 .coin{width:16px;height:16px;flex:none;display:block}
 .coin-top{width:calc(var(--s) * .34);height:calc(var(--s) * .34)}
 .shead .who{font-size:14px;color:var(--muted)}
 .sbody{flex:1;min-height:0;display:flex}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .nav{width:232px;flex:none;box-sizing:border-box;padding:16px 12px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 /* the 6px gap is wider than the ring (2px + 2px offset), and the focused/selected row paints above its neighbours */
 .ni{position:relative;z-index:0;display:flex;align-items:center;gap:10px;height:40px;padding:0 12px;border:0;border-radius:8px;background:none;cursor:pointer;font-size:14px;text-align:left}
@@ -117,6 +118,8 @@ a.tbtn,a.tbtn:hover{color:var(--ink);text-decoration:none}
 .ident{display:flex;align-items:center;gap:16px;margin-top:20px}
 .avatar{width:48px;height:48px;border-radius:50%;background:var(--selected);display:flex;align-items:center;justify-content:center;color:var(--accent)}
 .avatar svg{width:24px;height:24px}
+/* a person: thin ring (r 29 on 64, stroke 2.4, ink at 28%) and initials at 600, 22/64 of the size, centred a 64th low */
+.pm{position:relative;width:48px;height:48px;flex:none;color:var(--ink);display:grid;place-items:center;box-sizing:border-box;padding-top:1.5px}.pm svg{position:absolute;inset:0;display:block;width:48px;height:48px}.pm text,.pm b{font-family:'IBM Plex Sans',sans-serif}.pm b{position:relative;font-weight:600;font-size:16.5px;line-height:1}
 .ident .em{font-size:18px;font-weight:600;overflow-wrap:anywhere}
 .provides{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
 .provides li{display:flex;align-items:flex-start;gap:10px;line-height:1.4}
@@ -131,7 +134,7 @@ a.tbtn,a.tbtn:hover{color:var(--ink);text-decoration:none}
 .btn svg{width:16px;height:16px}
 .btn:hover{border-color:var(--muted);color:var(--ink)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.btn.primary:hover{background:#ffa54d;border-color:#ffa54d;color:var(--on-accent)}
+.btn.primary:hover{background:#ff9a3f;border-color:#ff9a3f;color:var(--on-accent)}
 .btn.sm{height:30px;padding:0 12px;font-size:13px}
 .btn.ico{width:36px;padding:0;justify-content:center}
 .linkbtn{border:0;background:none;padding:2px 0;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px;cursor:pointer;font-size:13px}
@@ -177,6 +180,211 @@ a.tbx-chip{color:var(--ink)}
 .tbx-st{display:inline-flex;align-items:center;gap:5px}
 .tbx-st.ok{color:var(--good)}.tbx-st.out{color:var(--muted)}.tbx-st.warn{color:var(--warn)}
 .tbx-mini{font-weight:600;color:var(--acc-ink,var(--accent))}
+
+/* Closer to Mobile V3 (Robert, 2026-11-25): one-colour wordmark; boxes have no outline; regions keep a quiet dividing line (ink at 10%, as Mobile); menu rows at medium weight; controls keep their outlines. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom-color:var(--rule)}
+.tenshu .foot{border-top-color:var(--rule)}
+.tenshu .sheet{border:0}
+
+/* ---- V3 Phase 2, folded in from the study page (2026-11-26) ---- */
+/* Top bar as the app draws it: [eye, Connect, App preferences]. One Connect control: account glyph with a status light, Connect · account, a chevron; it opens a small panel. */
+.tenshu .chips{gap:8px}
+.tenshu .ccx{position:relative}
+.tenshu .ccx>summary{list-style:none;cursor:pointer}
+.tenshu .ccx>summary::-webkit-details-marker{display:none}
+.tenshu .chip.cc{gap:7px;padding:0 10px 0 10px}
+.tenshu .chip.cc b{font-weight:600}
+.tenshu .ccav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.tenshu .ccav .lt,.tenshu .cpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--panel)}
+.tenshu .ccsep,.tenshu .ccd{color:var(--muted)}
+.tenshu .ccd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .cchev{color:var(--muted);transition:transform .15s}
+.tenshu .ccx[open] .cchev{transform:rotate(180deg)}
+.tenshu .cpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left}
+.tenshu .cph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .cph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .cph span{color:var(--muted);font-size:13px}
+.tenshu .cpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .cpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .cpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .cpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .cpa:hover{background:var(--hover,var(--selected))}
+/* Hide balances: neutral when on. */
+.tenshu .top .chips .eye[aria-pressed="true"]{border-color:transparent;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+/* Sidebar backup strip: one line, a dot, no box. */
+.tenshu .attn{border:0;background:transparent;gap:9px;padding:8px 10px;font-size:13px}
+.tenshu .attn>svg,.tenshu .attn .st>svg{display:none}
+.tenshu .attn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.tenshu .attn .warn,.tenshu .attn .st{color:var(--ink);font-weight:500}
+.tenshu .attn .go{color:var(--muted);font-weight:400}
+.tenshu .attn:hover{background:var(--hover,var(--selected))}
+
+/* Launcher top bar, V3 (2026-11-26): wordmark ... [one Connect control, App preferences]. The Launcher has no balances eye and no "Signed in" chip. The Connect control is the in-Cube .chip.cc / details.ccx markup with lcx- names. */
+.tenshu{--acc-ink:#f59a45;--hover:rgba(245,240,232,.06)}
+.tenshu.light{--acc-ink:#a14d00;--hover:rgba(32,32,32,.05)}
+.tenshu .lcx{position:relative}
+.tenshu .lcx>summary{list-style:none;cursor:pointer}
+.tenshu .lcx>summary::-webkit-details-marker{display:none}
+.tenshu .lcc{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font-size:13px;line-height:1;white-space:nowrap;text-decoration:none;box-sizing:border-box}
+.tenshu a.lcc,.tenshu a.lcc:hover{color:var(--ink);text-decoration:none}
+.tenshu .lcc:hover{background:var(--hover)}
+.tenshu .lcc b{font-weight:600}
+.tenshu .lcc svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tenshu .lcav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none;color:var(--muted)}
+.tenshu .lcav .lt,.tenshu .lcpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--rail)}
+.tenshu .lcsep,.tenshu .lcd{color:var(--muted)}
+.tenshu .lcd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .lchev{color:var(--muted);transition:transform .15s}
+.tenshu .lcx[open] .lchev{transform:rotate(180deg)}
+.tenshu .lcpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left;box-sizing:border-box}
+.tenshu .lcph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .lcph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .lcph span{color:var(--muted);font-size:13px}
+.tenshu .lcpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .lcpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .lcpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .lcpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .lcpa:hover{background:var(--hover);color:var(--ink)}
+.tenshu .tbx-r{display:flex;align-items:center;gap:8px;flex:none}
+
+/* Connect sheet, app copy (connect/mod.rs, billing.rs, contacts.rs, your_name.rs, two_factor.rs) */
+.nt{display:flex;align-items:flex-start;gap:12px;margin:0 0 20px;padding:12px 14px;border-radius:10px;background:var(--rail);max-width:680px;box-sizing:border-box}
+.nt .tile{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,currentColor 14%,transparent)}
+.nt .tile svg{width:16px;height:16px}
+.nt.warn .tile{color:var(--warn)}.nt.bad .tile{color:var(--bad)}.nt.info .tile{color:var(--muted)}
+.nt b{display:block;font-weight:600;font-size:14px}
+.nt span{display:block;font-size:13px;color:var(--muted)}
+.nt .ref{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;margin-top:4px}
+.nt .acts{margin-top:10px}
+.nmform{display:flex;align-items:center;gap:8px;margin-top:10px}
+.inp{height:36px;box-sizing:border-box;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px}
+.inp::placeholder{color:var(--muted)}
+.okl{margin:8px 0 0;font-size:13px;color:var(--good)}.badl{margin:8px 0 0;font-size:13px;color:var(--bad)}
+.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 55%,transparent)}
+.icard{display:flex;align-items:center;gap:12px;padding:12px 14px;margin-top:8px;border-radius:10px;background:var(--rail)}
+.icard .main{flex:1;min-width:0}.icard .t{display:block;font-weight:500}.icard .s{display:block;font-size:13px;color:var(--muted)}
+.pseg{display:inline-flex;padding:2px;border:1px solid var(--line);border-radius:8px;gap:2px;margin-top:16px}
+.pseg button{height:30px;padding:0 14px;border:1px solid transparent;border-radius:6px;background:none;cursor:pointer;font-size:13px}
+.pseg button[aria-pressed="true"]{background:var(--selected);border-color:var(--accent);font-weight:600}
+.plan{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.plan input{margin:3px 0 0;accent-color:var(--accent)}
+.plan .main{flex:1}.plan .t{font-weight:600;display:flex;gap:8px;align-items:center}.plan .s{font-size:13px;color:var(--muted);margin-top:2px}
+.plan .pr{font-size:13px;white-space:nowrap;text-align:right}
+.plan .pr b{display:block;font-size:15px}
+.rtbl{margin-top:20px;font-size:14px}
+.rtbl .rh,.rtbl .rr{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center;border-bottom:1px solid var(--line)}
+.rtbl .rh{font-size:12px;font-weight:500;color:var(--muted);padding:0 0 8px}
+.rtbl .rr{padding:12px 0}
+.rtbl .nm{font-weight:500}
+/* Plan & billing notices and the bitcoin checkout (billing.rs renewal_banner, checkout_phase_ux, pay_block) */
+.nt.ok .tile{color:var(--good)}
+.nt.mt{margin-top:20px}
+.nt .acts .linkbtn{font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+.cosum .li .t{font-weight:500}
+.cosum .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;color:var(--muted)}
+.paywith{display:flex;align-items:center;margin-top:24px}
+.paywith h4{flex:1;margin:0;font-size:14px;font-weight:600}
+.pseg.cmp{margin-top:0}
+.pseg.cmp button{height:26px;padding:0 10px}
+.payrow{display:flex;align-items:flex-start;gap:24px;margin-top:16px}
+.qrbox{width:200px;height:200px;flex:none;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.qrbox .qr{width:100%;height:100%;background:#fff;border-radius:4px;padding:8px;box-sizing:border-box}
+.qrbox .qr svg{display:block;width:100%;height:100%}
+.cofld{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.cofld .lb{font-size:13px;font-weight:600}
+.cofld .vrow{display:flex;align-items:flex-start;gap:8px}
+.cofld .val{flex:1;min-width:0;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px;overflow-wrap:anywhere}
+.choice{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;margin-top:8px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.choice[aria-checked="true"]{border-color:var(--accent);background:var(--selected)}
+.choice[aria-disabled="true"]{opacity:.6;cursor:default}
+.choice .main{flex:1}.choice .t{font-weight:600;display:flex;gap:8px;align-items:center}.choice .s{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.choice .dot{width:16px;height:16px;margin-top:2px;border-radius:50%;border:1.5px solid var(--muted);box-sizing:border-box;flex:none}
+.choice[aria-checked="true"] .dot{border:5px solid var(--accent)}
+/* Contact detail and the inline Add to Cube(s) dialog (contacts.rs:518, :770) */
+.cdet{max-width:520px}
+.ccard{padding:16px;border-radius:10px;background:var(--rail)}
+.chead{display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px}
+.cav{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#f7931a;color:#fff;font-size:20px;font-weight:600}
+.chead .nm{margin-top:12px;font-size:17px;font-weight:600;overflow-wrap:anywhere}
+.chead .em{margin-top:2px;font-size:14px;color:var(--muted)}
+.chead .rtag{margin-top:6px}
+.chead .since{margin-top:6px;font-size:13px;color:var(--muted)}
+.crow{display:flex;align-items:center;gap:10px}
+.crow+.crow{margin-top:12px}
+.npill{display:inline-flex;align-items:center;height:18px;padding:0 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--muted)}
+.kitb{display:inline-flex;align-items:center;height:18px;padding:0 6px;border:1px solid #f7931a;border-radius:6px;font-size:12px;color:#f7931a;margin-left:auto}
+.ckl{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+/* a received invitation's Cubes: one line each, ring mark 32 px, name, network (CD4) */
+.ricubes{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}.ric{display:flex;align-items:center;gap:10px}.ric .rm{width:32px;height:32px;flex:none;color:var(--ink)}.ric .rm svg{display:block;width:32px;height:32px}.ric b{font-weight:600}.ric .net{font-size:13px;color:var(--muted)}
+.ckl+.ckl{margin-top:6px}
+.ckl input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+.ckl .err{margin-left:auto;font-size:13px;color:var(--bad)}
+.dlgh{display:flex;align-items:center}
+.dlgh b{flex:1;font-weight:600}
+.xb{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;color:var(--muted);cursor:pointer}
+.xb svg{width:14px;height:14px}
+/* cc-toasts v1 */
+.tenshu{position:relative}
+.tenshu .cc-toasts{position:absolute;bottom:24px;left:0;right:0;z-index:90;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.tenshu .cc-toast{pointer-events:auto;display:flex;align-items:flex-start;gap:12px;width:420px;box-sizing:border-box;padding:10px 8px 10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px -8px rgba(0,0,0,.6),0 2px 6px rgba(0,0,0,.35);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;text-align:left;animation:ccToastIn .18s ease-out}
+.tenshu.rm .cc-toast,.tenshu.reduced .cc-toast{animation:none}
+@keyframes ccToastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tenshu .cc-toast .cti{flex:none;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.tenshu .cc-toast .cti svg{width:16px;height:16px}
+.tenshu .cc-toast .cbd{flex:1;min-width:0;padding:4px 0;display:flex;flex-direction:column;gap:2px}
+.tenshu .cc-toast .ctt{font-size:14px;line-height:20px;font-weight:500}
+.tenshu .cc-toast .cdt{font-size:13px;line-height:19px;color:var(--muted)}
+.tenshu .cc-toast .cact{margin:6px 0 0 -4px;align-self:flex-start;background:none;border:0;padding:2px 4px;border-radius:4px;color:var(--acc-ink);font:600 13px/18px 'IBM Plex Sans',sans-serif;cursor:pointer;text-decoration:none}
+.tenshu .cc-toast .cact:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.tenshu .cc-toast .cx{flex:none;width:28px;height:28px;border-radius:6px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tenshu .cc-toast .cx:hover{background:var(--hover);color:var(--ink)}
+.tenshu .cc-toast .cx:focus-visible{outline:2px solid var(--focus,#8fc1ff);outline-offset:1px}
+.tenshu .cc-toast .cx svg{width:16px;height:16px}
+.tenshu .cc-toast.t-info .cti{background:color-mix(in srgb,var(--focus,#8fc1ff) 13%,transparent);color:var(--focus,#8fc1ff)}
+.tenshu .cc-toast.t-good .cti{background:color-mix(in srgb,var(--good) 13%,transparent);color:var(--good)}
+.tenshu .cc-toast.t-warn{border-color:color-mix(in srgb,var(--warn) 38%,transparent)}
+.tenshu .cc-toast.t-warn .cti{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.tenshu .cc-toast.t-bad{border-color:color-mix(in srgb,var(--bad) 40%,transparent)}
+.tenshu .cc-toast.t-bad .cti{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.tenshu .cc-toast.t-debug .cti{background:color-mix(in srgb,var(--muted) 12%,transparent);color:var(--muted)}
+.tenshu .cc-toast.t-debug .ctt{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
 </style>
 </helmet>
 <div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:900px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
@@ -185,12 +393,10 @@ a.tbx-chip{color:var(--ink)}
   <header class="top">
     <a class="brand" href="{{ closeHref }}" title="{{ backTitle }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg>
-      <span>Tenshu</span>
+      <span><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;letter-spacing:.08em;color:var(--ink)">COINCUBE</span></span>
     </a>
     <span class="grow"></span>
-    <div class="tbx-r"><button type="button" class="tbx-ico" aria-label="Hide balances" aria-pressed="{{ hidePressed }}" title="{{ hideTitle }}" onClick="{{ toggleHide }}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ eyePath }}"></path></svg>
-    </button><button type="button" class="tbx-chip" aria-current="page" aria-label="{{ acctAria }}"><svg class="pi" aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><sc-if value="{{ hasAcctState }}" hint-placeholder-val="{{ true }}"><span class="tbx-st {{ acctStCls }}">{{ acctState }}</span></sc-if><sc-if value="{{ acctOut }}" hint-placeholder-val="{{ false }}"><span class="tbx-st out">Signed out</span><span class="tbx-mini">Sign in</span></sc-if></button><a class="tbx-ico" href="P-AppPrefs.dc.html" aria-label="App preferences" data-tip="App preferences"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a></div>
+    <div class="tbx-r"><sc-if value="{{ ccIn }}" hint-placeholder-val="{{ true }}"><details class="lcx"><summary class="lcc" aria-label="Connect account, alex@example.test, live updates on"><span class="lcav"><svg aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><i class="lt"></i></span><b>Connect</b><span class="lcsep" aria-hidden="true">·</span><span class="lcd">alex@example.test</span><svg class="lchev" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></summary><div class="lcpanel" role="menu"><div class="lcph"><b>alex@example.test</b><span>Signed in to COINCUBE | Connect</span></div><div class="lcpl"><i class="lt"></i>Live updates on this computer</div><div class="lcpr"></div><a class="lcpa" role="menuitem" href="P-Connect.dc.html">Connect account</a></div></details></sc-if><sc-if value="{{ ccOut }}" hint-placeholder-val="{{ false }}"><a class="lcc" href="P-SignIn.dc.html" aria-label="Connect: Sign in"><span class="lcav"><svg aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg></span><b>Connect</b><span class="lcsep" aria-hidden="true">·</span><span class="lcd si">Sign in</span></a></sc-if><a class="tbx-ico" href="P-AppPrefs.dc.html" aria-label="App preferences" data-tip="App preferences"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a></div>
   </header>
   </sc-if>
 
@@ -222,7 +428,7 @@ a.tbx-chip{color:var(--ink)}
           </sc-for>
         </div>
       </div>
-      <div class="bbar"><span class="btn">Create Cube</span><span class="btn">Import or restore a Cube</span></div>
+      <div class="bbar"><span class="btn">Create Cube</span><span class="btn">Import or restore Bitcoin wallet</span></div>
     </div>
     </sc-if>
 
@@ -239,38 +445,40 @@ a.tbx-chip{color:var(--ink)}
       <div class="sbody">
         <nav class="nav" aria-label="Connect sections">
           <sc-for list="{{ sections }}" as="n" hint-placeholder-count="5">
-            <button type="button" class="ni {{ n.cls }}" aria-current="{{ n.current }}" onClick="{{ n.pick }}">
+            <sc-if value="{{ n.isBtn }}" hint-placeholder-val="{{ true }}"><button type="button" class="ni {{ n.cls }}" aria-current="{{ n.current }}" onClick="{{ n.pick }}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ n.icon }}"></path></svg>
               <span>{{ n.label }}</span>
-            </button>
+            </button></sc-if>
+            <sc-if value="{{ n.isLink }}" hint-placeholder-val="{{ false }}"><a class="ni" href="P-Duress.dc.html" style="color:var(--ink);text-decoration:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ n.icon }}"></path></svg>
+              <span>{{ n.label }}</span>
+            </a></sc-if>
           </sc-for>
-          <p class="navnote">Account-wide. Each Cube's own service connection stays in that Cube's Settings › Connections.</p>
         </nav>
 
         <div class="content" aria-live="polite">
-          <!-- LOADING: every section -->
+          <!-- CHECKING SESSION: every section -->
           <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
             <div class="sec" aria-busy="true">
               <h3>{{ secLabel }}</h3>
               <p class="lead">Loading your Connect account…</p>
-              <ul class="list" style="margin-top:24px">
-                <sc-for list="{{ skelRows }}" as="k" hint-placeholder-count="5">
-                  <li class="li"><span class="main"><span class="skel" style="{{ k.a }}"></span><span class="skel" style="{{ k.b }}"></span></span><span class="skel" style="width:72px"></span></li>
-                </sc-for>
-              </ul>
             </div>
           </sc-if>
 
-          <!-- ERROR: every section -->
+          <!-- UNVERIFIED STORED SESSION (offline / unreachable) -->
+          <sc-if value="{{ isUnverified }}" hint-placeholder-val="{{ false }}">
+            <div class="sec">
+              <h3>Account</h3>
+              <div class="nt warn" role="status" style="margin-top:16px"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ warnPath }}"></path></svg></span><div><b>{{ unv.title }}</b><span>{{ unv.line }}</span></div></div>
+            </div>
+          </sc-if>
+
+          <!-- SIGNED IN, server error card (title / guidance / Ref, Retry only when retryable) -->
           <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
-            <div class="sec gate" role="alert">
-              <h3>Couldn't load {{ secLabel }}</h3>
-              <p>Connect didn't respond within [TIMEOUT]. You are still signed in on this device and your Cubes are unaffected.</p>
-              <div class="acts"><button type="button" class="btn primary" onClick="{{ retry }}">Retry</button><span class="or">Last attempt [TIME]</span></div>
-            </div>
+            <div class="nt bad" role="alert"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ warnPath }}"></path></svg></span><div><b>[Server title]</b><span>[Server guidance]</span><span class="ref">Ref: [code]</span><div class="acts"><button type="button" class="btn sm" onClick="{{ retry }}">Retry</button></div></div></div>
           </sc-if>
 
-          <!-- SIGNED OUT: gate for every section except Account -->
+          <!-- SIGNED OUT: any section except Account -->
           <sc-if value="{{ outGate }}" hint-placeholder-val="{{ false }}">
             <div class="sec gate">
               <h3>{{ secLabel }}</h3>
@@ -279,12 +487,15 @@ a.tbx-chip{color:var(--ink)}
             </div>
           </sc-if>
 
-          <!-- ACCOUNT · signed out: what Connect provides; Sign in and Create account both open the sign-in screen, which handles the mode -->
+          <!-- ACCOUNT · signed out (mod.rs:575): optional "signed out by Connect" notice, then the compact benefits, Sign in / Create account -->
           <sc-if value="{{ showAuth }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ removedByConnect }}" hint-placeholder-val="{{ false }}">
+              <div class="nt bad" role="alert"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ warnPath }}"></path></svg></span><div><b>This computer was removed from your Connect account</b><span>Sign in to see your Connect-only Cubes and to back up Recovery Kits to Connect again.</span><div class="acts"><a class="btn sm primary" href="P-SignIn.dc.html">Sign in</a><button type="button" class="btn sm" onClick="{{ notNow }}">Not now</button></div></div></div>
+            </sc-if>
             <div class="sec">
               <h3>Account</h3>
               <ul class="provides compact" aria-label="What Connect provides">
-                <sc-for list="{{ provides }}" as="p" hint-placeholder-count="8">
+                <sc-for list="{{ provides }}" as="p" hint-placeholder-count="7">
                   <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ p.icon }}"></path></svg><span>{{ p.text }}<sc-if value="{{ p.soon }}" hint-placeholder-val="{{ false }}"> <span class="soon">Coming soon</span></sc-if></span></li>
                 </sc-for>
               </ul>
@@ -292,22 +503,28 @@ a.tbx-chip{color:var(--ink)}
             </div>
           </sc-if>
 
-          <!-- ACCOUNT · signed in -->
+          <!-- ACCOUNT · signed in (mod.rs:664 sheet_account_ux) -->
           <sc-if value="{{ showAccount }}" hint-placeholder-val="{{ true }}">
             <div class="sec">
               <h3>Account</h3>
               <div class="ident">
-                <span class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"></path></svg></span>
+                <span class="pm" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" stroke-width="2.4" opacity=".28"></circle></svg><b>{{ acctIni }}</b></span>
                 <div><div class="em">alex@example.test</div><div class="muted" style="font-size:13px">Signed in on this device</div></div>
               </div>
               <ul class="list" style="margin-top:24px">
                 <li class="li"><span class="k">Sign-in method</span><span class="main">Email · one-time code</span></li>
-                <li class="li"><span class="k">Signed in since</span><span class="main">[DATE]</span></li>
               </ul>
+              <sc-if value="{{ nameShown }}" hint-placeholder-val="{{ true }}"><div class="grp">
+                <h4>Your name</h4>
+                <p class="lead" style="margin:0">Optional. People in your Cubes see it beside your email.</p>
+                <div class="nmform"><label class="sr" for="cx-name">Your name</label><input class="inp" id="cx-name" style="width:320px" placeholder="Add your name" value="{{ nameValue }}" onInput="{{ onName }}"><button type="button" class="btn sm" onClick="{{ saveName }}">{{ saveLabel }}</button></div>
+                <sc-if value="{{ nameOk }}" hint-placeholder-val="{{ false }}"><p class="okl" role="status">{{ nameMsg }}</p></sc-if>
+                <sc-if value="{{ nameBad }}" hint-placeholder-val="{{ false }}"><p class="badl" role="alert">{{ nameMsg }}</p></sc-if>
+              </div></sc-if>
               <div class="grp">
                 <h4>What Connect provides</h4>
                 <ul class="provides">
-                  <sc-for list="{{ provides }}" as="p" hint-placeholder-count="8">
+                  <sc-for list="{{ provides }}" as="p" hint-placeholder-count="7">
                     <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ p.icon }}"></path></svg><span>{{ p.text }}<sc-if value="{{ p.soon }}" hint-placeholder-val="{{ false }}"> <span class="soon">Coming soon</span></sc-if></span></li>
                   </sc-for>
                 </ul>
@@ -320,82 +537,244 @@ a.tbx-chip{color:var(--ink)}
                 <sc-if value="{{ signOutReview }}" hint-placeholder-val="{{ false }}">
                   <div class="review" role="group" aria-label="Review sign out">
                     <b>Sign out alex@example.test on this device?</b>
-                    <p>Cubes stay on this device; Connect services pause until you sign in again.</p>
-                    <div class="acts"><button type="button" class="btn primary" onClick="{{ signOut }}">Sign out</button><button type="button" class="btn" onClick="{{ cancelReview }}">Cancel</button></div>
+                    <div class="acts" style="margin-top:12px"><button type="button" class="btn primary" onClick="{{ signOut }}">Sign out</button><button type="button" class="btn" onClick="{{ cancelReview }}">Cancel</button></div>
                   </div>
                 </sc-if>
+              </div>
+              <div class="grp">
+                <h4>Delete account</h4>
+                <p class="lead" style="margin:0 0 12px">Ask COINCUBE to delete this account and the data our servers hold for it.</p>
+                <a class="btn danger" href="P-Delete.dc.html">Delete account…</a>
               </div>
             </div>
           </sc-if>
 
-          <!-- PLAN & BILLING -->
+          <!-- PLAN & BILLING (billing.rs:998) -->
           <sc-if value="{{ showPlan }}" hint-placeholder-val="{{ false }}">
             <div class="sec">
               <h3>Plan &amp; billing</h3>
+              <p class="lead">Plans are paid upfront in bitcoin. There is no recurring subscription.</p>
               <ul class="list" style="margin-top:20px">
-                <li class="li"><span class="k">Current plan</span><span class="main"><span class="t">[PLAN NAME]</span><span class="s">{{ planDateLine }}</span></span>
-                  <span class="stt tone-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ okPath }}"></path></svg>Billing status: verified</span></li>
+                <li class="li"><span class="k">Current plan</span><span class="main"><span class="t">{{ planName }}</span><span class="s">{{ planDateLine }}</span></span>
+                  <span class="stt {{ planTone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ planIcon }}"></path></svg>{{ planStatus }}</span></li>
               </ul>
               <sc-if value="{{ planCancelled }}" hint-placeholder-val="{{ false }}"><p class="fnote">Your plan is cancelled. Connect services stay on until the access date.</p></sc-if>
-              <sc-if value="{{ noPlanReview }}" hint-placeholder-val="{{ true }}">
-                <div class="acts" style="margin-top:12px"><button type="button" class="btn sm" onClick="{{ askPlan }}">{{ planBtn }}</button><button type="button" class="linkbtn">Compare plans</button><button type="button" class="linkbtn">Referral</button></div>
-              </sc-if>
-              <sc-if value="{{ planReview }}" hint-placeholder-val="{{ false }}">
-                <div class="review" role="group" aria-label="Review plan change">
-                  <b>Plan changes open a review first</b>
-                  <p>You'll see the plan, amount and payment method before anything is charged.</p>
-                  <div class="acts"><button type="button" class="btn primary" onClick="{{ cancelReview }}">Continue to review</button><button type="button" class="btn" onClick="{{ cancelReview }}">Cancel</button></div>
-                </div>
-              </sc-if>
+              <div class="acts" style="margin-top:12px"><button type="button" class="btn sm" onClick="{{ openChange }}">{{ planBtn }}</button><button type="button" class="linkbtn" onClick="{{ togglePromo }}">{{ promoLink }}</button></div>
+              <sc-if value="{{ promoOpen }}" hint-placeholder-val="{{ false }}"><div class="nmform"><label class="sr" for="cx-promo">Promo or referral code</label><input class="inp" id="cx-promo" style="width:240px" placeholder="Promo or referral code"><button type="button" class="btn sm">Redeem</button></div></sc-if>
+              <!-- notices, in the app's order (billing.rs:1038-1052): renewal reminder or expired prompt, then "Purchasing is paused" -->
+              <sc-if value="{{ renewalBanner }}" hint-placeholder-val="{{ false }}"><div class="nt warn mt" role="status"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ warnPath }}"></path></svg></span><div><b>Renewal due [DATE]</b><span>Your {{ planName }} plan is paid through [DATE]. Renew now to keep these features.</span><div class="acts"><button type="button" class="btn sm primary" onClick="{{ renewNow }}">Renew {{ planName }}</button><button type="button" class="linkbtn" onClick="{{ remindLater }}">Remind me later</button></div></div></div></sc-if>
+              <sc-if value="{{ planExpired }}" hint-placeholder-val="{{ false }}"><div class="nt bad mt" role="status"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ warnPath }}"></path></svg></span><div><b>{{ expiredTitle }}</b><span>Renew to restore premium features.</span><div class="acts"><button type="button" class="btn sm primary" onClick="{{ openChange }}">View plans</button></div></div></div></sc-if>
+              <sc-if value="{{ purchasingPaused }}" hint-placeholder-val="{{ false }}"><div class="nt info mt" role="status"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ warnPath }}"></path></svg></span><div><b>Purchasing is paused</b><span>Plans can't be bought right now. You can still compare what each plan includes.</span></div></div></sc-if>
               <div class="grp">
                 <h4>Features on this account</h4>
                 <ul class="list">
-                  <sc-for list="{{ entitlements }}" as="e" hint-placeholder-count="3">
-                    <li class="li"><span class="main"><span class="t">{{ e.name }}</span><sc-if value="{{ e.hasNote }}" hint-placeholder-val="{{ false }}"><span class="s">{{ e.note }}</span></sc-if></span>
-                      <span class="stt {{ e.tone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ e.icon }}"></path></svg>{{ e.text }}</span></li>
+                  <sc-for list="{{ entitlements }}" as="e" hint-placeholder-count="6">
+                    <li class="li"><span class="main"><span class="t">{{ e.name }}</span></span><span class="stt {{ e.tone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ e.icon }}"></path></svg>{{ e.text }}</span></li>
                   </sc-for>
                 </ul>
               </div>
               <div class="grp">
                 <h4>Billing history</h4>
-                <ul class="list">
-                  <sc-for list="{{ billing }}" as="b" hint-placeholder-count="3">
-                    <li class="li"><span class="k">{{ b.date }}</span><span class="main">{{ b.item }}</span>
-                      <span class="stt {{ b.tone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ b.icon }}"></path></svg>{{ b.status }}</span></li>
-                  </sc-for>
-                </ul>
+                <sc-if value="{{ hasBilling }}" hint-placeholder-val="{{ true }}">
+                  <ul class="list">
+                    <sc-for list="{{ billing }}" as="b" hint-placeholder-count="2">
+                      <li class="li"><span class="k">{{ b.date }}</span><span class="main"><span class="t">{{ b.item }}</span><span class="s">{{ b.amt }}</span></span><span class="stt {{ b.tone }}">{{ b.status }}</span></li>
+                    </sc-for>
+                  </ul>
+                </sc-if>
+                <sc-if value="{{ noBilling }}" hint-placeholder-val="{{ false }}"><p class="lead" style="margin:0">No payments yet.</p></sc-if>
+                <p class="fnote"><button type="button" class="linkbtn">View all billing history</button></p>
+                <p class="fnote">Payments use Lightning or on-chain bitcoin. Renewal reminders are sent by email.</p>
               </div>
             </div>
           </sc-if>
 
-          <!-- CONTACTS -->
+          <!-- CHANGE PLAN (billing.rs:1372) -->
+          <sc-if value="{{ showChange }}" hint-placeholder-val="{{ false }}">
+            <div class="sec">
+              <button type="button" class="linkbtn" onClick="{{ closeChange }}">‹ Plan &amp; billing</button>
+              <h3 style="margin-top:8px">Change plan</h3>
+              <p class="lead">{{ changeLead }}</p>
+              <div class="pseg" role="group" aria-label="Billing cycle"><button type="button" aria-pressed="{{ cyc.m }}" onClick="{{ cyc.setM }}">Monthly</button><button type="button" aria-pressed="{{ cyc.a }}" onClick="{{ cyc.setA }}">Annual</button></div>
+              <p class="lead">{{ cyc.note }}</p>
+              <div style="margin-top:12px;border-top:1px solid var(--line)" role="radiogroup" aria-label="Plan">
+                <sc-for list="{{ plans }}" as="p" hint-placeholder-count="3">
+                  <label class="plan"><input type="radio" name="cx-plan" checked="{{ p.on }}" onChange="{{ p.pick }}"><span class="main"><span class="t">{{ p.name }}<sc-if value="{{ p.cur }}" hint-placeholder-val="{{ false }}"><span class="rtag cur">Current</span></sc-if></span><span class="s">{{ p.desc }}</span></span><span class="pr"><b>{{ p.price }}</b>{{ p.per }}</span></label>
+                </sc-for>
+              </div>
+              <div class="acts" style="margin-top:20px"><button type="button" class="btn primary" disabled="{{ ctaOff }}" onClick="{{ toReview }}">{{ changeCta }}</button><button type="button" class="btn" onClick="{{ closeChange }}">Cancel</button></div>
+            </div>
+          </sc-if>
+
+          <!-- REVIEW PLAN CHANGE (billing.rs:1533, review_payment_choices :2990) -->
+          <sc-if value="{{ co.review }}" hint-placeholder-val="{{ false }}">
+            <div class="sec">
+              <button type="button" class="linkbtn" onClick="{{ co.toChange }}">‹ Change plan</button>
+              <h3 style="margin-top:8px">Review plan change</h3>
+              <p class="lead">Check the plan, amount and how you pay. Nothing is charged yet.</p>
+              <ul class="list cosum" style="margin-top:20px">
+                <li class="li"><span class="k">Plan</span><span class="main"><span class="t">{{ co.planLine }}</span><sc-if value="{{ co.hasReplaces }}" hint-placeholder-val="{{ true }}"><span class="s">{{ co.replaces }}</span></sc-if></span></li>
+                <li class="li"><span class="k">Amount</span><span class="main"><span class="t">$[N] USD</span><span class="s">In sats at today’s rate, fixed for this invoice</span></span></li>
+                <li class="li"><span class="k">Covers</span><span class="main"><span class="t">[DATE] – [DATE]</span><sc-if value="{{ co.stacks }}" hint-placeholder-val="{{ true }}"><span class="s">Starts [DATE]</span></sc-if></span></li>
+              </ul>
+              <div class="paywith"><h4>Billing period</h4><span class="pseg cmp" role="group" aria-label="Billing period"><button type="button" aria-pressed="{{ co.m }}" onClick="{{ co.setM }}">Monthly</button><button type="button" aria-pressed="{{ co.a }}" onClick="{{ co.setA }}">Annual</button></span></div>
+              <div class="grp" style="margin-top:24px">
+                <h4>Pay with</h4>
+                <div class="choice" role="radio" aria-checked="true"><span class="dot" aria-hidden="true"></span><span class="main"><span class="t">Bitcoin</span><span class="s">{{ co.btcDesc }}</span></span></div>
+                <div class="choice" role="radio" aria-checked="false" aria-disabled="true"><span class="dot" aria-hidden="true"></span><span class="main"><span class="t">Card<span class="rtag">Coming soon</span></span><span class="s">Pay by card with automatic renewal.</span></span></div>
+              </div>
+              <div class="acts" style="margin-top:20px"><button type="button" class="btn primary" disabled="{{ co.createOff }}" onClick="{{ co.create }}">Create invoice</button><button type="button" class="btn" onClick="{{ co.toChange }}">Back</button></div>
+              <p class="lead" style="margin-top:8px">{{ co.reviewNote }}</p>
+            </div>
+          </sc-if>
+
+          <!-- BITCOIN CHECKOUT (billing.rs:2233 checkout_phase_ux): header, Plan / Amount / Covers / Status, then the phase body -->
+          <sc-if value="{{ co.phase }}" hint-placeholder-val="{{ false }}">
+            <div class="sec">
+              <h3>{{ co.heading }}</h3>
+              <p class="lead">{{ co.leadText }}</p>
+              <ul class="list cosum" style="margin-top:20px">
+                <li class="li"><span class="k">Plan</span><span class="main"><span class="t">{{ co.planLine }}</span><sc-if value="{{ co.hasReplaces }}" hint-placeholder-val="{{ true }}"><span class="s">{{ co.replaces }}</span></sc-if></span></li>
+                <li class="li"><span class="k">Amount</span><span class="main"><span class="t">$[N] USD</span><span class="s">{{ co.amountSub }}</span></span></li>
+                <li class="li"><span class="k">Covers</span><span class="main"><span class="t">[DATE] – [DATE]</span><sc-if value="{{ co.stacks }}" hint-placeholder-val="{{ true }}"><span class="s">Starts [DATE]</span></sc-if></span></li>
+                <li class="li"><span class="k">Status</span><span class="main"><span class="stt {{ co.tone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ co.icon }}"></path></svg>{{ co.status }}</span><sc-if value="{{ co.hasInvoice }}" hint-placeholder-val="{{ true }}"><span class="mono" style="display:block;margin-top:4px">Invoice [INVOICE-ID]</span></sc-if></span></li>
+              </ul>
+
+              <sc-if value="{{ co.creating }}" hint-placeholder-val="{{ false }}">
+                <div class="payrow" style="margin-top:24px"><div class="qrbox" aria-hidden="true"></div><p class="lead" style="margin:0">Asking BTCPay for an invoice. This usually takes a few seconds.</p></div>
+              </sc-if>
+
+              <sc-if value="{{ co.awaiting }}" hint-placeholder-val="{{ true }}">
+                <div class="paywith"><h4>Pay with</h4><span class="pseg cmp" role="group" aria-label="Pay with"><button type="button" aria-pressed="{{ co.ln }}" onClick="{{ co.setLn }}">Lightning</button><button type="button" aria-pressed="{{ co.oc }}" onClick="{{ co.setOc }}">On-chain</button></span></div>
+                <div class="payrow">
+                  <div class="qrbox"><div class="qr" role="img" aria-label="Invoice QR code (synthetic)"><svg viewBox="0 0 21 21" aria-hidden="true" shape-rendering="crispEdges"><path fill="#161716" d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2zM14 0h7v7h-7zM15 1v5h5V1zM16 2h3v3h-3zM0 14h7v7H0zM1 15v5h5v-5zM2 16h3v3H2zM8 0h1v1H8zM10 0h2v1h-2zM9 2h2v1H9zM8 4h1v2H8zM11 4h2v1h-2zM10 6h1v2h-1zM8 8h3v1H8zM12 8h2v1h-2zM0 8h2v1H0zM3 8h1v2H3zM5 9h2v1H5zM1 10h1v2H1zM4 11h2v1H4zM15 8h1v1h-1zM17 8h3v1h-3zM14 10h2v1h-2zM18 10h1v2h-1zM8 10h1v3H8zM11 10h2v1h-2zM9 12h3v1H9zM13 12h1v2h-1zM15 12h2v1h-2zM19 13h2v1h-2zM8 14h2v1H8zM11 14h1v2h-1zM14 14h3v1h-3zM9 16h1v2H9zM12 16h2v1h-2zM16 16h1v3h-1zM18 15h1v2h-1zM8 19h3v1H8zM13 18h2v1h-2zM19 18h2v1h-2zM12 20h1v1h-1zM17 20h3v1h-3z"/></svg></div></div>
+                  <div class="cofld">
+                    <span class="lb">{{ co.fieldLabel }}</span>
+                    <div class="vrow"><span class="val">{{ co.fieldValue }}</span><button type="button" class="btn sm" onClick="{{ co.copy }}">{{ co.copyLabel }}</button></div>
+                    <p class="lead" style="margin:0">{{ co.fieldHint }}</p>
+                    <div class="acts" style="margin-top:10px"><button type="button" class="linkbtn">Pay on the BTCPay page instead</button><button type="button" class="linkbtn" onClick="{{ co.back }}">Cancel</button></div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ co.processing }}" hint-placeholder-val="{{ false }}">
+                <div class="nt warn" style="margin-top:24px" role="status"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ co.clockPath }}"></path></svg></span><div><b>Payment seen, waiting for confirmation</b><span>BTCPay has seen your payment. {{ co.tier }} turns on once it confirms. You can leave this screen: Connect applies the payment when it confirms, and Plan &amp; billing shows it the next time it loads.</span><div class="acts"><button type="button" class="btn sm" onClick="{{ co.back }}">Back to Plan &amp; billing</button></div></div></div>
+              </sc-if>
+
+              <sc-if value="{{ co.paid }}" hint-placeholder-val="{{ false }}">
+                <div class="nt ok" style="margin-top:24px" role="status"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ okPath }}"></path></svg></span><div><b>{{ co.paidTitle }}</b><span>{{ co.paidBody }}</span><div class="acts"><button type="button" class="btn sm primary" onClick="{{ co.back }}">Done</button></div></div></div>
+              </sc-if>
+
+              <sc-if value="{{ co.expired }}" hint-placeholder-val="{{ false }}">
+                <div class="nt info" style="margin-top:24px" role="status"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ offPath }}"></path></svg></span><div><b>This invoice expired</b><span>No payment was received, so nothing was charged. A new invoice uses the current bitcoin rate.</span><div class="acts"><button type="button" class="btn sm primary" onClick="{{ co.create }}">Create new invoice</button><button type="button" class="btn sm" onClick="{{ co.back }}">Back to Plan &amp; billing</button></div></div></div>
+              </sc-if>
+
+              <sc-if value="{{ co.failed }}" hint-placeholder-val="{{ false }}">
+                <div class="nt bad" style="margin-top:24px" role="alert"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ warnPath }}"></path></svg></span><div><b>Couldn’t create the invoice</b><span>Connect or BTCPay didn’t respond. Nothing was charged. Check your connection and try again. ([error])</span><div class="acts"><button type="button" class="btn sm primary" onClick="{{ co.create }}">Try again</button><button type="button" class="btn sm" onClick="{{ co.back }}">Back to Plan &amp; billing</button></div></div></div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- CONTACTS (contacts.rs:30) -->
           <sc-if value="{{ showContacts }}" hint-placeholder-val="{{ false }}">
             <div class="sec">
-              <div class="acts"><h3 class="grow">Contacts</h3><button type="button" class="btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span>Add contact</span></button></div>
+              <div class="acts"><h3 class="grow" style="flex:1">Contacts</h3><button type="button" class="btn sm" onClick="{{ inv.open }}">+ Add contact</button></div>
               <p class="lead">People you trust with recovery alerts or Vault invitations. Roles are verified by Connect.</p>
               <sc-if value="{{ hasContacts }}" hint-placeholder-val="{{ true }}">
+                <div class="grp" style="margin-top:20px">
+                  <h4>Received invites</h4>
+                  <!-- each received invitation names its Cubes, one line each: ring mark (32 px), name, network; the inviter stays below (contacts.rs received_invite_card, CD4) -->
+                  <div class="icard"><span class="main"><span class="ricubes"><span class="ric"><span class="rm" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M9.91 47.53A27 27 0 1 1 57.88 39.68" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M48.37 23.38A18.5 18.5 0 0 1 26.24 49.58" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M37.89 40.08A10 10 0 0 1 25.28 24.60" fill="none" stroke="var(--accent,#F3821D)" stroke-width="2.6" stroke-linecap="round"/><circle cx="32" cy="32" r="2.6" fill="currentColor"/></svg></span><b>Park family</b><span class="net">Bitcoin mainnet</span></span><span class="ric"><span class="rm" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M24.12 57.83A27 27 0 1 1 51.94 13.80" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M50.29 29.20A18.5 18.5 0 1 1 33.36 13.55" fill="none" stroke="var(--accent,#F3821D)" stroke-width="2.6" stroke-linecap="round"/><circle cx="32" cy="32" r="2.6" fill="currentColor"/></svg></span><b>Garden fund</b><span class="net">Bitcoin mainnet</span></span></span><span class="t">Riley Park</span><span class="s">riley@example.test · Keyholder · Expires in 3 days</span></span><button type="button" class="btn sm primary">Accept</button></div>
+                </div>
+                <div class="grp" style="margin-top:20px">
+                  <h4>Pending invites</h4>
+                  <div class="icard"><span class="main"><span class="t">sam@example.test</span><span class="s">Keyholder · Expires in 5 days</span></span><button type="button" class="btn sm" data-toast="good|Invite resent">Resend</button><button type="button" class="btn sm">Revoke</button></div>
+                </div>
                 <ul class="list" style="margin-top:20px">
-                  <sc-for list="{{ contacts }}" as="c" hint-placeholder-count="3">
-                    <li class="li"><span class="main"><span class="t">{{ c.name }}</span><span class="s">{{ c.email }}</span></span>
-                      <span class="rtag">{{ c.role }}</span><button type="button" class="btn sm" aria-label="{{ c.editAria }}">Edit</button></li>
+                  <sc-for list="{{ contacts }}" as="c" hint-placeholder-count="2">
+                    <li class="li"><span class="main"><span class="t">{{ c.top }}</span><sc-if value="{{ c.hasEmail }}" hint-placeholder-val="{{ true }}"><span class="s">{{ c.email }}</span></sc-if></span>
+                      <span class="rtag">{{ c.role }}</span><button type="button" class="btn sm" aria-label="{{ c.editAria }}" onClick="{{ c.open }}">Edit</button></li>
                   </sc-for>
                 </ul>
               </sc-if>
               <sc-if value="{{ noContacts }}" hint-placeholder-val="{{ false }}">
                 <div class="empty" style="margin-top:20px"><b>No contacts yet</b><p>Add someone you trust. They can receive recovery alerts or Vault invitations once Connect verifies their role.</p></div>
               </sc-if>
-              <p class="fnote"><button type="button" class="linkbtn" style="font-size:12px" onClick="{{ toggleEmpty }}">{{ emptyToggleLabel }}</button></p>
             </div>
           </sc-if>
 
-          <!-- DEVICES & SECURITY -->
+          <!-- INVITE CONTACT (contacts.rs invite_form_ux, CD4): every invitation names at least one Cube (Robert, 2026-11-26). Send waits for a ticked Cube; owning no Cube replaces the form with one line -->
+          <sc-if value="{{ inv.show }}" hint-placeholder-val="{{ false }}">
+            <div class="sec cdet">
+              <button type="button" class="linkbtn" onClick="{{ inv.back }}">‹ Back</button>
+              <h3 style="margin-top:12px">Invite Contact</h3>
+              <sc-if value="{{ inv.noCube }}" hint-placeholder-val="{{ false }}"><p class="lead" style="margin-top:12px;font-size:14px">Invitations are for a Cube you own.</p></sc-if>
+              <sc-if value="{{ inv.form }}" hint-placeholder-val="{{ true }}">
+                <label class="lead" for="inv-email" style="display:block;margin-top:16px">Email Address</label>
+                <input class="inp" id="inv-email" type="email" style="width:100%;margin-top:4px" placeholder="email@example.com" value="{{ inv.email }}" onInput="{{ inv.onEmail }}">
+                <p class="lead" id="inv-cubes" style="margin-top:20px">For which Cubes?</p>
+                <div role="group" aria-labelledby="inv-cubes" style="margin-top:8px">
+                  <sc-for list="{{ inv.cubes }}" as="c" hint-placeholder-count="3"><label class="ckl"><input type="checkbox" checked="{{ c.on }}" onChange="{{ c.toggle }}"><span>{{ c.label }}</span></label></sc-for>
+                </div>
+                <div style="margin-top:20px"><button type="button" class="btn primary" style="width:100%" disabled="{{ inv.cant }}" onClick="{{ inv.send }}">{{ inv.sendLabel }}</button></div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- CONTACT DETAIL (contacts.rs:518) with the inline "Add to Cube(s)" dialog card (contacts.rs:770) -->
+          <sc-if value="{{ cd.show }}" hint-placeholder-val="{{ false }}">
+            <div class="sec cdet">
+              <button type="button" class="linkbtn" onClick="{{ cd.back }}">‹ Back</button>
+              <div class="ccard chead" style="margin-top:15px">
+                <span class="pm" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" stroke-width="2.4" opacity=".28"></circle><text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-weight="600" font-size="22" fill="currentColor">JL</text></svg></span>
+                <span class="nm">Jordan Lee</span>
+                <span class="em">jordan@example.test</span>
+                <span class="rtag">Keyholder</span>
+                <span class="since">Connected [DATE]</span>
+              </div>
+              <h4 style="margin:20px 0 10px;font-size:14px;font-weight:600">Associated Cubes</h4>
+              <div class="ccard">
+                <sc-for list="{{ cd.assoc }}" as="c" hint-placeholder-count="2">
+                  <div class="crow"><span>{{ c.name }}</span><span class="npill">{{ c.net }}</span><sc-if value="{{ c.kit }}" hint-placeholder-val="{{ false }}"><span class="kitb">Recovery Kit</span></sc-if></div>
+                </sc-for>
+              </div>
+              <div class="acts" style="margin-top:14px"><button type="button" class="btn primary" onClick="{{ cd.open }}">Add to Cube(s)…</button></div>
+              <sc-if value="{{ cd.dialog }}" hint-placeholder-val="{{ false }}">
+                <div class="ccard" style="margin-top:14px" role="group" aria-labelledby="atc-h">
+                  <div class="dlgh"><b id="atc-h">Add to Cube(s)</b><button type="button" class="xb" aria-label="Close" onClick="{{ cd.close }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+                  <p class="lead" style="margin:12px 0 0">Add jordan@example.test to the selected cubes.</p>
+                  <div style="margin-top:12px">
+                    <sc-if value="{{ cd.loading }}" hint-placeholder-val="{{ false }}"><p class="lead" style="margin:0" role="status">Loading eligible cubes…</p></sc-if>
+                    <sc-if value="{{ cd.none }}" hint-placeholder-val="{{ false }}"><p class="lead" style="margin:0">No eligible cubes — the contact is already in all of your active-network cubes, or you have none.</p></sc-if>
+                    <sc-if value="{{ cd.hasList }}" hint-placeholder-val="{{ true }}">
+                      <sc-for list="{{ cd.cands }}" as="c" hint-placeholder-count="3">
+                        <label class="ckl"><input type="checkbox" checked="{{ c.on }}" onChange="{{ c.toggle }}"><span>{{ c.label }}</span><sc-if value="{{ c.failed }}" hint-placeholder-val="{{ false }}"><span class="err">{{ c.err }}</span></sc-if></label>
+                      </sc-for>
+                    </sc-if>
+                  </div>
+                  <div class="acts" style="margin-top:12px;justify-content:flex-end"><button type="button" class="btn sm" onClick="{{ cd.close }}">Cancel</button><button type="button" class="btn sm primary" disabled="{{ cd.cant }}" onClick="{{ cd.confirm }}">{{ cd.addLabel }}</button></div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- DEVICES & SECURITY (mod.rs:1503 security_ux) -->
           <sc-if value="{{ showDevices }}" hint-placeholder-val="{{ false }}">
             <div class="sec">
               <h3>Devices &amp; security</h3>
               <div class="grp" style="margin-top:20px">
-                <h4>Verified Devices</h4>
+                <h4>Sign-in protection</h4>
                 <ul class="list">
+                  <li class="li"><span class="main"><span class="t">Authenticator app</span><span class="s">{{ tfa.detail }}</span></span><span class="stt {{ tfa.tone }}">{{ tfa.word }}</span><button type="button" class="btn sm" onClick="{{ tfa.toggle }}">{{ tfa.btn }}</button></li>
+                  <sc-if value="{{ tfa.on }}" hint-placeholder-val="{{ false }}">
+                    <li class="li"><span class="main"><span class="t">Backup codes</span><span class="s">8 of 10 left</span></span><button type="button" class="btn sm">Make new codes…</button></li>
+                  </sc-if>
+                </ul>
+              </div>
+              <div class="grp">
+                <h4>Verified Devices</h4>
+                <sc-if value="{{ listsLoading }}" hint-placeholder-val="{{ false }}"><p class="lead" style="margin:0">Loading devices…</p></sc-if>
+                <sc-if value="{{ listsReady }}" hint-placeholder-val="{{ true }}"><ul class="list">
                   <sc-for list="{{ devices }}" as="d" hint-placeholder-count="3">
                     <li class="li">
                       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h14v9H5zM3 18h18"></path></svg>
@@ -405,237 +784,383 @@ a.tbx-chip{color:var(--ink)}
                     <sc-if value="{{ d.reviewing }}" hint-placeholder-val="{{ false }}">
                       <li class="review" aria-label="{{ d.reviewAria }}">
                         <b>Remove {{ d.name }}?</b>
-                        <p>Removing signs this device out of your Connect account on next contact; what else it revokes is subject to source validation.</p>
+                        <p>This removes the device from your verified devices.</p>
                         <div class="acts"><button type="button" class="btn primary" onClick="{{ d.confirm }}">Remove {{ d.name }}</button><button type="button" class="btn" onClick="{{ cancelReview }}">Cancel</button></div>
                       </li>
                     </sc-if>
                   </sc-for>
-                </ul>
-                <sc-if value="{{ hasRemovedNote }}" hint-placeholder-val="{{ false }}"><p class="fnote" role="status">{{ removedNote }}</p></sc-if>
+                </ul></sc-if>
               </div>
               <div class="grp">
-                <div class="acts"><h4 class="grow" style="margin:0">Login Activity</h4><span class="or">{{ loginSummary }}</span></div>
-                <ul class="list" style="margin-top:8px">
+                <div class="acts"><h4 style="margin:0;flex:1">Login Activity</h4><sc-if value="{{ listsReady }}" hint-placeholder-val="{{ true }}"><span class="or">{{ loginSummary }}</span></sc-if></div>
+                <sc-if value="{{ listsLoading }}" hint-placeholder-val="{{ false }}"><p class="lead" style="margin:8px 0 0">Loading activity…</p></sc-if>
+                <sc-if value="{{ listsReady }}" hint-placeholder-val="{{ true }}"><ul class="list" style="margin-top:8px">
                   <sc-for list="{{ logins }}" as="l" hint-placeholder-count="3">
-                    <li class="li"><span class="stt {{ l.tone }}" style="width:120px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ l.icon }}"></path></svg>{{ l.result }}</span>
-                      <span class="main">{{ l.dev }}</span><span class="when">{{ l.when }}</span></li>
+                    <li class="li"><span class="stt {{ l.tone }}" style="width:110px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ l.icon }}"></path></svg>{{ l.result }}</span>
+                      <span class="main s">{{ l.dev }}</span><span class="when">{{ l.when }}</span></li>
                   </sc-for>
-                </ul>
-                <p class="fnote"><button type="button" class="linkbtn">View all login activity</button></p>
-              </div>
-              <div class="grp">
-                <ul class="list">
-                  <li class="li"><span class="main"><span class="t"><a href="P-Duress.dc.html" style="color:inherit;text-decoration-color:var(--accent);text-underline-offset:3px">Duress</a></span><span class="s">Not available for this account</span></span>
-                    <span class="stt tone-muted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="{{ offPath }}"></path></svg>Not available</span></li>
-                </ul>
+                </ul></sc-if>
               </div>
             </div>
           </sc-if>
 
-          <!-- RECOVERY SERVICES -->
+          <!-- RECOVERY SERVICES (mod.rs:1286) -->
           <sc-if value="{{ showRecovery }}" hint-placeholder-val="{{ false }}">
             <div class="sec" style="max-width:none">
               <h3>Recovery services</h3>
-              <p class="lead">Recovery Kit and recovery alerts per Cube. Changing either needs that Cube unlocked, so each row opens the Cube first.</p>
-              <table class="tbl">
-                <thead><tr><th scope="col">Cube</th><th scope="col">Network</th><th scope="col">Recovery Kit</th><th scope="col">Recovery alerts</th><th scope="col"><span class="sr">Action</span></th></tr></thead>
-                <tbody>
-                  <sc-for list="{{ recovery }}" as="r" hint-placeholder-count="4">
-                    <tr>
-                      <td class="nm">{{ r.name }}</td>
-                      <td><span class="net"><sc-if value="{{ r.isB2b }}" hint-placeholder-val="{{ false }}"><img class="coin" src="/_blob/c39785504daaef5633099a8ae196c784" alt="" width="16" height="16"></sc-if><sc-if value="{{ r.notB2b }}" hint-placeholder-val="{{ true }}"><span class="bmk {{ r.coinCls }}" aria-hidden="true"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></span></sc-if><span>{{ r.net }}</span><sc-if value="{{ r.hasTag }}" hint-placeholder-val="{{ false }}"><span class="tb {{ r.edge }}">{{ r.tag }}</span></sc-if></span></td>
-                      <td><span class="stt {{ r.kTone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ r.kIcon }}"></path></svg>{{ r.kit }}</span></td>
-                      <td><span class="stt {{ r.aTone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ r.aIcon }}"></path></svg>{{ r.alerts }}</span></td>
-                      <td style="text-align:right;padding-right:0"><a class="linkbtn" href="P-Launcher.dc.html" aria-label="{{ r.openAria }}">Open Cube to manage</a></td>
-                    </tr>
-                  </sc-for>
-                </tbody>
-              </table>
-              <p class="fnote">Opening asks for the Cube's PIN or passkey, then lands on Backup &amp; protection › Recovery Kit.</p>
+              <p class="lead">Recovery Kit and recovery alerts per Cube, as reported by Connect. Open a Cube from the launcher to manage Backup &amp; protection.</p>
+              <sc-if value="{{ listsLoading }}" hint-placeholder-val="{{ false }}"><p class="lead" style="margin-top:20px">Loading Cube status…</p></sc-if>
+              <sc-if value="{{ listsReady }}" hint-placeholder-val="{{ true }}"><div class="rtbl" role="table" aria-label="Recovery services per Cube">
+                <div class="rh" role="row"><span role="columnheader">Cube</span><span role="columnheader">Network</span><span role="columnheader">Recovery Kit</span><span role="columnheader">Recovery alerts</span></div>
+                <sc-for list="{{ recovery }}" as="r" hint-placeholder-count="3">
+                  <div class="rr" role="row">
+                    <span class="nm" role="cell">{{ r.name }}</span>
+                    <span role="cell"><span class="net"><sc-if value="{{ r.isB2b }}" hint-placeholder-val="{{ false }}"><img class="coin" src="/_blob/c39785504daaef5633099a8ae196c784" alt="" width="16" height="16"></sc-if><sc-if value="{{ r.notB2b }}" hint-placeholder-val="{{ true }}"><span class="bmk {{ r.coinCls }}" aria-hidden="true"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></span></sc-if><span>{{ r.net }}</span></span></span>
+                    <span role="cell"><span class="stt {{ r.kTone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ r.kIcon }}"></path></svg>{{ r.kit }}</span></span>
+                    <span role="cell"><span class="stt {{ r.aTone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ r.aIcon }}"></path></svg>{{ r.alerts }}</span></span>
+                  </div>
+                </sc-for>
+              </div></sc-if>
+              <p class="fnote">A reported Kit record does not confirm this device is verified or that every secret is backed up.</p>
             </div>
           </sc-if>
         </div>
       </div>
     </section>
   </main>
-  <div class="foot">Concept prototype V3 · synthetic data · Connect is a layer over the Launcher, not a route beneath it; theme is set in App preferences</div>
+  <div class="foot">Concept prototype V3 · synthetic data · Connect is a sheet over the Launcher or a Cube; Close returns there and never signs out · “Your name” is hidden (lever yourName): the app shows it only once Connect returns a name field, which production does not send yet</div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["Account","Plan &amp; billing","Contacts","Devices &amp; security","Recovery services"],"default":"Account","section":"Review"},"accountState":{"editor":"enum","options":["signedIn","signedOut","loading","error"],"default":"signedIn","section":"Review"},"planState":{"editor":"enum","options":["active","cancelled"],"default":"active","section":"Review"},"hideBalances":{"editor":"boolean","default":false,"section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":900}}'>
+<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["Account","Plan &amp; billing","Contacts","Devices &amp; security","Recovery services"],"default":"Account","section":"Review"},"accountState":{"editor":"enum","options":["signedIn","signedOut","removedByConnect","checking","offline","unreachable","error"],"default":"signedIn","section":"Review"},"duressGate":{"editor":"boolean","default":false,"section":"Review"},"plan":{"editor":"enum","options":["free","pro","estate"],"default":"estate","section":"Review"},"planState":{"editor":"enum","options":["active","renewalDue","renewalDismissed","cancelled","expired","expiredNoDate"],"default":"active","section":"Review"},"purchasing":{"editor":"enum","options":["open","paused"],"default":"open","section":"Review"},"checkout":{"editor":"enum","options":["none","review","creating","awaiting","processing","paid","expired","failed"],"default":"none","section":"Review"},"yourName":{"editor":"enum","options":["empty","saved","tooLong","hidden"],"default":"hidden","section":"Review"},"emptyLists":{"editor":"boolean","default":false,"section":"Review"},"listsLoading":{"editor":"boolean","default":false,"section":"Review"},"contactView":{"editor":"enum","options":["list","detail","addLoading","addList","addNone","addSubmitting","addPartialFailure","invite","inviteNoCube"],"default":"list","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
+  // People: one or two initials in a thin ring (SPEC-cube-ring-mark-v1 section 7). Display name when Connect sends one, else the email.
+  _pi(name, email){
+    function personInitials(name, email){
+  const pick = ws => { let o = ""; for (const w of ws) { if (o.length >= 2) break; if (!w) continue; const g = [...new Intl.Segmenter().segment(w)][0].segment; if (!/^\p{Alphabetic}/u.test(g)) continue; const up = g.toUpperCase(); o += ([...new Intl.Segmenter().segment(up)].length === 1 ? up : g); } return o; };
+  const a = name && name.trim() ? pick(name.trim().split(/\p{White_Space}/u)) : "";
+  return a || (email ? pick(email.split("@")[0].split(/[._\-+]/)) : "");
+}
+    return personInitials(name, email);
+  }
   constructor(p) {
     super(p); try { const bump = () => { try { this.setState({ protoTick: Date.now() }); } catch (e) {} }; window.addEventListener('tenshu-proto', bump); window.addEventListener('storage', bump); } catch (e) {}
     this.state = { lv: null };
   }
   renderVals() {
+    /* cc-toasts v1 */ try { if (!window.__ccToast) { const W = window; const TIMES = {info:8000,good:8000,warn:8000,bad:8000,debug:8000}; const MAX = 3;
+      const IC = {info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/>', good:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>', warn:'<path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v3.5"/><path d="M12 16.8h.01"/>', bad:'<circle cx="12" cy="12" r="9"/><path d="m14.8 9.2-5.6 5.6"/><path d="m9.2 9.2 5.6 5.6"/>', debug:'<path d="m5 8 4 4-4 4"/><path d="M12 16h7"/>'};
+      const svg = (p) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+      const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+      const parse = (s) => { const f = String(s || '').split('|'); return {tone: IC[f[0]] ? f[0] : 'info', title: f[1] || '', detail: f[2] || '', action: f[3] || '', href: f[4] || ''}; };
+      const hostFor = (el) => { const root = (el && el.closest && el.closest('.tenshu')) || document.querySelector('.tenshu'); if (!root) return null; let h = root.querySelector(':scope > .cc-toasts'); if (!h) { h = document.createElement('div'); h.className = 'cc-toasts'; h.setAttribute('aria-live', 'polite'); root.appendChild(h); }
+        const main = root.querySelector('.main'); if (main) { h.style.left = main.offsetLeft + 'px'; h.style.right = Math.max(0, root.clientWidth - main.offsetLeft - main.offsetWidth) + 'px'; } return h; };
+      const show = (spec, el) => { const t = typeof spec === 'string' ? parse(spec) : spec; if (!t.title) return; const h = hostFor(el); if (!h) return;
+        while (h.children.length >= MAX) h.removeChild(h.firstChild);
+        const n = document.createElement('div'); n.className = 'cc-toast t-' + t.tone; n.setAttribute('role', t.tone === 'bad' ? 'alert' : 'status');
+        n.innerHTML = '<div class="cti" aria-hidden="true">' + svg(IC[t.tone]) + '</div><div class="cbd"><div class="ctt">' + esc(t.title) + '</div>' + (t.detail ? '<div class="cdt">' + esc(t.detail) + '</div>' : '') + (t.action ? (t.href ? '<a class="cact" href="' + esc(t.href) + '">' + esc(t.action) + '</a>' : '<button type="button" class="cact">' + esc(t.action) + '</button>') : '') + '</div><button type="button" class="cx" aria-label="Dismiss">' + svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>') + '</button>';
+        const kill = () => { if (n.parentNode) n.parentNode.removeChild(n); };
+        n.querySelector('.cx').addEventListener('click', (e) => { e.stopPropagation(); kill(); });
+        const a = n.querySelector('button.cact'); if (a) a.addEventListener('click', (e) => { e.stopPropagation(); kill(); });
+        h.appendChild(n); const ms = TIMES[t.tone]; if (ms) setTimeout(kill, ms); };
+      W.__ccToast = show;
+      document.addEventListener('click', (e) => { const el = e.target && e.target.closest && e.target.closest('[data-toast],[data-toast-next]'); if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+        const now = el.getAttribute('data-toast'); const nxt = el.getAttribute('data-toast-next');
+        if (now) setTimeout(() => show(now, el), 0);
+        if (nxt) { try { localStorage.setItem('tenshu.proto.toast', nxt); } catch (x) {} } }, true);
+      W.__ccToastFlush = (root) => { try { const p = localStorage.getItem('tenshu.proto.toast'); if (p) { localStorage.removeItem('tenshu.proto.toast'); show(p, root); } } catch (x) {}
+        try { (root || document).querySelectorAll('[data-toast-auto]:not([data-toast-shown])').forEach((el) => { el.setAttribute('data-toast-shown', '1'); show(el.getAttribute('data-toast-auto'), el); }); } catch (x) {} };
+    } if (!this.__ccTm) { this.__ccTm = 1; setTimeout(() => window.__ccToastFlush && window.__ccToastFlush(), 450); } else { setTimeout(() => window.__ccToastFlush && window.__ccToastFlush(), 60); } } catch (e) {}
+
     // prototype-only: when a Cube is on screen this sheet overlays it and Close returns to it
     const IN_CUBE = this.props.inCube === '1' || this.props.inCube === true;
-    // prototype-only: Appearance (App preferences) is a device setting shared across artboards: system follows the review lever
     let THEME = 'system'; try { THEME = localStorage.getItem('tenshu.proto.theme') || 'system'; } catch (e) {}
-    // prototype-only: the Bitcoin Blake2b device toggle (App preferences › Developer) is shared across artboards in localStorage
     let B2B = false; try { B2B = localStorage.getItem('tenshu.proto.b2b') === '1'; } catch (e) {}
     const P = this.props;
-    const L = { section: P.section ?? 'Account', theme: P.theme ?? 'dark', hide: !!P.hideBalances, acct: P.accountState ?? 'signedIn' };
-    const key = [L.section, L.theme, L.hide, L.acct].join('|');
-    // a lever change resets the live state to the lever values; otherwise live state (toggles, reviews) wins
+    const L = { section: P.section ?? 'Account', theme: P.theme ?? 'dark', acct: P.accountState ?? 'signedIn', duress: !!P.duressGate, plan: P.plan ?? 'estate', ps: P.planState ?? 'active', nm: P.yourName ?? 'hidden', empty: !!P.emptyLists, ld: !!P.listsLoading,
+      buy: P.purchasing ?? 'open', co: P.checkout ?? 'none', cv: P.contactView ?? 'list' };
+    // the checkout and contactView levers open their section (Plan & billing, Contacts)
+    if (L.co !== 'none') L.section = 'Plan & billing';
+    if (L.cv !== 'list') L.section = 'Contacts';
+    const key = [L.section, L.theme, L.acct, L.duress, L.plan, L.ps, L.nm, L.empty, L.buy, L.co, L.cv, L.ld].join('|');
     const s = this.state.lv !== key
-      ? { section: L.section, theme: L.theme, hide: L.hide, acct: L.acct, review: null, removed: [], emptyContacts: false }
+      ? { section: L.section, acct: L.acct, review: null, removed: [], change: false, cycle: 'monthly', pick: L.plan === 'free' ? 'pro' : (L.plan === 'pro' ? 'estate' : 'estate'), promo: false, tfa: false,
+          renewOff: L.ps === 'renewalDismissed', co: L.co, coTier: L.plan === 'free' ? 'pro' : L.plan, coCycle: 'annual', net: 'ln', copied: false,
+          cv: L.cv, sel: L.cv === 'addList' ? { 0: true } : (L.cv === 'addSubmitting' || L.cv === 'addPartialFailure' ? { 0: true, 2: true } : {}),
+          name: L.nm === 'saved' ? 'Alex Rivera' : (L.nm === 'tooLong' ? 'Alexandra Maximiliana Rivera-Montgomery of the Northern Example Coast' : ''), nameMsg: L.nm === 'saved' ? 'ok:Name saved.' : (L.nm === 'tooLong' ? 'bad:Use 60 characters or fewer.' : '') }
       : this.state;
     const go = (patch) => this.setState(Object.assign({}, s, { lv: key, review: null }, patch));
 
     const CIRC = 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18';
     const I = {
-      ok: CIRC + 'M8 12.3l2.8 2.8L16.2 9.6',
-      warn: CIRC + 'M12 7.5v5.5M12 16.2v.3',
-      unk: CIRC + 'M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.7.3-1 .8-1 1.5v.4M12 16.3v.3',
-      off: CIRC + 'M8.5 12h7',
-      bad: CIRC + 'M9.5 9.5l5 5M14.5 9.5l-5 5',
+      ok: CIRC + 'M8 12.3l2.8 2.8L16.2 9.6', warn: CIRC + 'M12 7.5v5.5M12 16.2v.3', unk: CIRC + 'M9.6 9.6a2.4 2.4 0 1 1 3.4 2.2c-.7.3-1 .8-1 1.5v.4M12 16.3v.3',
+      off: CIRC + 'M8.5 12h7', bad: CIRC + 'M9.5 9.5l5 5M14.5 9.5l-5 5',
       person: 'M12 5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5',
       card: 'M3.5 6.5h17v11h-17zM3.5 10h17M7 14.5h4',
       people: 'M9 5.5a3 3 0 1 0 0 6a3 3 0 1 0 0-6M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M15.5 5.8a3 3 0 0 1 0 5.4M17 14.6c1.8.5 3 1.9 3.5 4.4',
       device: 'M5 6h14v9H5zM3 18h18',
+      shield: 'M12 3l7 3v5.5c0 4.3-3 7.6-7 9.5-4-1.9-7-5.2-7-9.5V6z',
       shieldOk: 'M12 3l7 3v5.5c0 4.3-3 7.6-7 9.5-4-1.9-7-5.2-7-9.5V6zM8.8 12l2.2 2.2 4.2-4.4',
-      bolt: 'M13 3L5 13.5h6L10 21l8-10.5h-6z',
-      bell: 'M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15zM10 20.5h4',
-      eye: 'M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6',
-      sun: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4',
-      moon: 'M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z',
-      vault: 'M12 3l7 3v5.5c0 4.3-3 7.6-7 9.5-4-1.9-7-5.2-7-9.5V6z'
+      bolt: 'M13 3L5 13.5h6L10 21l8-10.5h-6z', bell: 'M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15zM10 20.5h4',
+      phone: 'M8 3h8v18H8zM11 18h2', lock: 'M6.5 11h11v9h-11zM9 11V8a3 3 0 0 1 6 0v3', server: 'M4 5h16v5H4zM4 14h16v5H4zM7 7.5h.01M7 16.5h.01'
     };
     const T = { ok: 'tone-ok', warn: 'tone-warn', unk: 'tone-muted', off: 'tone-muted', bad: 'tone-bad' };
 
-    const dark = s.theme !== 'light';
     const acct = s.acct;
-    const signedIn = acct === 'signedIn', signedOut = acct === 'signedOut';
-    const SECS = [
-      ['Account', I.person], ['Plan & billing', I.card], ['Contacts', I.people],
-      ['Devices & security', I.device], ['Recovery services', I.shieldOk]
-    ];
+    const signedOut = acct === 'signedOut' || acct === 'removedByConnect';
+    const signedIn = acct === 'signedIn' || acct === 'error';
+    // Duress mode: only signed in AND show_duress() (paid entitlement AND server flag or enrolment). See P-Duress for the section itself.
+    const SECS = [['Account', I.person], ['Plan & billing', I.card], ['Contacts', I.people], ['Devices & security', I.device]]
+      .concat(signedIn && L.duress ? [['Duress mode', I.shield]] : []).concat([['Recovery services', I.shieldOk]]);
     const sec = SECS.some((x) => x[0] === s.section) ? s.section : 'Account';
     const sections = SECS.map(([label, icon]) => ({
-      label, icon,
+      label, icon, cls: '', isLink: label === 'Duress mode', isBtn: label !== 'Duress mode',
       current: sec === label ? 'page' : 'false',
-      // no focus ring on the selected row (Robert, 2026-10-29)
-      cls: '',
-      pick: () => go({ section: label })
+      pick: () => go({ section: label, change: false, co: 'none', cv: 'list' })
     }));
     const on = (name) => signedIn && sec === name;
 
-    // backdrop: the four fixture Cubes at rest (Launcher floor, static, 40%)
     const floorCubes = [
-      { name: 'Everyday', edge: 'btc', coinCls: '', tag: '', walletPath: I.vault },
-      { name: 'Blake workspace', edge: 'b2b', coinCls: '', tag: 'Blake2b', walletPath: I.vault },
-      { name: 'Lab', edge: 'test', coinCls: 'tn', tag: 'Testnet4', walletPath: I.vault },
+      { name: 'Everyday', edge: 'btc', coinCls: '', tag: '', walletPath: I.shield },
+      { name: 'Blake workspace', edge: 'b2b', coinCls: '', tag: 'Blake2b', walletPath: I.shield },
+      { name: 'Lab', edge: 'test', coinCls: 'tn', tag: 'Testnet4', walletPath: I.shield },
       { name: 'Archive', edge: 'btc', coinCls: '', tag: '', walletPath: I.bolt }
     ].filter((c) => B2B || c.edge !== 'b2b').map((c) => Object.assign(c, { hasTag: !!c.tag, isB2b: c.edge === 'b2b', notB2b: c.edge !== 'b2b' }));
 
+    // "What Connect provides" (mod.rs:937-947); Duress is deliberately not listed
     const provides = [
       { icon: I.shieldOk, text: 'Encrypted Recovery Kit backup for each Cube \u2014 COINCUBE never sees your keys' },
-      { icon: I.people, text: 'Inheritance: invite family or friends to hold keys in the Keychain app, with time-locked recovery keys to recover funds' },
+      { icon: I.people, text: 'Inheritance: invite family or friends to hold keys in the COINCUBE Mobile app, with time-locked recovery keys to recover funds' },
       { icon: I.bell, text: 'Recovery alerts and emergency contacts for people you trust' },
-      { icon: I.bolt, text: 'Hosted Esplora server \u2014 use your Vault instantly while your node syncs' },
-      { icon: I.device, text: 'Sign Vault transactions from your phone with the companion Keychain app' },
-      { icon: I.bolt, text: 'Lightning Address and avatar for Spark wallets' },
-      // Robert (2026-10-27): Duress is not enabled yet, so it says Coming soon; Buy/Sell and P2P are not enabled and are not listed.
-      { icon: I.warn, text: 'Duress mode and Connect-enforced spending policies (Pro and Estate)', soon: true }
+      { icon: I.server, text: 'Hosted Esplora server \u2014 use your Vault instantly while your node syncs' },
+      { icon: I.phone, text: 'Sign Vault transactions from your phone with the companion COINCUBE Mobile app' },
+      { icon: I.bolt, text: 'Lightning Address for Spark wallets' },
+      { icon: I.lock, text: 'Connect-enforced spending policies (Pro and Estate)', soon: true }
     ].map((p) => Object.assign({ soon: false }, p));
 
-    const ent = (name, k, text, note) => ({ name, tone: T[k], icon: I[k], text, note: note || '', hasNote: !!note });
-    const entitlements = [
-      ent('Recovery Kit', 'ok', 'Verified'),
-      ent('Recovery alerts', 'unk', 'Unknown · checking', 'Plan options appear once this is verified.')
-    ];
-    const bill = (status, k) => ({ date: '[DATE]', item: '[PLAN NAME] · paid upfront', status, tone: T[k], icon: I[k] });
-    const billing = [bill('Paid', 'ok'), bill('Paid', 'ok'), bill('Refunded', 'off')];
+    // Your name (your_name.rs): hidden until the profile loads, and when the server has no display names
+    const nm = s.nameMsg || '';
+    const nameKnown = L.nm !== 'hidden';
+    const display = nameKnown && s.nameMsg === 'ok:Name saved.' ? s.name : '';
+    const saveName = () => {
+      const v = (s.name || '').trim();
+      if (v.length > 60) return go({ nameMsg: 'bad:Use 60 characters or fewer.' });
+      if (/[@<>]/.test(v)) return go({ nameMsg: "bad:That name can't be used. Use letters or numbers, and leave out @, < and >." });
+      go({ nameMsg: v ? 'ok:Name saved.' : 'ok:Name removed.' });
+    };
 
-    const contacts = s.emptyContacts ? [] : [
-      { name: 'Jordan (synthetic)', email: 'jordan@example.test', role: 'Recovery contact · verified' },
-      { name: 'Sam (synthetic)', email: 'sam@example.test', role: 'Invitation pending' },
-      { name: 'Morgan (synthetic)', email: 'morgan.with-a-long-household-recovery-address@family-office.example.test', role: 'Vault member · verified' }
-    ].map((c) => Object.assign(c, { editAria: 'Edit ' + c.name }));
+    // Plan & billing
+    const TIERS = { free: 'Free', pro: 'Pro', estate: 'Estate' };
+    const tier = L.plan;
+    // planState follows PlanLifecycle (billing.rs current_plan_status): a bitcoin plan reads "Paid through {d} \u00b7 {cycle}"; Renewal due adds the reminder; Expired has a dated and an undated title
+    const ps0 = L.ps;
+    const ps = ps0 === 'renewalDismissed' ? 'renewalDue' : (ps0 === 'expiredNoDate' ? 'expired' : ps0);
+    const planDateLine = tier === 'free' ? 'Free features \u00b7 no payment' : ps === 'cancelled' ? 'Access until [DATE]' : ps === 'expired' ? (ps0 === 'expiredNoDate' ? 'Now on Free features' : 'Expired [DATE] \u00b7 now on Free features') : 'Paid through [DATE] \u00b7 Annual';
+    const planStatus = tier === 'free' ? 'Active' : ps === 'cancelled' ? 'Cancelled' : ps === 'expired' ? 'Expired' : ps === 'renewalDue' ? 'Renewal due' : 'Active';
+    const pk = planStatus === 'Active' ? 'ok' : ps === 'expired' ? 'bad' : ps === 'renewalDue' ? 'warn' : 'off';
+    const buyOpen = L.buy !== 'paused';
+    // the reminder hides while dismissed for the session and while purchasing is paused (account.rs show_renewal_banner)
+    const renewalBanner = tier !== 'free' && ps === 'renewalDue' && !s.renewOff && buyOpen;
+
+    // Bitcoin checkout (billing.rs checkout_phase_ux / checkout_status / bitcoin_checkout_heading / paid_bitcoin_checkout)
+    const CLOCK = CIRC + 'M12 7.5V12l3 2';
+    const rank = { free: 0, pro: 1, estate: 2 };
+    const coT = s.coTier, coName = TIERS[coT];
+    const coCycleName = s.coCycle === 'monthly' ? 'Monthly' : 'Annual';
+    const coRenewal = coT === tier;
+    const coStacks = tier !== 'free' && rank[coT] <= rank[tier];
+    const CO_STATUS = {
+      creating: ['Creating invoice\u2026', 'off'], awaiting: ['Waiting for payment \u00b7 expires [TIME]', 'warn'], processing: ['Payment seen \u00b7 confirming', 'warn'],
+      paid: ['Paid', 'ok'], expired: ['Expired \u00b7 nothing received', 'off'], failed: ['Not invoiced', 'bad']
+    };
+    const coPhase = CO_STATUS[s.co] ? s.co : '';
+    const later = (from, to, ms) => setTimeout(() => { const c = this.state; if (c && c.lv === key && c.co === from) this.setState(Object.assign({}, c, { co: to })); }, ms);
+    const createInvoice = () => { go({ co: 'creating' }); later('creating', 'awaiting', 1100); };
+    let coHeading = 'Pay for ' + coName, coLead = 'Pay from any Bitcoin wallet. This screen updates by itself when the payment arrives.';
+    let paidTitle = 'You\u2019re on ' + coName, paidBody = 'Covers [DATE] \u2013 [DATE]. The receipt is in your billing history.';
+    if (s.co === 'creating') coLead = 'Preparing a Bitcoin invoice for the amount above.';
+    if (s.co === 'failed') { coHeading = 'Review plan change'; coLead = 'The invoice couldn\u2019t be created.'; }
+    if (s.co === 'paid') {
+      if (coStacks && coRenewal) { coHeading = 'Plan renewed'; coLead = 'Your ' + coName + ' plan continues. The new period starts on [DATE].'; paidTitle = coName + ' renewed'; paidBody = 'The new ' + coName + ' period starts on [DATE], when the current one ends. The receipt is in your billing history.'; }
+      else if (coStacks) { coHeading = 'Plan change scheduled'; coLead = coName + ' starts on [DATE], when your current period ends.'; paidTitle = coName + ' is paid for'; paidBody = coName + ' starts on [DATE]. Until then you keep your current plan. The receipt is in your billing history.'; }
+      else { coHeading = 'Plan changed'; coLead = 'Your new plan is active on this account.'; }
+    }
+    const coSt = CO_STATUS[coPhase] || ['', 'off'];
+    const lnPick = s.net !== 'oc';
+    const co = {
+      review: on('Plan & billing') && s.co === 'review', phase: on('Plan & billing') && !!coPhase,
+      creating: s.co === 'creating', awaiting: s.co === 'awaiting', processing: s.co === 'processing', paid: s.co === 'paid', expired: s.co === 'expired', failed: s.co === 'failed',
+      tier: coName, heading: coHeading, leadText: coLead,
+      planLine: coName + ' \u00b7 ' + coCycleName,
+      replaces: tier === 'free' ? '' : (coRenewal ? 'Adds to your current ' + coName + ' plan' : 'Replaces ' + TIERS[tier] + ' \u00b7 Annual'), hasReplaces: tier !== 'free',
+      stacks: coStacks,
+      amountSub: s.co === 'creating' ? 'In sats at today\u2019s rate, fixed for this invoice' : '[N] sats at today\u2019s rate, fixed for this invoice',
+      status: coSt[0], tone: T[coSt[1]], icon: s.co === 'creating' ? I.off : I[coSt[1]], hasInvoice: s.co !== 'creating' && s.co !== 'failed',
+      m: String(s.coCycle === 'monthly'), a: String(s.coCycle !== 'monthly'), setM: () => go({ coCycle: 'monthly' }), setA: () => go({ coCycle: 'annual' }),
+      btcDesc: s.coCycle === 'monthly' ? 'Lightning or on-chain, through BTCPay. One payment covers the month, and we email you before it ends. No auto-renewal.' : 'Lightning or on-chain, through BTCPay. One payment covers the year, and we email you before it ends. No auto-renewal.',
+      createOff: !buyOpen,
+      reviewNote: buyOpen ? 'Creates a BTCPay invoice you can pay with Lightning or on-chain. It shows when it expires.' : 'Purchasing is paused, so an invoice can\u2019t be created right now.',
+      create: createInvoice,
+      toChange: () => go({ co: 'none', change: true }),
+      back: () => go({ co: 'none', change: false }),
+      ln: String(lnPick), oc: String(!lnPick), setLn: () => go({ net: 'ln', copied: false }), setOc: () => go({ net: 'oc', copied: false }),
+      fieldLabel: lnPick ? 'Lightning invoice' : 'Bitcoin address',
+      fieldValue: lnPick ? 'lnbc1synthetic0invoice0for0prototype0only0no0real0payment0request7q3x' : 'bc1qsynthetic0address0for0prototype0only4k2m',
+      fieldHint: lnPick ? 'The amount is already in the invoice. Lightning settles in seconds.' : 'Send exactly [N] sats. ' + coName + ' turns on after the payment confirms.',
+      copyLabel: s.copied ? 'Copied' : 'Copy', copy: () => go({ copied: true }),
+      clockPath: CLOCK, paidTitle, paidBody
+    };
+
+    // Contact detail + Add to Cube(s) (contacts.rs:518, :770)
+    const CANDS = [['Travel fund', 'mainnet'], ['Household 2024', 'mainnet'], ['Team treasury', 'mainnet']];
+    const cvSt = s.cv;
+    const sel = s.sel || {};
+    const nSel = Object.keys(sel).filter((k) => sel[k]).length;
+    const laterCv = (from, to, ms, patch) => setTimeout(() => { const c = this.state; if (c && c.lv === key && c.cv === from) this.setState(Object.assign({}, c, { cv: to }, patch || {})); }, ms);
+    const cdList = cvSt === 'addList' || cvSt === 'addSubmitting' || cvSt === 'addPartialFailure';
+    // Invite Contact (contacts.rs invite_form_ux, CD4): every invitation names at least one Cube (2026-11-26).
+    // Send stays disabled until the email is valid and a Cube is ticked; owning no Cube shows one line instead of the form.
+    const OWNED = [['Everyday', 'mainnet'], ['Archive', 'mainnet'], ['Household 2024', 'mainnet']];
+    const invView = cvSt === 'invite' || cvSt === 'inviteNoCube' || cvSt === 'inviteSending';
+    const isel = s.isel || {};
+    const iEmail = s.iEmail || '';
+    const iEmailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(iEmail.trim());
+    const nIsel = Object.keys(isel).filter((k) => isel[k]).length;
+    const inv = {
+      show: on('Contacts') && invView, noCube: cvSt === 'inviteNoCube', form: cvSt === 'invite' || cvSt === 'inviteSending',
+      email: iEmail, onEmail: (e) => go({ iEmail: e && e.target ? e.target.value : iEmail }),
+      cubes: OWNED.map((c, i) => ({ label: c[0] + ' (' + c[1] + ')', on: !!isel[i], toggle: () => go({ isel: Object.assign({}, isel, { [i]: !isel[i] }) }) })),
+      cant: cvSt === 'inviteSending' || !iEmailOk || nIsel === 0,
+      sendLabel: cvSt === 'inviteSending' ? 'Sending…' : 'Send Invite',
+      open: () => go({ cv: 'invite', isel: {}, iEmail: '' }),
+      back: () => go({ cv: 'list' }),
+      send: () => { if (!iEmailOk || nIsel === 0) return; go({ cv: 'inviteSending' }); laterCv('inviteSending', 'list', 1000); }
+    };
+    const cd = {
+      show: on('Contacts') && cvSt !== 'list' && !invView,
+      dialog: cvSt !== 'list' && cvSt !== 'detail',
+      loading: cvSt === 'addLoading', none: cvSt === 'addNone', hasList: cdList,
+      assoc: [{ name: 'Everyday', net: 'mainnet', kit: true }, { name: 'Archive', net: 'mainnet', kit: false }],
+      cands: CANDS.map((c, i) => ({ label: c[0] + ' (' + c[1] + ')', on: !!sel[i], failed: cvSt === 'addPartialFailure' && i === 2, err: '[Server message]',
+        toggle: () => go({ sel: Object.assign({}, sel, { [i]: !sel[i] }) }) })),
+      cant: cvSt === 'addSubmitting' || !cdList || nSel === 0,
+      addLabel: cvSt === 'addSubmitting' ? 'Adding\u2026' : 'Add',
+      back: () => go({ cv: 'list' }),
+      open: () => { go({ cv: 'addLoading', sel: {} }); laterCv('addLoading', 'addList', 900); },
+      close: () => go({ cv: 'detail' }),
+      confirm: () => { go({ cv: 'addSubmitting' }); laterCv('addSubmitting', 'detail', 1000); }
+    };
+    // Features on this account (billing.rs account_feature_rows): Cubes per network first, the catalog bullets for the tier, then Recovery alerts / Inheritance escrow, then Coming soon. Rows as seen signed in on Estate (2026-11-26).
+    const cubeN = tier === 'free' ? 1 : tier === 'pro' ? 3 : 10;
+    const ent = (name, text, k) => ({ name, text, tone: T[k || 'ok'], icon: I[k || 'ok'] });
+    const entitlements = [ent('Cubes per network', tier === 'free' ? '1 on Free' : 'Up to ' + cubeN, tier === 'free' ? 'off' : 'ok'), ent('Cube Recovery Kit (up to ' + cubeN + ')', 'Included')]
+      .concat(tier === 'estate' ? [ent('Collaborative Multi-sig Keyholder Invitations', 'Included')] : [])
+      .concat([ent('Recovery alerts', 'Included')])
+      .concat(tier === 'estate' ? [ent('Inheritance escrow', 'Included')] : [])
+      .concat(tier !== 'free' ? [ent('Connect-enforced spending policies', 'Coming soon', 'off')] : []);
+    const billing = tier === 'free' || L.empty ? [] : [
+      { date: '[DATE]', item: TIERS[tier] + ' \u00b7 Annual \u00b7 bitcoin', amt: '$[AMOUNT] \u00b7 [N] sats', status: 'Paid', tone: T.ok },
+      { date: '[DATE]', item: TIERS[tier] + ' \u00b7 Monthly \u00b7 bitcoin', amt: '$[AMOUNT] \u00b7 [N] sats', status: 'Expired', tone: T.off }
+    ];
+    const PLANS = [
+      ['free', 'Free', 'The essentials to create and recover your Cubes, with Esplora access, a Lightning address and recovery alerts.'],
+      ['pro', 'Pro', 'More Cubes per network, with Connect-enforced spending policies coming soon.'],
+      ['estate', 'Estate', 'Maximum Cube capacity, inheritance escrow and collaborative multi-sig keyholder invitations.']
+    ];
+    const annual = s.cycle === 'annual';
+    const plans = PLANS.map(([id, name, desc]) => ({
+      name, desc, on: s.pick === id, cur: id === tier,
+      price: id === 'free' ? 'Free' : '$[N]', per: id === 'free' ? 'No payment' : (annual ? 'per year' : 'per month'),
+      pick: () => go({ change: true, pick: id })
+    }));
+    const order = ['free', 'pro', 'estate'];
+    const changeCta = s.pick === tier ? 'Review renewal \u00b7 ' + TIERS[tier] + ' \u00b7 ' + (annual ? 'Annual' : 'Monthly')
+      : s.pick === 'free' ? 'Review switch to Free'
+      : order.indexOf(s.pick) > order.indexOf(tier) ? 'Review upgrade to ' + TIERS[s.pick] : 'Review change to ' + TIERS[s.pick];
+
+    // Contacts: display names show above emails (your_name.rs:88 person_lines)
+    const people = L.empty ? [] : [
+      { name: 'Jordan Lee', email: 'jordan@example.test', role: 'Keyholder' },
+      { name: '', email: 'morgan.with-a-long-household-recovery-address@family-office.example.test', role: 'Owner' },
+      { name: 'Casey', email: 'casey@example.test', role: 'Observer' }
+    ];
+    const contacts = people.map((c) => ({ top: c.name || c.email, email: c.email, hasEmail: !!c.name, role: c.role, editAria: 'Edit ' + (c.name || c.email), open: () => go({ cv: 'detail' }) }));
 
     const removed = s.removed || [];
     const devices = [
-      { id: 'mac', name: 'This Mac', plat: 'macOS', current: true },
-      { id: 'win', name: 'Windows laptop', plat: 'Windows', current: false },
-      { id: 'lin', name: 'Linux desktop', plat: 'Linux', current: false }
+      { id: 'mac', name: 'Alex\u2019s MacBook (macOS)', current: true },
+      { id: 'win', name: 'Home PC (Windows)', current: false },
+      { id: 'lin', name: 'Unknown Device', current: false }
     ].filter((d) => removed.indexOf(d.id) < 0).map((d) => {
       const reviewing = s.review === 'dev:' + d.id;
       return Object.assign(d, {
-        meta: d.plat + ' · Last activity [DATE]',
-        canRemove: !d.current, reviewing, expanded: String(reviewing),
+        meta: 'Last activity [DATE] [TIME]', canRemove: !d.current, reviewing, expanded: String(reviewing),
         removeAria: 'Remove ' + d.name, reviewAria: 'Review removing ' + d.name,
-        ask: () => go({ review: 'dev:' + d.id }),
-        confirm: () => go({ removed: removed.concat([d.id]) })
+        ask: () => go({ review: 'dev:' + d.id }), confirm: () => go({ removed: removed.concat([d.id]) })
       });
     });
-    const NAMES = { win: 'Windows laptop', lin: 'Linux desktop' };
-    const removedNote = removed.map((id) => NAMES[id]).join(', ') + (removed.length === 1 ? ' was removed. It signs' : ' were removed. They sign') + ' out on next contact.';
+    const login = (k, result, dev) => ({ tone: T[k], icon: I[k], result, dev, when: '[DATE] [TIME]' });
+    const logins = [login('ok', 'Successful', '203.0.113.24 - Alex\u2019s MacBook (macOS)'), login('bad', 'Failed', '198.51.100.7 - Home PC (Windows)'), login('ok', 'Successful', '203.0.113.24 - Alex\u2019s iPhone (iOS)')];
 
-    const login = (k, result, dev) => ({ tone: T[k], icon: I[k], result, dev, when: '[DATE] [TIME] [TZ]' });
-    const logins = [login('ok', 'Successful', 'This Mac'), login('bad', 'Failed', 'Unrecognised device · wrong code'), login('ok', 'Successful', 'Windows laptop')];
-
-    const rec = (name, net, coinCls, tag, edge, kit, kk, alerts, ak) => ({
-      name, net, coinCls, tag, edge, hasTag: !!tag, isB2b: edge === 'b2b', notB2b: edge !== 'b2b',
-      kit, kTone: T[kk], kIcon: I[kk], alerts, aTone: T[ak], aIcon: I[ak],
-      openAria: 'Open ' + name + ' to manage recovery services'
-    });
+    const rec = (name, net, coinCls, edge, kit, kk, alerts, ak) => ({ name, net, coinCls, edge, isB2b: edge === 'b2b', notB2b: edge !== 'b2b', kit, kTone: T[kk], kIcon: I[kk], alerts, aTone: T[ak], aIcon: I[ak] });
+    const alertsWord = tier === 'free' || tier === 'pro' || tier === 'estate' ? 'Included in plan' : 'Unknown';
     const recovery = [
-      rec('Everyday', 'Bitcoin mainnet', '', '', 'btc', 'Not confirmed', 'warn', 'Eligible · verified', 'ok'),
-      rec('Blake workspace', 'Bitcoin', '', 'Blake2b', 'b2b', 'Not set up', 'off', 'Unknown', 'unk'),
-      rec('Lab', 'Bitcoin', 'tn', 'Testnet4', 'test', 'Unknown · locked', 'unk', 'Unknown', 'unk'),
-      rec('Archive', 'Bitcoin mainnet', '', '', 'btc', 'Confirmed [DATE]', 'ok', 'Not applicable · no Vault', 'off')
+      rec('Everyday', 'Bitcoin mainnet', '', 'btc', 'Reported', 'ok', alertsWord, 'ok'),
+      rec('Blake workspace', 'Bitcoin Blake2b mainnet', '', 'b2b', 'Not reported', 'unk', alertsWord, 'ok'),
+      rec('Lab', 'Bitcoin Testnet4', 'tn', 'test', 'Not reported', 'unk', 'Unknown', 'unk'),
+      rec('Archive', 'Bitcoin mainnet', '', 'btc', 'Reported', 'ok', alertsWord, 'ok')
     ].filter((r) => B2B || r.edge !== 'b2b');
 
-    const planCancelled = (P.planState ?? 'active') === 'cancelled';
-    const acctState = signedIn ? 'Signed in' : signedOut ? '' : acct === 'loading' ? 'Checking…' : 'Not reachable';
     const EMAIL = 'alex@example.test';
+    const unv = acct === 'offline'
+      ? { title: 'No internet connection', line: 'You\u2019re still signed in. COINCUBE Desktop checks your Connect session again when you\u2019re back online. Connect-only Cubes can be restored then.' }
+      : { title: 'Can\u2019t reach COINCUBE | Connect', line: 'You\u2019re still signed in. COINCUBE Desktop keeps trying. Connect-only Cubes can be restored once it\u2019s back.' };
     return {
-      themeClass: this.props.forceTheme ? (this.props.forceTheme === 'light' ? 'light' : '') : ((THEME === 'light' || (THEME !== 'dark' && !dark)) ? 'light' : ''),
+      themeClass: this.props.forceTheme ? (this.props.forceTheme === 'light' ? 'light' : '') : ((THEME === 'light' || (THEME !== 'dark' && L.theme === 'light')) ? 'light' : ''),
       motionClass: P.reducedMotion ? 'reduced' : '',
-      okPath: I.ok, offPath: I.off,
-      // Hide balances is the one top-bar toggle (device-wide); theme lives in App preferences and follows the lever here
-      hidePressed: String(!!s.hide),
-      hideTitle: s.hide ? 'Balances hidden on this device' : 'Hide balances on this device',
-      eyePath: s.hide ? I.eye + 'M4 4l16 16' : I.eye,
-      toggleHide: () => go({ hide: !s.hide }),
-      acctCls: signedOut ? 'out' : '',
-      acctWho: signedOut ? 'Sign in' : EMAIL,
-      hasAcctState: !signedOut, acctOut: signedOut, acctStCls: signedIn ? 'ok' : acct === 'loading' ? 'out' : 'warn',
-      acctState,
-      acctAria: signedOut ? 'Connect, sign in' : 'Connect, ' + EMAIL + ', ' + acctState.toLowerCase(),
-      headTitle: signedOut ? 'Connect' : 'Connect account',
+      okPath: I.ok, offPath: I.off, warnPath: I.warn,
+      ccIn: !signedOut, ccOut: signedOut,
+      headTitle: signedOut || acct === 'checking' ? 'Connect' : 'Connect account',
       headWho: signedOut ? '' : EMAIL,
       floorCubes, sections, inCube: IN_CUBE, atLauncher: !IN_CUBE, closeHref: IN_CUBE ? 'P-Overview.dc.html' : 'P-Launcher.dc.html', backTitle: IN_CUBE ? 'Back to the Cube' : 'Back to the Launcher', secLabel: sec,
-      isLoading: acct === 'loading',
-      isError: acct === 'error',
-      skelRows: [70, 52, 64, 44, 58].map((w) => ({ a: 'width:' + w + '%;margin-bottom:8px', b: 'width:' + (w - 20) + '%;opacity:.6' })),
+      isLoading: acct === 'checking',
+      isUnverified: acct === 'offline' || acct === 'unreachable', unv,
+      isError: acct === 'error' && !s.change,
       retry: () => go({ acct: 'signedIn' }),
       outGate: signedOut && sec !== 'Account',
-      // signed out: Account shows what Connect provides; Sign in / Create account link to the sign-in screen
       showAuth: signedOut && sec === 'Account',
-      showAccount: on('Account'),
+      removedByConnect: acct === 'removedByConnect', notNow: () => go({ acct: 'signedOut' }),
+      showAccount: on('Account'), nameShown: nameKnown,
+      // the signed-in person's initials: the saved name when there is one, else the email
+      acctIni: this._pi(display, 'alex@example.test'),
       provides,
-      signOutReview: s.review === 'signout',
-      noSignOutReview: s.review !== 'signout',
+      nameValue: s.name || '', onName: (e) => go({ name: e && e.target ? e.target.value : s.name, nameMsg: '' }), saveName, saveLabel: 'Save',
+      nameOk: nm.indexOf('ok:') === 0, nameBad: nm.indexOf('bad:') === 0, nameMsg: nm.slice(nm.indexOf(':') + 1),
+      signOutReview: s.review === 'signout', noSignOutReview: s.review !== 'signout',
       askSignOut: () => go({ review: 'signout' }),
       signOut: () => go({ acct: 'signedOut', section: 'Account' }),
       cancelReview: () => go({}),
-      showPlan: on('Plan & billing'),
-      planReview: s.review === 'plan',
-      noPlanReview: s.review !== 'plan',
-      askPlan: () => go({ review: 'plan' }),
-      planCancelled,
-      planDateLine: planCancelled ? 'Access until [RENEWAL DATE]' : 'Renews [RENEWAL DATE]',
-      planBtn: planCancelled ? 'Resubscribe…' : 'Change plan…',
-      entitlements, billing,
-      showContacts: on('Contacts'),
+      showPlan: on('Plan & billing') && !s.change && s.co === 'none',
+      showChange: on('Plan & billing') && !!s.change && s.co === 'none',
+      renewalBanner, renewNow: () => go({ co: 'review', coTier: tier, coCycle: 'annual', change: false }), remindLater: () => go({ renewOff: true }),
+      expiredTitle: ps0 === 'expiredNoDate' ? 'Plan expired' : 'Plan expired on [DATE]', purchasingPaused: !buyOpen,
+      co, cd, toReview: () => { if (s.pick !== 'free') go({ co: 'review', coTier: s.pick, coCycle: s.cycle, change: false }); },
+      planName: TIERS[tier], planDateLine, planStatus, planTone: T[pk], planIcon: I[pk],
+      planCancelled: tier !== 'free' && ps === 'cancelled', planExpired: tier !== 'free' && ps === 'expired',
+      planBtn: ps === 'cancelled' && tier !== 'free' ? 'Resubscribe\u2026' : 'Change plan\u2026',
+      openChange: () => go({ change: true }), closeChange: () => go({ change: false }),
+      promoOpen: !!s.promo, promoLink: s.promo ? 'Hide code' : 'Have a promo or referral code?', togglePromo: () => go({ promo: !s.promo }),
+      entitlements, billing, hasBilling: billing.length > 0, noBilling: billing.length === 0,
+      changeLead: tier === 'free' ? 'You\u2019re on Free. Nothing is charged until you confirm the amount on the next screen.' : 'You\u2019re on ' + TIERS[tier] + ' \u00b7 Annual, paid through [DATE]. Nothing is charged until you confirm the amount on the next screen.',
+      cyc: { m: String(!annual), a: String(annual), setM: () => go({ change: true, cycle: 'monthly' }), setA: () => go({ change: true, cycle: 'annual' }), note: annual ? 'Paid once a year, upfront.' : 'Paid each month, upfront. No auto-renewal.' },
+      plans, changeCta, ctaOff: false,
+      showContacts: on('Contacts') && s.cv === 'list', inv,
       contacts, hasContacts: contacts.length > 0, noContacts: contacts.length === 0,
-      toggleEmpty: () => go({ emptyContacts: !s.emptyContacts }),
-      emptyToggleLabel: s.emptyContacts ? 'Prototype: show contacts' : 'Prototype: show empty state',
       showDevices: on('Devices & security'),
-      devices, hasRemovedNote: removed.length > 0, removedNote,
-      logins, loginSummary: '2 successful · 1 failed',
+      tfa: s.tfa
+        ? { on: true, word: 'On', tone: T.ok, btn: 'Turn off\u2026', detail: 'Asked for after the email code, each time you sign in.', toggle: () => go({ tfa: false }) }
+        : { on: false, word: 'Off', tone: T.off, btn: 'Turn on\u2026', detail: 'Adds a second step after the email code. Stops someone who can read your email from signing in as you.', toggle: () => go({ tfa: true }) },
+      devices, logins, loginSummary: '2 successful \u00b7 1 failed',
+      listsLoading: L.ld, listsReady: !L.ld,
       showRecovery: on('Recovery services'),
       recovery
     };

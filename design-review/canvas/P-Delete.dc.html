@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 .tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff}
@@ -17,7 +17,7 @@ body{margin:0}
 .tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
 .tenshu.reduced *{animation:none!important;transition:none!important}
-a{color:#f3821d}a:hover{color:#ffa54d}
+a{color:#f3821d}a:hover{color:#ff9a3f}
 
 /* scene tokens copied from V3-Launcher-Connect (static floor) */
 .tenshu{--floor:#1b1c1a;--floor-rule:#2b2c29;--face-t:#41423e;--face-l:#2e2f2c;--face-r:#262724;--edge-btc:rgba(243,130,29,.6);--edge-b2b:rgba(212,166,42,.6);--edge-test:rgba(185,187,181,.6);--shadow:rgba(0,0,0,.6);--on-accent:#1a1208;--scrim:rgba(10,10,9,.55);font-variant-numeric:tabular-nums}
@@ -128,6 +128,61 @@ a.tbx-chip{color:var(--ink)}
 .tbx-st{display:inline-flex;align-items:center;gap:5px}
 .tbx-st.ok{color:var(--good)}.tbx-st.out{color:var(--muted)}.tbx-st.warn{color:var(--warn)}
 .tbx-mini{font-weight:600;color:var(--acc-ink,var(--accent))}
+
+/* Closer to Mobile V3 (Robert, 2026-11-25): one-colour wordmark; boxes have no outline; regions keep a quiet dividing line (ink at 10%, as Mobile); menu rows at medium weight; controls keep their outlines. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom-color:var(--rule)}
+.tenshu .foot{border-top-color:var(--rule)}
+.tenshu .dlg{border:0}
+
+/* V3 (2026-11-26): delete-from-Connect modal parts; Launcher Connect control */
+.cons{margin:14px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.callout{margin-top:16px;padding:12px 14px;border-radius:8px;background:color-mix(in srgb,var(--warn) 10%,transparent)}
+.callout b{font-weight:600}
+.callout p{margin:2px 0 0!important;font-size:13px;color:var(--muted)}
+.tname{display:block;margin-top:6px;width:100%;height:38px;box-sizing:border-box;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.dlg .err{justify-content:flex-start;margin-top:12px;font-size:13px}
+.tenshu .chip.cc{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;color:var(--ink);white-space:nowrap}
+.tenshu .chip.cc b{font-weight:600}
+.tenshu .ccav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.tenshu .ccav svg{width:16px;height:16px;color:var(--muted)}
+.tenshu .ccav .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--rail)}
+.tenshu .ccsep,.tenshu .ccd{color:var(--muted)}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
 </style>
 </helmet>
 <div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:900px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
@@ -135,13 +190,13 @@ a.tbx-chip{color:var(--ink)}
   <header class="top" aria-hidden="{{ modalOpen }}">
     <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg>
-      <span>Tenshu</span>
+      <span><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;letter-spacing:.08em;color:var(--ink)">COINCUBE</span></span>
     </a>
     <span class="vsep"></span>
-    <span class="chip on">All networks</span><span class="chip">Live chains</span><span class="chip">Test networks</span><span class="chip">Network ▾</span>
-    <span class="count">4 Cubes</span>
+    <span class="chip">All networks <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10l5 5 5-5"></path></svg></span>
+    <span class="count">4 Cubes · 1 in Connect only</span>
     <span class="grow"></span>
-    <div class="tbx-r"><span class="tbx-chip"><svg class="pi" aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span class="tbx-st ok"><svg aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Signed in</span></span><span class="tbx-ico" aria-label="App preferences" data-tip="App preferences"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></span></div>
+    <div class="tbx-r"><span class="chip cc"><span class="ccav"><svg aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><i class="lt"></i></span><b>Connect</b><span class="ccsep" aria-hidden="true">·</span><span class="ccd">alex@example.test</span></span><span class="tbx-ico" aria-label="App preferences" data-tip="App preferences"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></span></div>
   </header>
 
   <main class="stage">
@@ -184,7 +239,7 @@ a.tbx-chip{color:var(--ink)}
         <section class="dlg" role="dialog" aria-modal="true" aria-labelledby="del-t">
           <h2 id="del-t">Delete Cube "{{ cube.name }}"</h2>
           <p>{{ cube.ask }}</p>
-          <sc-if value="{{ cube.hasNode }}" hint-placeholder-val="{{ true }}"><p class="sec2">(The Tenshu-managed Bitcoin node for this network will not be affected by this action.)</p></sc-if>
+          <sc-if value="{{ cube.hasNode }}" hint-placeholder-val="{{ true }}"><p class="sec2">(The COINCUBE-managed Bitcoin node for this network will not be affected by this action.)</p></sc-if>
           <p class="warnw">WARNING: This cannot be undone.</p>
 
           <label class="ck">
@@ -213,6 +268,7 @@ a.tbx-chip{color:var(--ink)}
             </p>
           </sc-if>
 
+          <sc-if value="{{ v.locking }}" hint-placeholder-val="{{ false }}"><p class="sec2" role="status">Finishing locking this Cube before deleting it…</p></sc-if>
           <sc-if value="{{ v.notDeleted }}" hint-placeholder-val="{{ true }}">
             <div class="acts">
               <button type="button" class="btn w120" onClick="{{ close }}">Cancel</button>
@@ -228,28 +284,28 @@ a.tbx-chip{color:var(--ink)}
         </section>
       </sc-if>
 
-      <!-- REMOTE: home.rs DeleteRemoteCubeModal -->
+      <!-- REMOTE (a Cube only in Connect): home.rs delete-from-Connect modal -->
       <sc-if value="{{ v.remote }}" hint-placeholder-val="{{ false }}">
         <section class="dlg" role="dialog" aria-modal="true" aria-labelledby="rdel-t" aria-busy="{{ busyAttr }}">
-          <h2 id="rdel-t">Delete Remote Cube "Household 2024"</h2>
-          <p>This Cube exists on the Connect server but not on this device. Deleting it will permanently remove it and free a Cube slot.</p>
-          <p class="warnw">WARNING: This cannot be undone.</p>
-          <p class="sec2">If another device still has this Cube locally, it will re-sync to Connect the next time it opens, consuming a Cube slot again. To permanently free the slot, delete the Cube on all devices.</p>
+          <h2 id="rdel-t">Delete “Old laptop” from Connect?</h2>
+          <p class="sec2">Bitcoin mainnet · No Recovery Kit in Connect</p>
+          <ul class="cons">
+            <li>Its Cube slot is freed</li>
+            <li>You can’t restore it from Connect anymore</li>
+            <li>Its members, Lightning address and Vault monitoring end</li>
+          </ul>
+          <p class="sec2">It’s only in your Connect account, not on this device. This can’t be undone.</p>
+          <p class="sec2">On another device too? Delete it there, or it registers again and takes the slot back.</p>
+          <div class="callout"><div><b>Is Connect its only backup?</b><p>Without its recovery phrase or another device, any funds in this Cube will be lost.</p></div></div>
+          <label class="pinlbl" for="rdel-name">Type Old laptop to confirm</label>
+          <input id="rdel-name" class="tname" type="text" autocomplete="off" value="{{ typed }}" onInput="{{ setTyped }}">
           <sc-if value="{{ v.remoteErr }}" hint-placeholder-val="{{ false }}">
-            <p class="note" role="alert">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5 21.5 20h-19z"></path><path d="M12 10v4.5M12 17.2v.01"></path></svg>
-              <span>{{ remoteErr }}</span>
-            </p>
+            <p class="err" role="alert"><b>{{ remoteErr }}</b> {{ remoteErrDetail }}</p>
           </sc-if>
-          <sc-if value="{{ v.deleting }}" hint-placeholder-val="{{ false }}">
-            <p class="acts busy" role="status">Deleting...</p>
-          </sc-if>
-          <sc-if value="{{ v.notDeleting }}" hint-placeholder-val="{{ true }}">
-            <div class="acts">
-              <button type="button" class="btn w120 demo-focus" onClick="{{ close }}">Cancel</button>
-              <button type="button" class="btn danger w250" onClick="{{ confirmRemote }}">Delete Remote Cube</button>
-            </div>
-          </sc-if>
+          <div class="acts">
+            <button type="button" class="btn w120" disabled="{{ v.deleting }}" onClick="{{ close }}">Cancel</button>
+            <button type="button" class="btn danger w200" disabled="{{ remoteOff }}" onClick="{{ confirmRemote }}">{{ remoteLabel }}</button>
+          </div>
         </section>
       </sc-if>
     </sc-if>
@@ -257,12 +313,12 @@ a.tbx-chip{color:var(--ink)}
 
   <div class="bbar" aria-hidden="true">
     <span class="btn primary">Create Cube</span>
-    <span class="btn">Import or restore a Cube</span>
+    <span class="btn">Import or restore Bitcoin wallet</span>
   </div>
   <div class="foot">{{ foot }}</div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["confirm","backupChecked","noVault","wrongPin","deleted","remote","remoteDeleting","remoteNotFound","remoteSignedOut"],"default":"confirm","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":900}}'>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["confirm","backupChecked","noVault","wrongPin","locking","deleted","remote","remoteDeleting","remoteNotFound","remoteSignedOut"],"default":"confirm","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
   constructor(p) { super(p); try { const bump = () => { try { this.setState({ protoTick: Date.now() }); } catch (e) {} }; window.addEventListener('tenshu-proto', bump); window.addEventListener('storage', bump); } catch (e) {} this.state = { lv: null }; }
   renderVals() {
@@ -280,7 +336,7 @@ class Component extends DCLogic {
     const remote = st.indexOf('remote') === 0;
 
     const VAULT = 'M12 3l7 3v5.5c0 4.3-3 7.6-7 9.5-4-1.9-7-5.2-7-9.5V6z';
-    const BOLT = 'M13 3L5 13.5h6L10 21l8-10.5h-6z';
+    const BOLT = 'M12 3.3v17.4M4.5 7.65l15 8.7M4.5 16.35l15-8.7';
     const floorCubes = [
       { name: 'Everyday', edge: 'btc', coinCls: '', tag: '', walletPath: VAULT },
       { name: 'Blake workspace', edge: 'b2b', coinCls: '', tag: 'Blake2b', walletPath: VAULT },
@@ -289,7 +345,7 @@ class Component extends DCLogic {
     ].map((c) => Object.assign(c, { hasTag: !!c.tag, isB2b: c.edge === 'b2b', notB2b: c.edge !== 'b2b' }));
 
     // home.rs DeleteCubeModal::view: a Cube with a local Vault (no shared remote backend) names "all its associated data (including Vault)";
-    // a Tenshu-managed node adds the node note; a Cube without a Vault gets the short question and no node note
+    // a COINCUBE-managed node adds the node note; a Cube without a Vault gets the short question and no node note
     const noVault = st === 'noVault';
     const cube = noVault
       ? { name: 'Archive', ask: 'Are you sure you want to delete the Cube "Archive"?', hasNode: false }
@@ -309,10 +365,13 @@ class Component extends DCLogic {
     const EYE_SHUT = 'M9.9 5.8A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.6 3.4M6.4 7.4C3.9 9.1 2.5 12 2.5 12S6 18.5 12 18.5c1.8 0 3.3-.5 4.6-1.2M9.9 9.9a3 3 0 0 0 4.2 4.2M4 4l16 16';
 
     const REMOTE_ERR = { remoteNotFound: 'Cube not found on server', remoteSignedOut: 'Not authenticated with Connect' };
+    const REMOTE_DETAIL = { remoteNotFound: 'It\u2019s already gone from Connect. Another device may have deleted it.', remoteSignedOut: 'You\u2019re signed out of Connect. Sign in again, then delete. Nothing was deleted.' };
+    const typed = s.typed !== undefined ? s.typed : (remote && st !== 'remote' ? 'Old laptop' : '');
     const deleting = st === 'remoteDeleting';
     const FOOT = {
       deleted: 'Prototype · synthetic data · the app closes this dialog and reloads the Cube list right after deleting',
-      remoteDeleting: 'Prototype · synthetic data · while deleting, clicking outside does not close the dialog'
+      remoteDeleting: 'Prototype · synthetic data · while deleting, clicking outside does not close the dialog',
+      remote: 'Prototype · synthetic data · a Cube only in Connect (a ghost on the Launcher): Delete from Connect…'
     };
 
     return {
@@ -326,12 +385,14 @@ class Component extends DCLogic {
         closed: s.closed, open: !s.closed,
         local: !remote, remote,
         wrongPin: st === 'wrongPin',
-        deleted: st === 'deleted', notDeleted: st !== 'deleted',
+        deleted: st === 'deleted', notDeleted: st !== 'deleted' && st !== 'locking', locking: st === 'locking',
         deleting, notDeleting: !deleting,
         remoteErr: !!REMOTE_ERR[st]
       },
       busyAttr: deleting ? 'true' : 'false',
-      remoteErr: REMOTE_ERR[st] || '',
+      remoteErr: REMOTE_ERR[st] || '', remoteErrDetail: REMOTE_DETAIL[st] || '',
+      typed, setTyped: (e) => go({ typed: e && e.target ? String(e.target.value) : '' }),
+      remoteOff: deleting || typed !== 'Old laptop', remoteLabel: deleting ? 'Deleting\u2026' : 'Delete from Connect',
       digits,
       pinType: s.show ? 'text' : 'password',
       pinInvalid: st === 'wrongPin' ? 'true' : 'false',
@@ -346,7 +407,7 @@ class Component extends DCLogic {
       close: () => { if (!deleting) go({ closed: true }); },
       reopen: () => go({ closed: false }),
       closedText: st === 'deleted' ? cube.name + ' is no longer on this device.' : 'Nothing was deleted.',
-      foot: FOOT[st] || 'Prototype · synthetic data · dialog copy quoted from the app; Cancel is added (the app closes on an outside click only)'
+      foot: FOOT[st] || 'Prototype · synthetic data · Launcher modal from a Cube\u2019s Delete… (not in Settings); copy quoted from the app'
     };
   }
 }

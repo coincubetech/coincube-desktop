@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Type scale · Overview today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>body{margin:0}</style>
+</helmet>
+<div style="width:1440px;height:900px;overflow:hidden">
+  <dc-import name="MV-Overview-After" hint-size="1440px,900px"></dc-import>
+</div>
+<script type="text/x-dc" data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  constructor(p){super(p);this.state={};}
+  renderVals() {
+    // Mounts MV-Overview-After unchanged, as the 'today' half of the type scale pair.
+    return {};
+  }
+}
+</script>
+</x-dc>
+</body>
+</html>

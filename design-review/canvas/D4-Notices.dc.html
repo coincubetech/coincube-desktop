@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>D4 · standing notices (dark theme)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--acc-ink:#f59a45;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff;--orange:#f3821d;--red:#e5533d;--blue:#7dd3fc}
+.tenshu.light{--bg:#faf9f6;--panel:#ffffff;--rail:#ede8e0;--ink:#202020;--muted:#575a54;--line:#c4beb4;--acc-ink:#a14d00;--good:#23613b;--warn:#77450b;--bad:#8f2e1d;--focus:#1d5fb8}
+.tenshu{width:1440px;min-height:860px;box-sizing:border-box;padding:40px 48px;background:var(--bg);color:var(--ink);font:14px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+h1{font-size:26px;font-weight:600;margin:0 0 4px} .lead{color:var(--muted);margin:0 0 28px;max-width:980px}
+h3{font-size:14px;font-weight:600;margin:0 0 2px} .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px;min-height:36px}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.nt{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:12px;background:var(--panel);border:1px solid transparent}
+.nt.t-warn{--tone:var(--warn)} .nt.t-bad{--tone:var(--bad)} .nt.t-info{--tone:var(--focus)} .nt.t-good{--tone:var(--good)}
+.nt .ti{width:28px;height:28px;flex:none;display:grid;place-items:center;border-radius:8px;background:color-mix(in srgb,var(--tone) 16%,transparent);color:var(--tone)}
+.nt .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px} .nt .tt{font-weight:500} .nt .ds{color:var(--muted);font-size:13px}
+.ref{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px;margin-left:6px;opacity:.85}
+.na{flex:none;align-self:center;height:32px;padding:0 14px;border:1px solid var(--ink);border-radius:8px;background:transparent;color:var(--ink);font:inherit;font-size:13px;font-weight:500}
+.nt.v-edge:is(.t-warn,.t-bad){border-color:color-mix(in srgb,var(--tone) 40%,transparent)}
+.nt.v-tint:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.old-warn{background:var(--orange);color:#1a1208;padding:12px 16px;display:flex;flex-direction:column;gap:2px} .old-warn span{font-size:13px}
+.old-err{border:1px solid var(--red);border-radius:25px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.old-err .h{display:flex;gap:8px;align-items:center;color:var(--bad)} .old-err span{font-size:13px} .old-err .r{color:var(--muted);font-size:12px}
+.old-btn{height:32px;padding:0 16px;border:0;border-radius:16px;background:var(--orange);color:#1a1208;font:inherit;font-size:13px}
+.old-card{border:1px solid var(--line);border-radius:25px;padding:16px 18px;display:flex;flex-direction:column;gap:2px} .old-card span{font-size:13px;color:var(--muted)}
+.vd{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.pair{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;margin-top:40px;padding-top:28px;border-top:1px solid color-mix(in srgb,var(--ink) 10%,transparent)}
+.mini h3{margin-bottom:12px}
+.side{background:var(--rail);padding:12px 8px;border-radius:8px}
+.old-bk{display:flex;align-items:center;gap:8px;padding:9px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--warn);font-size:12.5px;font-weight:500} .old-bk b{margin-left:auto;color:var(--acc-ink)}
+.new-bk{display:flex;align-items:center;gap:8px;padding:6px 8px;font-size:13px;font-weight:500} .new-bk i{width:7px;height:7px;border-radius:50%;background:var(--warn)} .new-bk b{margin-left:auto;color:var(--acc-ink)}
+.bar-old{background:var(--blue);color:#111;font-size:11.5px;padding:6px;text-align:center}
+.top{display:flex;align-items:center;gap:12px;background:var(--bg);border-bottom:1px solid color-mix(in srgb,var(--ink) 10%,transparent);padding:10px 4px}
+.brand{display:inline-flex;align-items:center;gap:8px} .brand b{font-family:'Space Grotesk',sans-serif;font-size:15px;letter-spacing:.08em}
+.tnet{display:inline-flex;align-items:center;gap:8px;height:24px;padding:0 10px 0 8px;border-radius:6px;background:color-mix(in srgb,var(--ink) 8%,transparent);font-size:12px;color:var(--muted);white-space:nowrap}
+.tnet b{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--ink)}
+.toast{display:flex;gap:12px;align-items:flex-start;padding:10px 8px 10px 12px;background:var(--panel);border:1px solid color-mix(in srgb,var(--bad) 40%,transparent);border-radius:12px;font-size:13px}
+.toast .ti{--tone:var(--bad);width:28px;height:28px;flex:none;display:grid;place-items:center;border-radius:6px;background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad)} .toast .x{color:var(--muted)}
+</style>
+</helmet>
+<div class="tenshu">
+<h1>D4 · standing notices: today, as drawn, and two louder options</h1>
+<p class="lead">A notice stays on the page until its cause clears (a toast leaves after 8 seconds). Columns B to D share the toast's anatomy: icon tile, title, one line, one action. They differ only in how loud a warning or an error is. Info and success stay plain in every option. Sample wording.</p>
+<div class="cols"><section class="col"><h3>A · Today, in the app</h3><p class="sub">Three of the app’s five notice styles: orange block, red-outlined card, outlined card. Radius 25.</p><div class="stack"><div class="old-warn"><b>Spark is reconnecting</b><span>Balances may be out of date. Payments resume when the connection returns.</span></div>
+<div class="old-err"><div class="h"><svg class="ic" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg><b>Couldn't load Vault activity</b></div><span>Check your connection, then try again.</span><button type="button" class="old-btn">Retry</button><span class="r">Ref: 7F3K-21QD</span></div>
+<div class="old-card"><b>Vault is syncing</b><span>History appears as blocks are checked. You can still receive.</span></div></div></section><section class="col"><h3>B · Proposed, as drawn</h3><p class="sub">Toast anatomy. Neutral panel; the tone lives only in the icon tile.</p><div class="stack"><div class="nt v-plain t-warn"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg></span><span class="tx"><span class="tt">Spark is reconnecting</span><span class="ds">Balances may be out of date. Payments resume when the connection returns.</span></span></div>
+<div class="nt v-plain t-bad"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.75v4M9 12.25v.01"/></svg></span><span class="tx"><span class="tt">Couldn't load Vault activity</span><span class="ds">Check your connection, then try again.<span class="ref">Ref 7F3K-21QD</span></span></span><button type="button" class="na">Retry</button></div>
+<div class="nt v-plain t-info"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 8.25v4M9 5.75v.01"/></svg></span><span class="tx"><span class="tt">Vault is syncing</span><span class="ds">History appears as blocks are checked. You can still receive.</span></span></div>
+<div class="nt v-plain t-good"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6 9.2 2 2 4-4.2"/></svg></span><span class="tx"><span class="tt">Recovery Kit saved</span><span class="ds">Your encrypted backup is stored on your Connect account.</span></span><button type="button" class="na">View</button></div></div></section><section class="col"><h3>C · With a faint edge</h3><p class="sub">As B, plus a 1 px edge in the tone at 40%, like error toasts today. Warning and error only.</p><div class="stack"><div class="nt v-edge t-warn"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg></span><span class="tx"><span class="tt">Spark is reconnecting</span><span class="ds">Balances may be out of date. Payments resume when the connection returns.</span></span></div>
+<div class="nt v-edge t-bad"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.75v4M9 12.25v.01"/></svg></span><span class="tx"><span class="tt">Couldn't load Vault activity</span><span class="ds">Check your connection, then try again.<span class="ref">Ref 7F3K-21QD</span></span></span><button type="button" class="na">Retry</button></div>
+<div class="nt v-edge t-info"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 8.25v4M9 5.75v.01"/></svg></span><span class="tx"><span class="tt">Vault is syncing</span><span class="ds">History appears as blocks are checked. You can still receive.</span></span></div>
+<div class="nt v-edge t-good"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6 9.2 2 2 4-4.2"/></svg></span><span class="tx"><span class="tt">Recovery Kit saved</span><span class="ds">Your encrypted backup is stored on your Connect account.</span></span><button type="button" class="na">View</button></div></div></section><section class="col"><h3>D · With a tinted fill · chosen (Robert, 27 Nov)</h3><p class="sub">As B, with the panel washed 8% in the tone. Warning and error only. Toasts take the same tint.</p><div class="stack"><div class="nt v-tint t-warn"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg></span><span class="tx"><span class="tt">Spark is reconnecting</span><span class="ds">Balances may be out of date. Payments resume when the connection returns.</span></span></div>
+<div class="nt v-tint t-bad"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.75v4M9 12.25v.01"/></svg></span><span class="tx"><span class="tt">Couldn't load Vault activity</span><span class="ds">Check your connection, then try again.<span class="ref">Ref 7F3K-21QD</span></span></span><button type="button" class="na">Retry</button></div>
+<div class="nt v-tint t-info"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 8.25v4M9 5.75v.01"/></svg></span><span class="tx"><span class="tt">Vault is syncing</span><span class="ds">History appears as blocks are checked. You can still receive.</span></span></div>
+<div class="nt v-tint t-good"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6 9.2 2 2 4-4.2"/></svg></span><span class="tx"><span class="tt">Recovery Kit saved</span><span class="ds">Your encrypted backup is stored on your Connect account.</span></span><button type="button" class="na">View</button></div></div></section></div>
+
+<div class="pair">
+  <section class="mini"><h3>Backup reminder · today</h3><div class="side"><div class="old-bk"><svg class="ic" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg><span>Backup not<br>confirmed</span><b>Review</b></div></div></section>
+  <section class="mini"><h3>Backup reminder · proposed</h3><div class="side"><div class="new-bk"><i></i><span>Backup not confirmed</span><b>Review</b></div></div></section>
+  <section class="mini"><h3>Test network · today</h3><div class="bar-old">THIS IS A REGTEST WALLET, COINS HAVE NO VALUE</div></section>
+  <section class="mini"><h3>Test network · proposed (accepted)</h3><div class="top"><span class="brand"><svg class="ic" viewBox="0 0 24 24" style="width:20px;height:20px;stroke-width:1.5"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><b>COINCUBE</b></span><span class="tnet"><b>REGTEST</b><span>Test coins, no value</span></span></div></section>
+  <section class="mini"><h3>For comparison · an error toast today</h3><div class="toast"><span class="ti"><svg class="ic" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.75v4M9 12.25v.01"/></svg></span><span class="tx">Payment failed — Check the invoice, then try again. (Ref: 9QX2-77AB)</span><span class="x">×</span></div></section>
+</div>
+</div>
+<script type="text/x-dc" data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  constructor(p){super(p);this.state={};}
+  renderVals() { return {}; }
+}
+</script>
+</x-dc>
+</body>
+</html>

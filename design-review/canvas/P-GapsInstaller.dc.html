@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Installer gaps</title>
+<title>Create Vault</title>
 <script src="./support.js"></script>
 </head>
 <body>
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 .tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff}
@@ -17,7 +17,7 @@ body{margin:0}
 .tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
 .tenshu.reduced *{animation:none!important;transition:none!important}
-a{color:#f3821d}a:hover{color:#ffa54d}
+a{color:#f3821d}a:hover{color:#ff9a3f}
 
 .tenshu{--on-accent:#1a1208;--accent-ink:#f3821d;--hover:rgba(245,240,232,.06);font-variant-numeric:tabular-nums}
 .tenshu.light{--accent-ink:#8a4304;--hover:rgba(32,32,32,.05)}
@@ -66,7 +66,7 @@ a.tbtn,a.tbtn:hover{color:var(--ink)}
 .steps li.done .n{border-color:var(--good)}
 .steps .rule{width:14px;height:1px;background:var(--line)}
 .body{flex:1;min-height:0;overflow-y:auto;padding:28px;position:relative}
-.body h2{font-size:22px;font-weight:600;line-height:1.3}
+.body h2{font-size:26px;font-weight:600;line-height:1.3}
 .lead{margin:6px 0 0;font-size:14px;color:var(--muted);max-width:640px}
 .rfoot{flex:none;display:flex;align-items:center;gap:12px;padding:14px 28px;border-top:1px solid var(--line)}
 
@@ -76,7 +76,7 @@ a.tbtn,a.tbtn:hover{color:var(--ink)}
 .btn:hover{border-color:var(--muted)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .tenshu a.btn.primary{color:var(--on-accent)}
-.btn.primary:hover{background:#ffa54d;border-color:#ffa54d}
+.btn.primary:hover{background:#ff9a3f;border-color:#ff9a3f}
 .btn.sm{height:30px;padding:0 12px;font-size:13px}
 .btn:disabled{opacity:.55;cursor:default}
 .linkbtn{border:0;background:none;padding:2px 0;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px;cursor:pointer;font-size:13px}
@@ -198,382 +198,320 @@ a.tbx-chip{color:var(--ink)}
 .tbx-st{display:inline-flex;align-items:center;gap:5px}
 .tbx-st.ok{color:var(--good)}.tbx-st.out{color:var(--muted)}.tbx-st.warn{color:var(--warn)}
 .tbx-mini{font-weight:600;color:var(--acc-ink,var(--accent))}
+
+/* Closer to Mobile V3 (Robert, 2026-11-25): one-colour wordmark; boxes have no outline; regions keep a quiet dividing line (ink at 10%, as Mobile); menu rows at medium weight; controls keep their outlines. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom-color:var(--rule)}
+.tenshu .foot{border-top-color:var(--rule)}
+.tenshu .region{border:0}
+.tenshu .desc{border:0}
+.tenshu .picker{border:0}
+
+
+/* Create Vault (2026-11-26, from installer/mod.rs create_vault_frame): full window, no shell; heading, voice line, stepper, then the step. Column max 960, padding 40/24 */
+.cv{flex:1;min-height:0;overflow-y:auto;display:flex;justify-content:center;padding:40px 24px 24px;position:relative}
+.cvcol{width:960px;display:flex;flex-direction:column;gap:20px}
+.cvh{font-size:26px;font-weight:600;line-height:1.3}
+.tenshu .voice{font-size:13px;color:var(--muted);margin-top:-12px}
+.stp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px}
+.stp li{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+.stp .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);font-size:12px;font-weight:600}
+.stp li.cur{color:var(--ink);font-weight:600}
+.stp li.cur .n{border-color:var(--accent);background:var(--selected)}
+.stp li.done{color:var(--ink)}
+.stp li.done .n{border-color:var(--good)}
+.stp .rl{width:18px;height:1px;background:var(--rule)}
+.stepw{max-width:800px;display:flex;flex-direction:column;gap:24px}
+.who{font-size:13px;color:var(--muted)}
+.sth{font-size:20px;font-weight:600;line-height:1.3}
+.stc{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.sfoot{display:flex;align-items:center;gap:12px}
+.ctr{text-align:center;color:var(--muted);font-size:13px}
+/* policy cards: secondary buttons, title + line */
+.tpl{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;padding:14px 18px;border:1px solid var(--line);border-radius:8px;background:none;cursor:pointer;text-align:left;color:var(--ink)}
+.tpl:hover{border-color:var(--muted);background:var(--hover)}
+.tpl b{font-weight:600}
+.tpl span{font-size:13px;color:var(--muted)}
+/* policy timeline */
+.tl{border-radius:10px;background:var(--panel);padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.tlh{display:grid;grid-template-columns:240px 1fr 1fr;gap:12px;font-size:12px;color:var(--muted)}
+.tlr{display:grid;grid-template-columns:240px 1fr;gap:12px;align-items:center}
+.tlk{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:8px;background:var(--bg)}
+.tlk .lb{font-size:12px;color:var(--muted)}
+.tlk .bx{display:flex;align-items:center;gap:6px;font-weight:500}
+.kb{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:600;color:#161716}
+.kb.g{background:#8bdfab}.kb.b{background:#8fc1ff}.kb.w{background:#f5f0e8}.kb.y{background:#f3b465}
+.bars{display:flex;gap:6px;height:34px}
+.bar{display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:12px;font-weight:500}
+.bar.can{background:color-mix(in srgb,var(--good) 22%,transparent);color:var(--good)}
+.bar.cant{border:1px solid var(--line);color:var(--muted)}
+.tln{font-size:12px;color:var(--muted)}
+/* Set keys */
+.ksec{display:flex;flex-direction:column;gap:8px}
+.ksec h3{font-size:14px;font-weight:600}
+.kcard{display:flex;align-items:center;gap:12px;min-height:56px;padding:10px 14px;border-radius:8px;background:var(--panel)}
+.kcard .m{flex:1;min-width:0}
+.kcard .m b{display:block;font-weight:500}
+.kcard .m span{font-size:13px;color:var(--muted)}
+.thr{font-size:13px;color:var(--muted)}
+.adv{font-size:13px;font-weight:600}
+/* key source modal */
+.ksgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.ksc{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:16px;border:1px solid var(--line);border-radius:10px;background:none;cursor:pointer;color:var(--ink);text-align:left;text-decoration:none;min-height:150px}
+a.ksc{color:var(--ink)}
+.ksc:hover{border-color:var(--muted);background:var(--hover)}
+.ksc .ic{width:22px;height:22px}
+.ksc b{font-weight:600}
+.ksc span{font-size:12px;color:var(--muted)}
+.ksc.off{opacity:.55;cursor:default}
+.ksc.off:hover{border-color:var(--line);background:none}
+.dlg.wide{width:820px}
+.mhd{display:flex;align-items:center;justify-content:space-between}
+.x{width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:8px;background:none;cursor:pointer;color:var(--muted)}
+/* node cards */
+.ncard{display:flex;flex-direction:column;gap:10px;padding:18px 20px;border-radius:10px;background:var(--panel)}
+.ncard b{font-weight:600}
+.tog{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
+.sw{width:36px;height:20px;border-radius:10px;background:var(--line);position:relative;flex:none;border:0;padding:0;cursor:pointer}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--ink);transition:left .15s}
+.sw[aria-checked="true"]{background:var(--accent)}
+.sw[aria-checked="true"]::after{left:18px;background:var(--on-accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ok2{display:flex;align-items:center;gap:8px;color:var(--good);font-weight:500}
+.cvfoot{height:28px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);border-top:1px solid var(--rule);background:var(--bg)}
+.tenshu .tl,.tenshu .kcard,.tenshu .ncard{border:0}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
 </style>
 </helmet>
 <div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:1100px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
+  <main class="cv">
+    <div class="cvcol">
+      <h1 class="cvh">Create Vault</h1>
+      <p class="voice">Prepare in calm for what may come.</p>
+      <ol class="stp" aria-label="Create Vault steps">
+        <sc-for list="{{ stages }}" as="s" hint-placeholder-count="8">
+          <li class="{{ s.cls }}" aria-current="{{ s.current }}"><span class="n">{{ s.n }}</span><span>{{ s.label }}</span></li>
+          <sc-if value="{{ s.rule }}" hint-placeholder-val="{{ true }}"><li aria-hidden="true"><span class="rl"></span></li></sc-if>
+        </sc-for>
+      </ol>
 
-  <header class="top">
-    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg>
-      <span>Tenshu</span>
-    </a>
-    <span class="vsep"></span>
-    <sc-if value="{{ topBack }}" hint-placeholder-val="{{ true }}">
-      <a class="tbtn" href="P-Launcher.dc.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg><span>Back to Cube list</span></a>
-    </sc-if>
-    <sc-if value="{{ topNet }}" hint-placeholder-val="{{ false }}">
-      <button type="button" class="chip on" aria-pressed="true" aria-haspopup="true" aria-expanded="false"><span>{{ netChip }}</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"></path></svg></button>
-    </sc-if>
-    <span class="grow"></span>
-    <div class="tbx-r"><a class="tbx-chip" href="P-SignIn.dc.html" aria-label="{{ connAria }}" title="{{ connTitle }}"><svg class="pi" aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span class="tbx-st {{ connStCls }}">{{ connWord }}</span></a><a class="tbx-ico" href="P-AppPrefs.dc.html" aria-label="App preferences" data-tip="App preferences"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a></div>
-  </header>
+      <section class="stepw" aria-labelledby="st-h">
+        <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ true }}"><p class="who">Signed in as alex@example.test</p></sc-if>
+        <div>
+          <h2 class="sth" id="st-h">{{ title }}</h2>
+          <div class="stc">
 
-  <main class="stage">
-    <section class="region" aria-labelledby="g-h">
-      <div class="rhead">
-        <span class="ttl">{{ regionTitle }}</span>
-        <span class="vsep"></span>
-        <span class="ident">
-          <span>{{ cubeName }}</span><span aria-hidden="true">·</span>
-          <sc-if value="{{ netB2b }}" hint-placeholder-val="{{ false }}"><img src="/_blob/c39785504daaef5633099a8ae196c784" alt=""></sc-if>
-          <sc-if value="{{ netBtc }}" hint-placeholder-val="{{ true }}"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></sc-if>
-          <span>{{ netName }}</span>
-          <sc-if value="{{ netB2b }}" hint-placeholder-val="{{ false }}"><span class="tb b2b">Blake2b</span></sc-if>
-        </span>
-        <span class="route">{{ route }}</span>
-      </div>
-
-      <sc-if value="{{ hasSteps }}" hint-placeholder-val="{{ true }}">
-        <ol class="steps" aria-label="{{ stepsLabel }}">
-          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="10">
-            <li class="{{ s.cls }}" aria-current="{{ s.current }}"><span class="n">{{ s.n }}</span><span>{{ s.label }}</span></li>
-            <sc-if value="{{ s.hasRule }}" hint-placeholder-val="{{ true }}"><li aria-hidden="true"><span class="rule"></span></li></sc-if>
-          </sc-for>
-        </ol>
-      </sc-if>
-
-      <div class="body" aria-live="polite">
-
-        <!-- ===================== #20 BACK UP DESCRIPTOR ===================== -->
-        <sc-if value="{{ v.backup }}" hint-placeholder-val="{{ false }}">
-          <h2 id="g-h">Back up your wallet configuration (descriptor)</h2>
-          <p class="lead">This backup is required to recover your funds.</p>
-          <p class="copy m">The encrypted file opens only with one of your keys. Copying the text is less private.</p>
-          <p class="lbl" style="margin-top:20px;font-size:13px;font-weight:500">The descriptor:</p>
-          <div class="desc"><span class="mono">[DESCRIPTOR · synthetic, not shown]</span><button type="button" class="btn sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM7 5.5H5.5V21h13V5.5H17"></path></svg>Copy</button></div>
-          <p class="lbl" style="margin-top:20px;font-size:13px;font-weight:500">The wallet policy:</p>
-          <dl class="kv">
-            <sc-for list="{{ policy }}" as="p" hint-placeholder-count="2">
-              <div><dt>{{ p.k }}</dt><dd>{{ p.v }}</dd></div>
+          <!-- 1 Vault: ChooseDescriptorTemplate -->
+          <sc-if value="{{ v.policy }}" hint-placeholder-val="{{ true }}">
+            <p class="ctr">Choose how your Vault can be spent now and recovered after inactivity. Select a policy to see its keys and recovery timing.</p>
+            <sc-for list="{{ templates }}" as="t" hint-placeholder-count="6">
+              <button type="button" class="tpl" onClick="{{ t.pick }}"><b>{{ t.title }}</b><span>{{ t.line }}</span></button>
             </sc-for>
-          </dl>
-          <div class="acts">
-            <button type="button" class="{{ bkBtnCls }}" onClick="{{ doBackup }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"></path></svg>Back Up Descriptor</button>
-            <sc-if value="{{ bkSaved }}" hint-placeholder-val="{{ false }}"><span class="okline" role="status"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M8 12.3l2.8 2.8L16.2 9.6"></path></svg>Saved as an encrypted .bed file</span></sc-if>
-          </div>
-          <p class="warnline" style="margin-top:18px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 19H3zM12 9.5v4M12 16.3v.2"></path></svg>This file does not include your seed phrase(s). Back those up separately.</p>
-          <label class="chk"><input type="checkbox" checked="{{ bkAck }}" onChange="{{ toggleBkAck }}"><span>I have backed up my descriptor</span></label>
-        </sc-if>
-
-        <!-- ===================== #20 REGISTER DESCRIPTOR ===================== -->
-        <sc-if value="{{ v.register }}" hint-placeholder-val="{{ true }}">
-          <h2 id="g-h">Register descriptor</h2>
-          <p class="lead">Only needed if you use a signing device.</p>
-          <sc-if value="{{ regFailed }}" hint-placeholder-val="{{ false }}">
-            <div class="alert" role="alert"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3"></path></svg><div><b>Failed to register descriptor</b><span>[Device error text from source]</span></div></div>
           </sc-if>
-          <p class="h3">Select hardware wallet to register descriptor on:</p>
-          <ul class="rows" aria-label="Signing devices">
-            <sc-for list="{{ regDevices }}" as="d" hint-placeholder-count="4">
-              <li class="r">
-                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16H7zM10 17h4"></path></svg>
-                <span class="m"><b>{{ d.name }}</b><span>{{ d.sub }}</span></span>
-                <span class="s {{ d.tone }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ d.icon }}"></path></svg>{{ d.status }}</span>
-                <sc-if value="{{ d.canRegister }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn sm" onClick="{{ d.register }}">Register</button></sc-if>
-              </li>
-            </sc-for>
-          </ul>
-          <p class="copy m">Registration on a device is not a substitute for backing up the descriptor.</p>
-          <label class="chk"><input type="checkbox" checked="{{ regAck }}" onChange="{{ toggleRegAck }}"><span>I have registered the descriptor on my device(s)</span></label>
-        </sc-if>
 
-        <!-- ===================== #2 CHAIN UNAVAILABLE ===================== -->
-        <sc-if value="{{ v.unavailable }}" hint-placeholder-val="{{ false }}">
-          <h2 id="g-h" class="sr">Network unavailable</h2>
-          <div class="unav" role="status">
-            <h3><img src="/_blob/c39785504daaef5633099a8ae196c784" alt="">Bitcoin Blake2b <span class="tb b2b">Blake2b</span></h3>
-            <p class="copy">Bitcoin Blake2b is turned off on this device. Turn it on in App preferences › Developer to see this network.</p>
-            <div class="acts">
-              <a class="btn" href="P-Launcher.dc.html">Back to Bitcoin</a>
-              <a class="linkbtn" href="P-AppPrefs.dc.html">App preferences</a>
-            </div>
-          </div>
-        </sc-if>
-
-        <!-- ===================== #2 BLAKE2B-ONLY LAUNCHER MODE ===================== -->
-        <sc-if value="{{ v.b2bList }}" hint-placeholder-val="{{ false }}">
-          <h2 id="g-h">Your Cubes</h2>
-          <sc-if value="{{ b2bBlocked }}" hint-placeholder-val="{{ false }}">
-            <div class="alert" role="alert"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3"></path></svg><div><b>Bitcoin Blake2b supports a PIN-protected Vault using a local node or Connect</b><span>Import or restore was chosen on Bitcoin Blake2b.</span></div></div>
-          </sc-if>
-          <div style="margin-top:16px;border-top:1px solid var(--line);max-width:760px">
-            <sc-for list="{{ b2bCubes }}" as="c" hint-placeholder-count="2">
-              <div class="lrow">
-                <img src="/_blob/c39785504daaef5633099a8ae196c784" alt="">
-                <span class="m"><b>{{ c.name }}</b><span>{{ c.line }}</span></span>
-                <span class="tb b2b">{{ c.tag }}</span>
-              </div>
-            </sc-for>
-          </div>
-          <p class="h3">Available on Bitcoin Blake2b</p>
-          <div class="sect">
-            <sc-for list="{{ b2bOn }}" as="t" hint-placeholder-count="5"><span class="tag">{{ t }}</span></sc-for>
-          </div>
-          <p class="h3">Not on Bitcoin Blake2b</p>
-          <div class="sect">
-            <sc-for list="{{ b2bOff }}" as="t" hint-placeholder-count="5"><span class="tag off"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11h10v9H7zM9 11V8a3 3 0 0 1 6 0v3"></path></svg>{{ t }}</span></sc-for>
-          </div>
-          <div class="acts">
-            <button type="button" class="btn primary" onClick="{{ toB2bCreate }}">Create Vault</button>
-            <button type="button" class="btn" onClick="{{ toB2bBlocked }}">Import or restore</button>
-            <a class="btn" href="P-Launcher.dc.html">Back to Bitcoin</a>
-          </div>
-        </sc-if>
-        <sc-if value="{{ v.b2bCreate }}" hint-placeholder-val="{{ false }}">
-          <h2 id="g-h">Create a new Cube</h2>
-          <p class="copy">Create a Bitcoin Blake2b Vault. Other wallet and recovery flows are unavailable.</p>
-          <div class="acts">
-            <a class="btn primary demo-focus" href="P-Create.dc.html">Create Vault</a>
-            <button type="button" class="btn" onClick="{{ toB2bList }}">Back to Cube list</button>
-          </div>
-        </sc-if>
-
-        <!-- ===================== #13 SPLIT A BITCOIN WALLET (launcher) ===================== -->
-        <sc-if value="{{ v.split }}" hint-placeholder-val="{{ false }}">
-          <h2 id="g-h">Split a Bitcoin wallet</h2>
-          <p class="lead">Find BTCB2 held by a Sparrow, Electrum, Coldcard or other non-Cube Bitcoin wallet. It scans public keys only; it cannot sign or move funds.</p>
-          <div class="fld">
-            <label for="sp-dest">Destination Cube</label>
-            <select id="sp-dest" class="inp" disabled="{{ sp.noVault }}">
-              <option>{{ sp.destText }}</option>
-            </select>
-          </div>
-          <p class="h3">Original Bitcoin wallet</p>
-          <div style="margin-top:10px"><span class="seg" role="group" aria-label="Wallet source"><button type="button" aria-pressed="{{ sp.descPressed }}" onClick="{{ sp.pickDesc }}">Public descriptor</button><button type="button" aria-pressed="{{ sp.hwPressed }}" onClick="{{ sp.pickHw }}">Hardware wallet</button></span></div>
-          <sc-if value="{{ sp.desc }}" hint-placeholder-val="{{ true }}">
-            <div class="fld"><label for="sp-ext">External / receive descriptor</label><input id="sp-ext" class="inp mono" type="text" placeholder="wpkh([fingerprint/path]xpub.../0/*)" value="[synthetic receive descriptor]"></div>
-            <div class="fld"><label for="sp-int">Internal / change descriptor (optional)</label><input id="sp-int" class="inp mono" type="text" placeholder="wpkh([fingerprint/path]xpub.../1/*)" value=""></div>
-          </sc-if>
-          <sc-if value="{{ sp.hw }}" hint-placeholder-val="{{ false }}">
-            <ul class="rows" aria-label="Hardware wallets"><li class="r sel"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16H7zM10 17h4"></path></svg><span class="m"><b>Ledger-style device</b><span class="mono">c9d0e1f2 · Account #0</span></span><span class="s tone-ok">Account read</span></li></ul>
-          </sc-if>
-          <div class="acts" style="align-items:center">
-            <sc-if value="{{ sp.idle }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn primary" onClick="{{ sp.scan }}">Scan wallet</button></sc-if>
-            <sc-if value="{{ sp.scanning }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn primary" disabled="{{ yes }}">Scanning…</button><button type="button" class="btn" onClick="{{ sp.cancel }}">Cancel</button></sc-if>
-            <sc-if value="{{ sp.canContinue }}" hint-placeholder-val="{{ false }}"><a class="btn primary" href="P-Claim.dc.html">Continue to destination Cube</a></sc-if>
-          </div>
-          <div style="margin-top:18px;max-width:760px" role="status">
-            <sc-if value="{{ sp.ready }}" hint-placeholder-val="{{ true }}"><p class="info">Ready to scan. An incomplete scan is always an error, never a zero balance.</p></sc-if>
-            <sc-if value="{{ sp.scanning }}" hint-placeholder-val="{{ false }}"><p class="info">Scanning with fresh, authenticated chain observations…</p></sc-if>
-            <sc-if value="{{ sp.failed }}" hint-placeholder-val="{{ false }}"><p class="warnline"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 19H3zM12 9.5v4M12 16.3v.2"></path></svg>{{ sp.failText }}</p></sc-if>
-            <sc-if value="{{ sp.done }}" hint-placeholder-val="{{ false }}">
-              <p style="font-weight:600">{{ sp.found }}</p>
-              <dl class="kv">
-                <sc-for list="{{ sp.lines }}" as="l" hint-placeholder-count="3"><div><dt>{{ l.k }}</dt><dd>{{ l.v }}</dd></div></sc-for>
-              </dl>
-              <p class="copy">{{ sp.conclusion }}</p>
-            </sc-if>
-          </div>
-        </sc-if>
-
-        <!-- ===================== #17 KEY SOURCE: HARDWARE DETECTION ===================== -->
-        <sc-if value="{{ v.keys }}" hint-placeholder-val="{{ false }}">
-          <h2 id="g-h">Set keys</h2>
-          <div class="keys">
-            <div class="paths">
-              <p style="font-size:13px;font-weight:600;margin-bottom:6px">Primary spending option: <span class="muted" style="font-weight:400">Threshold: 2 of 2</span></p>
-              <div class="slot"><span class="sl">Primary key #1</span><span>This device · Cube Key</span><span class="mono muted">a1b2c3d4</span></div>
-              <div class="slot editing"><span class="sl">Primary key #2</span><span class="muted">Choosing a source…</span></div>
-              <p style="font-size:13px;font-weight:600;margin:16px 0 6px">Recovery option #1: <span class="muted" style="font-weight:400">after 25920 blocks (~180 days)</span></p>
-              <div class="slot"><span class="sl">Recovery key</span><span class="muted">Not set</span></div>
-            </div>
-            <div class="picker" role="group" aria-labelledby="ks-h">
-              <h3 id="ks-h">Select key source</h3>
-              <button type="button" class="srcb" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16H7zM10 17h4"></path></svg><span><span class="t">Hardware Device</span><span class="d">Supported: Ledger Nano S/S+/X, Coldcard Mk3/Mk4/Q, Jade, BitBox02, Trezor, Specter-DIY.</span></span></button>
-
-              <sc-if value="{{ ks.list }}" hint-placeholder-val="{{ true }}">
-                <p class="grp">Detected hardware</p>
-                <sc-if value="{{ ks.none }}" hint-placeholder-val="{{ false }}">
-                  <p class="empty">Plug in a hardware device</p>
-                  <p class="empty" style="border-top:0">- No other sources detected -</p>
-                </sc-if>
-                <div>
-                  <sc-for list="{{ ks.devices }}" as="d" hint-placeholder-count="5">
-                    <button type="button" class="dev" aria-pressed="{{ d.pressed }}" disabled="{{ d.off }}" onClick="{{ d.pick }}">
-                      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;color:var(--muted);margin-top:2px"><path d="M7 4h10v16H7zM10 17h4"></path></svg>
-                      <span class="m"><b>{{ d.name }}</b><span class="{{ d.tone }}">{{ d.status }}</span></span>
-                    </button>
-                  </sc-for>
-                </div>
-                <sc-if value="{{ ks.hasUsed }}" hint-placeholder-val="{{ true }}">
-                  <p class="grp">Already used sources</p>
-                  <button type="button" class="dev" disabled="{{ yes }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;color:var(--muted);margin-top:2px"><path d="M7 4h10v16H7zM10 17h4"></path></svg><span class="m"><b>Hardware · Second device</b><span class="muted mono">d4e5f6a7 · Already used in this Vault</span></span></button>
-                </sc-if>
-              </sc-if>
-
-              <sc-if value="{{ ks.form }}" hint-placeholder-val="{{ false }}">
-                <p class="grp">Ledger-style device · <span class="mono">c9d0e1f2</span></p>
-                <sc-if value="{{ ks.err }}" hint-placeholder-val="{{ false }}"><p class="err" role="alert"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3"></path></svg>Wrong network</p></sc-if>
-                <div class="fld" style="max-width:none"><label for="ks-alias">Key name (alias):</label><input id="ks-alias" class="inp" type="text" placeholder="E.g. My Hardware Wallet" value="{{ ks.alias }}" aria-invalid="{{ ks.aliasInvalid }}" aria-describedby="{{ ks.aliasDesc }}">
-                  <sc-if value="{{ ks.err }}" hint-placeholder-val="{{ false }}"><p class="err" id="ks-alias-err"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3"></path></svg>This alias is already used for another key</p></sc-if>
-                </div>
-                <div class="fld" style="max-width:none"><label for="ks-acct">Key path account:</label><select id="ks-acct" class="inp"><option>Account #0</option><option>Account #1</option></select><p class="info">Switch account if you already use the same hardware in another setup.</p></div>
-                <div class="acts"><button type="button" class="btn" onClick="{{ ks.back }}">Back</button><button type="button" class="btn primary" disabled="{{ ks.err }}">Apply</button></div>
-              </sc-if>
-            </div>
-          </div>
-        </sc-if>
-
-        <!-- ===================== #21 CONNECT STEP ===================== -->
-        <sc-if value="{{ v.connect }}" hint-placeholder-val="{{ false }}">
-          <h2 id="g-h">COINCUBE | Connect</h2>
-          <div style="margin-top:14px"><span class="seg" role="group" aria-label="Account"><button type="button" aria-pressed="{{ cn.createPressed }}" onClick="{{ cn.toCreate }}">Create Account</button><button type="button" aria-pressed="{{ cn.signPressed }}" onClick="{{ cn.toSign }}">Sign In</button></span></div>
-          <sc-if value="{{ cn.isCreate }}" hint-placeholder-val="{{ true }}">
-            <p class="copy">Create a free COINCUBE | Connect account to unlock:</p>
-            <ul style="margin-top:8px;max-width:640px;border-top:1px solid var(--line)">
-              <sc-for list="{{ cn.benefits }}" as="b" hint-placeholder-count="3">
-                <li style="display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)"><svg class="ic tone-ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg><span>{{ b }}</span></li>
-              </sc-for>
-            </ul>
-          </sc-if>
-          <sc-if value="{{ cn.emailStep }}" hint-placeholder-val="{{ true }}">
-            <div class="fld"><label for="cn-email">Email</label><input id="cn-email" class="inp" type="email" placeholder="your@email.com" value="alex@example.test"></div>
-            <p class="copy m"><button type="button" class="linkbtn" onClick="{{ cn.swap }}">{{ cn.swapLabel }}</button></p>
-          </sc-if>
-          <sc-if value="{{ cn.codeStep }}" hint-placeholder-val="{{ false }}">
-            <div class="fld"><label for="cn-code">Enter the verification code sent to alex@example.test</label><input id="cn-code" class="inp mono" type="text" inputmode="numeric" placeholder="6-digit code" value="{{ cn.code }}" aria-invalid="{{ cn.codeInvalid }}" aria-describedby="{{ cn.codeDesc }}">
-              <sc-if value="{{ cn.bad }}" hint-placeholder-val="{{ false }}"><p class="err" id="cn-code-err"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3"></path></svg>Invalid verification code</p></sc-if>
-            </div>
-            <p class="copy m"><button type="button" class="linkbtn">Resend Code</button></p>
-          </sc-if>
-          <sc-if value="{{ cn.b2b }}" hint-placeholder-val="{{ false }}">
-            <p class="info" style="margin-top:18px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11h10v9H7zM9 11V8a3 3 0 0 1 6 0v3"></path></svg>Connect authentication is required for Bitcoin Blake2b</p>
-          </sc-if>
-        </sc-if>
-
-        <!-- ===================== #27 IMPORT EXTRAS: SHARED WALLET ===================== -->
-        <sc-if value="{{ v.shared }}" hint-placeholder-val="{{ false }}">
-          <h2 id="g-h">Load a previously used wallet</h2>
-          <p class="copy m">You have no current wallets</p>
-          <p class="h3">Load a shared wallet</p>
-          <sc-if value="{{ sh.entry }}" hint-placeholder-val="{{ true }}">
-            <p class="copy m">Type the invitation token you received by email</p>
-            <div class="fld"><label for="sh-inv">Paste invitation:</label><input id="sh-inv" class="inp mono" type="text" placeholder="Invitation" value="{{ sh.token }}" aria-invalid="{{ sh.invalidA }}" aria-describedby="{{ sh.desc }}">
-              <sc-if value="{{ sh.invalid }}" hint-placeholder-val="{{ false }}"><p class="err" id="sh-err"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3"></path></svg>Invitation token is invalid or expired</p></sc-if>
-            </div>
-            <div class="acts"><button type="button" class="btn" onClick="{{ sh.next }}">Next</button></div>
-          </sc-if>
-          <sc-if value="{{ sh.accept }}" hint-placeholder-val="{{ false }}">
-            <dl class="kv"><div><dt>Accept invitation for wallet:</dt><dd><b>Team treasury</b> <span class="muted">· shared by sam@example.test</span></dd></div></dl>
-            <div class="acts"><button type="button" class="btn primary">Accept</button><button type="button" class="btn" onClick="{{ sh.back }}">Back</button></div>
-          </sc-if>
-        </sc-if>
-
-        <!-- ===================== #27 IMPORT EXTRAS: .bed DECRYPT ===================== -->
-        <sc-if value="{{ v.bed }}" hint-placeholder-val="{{ false }}">
-          <h2 id="g-h">Load a wallet from descriptor</h2>
-          <div class="fld"><label for="bd-desc">Descriptor:</label><input id="bd-desc" class="inp mono" type="text" placeholder="Descriptor" value=""></div>
-          <div class="acts"><button type="button" class="btn">Import descriptor</button><button type="button" class="btn primary">Import backup</button></div>
-          <div class="scrim">
-            <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="bd-h">
-              <h3 id="bd-h">Decrypt backup file</h3>
-              <sc-if value="{{ bd.unsupported }}" hint-placeholder-val="{{ false }}">
-                <div class="alert" role="alert"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3"></path></svg><div><b>The file was decrypted, but its content type isn't supported.</b><span>Choose another backup file.</span></div></div>
-              </sc-if>
-              <p class="copy">Plug in and unlock a hardware device belonging to this setup to automatically decrypt the backup.</p>
-              <ul class="rows" aria-label="Devices">
-                <sc-for list="{{ bd.devices }}" as="d" hint-placeholder-count="3">
-                  <li class="r"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16H7zM10 17h4"></path></svg><span class="m"><b>{{ d.name }}</b><span class="mono">{{ d.fp }}</span></span><span class="s {{ d.tone }}">{{ d.status }}</span></li>
-                </sc-for>
-              </ul>
-              <div class="disc">
-                <button type="button" aria-expanded="true" aria-controls="bd-other"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"></path></svg>Other options</button>
-                <div class="inner" id="bd-other">
-                  <p class="copy m" style="margin-top:0">Provide one of the xpubs used in this wallet.</p>
-                  <div class="acts" style="margin-top:10px"><button type="button" class="btn sm">Upload extended public key file</button></div>
-                  <div class="fld" style="max-width:none"><label for="bd-xpub">Paste an extended public key</label><input id="bd-xpub" class="inp mono" type="text" placeholder="xpub…" value=""></div>
-                  <div class="disc" style="margin-top:16px">
-                    <button type="button" aria-expanded="{{ bd.unsafeOpenA }}" aria-controls="bd-unsafe" onClick="{{ bd.toggleUnsafe }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ bd.chev }}"></path></svg><span class="tone-bad">UNSAFE: Enter mnemonic of one of the keys</span></button>
-                    <sc-if value="{{ bd.unsafeOpen }}" hint-placeholder-val="{{ false }}">
-                      <div class="unsafe" id="bd-unsafe">
-                        <label class="chk" style="margin-top:0"><input type="checkbox" checked="{{ bd.unsafeAck }}" onChange="{{ bd.toggleAck }}"><span><b>This option is not secure.</b> I understand that entering a mnemonic on a computer may result in theft of my funds.</span></label>
-                        <div class="fld" style="max-width:none"><label for="bd-mn">Mnemonic</label><input id="bd-mn" class="inp mono" type="password" placeholder="word word word …" value="" disabled="{{ bd.mnOff }}"></div>
-                      </div>
-                    </sc-if>
+          <!-- 2 Policy: DescriptorTemplateDescription -->
+          <sc-if value="{{ v.intro }}" hint-placeholder-val="{{ false }}">
+            <div><p>{{ tp.keys }}</p><p class="muted" style="font-size:13px;margin-top:6px">{{ tp.expl }}</p></div>
+            <div class="tl" role="img" aria-label="Policy timeline">
+              <div class="tlh"><span></span><span>Receipt of funds</span><span>After some time* of wallet inactivity</span></div>
+              <sc-for list="{{ tp.rows }}" as="r" hint-placeholder-count="2">
+                <div class="tlr">
+                  <div class="tlk"><span class="lb">{{ r.label }}</span><span class="bx"><sc-for list="{{ r.badges }}" as="b" hint-placeholder-count="1"><span class="kb {{ b.c }}">{{ b.n }}</span></sc-for>{{ r.box }}</span></div>
+                  <div class="bars">
+                    <sc-if value="{{ r.locked }}" hint-placeholder-val="{{ false }}"><span class="bar cant" style="{{ r.lockStyle }}">Can't spend (timelocked)</span></sc-if>
+                    <span class="bar can" style="flex:1">Can spend</span>
                   </div>
                 </div>
+              </sc-for>
+              <p class="tln">*Recovery delays can be configured in the next step.</p>
+            </div>
+            <div><p class="muted" style="font-size:13px">{{ tp.tip }}</p><sc-if value="{{ signedIn }}" hint-placeholder-val="{{ true }}"><p class="muted" style="font-size:13px;margin-top:6px">A family member or friend can contribute a Mobile key remotely.</p></sc-if></div>
+          </sc-if>
+
+          <!-- 3 Keys: DefineDescriptor (also under the key source modal) -->
+          <sc-if value="{{ v.keys }}" hint-placeholder-val="{{ false }}">
+            <sc-for list="{{ tp.sections }}" as="sec" hint-placeholder-count="2">
+              <div class="ksec">
+                <h3>{{ sec.h }}</h3>
+                <sc-if value="{{ sec.hasThr }}" hint-placeholder-val="{{ false }}"><p class="thr">{{ sec.thr }}</p></sc-if>
+                <sc-for list="{{ sec.keys }}" as="k" hint-placeholder-count="1">
+                  <div class="kcard">
+                    <span class="kb {{ k.c }}">{{ k.n }}</span>
+                    <span class="m"><b>{{ k.name }}</b><span>{{ k.sub }}</span></span>
+                    <button type="button" class="{{ k.btnCls }}" onClick="{{ openSource }}">{{ k.btn }}</button>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ sec.hasLock }}" hint-placeholder-val="{{ false }}">
+                  <div class="kcard"><span class="m"><b>Keys can move the funds after inactivity of:</b><span>6m · 26280 blocks</span></span><button type="button" class="btn sm">Edit</button></div>
+                </sc-if>
               </div>
-              <div class="acts" style="justify-content:flex-end"><button type="button" class="btn">Close</button></div>
-            </div>
-          </div>
-        </sc-if>
+            </sc-for>
+            <p class="adv">▸ Advanced settings</p>
+          </sc-if>
 
-        <!-- ===================== #35 LEGACY LOGIN (tab Login) ===================== -->
-        <sc-if value="{{ v.login }}" hint-placeholder-val="{{ false }}">
-          <sc-if value="{{ lg.failed }}" hint-placeholder-val="{{ false }}">
-            <div class="alert warnb" role="alert" style="margin:0 0 20px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 19H3zM12 9.5v4M12 16.3v.2"></path></svg><div><b>Connection failed</b><span>Remote servers are unresponsive</span></div></div>
+          <!-- 4 Backup: BackupMnemonic -->
+          <sc-if value="{{ v.mnemonic }}" hint-placeholder-val="{{ false }}">
+            <p>This Vault key is derived from your Master Key. If you haven't already, back up your Master Seed Phrase in Settings → Master Seed Phrase Back Up — it's required to recover your Cube and every Vault key derived from it.</p>
           </sc-if>
-          <h2 id="g-h">COINCUBE | Connect</h2>
-          <p class="lead">Login · Team treasury</p>
-          <sc-if value="{{ lg.deleted }}" hint-placeholder-val="{{ false }}">
-            <div class="alert" role="alert"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3"></path></svg><div><b>Wallet deleted</b><span>This wallet was deleted by its creator for all participants and cannot be opened. To access it again, restore it using a backup file or the wallet descriptor.</span></div></div>
-            <div class="acts"><a class="btn" href="P-Restore.dc.html">Import or restore</a></div>
-          </sc-if>
-          <sc-if value="{{ lg.email }}" hint-placeholder-val="{{ true }}">
-            <dl class="kv"><div><dt>Account</dt><dd>alex@example.test</dd></div></dl>
-            <div class="acts"><button type="button" class="btn primary demo-focus" onClick="{{ lg.send }}">Login</button></div>
-          </sc-if>
-          <sc-if value="{{ lg.token }}" hint-placeholder-val="{{ false }}">
-            <p class="copy">An authentication was sent to your email: <b>alex@example.test</b></p>
-            <sc-if value="{{ lg.authErr }}" hint-placeholder-val="{{ false }}"><p class="warnline" style="margin-top:12px" role="alert"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 21 19H3zM12 9.5v4M12 16.3v.2"></path></svg>{{ lg.authErrText }}</p></sc-if>
-            <div class="fld"><label for="lg-tok">Token</label><input id="lg-tok" class="inp mono" type="text" placeholder="Token" value="{{ lg.tok }}" aria-invalid="{{ lg.badA }}" aria-describedby="{{ lg.badDesc }}">
-              <sc-if value="{{ lg.bad }}" hint-placeholder-val="{{ false }}"><p class="err" id="lg-tok-err"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3"></path></svg>Token is not valid</p></sc-if>
-            </div>
-            <div class="acts"><button type="button" class="btn">Resend token</button></div>
-          </sc-if>
-          <div class="acts" style="margin-top:28px"><a class="btn" href="P-Launcher.dc.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>Go back</a></div>
-        </sc-if>
 
-        <!-- ===================== #35 LEGACY REMOTE BACKEND (installer AddWallet) ===================== -->
-        <sc-if value="{{ v.backend }}" hint-placeholder-val="{{ false }}">
-          <sc-if value="{{ be.choose }}" hint-placeholder-val="{{ true }}">
-            <h2 id="g-h">Choose backend</h2>
-            <ul class="rows" style="margin-top:20px">
-              <li class="r"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v5H4zM4 13h16v5H4zM7 8.5h.01M7 15.5h.01"></path></svg><span class="m"><b>Use your own node</b></span><button type="button" class="btn sm">Select</button></li>
-              <li class="r"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"></path></svg><span class="m"><b>Use COINCUBE | Connect</b></span><button type="button" class="btn sm" onClick="{{ be.toEmail }}">Select</button></li>
+          <!-- 4 Backup: BackupDescriptor -->
+          <sc-if value="{{ v.descriptor }}" hint-placeholder-val="{{ false }}">
+            <p>This backup is required to recover your funds.</p>
+            <p>Click “Back Up Descriptor” to download an encrypted file of your wallet configuration and store it in safe, accessible places.</p>
+            <p>You can also copy the plain-text descriptor string, but it’s less private.</p>
+            <p>You can keep an off-device copy too: sign in to Connect and back up your Wallet Descriptor from Settings → General → Cube Recovery Kit once setup is finished.</p>
+            <p>⚠️ This file does not include your seed phrase(s). Back those up separately.</p>
+            <p><button type="button" class="linkbtn">Learn more</button></p>
+            <div><button type="button" class="btn primary" onClick="{{ doBackup }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"></path></svg>Back Up Descriptor</button></div>
+            <p class="lbl" style="font-size:13px;font-weight:500">The descriptor:</p>
+            <div class="desc" style="margin-top:0"><span class="mono">[DESCRIPTOR · synthetic, not shown]</span><button type="button" class="btn sm">Copy</button></div>
+            <label class="chk" style="margin-top:4px"><input type="checkbox" checked="{{ bkAck }}" onChange="{{ toggleBkAck }}"><span>I have backed up my descriptor</span></label>
+          </sc-if>
+
+          <!-- Register (only with a hardware key) -->
+          <sc-if value="{{ v.register }}" hint-placeholder-val="{{ false }}">
+            <p><b>This step is only necessary if you are using a signing device.</b></p>
+            <dl class="kv" style="margin-top:0">
+              <div><dt>Descriptor template:</dt><dd class="mono">wsh(or_d(pk(@0/**),and_v(v:pkh(@1/**),older(26280))))</dd></div>
+              <div><dt>Key @0:</dt><dd class="mono">[a1b2c3d4/48'/0'/0'/2']xpub… (synthetic)</dd></div>
+              <div><dt>Key @1:</dt><dd class="mono">[c9d0e1f2/48'/0'/0'/2']xpub… (synthetic)</dd></div>
+            </dl>
+            <p class="lbl" style="font-size:13px;font-weight:500">The descriptor:</p>
+            <div class="desc" style="margin-top:0"><span class="mono">[DESCRIPTOR · synthetic, not shown]</span><button type="button" class="btn sm">Copy</button></div>
+            <p class="h3" style="margin-top:4px">Select hardware wallet to register descriptor on:</p>
+            <ul class="rows" style="margin-top:0">
+              <li class="r"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v16H7zM10 17h4"></path></svg><span class="m"><b>Ledger Nano S+</b><span class="mono">c9d0e1f2</span></span><button type="button" class="btn sm">Register</button></li>
             </ul>
+            <label class="chk" style="margin-top:4px"><input type="checkbox" checked="{{ regAck }}" onChange="{{ toggleRegAck }}"><span>I have registered the descriptor on my device(s)</span></label>
           </sc-if>
-          <sc-if value="{{ be.email }}" hint-placeholder-val="{{ false }}">
-            <h2 id="g-h">Login</h2>
-            <p class="copy m">Choose an account you are already using:</p>
-            <ul class="rows"><li class="r"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"></path></svg><span class="m"><b>alex@example.test</b></span><button type="button" class="btn sm" onClick="{{ be.toToken }}">Send token</button></li></ul>
-            <div class="fld"><label for="be-email">Or enter a new email you want to associate with the wallet:</label><input id="be-email" class="inp" type="email" placeholder="email" value=""></div>
-            <div class="acts"><button type="button" class="btn">Send token</button></div>
-          </sc-if>
-          <sc-if value="{{ be.token }}" hint-placeholder-val="{{ false }}">
-            <h2 id="g-h">Login</h2>
-            <p class="copy">An authentication token has been emailed to you</p>
-            <div class="fld"><label for="be-tok">Token</label><input id="be-tok" class="inp mono" type="text" placeholder="Token" value=""></div>
-            <div class="acts"><button type="button" class="btn" onClick="{{ be.toEmail }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>Change Email</button><button type="button" class="btn">Resend token</button></div>
-          </sc-if>
-        </sc-if>
-      </div>
 
-      <sc-if value="{{ showFoot }}" hint-placeholder-val="{{ true }}">
-        <div class="rfoot">
-          <button type="button" class="btn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg><span>Back</span></button>
-          <span class="grow"></span>
-          <sc-if value="{{ canSkip }}" hint-placeholder-val="{{ false }}"><button type="button" class="linkbtn" style="margin-right:8px">Skip for now</button></sc-if>
-          <button type="button" class="btn primary demo-focus" disabled="{{ nextDisabled }}" onClick="{{ footNext }}">{{ nextLabel }}</button>
+          <!-- Connect (only when signed out) -->
+          <sc-if value="{{ v.connect }}" hint-placeholder-val="{{ false }}">
+            <p>Create a free COINCUBE | Connect account to unlock:</p>
+            <ul style="display:flex;flex-direction:column;gap:4px;padding-left:8px">
+              <li>•  Hosted Esplora server — use your Vault instantly while your node syncs</li>
+              <li>•  Encrypted wallet descriptor backup</li>
+              <li>•  Integration with the companion COINCUBE Mobile app</li>
+            </ul>
+            <p>Enter your email address to receive a verification code.</p>
+            <input class="inp" style="max-width:420px" type="email" placeholder="your@email.com" aria-label="Email">
+            <div class="acts" style="margin-top:0"><button type="button" class="btn primary">Sign In</button><button type="button" class="linkbtn">New to COINCUBE | Connect? Create account</button></div>
+            <div><button type="button" class="linkbtn" onClick="{{ next }}">Skip for now</button></div>
+          </sc-if>
+
+          <!-- Node: SelectBitcoindType -->
+          <sc-if value="{{ v.nodeIn }}" hint-placeholder-val="{{ false }}">
+            <div class="ncard">
+              <b>Start with COINCUBE | Connect</b>
+              <p class="muted" style="font-size:13px">Your Vault will use our hosted Esplora server immediately (backed by Bitcoin Knots). No setup required.</p>
+              <label class="tog"><button type="button" class="sw" role="switch" aria-checked="{{ pruneOn }}" aria-label="Also install a pruned Bitcoin node on my device" onClick="{{ togglePrune }}"></button><span>Also install a pruned Bitcoin node on my device</span></label>
+              <sc-if value="{{ prune }}" hint-placeholder-val="{{ false }}">
+                <p class="lbl" style="font-size:13px;font-weight:500">Node software</p>
+                <div class="seg" role="group" aria-label="Node software"><button type="button" aria-pressed="{{ knotsOn }}" onClick="{{ pickKnots }}">Knots</button><button type="button" aria-pressed="{{ coreOn }}" onClick="{{ pickCore }}">Core</button></div>
+                <p class="muted" style="font-size:13px">{{ flavorBlurb }}</p>
+                <p class="muted" style="font-size:13px">All your Vaults share one Bitcoin node, so this choice applies to every Vault.</p>
+              </sc-if>
+              <p class="muted" style="font-size:13px">{{ nodeDesc }}</p>
+              <div><button type="button" class="btn primary" onClick="{{ next }}">Continue</button></div>
+            </div>
+            <div>
+              <button type="button" class="linkbtn" style="text-decoration:none" onClick="{{ toggleAdv }}">{{ advLabel }}</button>
+              <sc-if value="{{ adv }}" hint-placeholder-val="{{ false }}">
+                <div class="two" style="grid-template-columns:1fr 1fr 1fr;margin-top:12px">
+                  <div class="ncard"><b>I already have a node</b><p class="muted" style="font-size:13px">Connect COINCUBE Desktop to a Bitcoin node already running locally or remotely.</p><div><button type="button" class="btn sm">Select</button></div></div>
+                  <div class="ncard"><b>Install a node only</b><p class="muted" style="font-size:13px">COINCUBE Desktop installs a pruned node on your computer without COINCUBE | Connect as a fallback.</p><div><button type="button" class="btn sm">Select</button></div></div>
+                  <div class="ncard"><b>COINCUBE | Connect only</b><p class="muted" style="font-size:13px">Use COINCUBE | Connect to access our Esplora. No local node required.</p><div><button type="button" class="btn sm" onClick="{{ next }}">Select</button></div></div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ v.nodeOut }}" hint-placeholder-val="{{ false }}">
+            <div class="two">
+              <div class="ncard"><b>I already have a node</b><p class="muted" style="font-size:13px">Connect COINCUBE Desktop to a Bitcoin node already running locally or remotely.</p><div><button type="button" class="btn sm">Select</button></div></div>
+              <div class="ncard"><b>Install a local pruned node</b><p class="muted" style="font-size:13px">COINCUBE Desktop will download and configure a pruned Bitcoin node on your computer (~20 GB of disk space required).</p><div><button type="button" class="btn sm" onClick="{{ next }}">Select</button></div></div>
+            </div>
+          </sc-if>
+
+          <!-- Name: WalletAlias -->
+          <sc-if value="{{ v.alias }}" hint-placeholder-val="{{ false }}">
+            <div class="fld" style="margin-top:0"><label for="alias">Wallet alias:</label><input id="alias" class="inp" type="text" placeholder="Wallet alias" value="My Vault Bitcoin wallet"></div>
+            <p class="muted" style="font-size:13px">You will be able to change it later in Settings &gt; Wallet</p>
+          </sc-if>
+
+          <!-- Done: Final -->
+          <sc-if value="{{ v.final }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ installing }}" hint-placeholder-val="{{ false }}"><p class="ctr" style="font-size:14px">Installing...</p></sc-if>
+            <sc-if value="{{ installed }}" hint-placeholder-val="{{ true }}"><p class="ok2" style="justify-content:center"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 12.3l2.8 2.8L16.2 9.6"></path></svg>Installed</p></sc-if>
+          </sc-if>
+          </div>
         </div>
-      </sc-if>
-    </section>
-  </main>
 
-  <div class="foot">{{ foot }}</div>
+        <div class="sfoot">
+          <sc-if value="{{ backToCube }}" hint-placeholder-val="{{ false }}"><a class="btn" href="P-Overview.dc.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>Back</a></sc-if>
+          <sc-if value="{{ hasBack }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn" onClick="{{ back }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>Back</button></sc-if>
+          <span class="grow"></span>
+          <sc-if value="{{ v.keys }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn">Clear All</button><button type="button" class="btn">Customize</button></sc-if>
+          <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn primary" disabled="{{ nextOff }}" onClick="{{ next }}">{{ nextLabel }}</button></sc-if>
+          <sc-if value="{{ v.final }}" hint-placeholder-val="{{ false }}"><a class="btn primary" href="P-Overview.dc.html">Back to the Cube (prototype)</a></sc-if>
+        </div>
+      </section>
+    </div>
+
+    <!-- Select key source (modal over Set keys) -->
+    <sc-if value="{{ v.keySource }}" hint-placeholder-val="{{ false }}">
+      <div class="scrim" style="padding-top:120px">
+        <section class="dlg wide" role="dialog" aria-modal="true" aria-labelledby="ks-h">
+          <div class="mhd"><h3 id="ks-h">Select key source</h3><button type="button" class="x" aria-label="Close" onClick="{{ closeSource }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+          <div class="ksgrid">
+            <button type="button" class="ksc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v6H9zM7 9h10v12H7z"></path></svg><b>Hardware Device</b><span>Use a plugged-in hardware signer. Supported: Ledger Nano S/S+/X, Coldcard Mk3/Mk4/Q, Jade, BitBox02, Trezor, Specter-DIY.</span></button>
+            <button type="button" class="ksc {{ mobileCls }}" disabled="{{ mobileOff }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"></circle><path d="M11 12l8-8M16 7l2 2M14 9l2 2"></path></svg><b>Mobile Keys</b><sc-if value="{{ signedOut }}" hint-placeholder-val="{{ false }}"><span>Sign in to Connect to use Mobile keys.</span></sc-if></button>
+            <button type="button" class="ksc" onClick="{{ pickCubeKey }}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg><b>Cube Key</b><span>A key generated on this device, stored either encrypted with your Cube PIN or derived from a Passkey.</span></button>
+            <a class="ksc" href="P-BorderWallet.dc.html"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM4 9.3h16M4 14.6h16M9.3 4v16M14.6 4v16"></path></svg><b>Border Wallet</b><span>A deterministic key derived from a Border Wallet Grid Generation Seed — a visual 2048-cell grid you memorise or back up. The Grid Generation Seed itself is derived from your encrypted local seed or Passkey.</span></a>
+            <button type="button" class="ksc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"></path></svg><b>Import xpub File</b></button>
+            <button type="button" class="ksc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM7 5.5H5.5V21h13V5.5H17"></path></svg><b>Paste xpub</b></button>
+          </div>
+        </section>
+      </div>
+    </sc-if>
+  </main>
+  <div class="cvfoot">{{ foot }}</div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"screen":{"editor":"enum","options":["register","chainUnavailable","blake2bMode","split","keySource","connectStep","importExtras","legacyLogin"],"default":"register","section":"Review"},"state":{"editor":"enum","options":["auto","backupDescriptor","backupAcked","registerDevices","registerFailed","registerAcked","b2bList","b2bCreate","b2bBlocked","splitReady","splitScanning","splitFound","splitIncomplete","splitNothing","splitTaproot","splitSignedOut","splitNoVault","hwNone","hwMixed","hwSelected","hwError","connectCreate","connectCode","connectCodeInvalid","connectSignIn","connectBlake2b","sharedToken","sharedInvalid","sharedAccept","bedDecrypt","bedUnsafe","bedUnsupported","loginEmail","loginToken","loginInvalid","loginExpired","loginFailed","walletDeleted","backendChoose","backendEmail","backendToken"],"default":"auto","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"hideBalances":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":1100}}'>
+<script type="text/x-dc" data-dc-script data-props='{"step":{"editor":"enum","options":["policy","intro","keys","keySource","mnemonic","descriptor","register","connect","node","alias","final"],"default":"policy","section":"Review"},"template":{"editor":"enum","options":["simple","expanding","twoOfThree","inhBackup","expandingBackup","custom"],"default":"simple","section":"Review"},"accountState":{"editor":"enum","options":["signedIn","signedOut"],"default":"signedIn","section":"Review"},"hardwareKey":{"editor":"boolean","default":false,"section":"Review"},"finalState":{"editor":"enum","options":["installing","installed"],"default":"installed","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":1100}}'>
 class Component extends DCLogic {
   constructor(p) {
     super(p); try { const bump = () => { try { this.setState({ protoTick: Date.now() }); } catch (e) {} }; window.addEventListener('tenshu-proto', bump); window.addEventListener('storage', bump); } catch (e) {}
@@ -582,252 +520,98 @@ class Component extends DCLogic {
   renderVals() {
     // prototype-only: Appearance (App preferences) is a device setting shared across artboards: system follows the review lever
     let THEME = 'system'; try { THEME = localStorage.getItem('tenshu.proto.theme') || 'system'; } catch (e) {}
-    const P = this.props, self = this;
-    // each screen owns its states; "auto" or a state from another screen falls back to the screen's first state
-    const SCR = {
-      register: ['backupDescriptor', 'backupAcked', 'registerDevices', 'registerFailed', 'registerAcked'],
-      chainUnavailable: ['none'],
-      blake2bMode: ['b2bList', 'b2bCreate', 'b2bBlocked'],
-      split: ['splitReady', 'splitScanning', 'splitFound', 'splitIncomplete', 'splitNothing', 'splitTaproot', 'splitSignedOut', 'splitNoVault'],
-      keySource: ['hwMixed', 'hwNone', 'hwSelected', 'hwError'],
-      connectStep: ['connectCreate', 'connectCode', 'connectCodeInvalid', 'connectSignIn', 'connectBlake2b'],
-      importExtras: ['sharedToken', 'sharedInvalid', 'sharedAccept', 'bedDecrypt', 'bedUnsafe', 'bedUnsupported'],
-      legacyLogin: ['loginEmail', 'loginToken', 'loginInvalid', 'loginExpired', 'loginFailed', 'walletDeleted', 'backendChoose', 'backendEmail', 'backendToken']
-    };
-    const scr = SCR[P.screen] ? P.screen : 'register';
-    const lvState = SCR[scr].indexOf(P.state) >= 0 ? P.state : SCR[scr][0];
-    const key = scr + '|' + lvState;
-    const S = (this.state.k && this.state.k.key === key) ? this.state.k
-      : { key, st: lvState, bkSaved: lvState === 'backupAcked', srcHw: false, ksPick: lvState === 'hwSelected' || lvState === 'hwError', unsafeOpen: lvState === 'bedUnsafe', unsafeAck: false };
-    const set = (patch) => self.setState({ k: Object.assign({}, S, patch) });
-    const st = S.st;
-    const hide = !!P.hideBalances;
-    const H = (s) => hide ? '••••••' : s;
+    const P = this.props;
+    const signedIn = (P.accountState ?? 'signedIn') !== 'signedOut';
+    const hw = P.hardwareKey === true || P.hardwareKey === 'true';
+    // the installer's CreateWallet order (installer/mod.rs): Register only with a hardware key, Connect only when signed out
+    const ORDER = ['policy', 'intro', 'keys', 'mnemonic', 'descriptor'].concat(hw ? ['register'] : []).concat(signedIn ? [] : ['connect']).concat(['node', 'alias', 'final']);
+    const STAGE = { policy: 'Vault', intro: 'Policy', keys: 'Keys', keySource: 'Keys', mnemonic: 'Backup', descriptor: 'Backup', register: 'Register', connect: 'Connect', node: 'Node', alias: 'Name', final: 'Done' };
+    const TITLE = { policy: 'Choose a Vault policy', keys: 'Set keys', keySource: 'Set keys', mnemonic: 'Reminder: Back Up Your Master Seed', descriptor: 'Back Up your wallet configuration (Descriptor)', register: 'Register descriptor', connect: 'COINCUBE | Connect', node: 'Bitcoin node management', alias: 'Give your wallet an alias', final: 'Finalize installation' };
+    const key = [P.step, P.template, signedIn, hw, P.finalState].join('|');
+    const s = this.state.k !== key ? { k: key, step: P.step || 'policy', tpl: P.template || 'simple', bkAck: false, regAck: false, prune: false, flavor: 'knots', adv: false, installed: (P.finalState || 'installed') === 'installed' } : this.state;
+    const go = (patch) => this.setState(Object.assign({}, s, patch));
+    let step = s.step;
+    if (step === 'register' && !hw) step = 'node';
+    if (step === 'connect' && signedIn) step = 'node';
+    const base = step === 'keySource' ? 'keys' : step;
+    const idx = ORDER.indexOf(base);
+    const next = () => { const n = ORDER[idx + 1]; if (n) go({ step: n }); };
+    const back = () => { const n = ORDER[idx - 1]; if (n) go({ step: n }); };
 
-    const I = {
-      ok: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M8 12.3l2.8 2.8L16.2 9.6',
-      warn: 'M12 3.5 21 19H3zM12 9.5v4M12 16.3v.2',
-      bad: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 7.5v5.5M12 16.2v.3',
-      sync: 'M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5',
-      lock: 'M7 11h10v9H7zM9 11V8a3 3 0 0 1 6 0v3',
-      dash: 'M6 12h12'
+    const K = (c, n, name, sub, set) => ({ c, n: String(n), name, sub: set ? sub : '', btn: set ? 'Edit' : 'Set', btnCls: set ? 'btn sm' : 'btn sm primary' });
+    const CUBE = 'Cube Key · This device · a1b2c3d4';
+    const TPL = {
+      simple: { title: 'Simple inheritance', line: "Your key spends now; your heir's key can recover after inactivity. 2 keys.",
+        intro: 'Simple inheritance wallet', keys: 'You need 2 keys: your Primary Key and an Inheritance Key for your heir.',
+        expl: 'Your Primary Key can always spend. After the configured inactivity delay, the Inheritance Key can recover your funds.',
+        tip: "Choose a separate signing device for your heir's key where practical.",
+        rows: [['Primary spending policy', [['g', 1]], 'Primary Key', 0], ['Inheritance recovery policy', [['b', 2]], 'Inheritance Key', 50]],
+        sections: [['Primary spending option:', '', [K('g', 1, 'Primary key', CUBE, true)], false], ['Inheritance recovery option:', '', [K('b', 2, 'Inheritance key', '', false)], true]] },
+      expanding: { title: 'Expanding multisig', line: 'Both primary keys spend now; a third key joins either one for recovery later. 3 keys.',
+        intro: 'Expanding multisig wallet', keys: 'You need 3 keys: two Primary Keys and a Recovery Key.',
+        expl: 'Both Primary Keys are needed to spend now. After the configured inactivity delay, any two of the three keys can recover your funds.',
+        tip: 'Choose a separate signing device for the recovery key where practical.',
+        rows: [['Primary spending policy', [['g', 1], ['g', 2]], '2-of-2 multisig', 0], ['Recovery spending policy', [['g', 1], ['g', 2], ['w', 3]], '2-of-3 multisig', 50]],
+        sections: [['Primary spending option:', '2 out of 2 keys', [K('g', 1, 'Primary key #1', CUBE, true), K('g', 2, 'Primary key #2', '', false)], false], ['Recovery option #1:', '2 out of 3 keys', [K('w', 3, 'Recovery key', '', false)], true]] },
+      twoOfThree: { title: '2-of-3 multisig with inheritance', line: "Any two primary keys spend now; an heir's key can recover later. 4 keys.",
+        intro: '2-of-3 multisig with inheritance', keys: 'You need 4 keys: three Primary Keys and an Inheritance Key.',
+        expl: 'Any two Primary Keys can spend now. After the configured inactivity delay, the Inheritance Key can recover your funds.',
+        tip: "Choose a separate signing device for your heir's key where practical.",
+        rows: [['Primary spending policy', [['g', 1], ['g', 2], ['g', 3]], '2-of-3 multisig', 0], ['Inheritance recovery policy', [['b', 4]], 'Inheritance Key', 50]],
+        sections: [['Primary spending option:', '2 out of 3 keys', [K('g', 1, 'Primary key #1', CUBE, true), K('g', 2, 'Primary key #2', '', false), K('g', 3, 'Primary key #3', '', false)], false], ['Inheritance recovery option:', '', [K('b', 4, 'Inheritance key', '', false)], true]] },
+      inhBackup: { title: 'Multisig with inheritance & backup recovery', line: '2-of-3 primary spending, inheritance, and a later backup path. 7 keys.',
+        intro: 'Multisig with inheritance & backup recovery', keys: 'You need 7 keys: three Primary, three Inheritance and one Recovery Key.',
+        expl: 'Any two Primary Keys can spend now. After inactivity, any two Inheritance Keys can recover. The Recovery Key becomes available after a longer delay.',
+        tip: 'Choose separate signing devices for the inheritance keys where practical.',
+        rows: [['Primary spending policy', [['g', 1], ['g', 2], ['g', 3]], '2-of-3 multisig', 0], ['Inheritance recovery policy', [['b', 4], ['b', 5], ['b', 6]], '2-of-3 multisig', 42], ['Second recovery policy', [['w', 7]], 'Recovery Key', 70]],
+        sections: [['Primary spending option:', '2 out of 3 keys', [K('g', 1, 'Primary key #1', CUBE, true), K('g', 2, 'Primary key #2', '', false), K('g', 3, 'Primary key #3', '', false)], false], ['Inheritance recovery option:', '2 out of 3 keys', [K('b', 4, 'Inheritance key #1', '', false), K('b', 5, 'Inheritance key #2', '', false), K('b', 6, 'Inheritance key #3', '', false)], true], ['Second recovery option:', '', [K('w', 7, 'Recovery key', '', false)], true]] },
+      expandingBackup: { title: 'Expanding multisig with inheritance & backup recovery', line: 'Primary keys also join the inheritance path; a later backup path remains. 7 keys.',
+        intro: 'Expanding multisig with inheritance & backup recovery', keys: 'You need 7 keys. The Primary Keys are reused in the inheritance path.',
+        expl: 'Any two Primary Keys can spend now. After inactivity, any two of the six Primary and Inheritance Keys can recover. The Recovery Key opens after a longer delay.',
+        tip: 'Choose separate signing devices for the inheritance keys where practical.',
+        rows: [['Primary spending policy', [['g', 1], ['g', 2], ['g', 3]], '2-of-3 multisig', 0], ['Inheritance recovery policy', [['g', 1], ['g', 2], ['g', 3], ['b', 4], ['b', 5], ['b', 6]], '2-of-6 multisig', 42], ['Second recovery policy', [['w', 7]], 'Recovery Key', 70]],
+        sections: [['Primary spending option:', '2 out of 3 keys', [K('g', 1, 'Primary key #1', CUBE, true), K('g', 2, 'Primary key #2', '', false), K('g', 3, 'Primary key #3', '', false)], false], ['Inheritance recovery option:', '2 out of 6 keys', [K('b', 4, 'Inheritance key #1', '', false), K('b', 5, 'Inheritance key #2', '', false), K('b', 6, 'Inheritance key #3', '', false)], true], ['Second recovery option:', '', [K('w', 7, 'Recovery key', '', false)], true]] },
+      custom: { title: 'Build your own', line: 'Define your primary and recovery spending policies.',
+        intro: 'Build your own', keys: 'Define your primary and recovery spending policies.',
+        expl: 'Your primary policy can always spend. Each recovery option becomes available after its configured inactivity delay.',
+        tip: 'Choose separate signing devices where practical. You can define more recovery options in the next step.',
+        rows: [['Primary spending policy', [['g', 1]], 'Primary Keys', 0], ['Recovery spending policy', [['w', 2]], 'Recovery Keys', 50]],
+        sections: [['Primary spending option:', '', [K('g', 1, 'Primary key', CUBE, true)], false], ['Recovery option #1:', '', [K('w', 2, 'Recovery key', '', false)], true]] }
     };
-
-    // ---------- shared chrome ----------
-    const isB2bNet = scr === 'chainUnavailable' || scr === 'blake2bMode' || st === 'connectBlake2b';
-    const launcher = scr === 'chainUnavailable' || scr === 'blake2bMode' || scr === 'split';
-    const signedOut = st === 'splitSignedOut' || scr === 'connectStep' || scr === 'legacyLogin';
-    const vaultPath = ['Type', 'Policy', 'Keys', 'Seed', 'Descriptor', 'Register', 'Connect', 'Node', 'Name', 'Done'];
-    const addPath = ['Backend', 'Login', 'Wallet', 'Import', 'Kit', 'Register', 'Connect', 'Node', 'Done'];
-    const stepper = (path, cur) => path.map((label, i) => ({ n: String(i + 1), label, cls: i === cur ? 'cur' : i < cur ? 'done' : '', current: i === cur ? 'step' : 'false', hasRule: i < path.length - 1 }));
-    let steps = [], stepsLabel = '';
-    if (scr === 'register') { steps = stepper(vaultPath, st.indexOf('backup') === 0 ? 4 : 5); stepsLabel = 'Create Vault steps'; }
-    if (scr === 'keySource') { steps = stepper(vaultPath, 2); stepsLabel = 'Create Vault steps'; }
-    if (scr === 'connectStep') { steps = stepper(vaultPath, 6); stepsLabel = 'Create Vault steps'; }
-    if (scr === 'importExtras') { steps = stepper(addPath, st.indexOf('shared') === 0 ? 2 : 3); stepsLabel = 'Add wallet steps'; }
-    if (scr === 'legacyLogin' && st.indexOf('backend') === 0) { steps = stepper(addPath, st === 'backendChoose' ? 0 : 1); stepsLabel = 'Add wallet steps'; }
-
-    const TITLE = {
-      register: st.indexOf('backup') === 0 ? 'Create Vault · Back up descriptor' : 'Create Vault · Register descriptor',
-      chainUnavailable: 'Launcher · Network unavailable',
-      blake2bMode: 'Launcher · Bitcoin Blake2b',
-      split: 'Launcher · Split a Bitcoin wallet',
-      keySource: 'Create Vault · Select key source',
-      connectStep: 'Create Vault · Connect',
-      importExtras: st.indexOf('shared') === 0 ? 'Add wallet · Shared wallet' : 'Add wallet · Encrypted backup',
-      legacyLogin: st.indexOf('backend') === 0 ? 'Add wallet · Remote backend login' : 'Login · Remote backend'
+    const t = TPL[s.tpl] || TPL.simple;
+    const tp = {
+      keys: t.keys, expl: t.expl, tip: t.tip,
+      rows: t.rows.map(([label, b, box, lock]) => ({ label, box, badges: b.map(([c, n]) => ({ c, n: String(n) })), locked: lock > 0, lockStyle: 'flex:0 0 ' + lock + '%' })),
+      sections: t.sections.map(([h, thr, keys, lock]) => ({ h, thr, hasThr: !!thr, keys, hasLock: lock }))
     };
-    const ROUTE = {
-      register: st.indexOf('backup') === 0 ? 'App: Installer › BackupDescriptor' : 'App: Installer › RegisterDescriptor',
-      chainUnavailable: 'App: Home › Cubes (network Bitcoin Blake2b, unavailable)',
-      blake2bMode: 'App: Home › Cubes (network Bitcoin Blake2b)',
-      split: 'App: Home sidebar › Split a Bitcoin wallet',
-      keySource: 'App: Installer › Set keys › Select key source',
-      connectStep: 'App: Installer › CoincubeConnect',
-      importExtras: st.indexOf('shared') === 0 ? 'App: Installer (AddWallet) › ImportRemoteWallet' : 'App: Installer (AddWallet) › ImportDescriptor › Decrypt',
-      legacyLogin: st.indexOf('backend') === 0 ? 'App: Installer (AddWallet) › ChooseBackend / RemoteBackendLogin' : 'App: tab Login (services/connect/login.rs)'
-    };
-    const cubeName = scr === 'blake2bMode' || scr === 'chainUnavailable' ? 'All Cubes' : scr === 'split' ? 'All Cubes' : scr === 'legacyLogin' || scr === 'importExtras' ? 'Team treasury' : st === 'connectBlake2b' ? 'Blake savings' : 'Travel fund';
-
-    // ---------- #20 register / back up descriptor ----------
-    const policy = [
-      { k: 'Primary path', v: '2 signatures from This device · Cube Key (a1b2c3d4), Hardware · Ledger-style device (c9d0e1f2)' },
-      { k: 'Recovery path #1', v: '2 signatures from 3 keys, after 25920 blocks (~180 days) · synthetic policy' }
-    ];
-    const regAck = st === 'registerAcked';
-    const regDevices = [
-      { name: 'Hardware · Ledger-style device', sub: 'c9d0e1f2', status: 'Registered', tone: 'tone-ok', icon: I.ok, canRegister: false },
-      { name: 'Hardware · Second device', sub: 'd4e5f6a7', status: st === 'registerFailed' ? 'Not registered' : 'Processing... Please check your device', tone: st === 'registerFailed' ? 'tone-bad' : 'tone-muted', icon: st === 'registerFailed' ? I.bad : I.sync, canRegister: st === 'registerFailed', register: () => set({ st: 'registerDevices' }) },
-      { name: 'Jade-style device', sub: 'Fingerprint unknown until unlocked', status: 'Locked', tone: 'tone-warn', icon: I.lock, canRegister: false },
-      { name: 'BitBox-style device', sub: 'e3f4a5b6', status: 'This signing device is not related to this Vault wallet.', tone: 'tone-muted', icon: I.dash, canRegister: false }
-    ];
-
-    // ---------- #2 blake2b mode ----------
-    const b2bCubes = [
-      { name: 'Blake workspace', line: 'Locked · Backup not confirmed · Vault only', tag: 'Blake2b' },
-      { name: 'Blake savings', line: 'Locked · Backup confirmed · Vault only', tag: 'Blake2b' }
-    ];
-    const b2bOn = ['Cubes', 'Create Vault', 'Split a Bitcoin wallet', 'Connect', 'Settings'];
-    const b2bOff = ['Create Cube (Spark, Liquid)', 'Import or restore', 'Recover a Vault', 'Passkey unlock', 'Cubes on your Connect account'];
-
-    // ---------- #13 split ----------
-    const spStates = { splitReady: 'ready', splitScanning: 'scanning', splitFound: 'done', splitIncomplete: 'failed', splitNothing: 'done', splitTaproot: 'done', splitSignedOut: 'failed', splitNoVault: 'failed' };
-    const spPhase = spStates[st] || 'ready';
-    const FAIL = {
-      splitIncomplete: 'The scan did not cover every saved receive and change address on both chains. No balance conclusion was made. Scan again.',
-      splitSignedOut: 'Sign in to Connect before scanning a Bitcoin wallet.',
-      splitNoVault: 'Create a Bitcoin Blake2b Vault before scanning a Bitcoin wallet.'
-    };
-    const spLines = st === 'splitFound' ? [
-      { k: 'Pre-fork (splittable)', v: H('2 UTXOs, 1,000,000 sats') },
-      { k: 'Confirmed after the fork', v: '1 · not part of this split; may still be replayable' },
-      { k: 'Unclassified (excluded)', v: '0' },
-      { k: 'Unspent on both chains (splittable)', v: H('2 UTXOs, 1,000,000 sats') }
-    ] : st === 'splitTaproot' ? [
-      { k: 'Pre-fork (splittable)', v: H('1 UTXO, 400,000 sats') }
-    ] : [];
-    const sp = {
-      noVault: st === 'splitNoVault', destText: st === 'splitNoVault' ? 'Choose a Bitcoin Blake2b Cube' : 'Blake workspace · Bitcoin Blake2b',
-      desc: !S.srcHw, hw: !!S.srcHw, descPressed: String(!S.srcHw), hwPressed: String(!!S.srcHw),
-      pickDesc: () => set({ srcHw: false }), pickHw: () => set({ srcHw: true }),
-      idle: spPhase !== 'scanning', scanning: spPhase === 'scanning',
-      ready: spPhase === 'ready', failed: spPhase === 'failed', failText: FAIL[st] || '', done: spPhase === 'done',
-      found: st === 'splitNothing' ? H('Found 0 UTXOs (0 confirmed), totaling 0 sats') : st === 'splitTaproot' ? H('Found 1 UTXO (1 confirmed), totaling 400,000 sats') : H('Found 3 UTXOs (3 confirmed), totaling 1,250,000 sats'),
-      lines: spLines,
-      conclusion: st === 'splitNothing' ? 'No spendable outputs were found in this bounded scan.'
-        : st === 'splitTaproot' ? 'Taproot (tr) wallets can be scanned but not split: there is no signing route for them yet.'
-        : 'Continue to unlock the destination Cube and review the sweep. Spending remains locked.',
-      canContinue: st === 'splitFound',
-      scan: () => {
-        if (st === 'splitSignedOut' || st === 'splitNoVault') return;
-        set({ st: 'splitScanning' });
-        setTimeout(() => { const c = self.state.k; if (c && c.st === 'splitScanning') self.setState({ k: Object.assign({}, c, { st: 'splitFound' }) }); }, 1400);
-      },
-      cancel: () => set({ st: 'splitReady' })
-    };
-
-    // ---------- #17 key source ----------
-    const sel = !!S.ksPick;
-    const hwList = st === 'hwNone' ? [] : [
-      { name: 'Ledger-style device · c9d0e1f2', status: 'Account #0 · Ready', tone: 'tone-ok', off: false, pressed: String(sel), pick: () => set({ ksPick: true }) },
-      { name: 'Coldcard-style device', status: 'Please unlock the device', tone: 'tone-warn', off: true, pressed: 'false', pick: () => {} },
-      { name: 'Jade-style device', status: 'Pairing code: 4F2A', tone: 'tone-muted', off: true, pressed: 'false', pick: () => {} },
-      { name: 'BitBox-style device', status: 'Please open the app on device', tone: 'tone-warn', off: true, pressed: 'false', pick: () => {} },
-      { name: 'Trezor-style device', status: 'This device does not support taproot', tone: 'tone-bad', off: true, pressed: 'false', pick: () => {} },
-      { name: 'Specter-style device', status: 'Device version not supported, upgrade to version > [VERSION]', tone: 'tone-bad', off: true, pressed: 'false', pick: () => {} }
-    ];
-    const ks = {
-      list: !sel, none: st === 'hwNone', devices: hwList, hasUsed: st !== 'hwNone',
-      form: sel, err: st === 'hwError', alias: st === 'hwError' ? 'Ledger-style device' : 'Kitchen drawer Ledger',
-      aliasInvalid: String(st === 'hwError'), aliasDesc: st === 'hwError' ? 'ks-alias-err' : '',
-      back: () => set({ ksPick: false })
-    };
-
-    // ---------- #21 connect ----------
-    const cnCreate = st !== 'connectSignIn';
-    const cn = {
-      isCreate: cnCreate && st !== 'connectCode' && st !== 'connectCodeInvalid',
-      createPressed: String(cnCreate), signPressed: String(!cnCreate),
-      toCreate: () => set({ st: 'connectCreate' }), toSign: () => set({ st: 'connectSignIn' }),
-      benefits: ['Hosted Esplora server — use your Vault instantly while your node syncs', 'Encrypted wallet descriptor backup', 'Integration with the companion Keychain mobile app'],
-      emailStep: st === 'connectCreate' || st === 'connectSignIn' || st === 'connectBlake2b',
-      codeStep: st === 'connectCode' || st === 'connectCodeInvalid',
-      swap: () => set({ st: cnCreate ? 'connectSignIn' : 'connectCreate' }),
-      swapLabel: cnCreate ? 'Already have an account? Sign in' : 'New to COINCUBE | Connect? Create account',
-      bad: st === 'connectCodeInvalid', code: st === 'connectCodeInvalid' ? '481 9' : '',
-      codeInvalid: String(st === 'connectCodeInvalid'), codeDesc: st === 'connectCodeInvalid' ? 'cn-code-err' : '',
-      b2b: st === 'connectBlake2b'
-    };
-
-    // ---------- #27 shared / bed ----------
-    const sh = {
-      entry: st === 'sharedToken' || st === 'sharedInvalid', accept: st === 'sharedAccept',
-      invalid: st === 'sharedInvalid', invalidA: String(st === 'sharedInvalid'), desc: st === 'sharedInvalid' ? 'sh-err' : '',
-      token: st === 'sharedInvalid' ? '[expired invitation token]' : '[invitation token]',
-      next: () => set({ st: st === 'sharedInvalid' ? 'sharedInvalid' : 'sharedAccept' }),
-      back: () => set({ st: 'sharedToken' })
-    };
-    const bd = {
-      unsupported: st === 'bedUnsupported',
-      devices: [
-        { name: 'Hardware · Ledger-style device', fp: 'c9d0e1f2', status: st === 'bedUnsupported' ? 'Decrypted' : 'Try to decrypt with this device...', tone: st === 'bedUnsupported' ? 'tone-ok' : 'tone-muted' },
-        { name: 'Hardware · Second device', fp: 'd4e5f6a7', status: 'Please unlock or open app on the device', tone: 'tone-warn' },
-        { name: 'BitBox-style device', fp: 'e3f4a5b6', status: 'Failed to decrypt file with this device', tone: 'tone-bad' }
-      ],
-      unsafeOpen: !!S.unsafeOpen, unsafeOpenA: String(!!S.unsafeOpen), chev: S.unsafeOpen ? 'M7 10l5 5 5-5' : 'M10 7l5 5-5 5',
-      toggleUnsafe: () => set({ unsafeOpen: !S.unsafeOpen, unsafeAck: false }),
-      unsafeAck: !!S.unsafeAck, toggleAck: () => set({ unsafeAck: !S.unsafeAck }), mnOff: !S.unsafeAck
-    };
-
-    // ---------- #35 legacy login ----------
-    const lg = {
-      failed: st === 'loginFailed', deleted: st === 'walletDeleted',
-      email: st === 'loginEmail' || st === 'loginFailed',
-      token: st === 'loginToken' || st === 'loginInvalid' || st === 'loginExpired',
-      authErr: st === 'loginExpired', authErrText: 'Token is expired or is invalid',
-      bad: st === 'loginInvalid', badA: String(st === 'loginInvalid'), badDesc: st === 'loginInvalid' ? 'lg-tok-err' : '',
-      tok: st === 'loginInvalid' ? '12' : st === 'loginExpired' ? '[expired token]' : '',
-      send: () => set({ st: 'loginToken' })
-    };
-    const be = {
-      choose: st === 'backendChoose', email: st === 'backendEmail', token: st === 'backendToken',
-      toEmail: () => set({ st: 'backendEmail' }), toToken: () => set({ st: 'backendToken' })
-    };
-
-    // ---------- footer + primary action ----------
-    const isLoginTab = scr === 'legacyLogin' && st.indexOf('backend') !== 0;
-    const showFoot = !launcher && !isLoginTab && scr !== 'importExtras';
-    let nextLabel = 'Next', nextDisabled = false, footNext = () => {};
-    if (scr === 'register' && st.indexOf('backup') === 0) { nextDisabled = !(st === 'backupAcked' || S.bkSaved && st === 'backupAcked'); footNext = () => set({ st: 'registerDevices' }); }
-    if (scr === 'register' && st.indexOf('register') === 0) { nextDisabled = !regAck; }
-    if (scr === 'keySource') { nextLabel = 'Continue'; nextDisabled = true; }
-    if (scr === 'connectStep') { nextLabel = 'Continue'; nextDisabled = false; footNext = () => { if (st === 'connectCreate' || st === 'connectSignIn') set({ st: 'connectCode' }); }; }
-    if (scr === 'legacyLogin') { nextLabel = 'Next'; nextDisabled = true; }
-
-    const FOOT = {
-      register: 'Prototype note · synthetic keys, fingerprints and policy · descriptor never shown · App order: Back up descriptor, then Register descriptor',
-      chainUnavailable: 'Prototype note · shown when the network filter selects Bitcoin Blake2b and its beta preference or account grant is missing',
-      blake2bMode: 'Prototype note · Blake2b mode allows Cubes, Create Vault, Split, Connect and Settings; other launcher actions show the error above',
-      split: 'Prototype note · synthetic scan totals · launcher entry shows only on Bitcoin with Blake2b available via Connect',
-      keySource: 'Prototype note · synthetic devices and fingerprints · device states from the installer key modal and the shared hardware list',
-      connectStep: 'Prototype note · installer Connect step · Skip for now hidden on Bitcoin Blake2b',
-      importExtras: 'Prototype note · AddWallet flow · synthetic invitation and devices · mnemonic field stays disabled until the warning is accepted',
-      legacyLogin: 'Prototype note · legacy remote-backend login (shared wallets) · the token submits when complete, as in the app'
-    };
-
-    const v = {
-      backup: scr === 'register' && st.indexOf('backup') === 0,
-      register: scr === 'register' && st.indexOf('register') === 0,
-      unavailable: scr === 'chainUnavailable',
-      b2bList: scr === 'blake2bMode' && st !== 'b2bCreate', b2bCreate: scr === 'blake2bMode' && st === 'b2bCreate',
-      split: scr === 'split', keys: scr === 'keySource', connect: scr === 'connectStep',
-      shared: scr === 'importExtras' && st.indexOf('shared') === 0, bed: scr === 'importExtras' && st.indexOf('bed') === 0,
-      login: isLoginTab, backend: scr === 'legacyLogin' && st.indexOf('backend') === 0
-    };
-
+    const templates = Object.keys(TPL).map((k) => ({ title: TPL[k].title, line: TPL[k].line, pick: () => go({ tpl: k, step: 'intro' }) }));
+    const curStage = STAGE[step];
+    const labels = []; ORDER.forEach((st) => { const l = STAGE[st]; if (labels[labels.length - 1] !== l) labels.push(l); });
+    const active = labels.indexOf(curStage);
+    const stages = labels.map((label, i) => ({ label, n: String(i + 1), cls: i === active ? 'cur' : i < active ? 'done' : '', current: i === active ? 'step' : 'false', rule: i < labels.length - 1 }));
+    const v = { policy: step === 'policy', intro: step === 'intro', keys: base === 'keys', keySource: step === 'keySource', mnemonic: step === 'mnemonic', descriptor: step === 'descriptor', register: step === 'register', connect: step === 'connect', nodeIn: step === 'node' && signedIn, nodeOut: step === 'node' && !signedIn, alias: step === 'alias', final: step === 'final' };
+    // Continue/Next labels as the app: template editor "Continue", the rest "Next"; node and connect steps carry their own buttons
+    const nextLabel = base === 'keys' ? 'Continue' : 'Next';
+    const hasNext = ['intro', 'keys', 'keySource', 'mnemonic', 'descriptor', 'register', 'alias'].indexOf(step) >= 0;
+    const nextOff = (step === 'descriptor' && !s.bkAck) || (step === 'register' && !s.regAck);
+    const flavor = s.flavor;
     return {
       themeClass: this.props.forceTheme ? (this.props.forceTheme === 'light' ? 'light' : '') : ((THEME === 'light' || (THEME !== 'dark' && (P.theme ?? 'dark') === 'light')) ? 'light' : ''),
       motionClass: P.reducedMotion ? 'reduced' : '',
-      topBack: !launcher, topNet: launcher, netChip: isB2bNet ? 'Network: Bitcoin Blake2b' : 'Network: Bitcoin',
-      connWord: signedOut ? 'Signed out' : 'Signed in', connStCls: signedOut ? 'out' : 'ok',
-      connAria: signedOut ? 'Connect, signed out' : 'Connect, alex@example.test, signed in',
-      connTitle: signedOut ? 'Signed out' : 'alex@example.test',
-      regionTitle: TITLE[scr], route: ROUTE[scr], cubeName,
-      netB2b: isB2bNet, netBtc: !isB2bNet, netName: isB2bNet ? 'Bitcoin Blake2b' : 'Bitcoin',
-      hasSteps: steps.length > 0, steps, stepsLabel,
-      v, yes: true,
-      // backup / register
-      policy, bkSaved: !!S.bkSaved, bkBtnCls: S.bkSaved ? 'btn' : 'btn primary',
-      doBackup: () => set({ bkSaved: true }),
-      bkAck: st === 'backupAcked', toggleBkAck: () => set({ st: st === 'backupAcked' ? 'backupDescriptor' : 'backupAcked' }),
-      regFailed: st === 'registerFailed', regDevices, regAck,
-      toggleRegAck: () => set({ st: regAck ? 'registerDevices' : 'registerAcked' }),
-      // blake2b mode
-      b2bBlocked: st === 'b2bBlocked', b2bCubes, b2bOn, b2bOff,
-      toB2bCreate: () => set({ st: 'b2bCreate' }), toB2bBlocked: () => set({ st: 'b2bBlocked' }), toB2bList: () => set({ st: 'b2bList' }),
-      sp, ks, cn, sh, bd, lg, be,
-      showFoot, canSkip: scr === 'connectStep' && st !== 'connectBlake2b', nextLabel, nextDisabled, footNext,
-      foot: FOOT[scr]
+      signedIn, signedOut: !signedIn, stages, title: step === 'intro' ? t.intro : TITLE[step], v, tp, templates,
+      backToCube: step === 'policy', hasBack: step !== 'policy' && step !== 'final', back,
+      hasNext, nextLabel, nextOff, next,
+      openSource: () => go({ step: 'keySource' }), closeSource: () => go({ step: 'keys' }), pickCubeKey: () => go({ step: 'keys' }),
+      mobileCls: signedIn ? '' : 'off', mobileOff: !signedIn,
+      bkAck: s.bkAck, toggleBkAck: () => go({ bkAck: !s.bkAck }), doBackup: () => go({ bkAck: s.bkAck }),
+      regAck: s.regAck, toggleRegAck: () => go({ regAck: !s.regAck }),
+      prune: s.prune, pruneOn: String(!!s.prune), togglePrune: () => go({ prune: !s.prune }),
+      knotsOn: String(flavor === 'knots'), coreOn: String(flavor === 'core'), pickKnots: () => go({ flavor: 'knots' }), pickCore: () => go({ flavor: 'core' }),
+      flavorBlurb: flavor === 'knots' ? 'Bitcoin Knots — stricter relay defaults; it limits oversized data-carrier ("spam") transactions. Standard sends are unaffected. Recommended.' : 'Bitcoin Core — the reference implementation, with its default relay policy.',
+      nodeDesc: s.prune ? 'COINCUBE Desktop will download and configure a pruned ' + (flavor === 'knots' ? 'Bitcoin Knots' : 'Bitcoin Core') + ' node (~20 GB of disk space required). Once synced, your Vault will automatically switch to your local node.' : 'Your Vault will use COINCUBE | Connect as its only Bitcoin backend.',
+      adv: s.adv, advLabel: s.adv ? '▾  Advanced options' : '▸  Advanced options', toggleAdv: () => go({ adv: !s.adv }),
+      installing: !s.installed, installed: !!s.installed,
+      foot: 'Prototype · synthetic keys, fingerprints and descriptor · Create Vault runs full window from an open Cube (Vault card "Create Vault" or sidebar "Set up Vault"); Done returns to the Cube'
     };
   }
 }

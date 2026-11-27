@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 .tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--acc-ink:#f59a45;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff;--hover:rgba(245,240,232,.06);--on-accent:#1a1208}
@@ -17,7 +17,7 @@ body{margin:0}
 .tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
 .tenshu.reduced *{animation:none!important;transition:none!important}
-a{color:#f3821d}a:hover{color:#ffa54d}
+a{color:#f3821d}a:hover{color:#ff9a3f}
 .tenshu a.chip{color:var(--ink);text-decoration:none}.tenshu a.chip:hover{border-color:var(--muted)}
 .tenshu *{box-sizing:border-box}
 .tenshu{font-variant-numeric:tabular-nums}
@@ -95,6 +95,8 @@ a{color:#f3821d}a:hover{color:#ffa54d}
 .row .em{font-weight:500;overflow-wrap:anywhere}
 .row .sub{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font-weight:600;flex:none}
+/* a person: thin ring (r 29 on 64, stroke 2.4, ink at 28%) and initials at 600, 22/64 of the size, centred a 64th low */
+.pm{position:relative;width:36px;height:36px;flex:none;color:var(--ink);display:grid;place-items:center;box-sizing:border-box;padding-top:1.125px}.pm svg{position:absolute;inset:0;display:block;width:36px;height:36px}.pm b{position:relative;font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:12.375px;line-height:1}
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
 .info{width:22px;height:22px;display:inline-grid;place-items:center;border:0;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;padding:0}
 .info:hover{background:var(--hover)}
@@ -124,6 +126,7 @@ a{color:#f3821d}a:hover{color:#ffa54d}
 .av svg{width:24px;height:24px}
 .cubeid{display:flex;align-items:center;gap:10px;padding:6px 10px 12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
 .cubeid .av{width:36px;height:36px}
+.av.rm{background:none;border-radius:0}.av.rm svg{width:100%;height:100%;display:block}
 .cubeidt{display:flex;flex-direction:column;min-width:0}
 .cubeidt b{font-weight:600;font-size:14px;line-height:1.3}
 .cubeidt span{font-size:12px;color:var(--muted)}
@@ -150,7 +153,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 /* page head (Robert, 2026-10-29): every Cube page pins its head as Activity does: title and Cube line left, page actions right, tabs sitting on a rule that spans the content pane; the page scrolls under it. */
 .main>.phead{position:sticky;top:0;z-index:6;flex:none;background:var(--bg);border-bottom:1px solid var(--line)}
 .phead>.in{max-width:calc(var(--page-max) + 2 * var(--gutter));padding:24px var(--gutter) 20px}
-.phead h1,.phead .ph{margin-top:0;font-size:22px;font-weight:600;line-height:1.25}
+.phead h1,.phead .ph{margin-top:0;font-size:26px;font-weight:600;line-height:1.25}
 .phead .back{margin-bottom:8px}.phead a.back{text-decoration:none}
 .phead .crumbs{margin-bottom:8px}.phead .crumbs .back{margin-bottom:0}
 .phead .hrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
@@ -183,19 +186,138 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 .phead .hact .scopes{display:inline-flex;flex-wrap:nowrap;gap:0;margin:0;padding:2px;border:1px solid var(--line);border-radius:8px}
 .phead .hact .scopes .sb,.phead .hact .scopes .scope{height:30px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:var(--muted);font-weight:500;font-size:13px;text-decoration:none;display:inline-flex;align-items:center}
 .phead .hact .scopes .sb[aria-pressed="true"],.phead .hact .scopes .scope.on{background:var(--selected);color:var(--ink);font-weight:600}
+
+/* Closer to Mobile V3 (Robert, 2026-11-25): one-colour wordmark; boxes have no outline; regions keep a quiet dividing line (ink at 10%, as Mobile); menu rows at medium weight; controls keep their outlines. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom-color:var(--rule)}
+.tenshu .side{border-right-color:var(--rule)}
+.tenshu .phead{border-bottom-color:var(--rule)}
+.tenshu .side .menu{border:0}
+.tenshu .mi b{font-weight:500}
+.tenshu .cubeid{border-bottom:0}
+.tenshu .phead .hact .back{background:var(--panel);border-color:transparent}
+
+/* ---- V3 Phase 2, folded in from the study page (2026-11-26) ---- */
+/* Top bar as the app draws it: [eye, Connect, App preferences]. One Connect control: account glyph with a status light, Connect · account, a chevron; it opens a small panel. */
+.tenshu .chips{gap:8px}
+.tenshu .ccx{position:relative}
+.tenshu .ccx>summary{list-style:none;cursor:pointer}
+.tenshu .ccx>summary::-webkit-details-marker{display:none}
+.tenshu .chip.cc{gap:7px;padding:0 10px 0 10px}
+.tenshu .chip.cc b{font-weight:600}
+.tenshu .ccav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.tenshu .ccav .lt,.tenshu .cpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--panel)}
+.tenshu .ccsep,.tenshu .ccd{color:var(--muted)}
+.tenshu .ccd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .cchev{color:var(--muted);transition:transform .15s}
+.tenshu .ccx[open] .cchev{transform:rotate(180deg)}
+.tenshu .cpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left}
+.tenshu .cph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .cph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .cph span{color:var(--muted);font-size:13px}
+.tenshu .cpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .cpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .cpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .cpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .cpa:hover{background:var(--hover,var(--selected))}
+/* Hide balances: neutral when on. */
+.tenshu .top .chips .eye[aria-pressed="true"]{border-color:transparent;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+/* Sidebar backup strip: one line, a dot, no box. */
+.tenshu .attn{border:0;background:transparent;gap:9px;padding:8px 10px;font-size:13px}
+.tenshu .attn>svg,.tenshu .attn .st>svg{display:none}
+.tenshu .attn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.tenshu .attn .warn,.tenshu .attn .st{color:var(--ink);font-weight:500}
+.tenshu .attn .go{color:var(--muted);font-weight:400}
+.tenshu .attn:hover{background:var(--hover,var(--selected))}
+/* sidebar backup strip: one line with a dot (shared across the in-Cube boards) */
+.tenshu .attn{display:flex;align-items:center;gap:9px;width:calc(100% - 12px);margin:0 6px 8px;padding:8px 10px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:13px;line-height:1.3;text-decoration:none;color:var(--ink);white-space:nowrap;cursor:pointer;text-align:left}
+.tenshu .attn>svg{display:none}
+.tenshu .attn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.tenshu .attn .warn{color:var(--ink);font-weight:500}
+.tenshu .attn .go{margin-left:auto;color:var(--muted);font-weight:400}
+.tenshu .attn:hover{background:var(--hover,var(--selected))}
+.tenshu a.tab{color:var(--muted);text-decoration:none}
+.tenshu a.tab:hover{color:var(--ink)}
+.tenshu a.sb{color:var(--ink);text-decoration:none}
+
+/* sidebar rows: left-aligned text (the canvas centres button text by default) */
+.tenshu .side .ni,.tenshu .side .ni *{text-align:left!important}
+.tenshu .side .ni{justify-content:flex-start!important}
+
+/* Cube switcher: coin icon and Cube name on one line; the network name is gone (test networks show the tag beside the wordmark) */
+.tenshu .cubeidt.cid1{flex-direction:row!important;align-items:center;gap:8px}
+.tenshu .cubeidt.cid1 .net{flex:none;display:inline-flex}
+.tenshu .cubeidt.cid1 .net img{width:18px;height:18px}
+.tenshu .cubeidt.cid1 b{min-width:0;color:var(--ink);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* cc-toasts v1 */
+.tenshu{position:relative}
+.tenshu .cc-toasts{position:absolute;bottom:24px;left:0;right:0;z-index:90;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.tenshu .cc-toast{pointer-events:auto;display:flex;align-items:flex-start;gap:12px;width:420px;box-sizing:border-box;padding:10px 8px 10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px -8px rgba(0,0,0,.6),0 2px 6px rgba(0,0,0,.35);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;text-align:left;animation:ccToastIn .18s ease-out}
+.tenshu.rm .cc-toast,.tenshu.reduced .cc-toast{animation:none}
+@keyframes ccToastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tenshu .cc-toast .cti{flex:none;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.tenshu .cc-toast .cti svg{width:16px;height:16px}
+.tenshu .cc-toast .cbd{flex:1;min-width:0;padding:4px 0;display:flex;flex-direction:column;gap:2px}
+.tenshu .cc-toast .ctt{font-size:14px;line-height:20px;font-weight:500}
+.tenshu .cc-toast .cdt{font-size:13px;line-height:19px;color:var(--muted)}
+.tenshu .cc-toast .cact{margin:6px 0 0 -4px;align-self:flex-start;background:none;border:0;padding:2px 4px;border-radius:4px;color:var(--acc-ink);font:600 13px/18px 'IBM Plex Sans',sans-serif;cursor:pointer;text-decoration:none}
+.tenshu .cc-toast .cact:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.tenshu .cc-toast .cx{flex:none;width:28px;height:28px;border-radius:6px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tenshu .cc-toast .cx:hover{background:var(--hover);color:var(--ink)}
+.tenshu .cc-toast .cx:focus-visible{outline:2px solid var(--focus,#8fc1ff);outline-offset:1px}
+.tenshu .cc-toast .cx svg{width:16px;height:16px}
+.tenshu .cc-toast.t-info .cti{background:color-mix(in srgb,var(--focus,#8fc1ff) 13%,transparent);color:var(--focus,#8fc1ff)}
+.tenshu .cc-toast.t-good .cti{background:color-mix(in srgb,var(--good) 13%,transparent);color:var(--good)}
+.tenshu .cc-toast.t-warn{border-color:color-mix(in srgb,var(--warn) 38%,transparent)}
+.tenshu .cc-toast.t-warn .cti{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.tenshu .cc-toast.t-bad{border-color:color-mix(in srgb,var(--bad) 40%,transparent)}
+.tenshu .cc-toast.t-bad .cti{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.tenshu .cc-toast.t-debug .cti{background:color-mix(in srgb,var(--muted) 12%,transparent);color:var(--muted)}
+.tenshu .cc-toast.t-debug .ctt{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
 </style>
 </helmet>
-<div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:900px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
+<div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:1000px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
 
   <header class="top">
-    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 1.75 15.5 5.5v7L9 16.25 2.5 12.5v-7z"/><path d="M2.5 5.5 9 9.25l6.5-3.75M9 9.25v7"/></svg>Tenshu</a>
+    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 1.75 15.5 5.5v7L9 16.25 2.5 12.5v-7z"/><path d="M2.5 5.5 9 9.25l6.5-3.75M9 9.25v7"/></svg><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;letter-spacing:.08em;color:var(--ink)">COINCUBE</span></a>
     <div class="chips">
-      <a class="chip" href="P-Connect-InCube.dc.html" title="alex@example.test · Signed in"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span class="srl">Connect account alex@example.test:</span><span class="st ok"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Signed in</span></a>
-      <a class="chip" href="P-Settings.dc.html" onClick="{{ toNode }}" title="{{ connTitle }}" aria-label="{{ connTitle }}. Open Node settings"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><path d="M7.5 10.5a3 3 0 0 0 4.2 0l2.3-2.3a3 3 0 0 0-4.2-4.2l-.9.9"/><path d="M10.5 7.5a3 3 0 0 0-4.2 0L4 9.8A3 3 0 0 0 8.2 14l.9-.9"/></svg><span class="srl">Cube service:</span>
-        <sc-if value="{{ registered }}" hint-placeholder-val="{{ true }}"><span class="st ok"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Connected</span></sc-if>
-        <sc-if value="{{ registering }}" hint-placeholder-val="{{ false }}"><span class="st unk"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l2.5 1.5"/></svg>Registering</span></sc-if>
-      </a>
       <button type="button" class="eye" aria-pressed="false" aria-label="Hide balances"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M1.75 9S4.5 4 9 4s7.25 5 7.25 5S13.5 14 9 14 1.75 9 1.75 9z"/><circle cx="9" cy="9" r="2.25"/></svg></button>
+      <details class="ccx"><summary class="chip cc" aria-label="Connect account, alex@example.test, live updates on"><span class="ccav"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><i class="lt"></i></span><b>Connect</b><span class="ccsep" aria-hidden="true">·</span><span class="ccd">alex@example.test</span><svg class="ic s cchev" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></summary><div class="cpanel" role="menu"><div class="cph"><b>alex@example.test</b><span>Signed in to COINCUBE | Connect</span></div><div class="cpl"><i class="lt"></i>Live updates on this computer</div><div class="cpr"></div><a class="cpa" role="menuitem" href="P-Connect-InCube.dc.html">Connect account</a><a class="cpa" role="menuitem" href="P-Settings.dc.html">Connections settings</a></div></details>
       <a class="eye apg" href="P-AppPrefs-InCube.dc.html" aria-label="App preferences" data-tip="App preferences"><svg class="ic s" aria-hidden="true" viewBox="0 0 24 24" style="stroke-width:1.75"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a>
     </div>
   </header>
@@ -204,42 +326,43 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
     <nav class="side" aria-label="Cube navigation">
         <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
         <div class="menu">
-        <a class="mi" href="P-Launcher.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span class="grow"><b>All Cubes</b></span></a>
+        <a class="mi" href="P-Launcher.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span class="grow" style="text-align:left;justify-content:flex-start"><b>All Cubes</b></span></a>
         <hr>
-        <sc-if value="{{ lockIdle }}" hint-placeholder-val="{{ true }}"><button type="button" class="mi" onClick="{{ askLock }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="3.5" y="8" width="11" height="7.5" rx="1.5"/><path d="M6 8V5.75a3 3 0 0 1 6 0V8"/></svg><span class="grow"><b>Lock Cube</b></span></button></sc-if>
+        <sc-if value="{{ lockIdle }}" hint-placeholder-val="{{ true }}"><button type="button" class="mi" onClick="{{ askLock }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="3.5" y="8" width="11" height="7.5" rx="1.5"/><path d="M6 8V5.75a3 3 0 0 1 6 0V8"/></svg><span class="grow" style="text-align:left;justify-content:flex-start"><b>Lock Cube</b></span></button></sc-if>
         <sc-if value="{{ lockAsk }}" hint-placeholder-val="{{ false }}"><div class="lockq" role="group" aria-labelledby="lockq-t"><p id="lockq-t">Lock Everyday and open the Launcher?</p><a class="tbtn pri btn" href="P-Locking.dc.html" style="height:28px" onMouseDown="{{ lockNow }}" onClick="{{ lockNow }}">Lock</a><button type="button" class="tbtn" onClick="{{ cancelLock }}" style="height:28px">Cancel</button></div></sc-if>
         </div>
         </sc-if>
       <div class="navp">
-        <button type="button" class="cubeid" aria-haspopup="true" aria-expanded="{{ menuOpen }}" aria-label="Cube menu. Current: Everyday · Bitcoin mainnet" onClick="{{ toggleMenu }}"><span class="av" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="11" fill="currentColor" opacity=".08" stroke="none"></circle><path d="M12 4.2c4.6-.4 7.9 3.1 7.6 7.4-.3 4.6-4.2 8.2-8.6 7.6-4.2-.6-6.9-4.4-6.3-8.5.5-3.3 3-5.9 6.2-6.4"></path></svg></span><span class="cubeidt"><b>Everyday</b><span class="net"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt="">Bitcoin mainnet</span></span><svg class="ic s cv" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></button>
-        <a class="ni" href="P-Overview.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span>Overview</span></a>
-        <a class="ni" href="P-Activity.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l2.5 1.5"/></svg><span>Activity</span></a>
-        <a class="ni" href="P-Settings.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/><path d="m6.5 9 1.8 1.8 3.5-3.5"/></svg><span>Backup &amp; protection</span></a>
+        <button type="button" class="cubeid" aria-haspopup="true" aria-expanded="{{ menuOpen }}" aria-label="Cube menu. Current: Everyday · Bitcoin mainnet" onClick="{{ toggleMenu }}"><span class="av rm" aria-hidden="true" style="text-align:left;justify-content:flex-start"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M5.04 33.38A27 27 0 0 1 58.87 29.31" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M46.36 20.33A18.5 18.5 0 1 1 32.07 13.50" fill="none" stroke="var(--accent,#F3821D)" stroke-width="2.6" stroke-linecap="round"/><circle cx="32" cy="32" r="2.6" fill="currentColor"/></svg></span><span class="cubeidt cid1" style="text-align:left;justify-content:flex-start"><b>Everyday</b></span><svg class="ic s cv" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></button>
+        <a class="ni" href="P-Overview.dc.html" onClick="{{ sbNav.overview }}" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span style="text-align:left;justify-content:flex-start">Overview</span></a>
+        <a class="ni" href="P-Activity.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l2.5 1.5"/></svg><span style="text-align:left;justify-content:flex-start">Activity</span></a>
+        <a class="ni" href="P-Settings.dc.html" onClick="{{ sbNav.backup }}" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/><path d="m6.5 9 1.8 1.8 3.5-3.5"/></svg><span style="text-align:left;justify-content:flex-start">Backup &amp; protection</span></a>
       </div>
       <div class="mid">
         <h2 class="gh">Wallets</h2>
-        <a class="ni" href="P-Overview.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg><span>Spark · Daily spending</span></a>
-        <a class="ni" href="P-Advanced.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/></svg><span>Vault · Family savings</span></a>
-        <a class="ni" href="P-Liquid.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5c2.6 3.2 4.5 5.8 4.5 8a4.5 4.5 0 0 1-9 0c0-2.2 1.9-4.8 4.5-8z"/></svg><span>Liquid · Travel</span></a>
+        <a class="ni" href="P-Spark.dc.html" onClick="{{ sbNav.spark }}" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg><span style="text-align:left;justify-content:flex-start">Spark · Daily spending</span></a>
+        <a class="ni" href="P-Vault.dc.html" onClick="{{ sbNav.vault }}" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/></svg><span style="text-align:left;justify-content:flex-start">Vault · Family savings</span></a>
+        <a class="ni" href="P-P2P.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M3 7.25 4 3h10l1 4.25"/><path d="M3 7.25c0 1.1.9 1.9 2 1.9s2-.8 2-1.9c0 1.1.9 1.9 2 1.9s2-.8 2-1.9c0 1.1.9 1.9 2 1.9s2-.8 2-1.9"/><path d="M4 9.1v6.4h10V9.1"/><path d="M7.5 15.5V12h3v3.5"/></svg><span style="text-align:left;justify-content:flex-start">Marketplace</span></a>
       </div>
+      <a class="attn" href="P-Settings.dc.html" onClick="{{ sbNav.backup }}"><svg class="ic s warn" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg><span class="warn" style="text-align:left;justify-content:flex-start;font-weight:500">Backup not confirmed</span><span class="go" style="text-align:left;justify-content:flex-start">Review</span></a>
       <div class="sfoot">
-        <a class="ni on" aria-current="page" href="P-Settings.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.25"/><circle cx="9" cy="9" r="5"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.05 4.05l1.41 1.41M12.54 12.54l1.41 1.41M4.05 13.95l1.41-1.41M12.54 5.46l1.41-1.41"/></svg><span>Settings</span></a>
+        <a class="ni on" aria-current="page" href="P-Settings.dc.html" onClick="{{ sbNav.settings }}" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.25"/><circle cx="9" cy="9" r="5"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.05 4.05l1.41 1.41M12.54 12.54l1.41 1.41M4.05 13.95l1.41-1.41M12.54 5.46l1.41-1.41"/></svg><span style="text-align:left;justify-content:flex-start">Settings</span></a>
       </div>
     </nav>
 
     <main class="main">
       <div class="phead"><div class="in">
         <sc-if value="{{ gateClosed }}" hint-placeholder-val="{{ false }}">
-          <div class="hrow"><div><h1 class="ph">Settings</h1><p class="idl"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt="">Vault · Family savings · Bitcoin mainnet</p></div><div class="hact"><div class="scopes" role="group" aria-label="Settings scope"><button type="button" class="sb" aria-pressed="false" title="Cube · Everyday">Cube</button><button type="button" class="sb" aria-pressed="true" title="Vault · Family savings">Vault</button><button type="button" class="sb" aria-pressed="false" title="Spark · Daily spending">Spark</button></div></div></div>
+          <div class="hrow"><div><h1 class="ph">Settings</h1><p class="idl"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt="">Vault · Family savings · Everyday</p></div><div class="hact"><div class="scopes" role="group" aria-label="Settings scope"><button type="button" class="sb" aria-pressed="false" title="Cube · Everyday">Cube</button><button type="button" class="sb" aria-pressed="true" title="Vault · Family savings">Vault</button><button type="button" class="sb" aria-pressed="false" title="Spark · Daily spending">Spark</button></div></div></div>
           <nav class="tabs" aria-label="Sections in Vault · Family savings">
             <button type="button" class="tab on" aria-current="page">Wallet &amp; signers</button>
-            <a class="tab" href="P-Signing.dc.html" style="text-decoration:none">Pair with Keychain</a>
-            <button type="button" class="tab">Connections</button>
-            <button type="button" class="tab">Data &amp; exports</button>
+            <a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.node }}" style="text-decoration:none">Node</a><a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.pair }}" style="text-decoration:none">Mobile</a><a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.vconn }}" style="text-decoration:none">Connections</a><a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.vdata }}" style="text-decoration:none">Data &amp; exports</a>
           </nav>
         </sc-if>
         <sc-if value="{{ gateOn }}" hint-placeholder-val="{{ true }}">
-          <div class="hrow"><div><h1 class="ph">Members</h1><p class="idl"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt="">Everyday · Bitcoin mainnet</p></div><div class="hact"><button type="button" class="btn" disabled="{{ refreshOff }}" onClick="{{ refresh }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="M14.5 9a5.5 5.5 0 1 1-1.6-3.9M14.5 3.5v3h-3"/></svg>Refresh</button><a class="back" href="P-Settings.dc.html"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="M11 4.5 6.5 9l4.5 4.5"/></svg>Back to Wallet &amp; signers</a></div></div>
+          <div class="hrow"><div><h1 class="ph">Settings</h1><p class="idl"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt="">Cube · Everyday</p></div><div class="hact"><div class="scopes" role="group" aria-label="Settings scope"><button type="button" class="sb" aria-pressed="true" title="Cube · Everyday">Cube</button><a class="sb" href="P-Settings.dc.html" onClick="{{ tabGo.wallet }}" title="Vault · Family savings" style="text-decoration:none">Vault</a><a class="sb" href="P-Settings.dc.html" onClick="{{ tabGo.spark }}" title="Spark · Daily spending" style="text-decoration:none">Spark</a></div></div></div>
+          <nav class="tabs" aria-label="Sections in Cube · Everyday"><a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.display }}" style="text-decoration:none">Display &amp; appearance</a><a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.backup }}" style="text-decoration:none">Backup &amp; protection</a><a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.payments }}" style="text-decoration:none">Payment checks</a><a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.ai }}" style="text-decoration:none">AI access</a><a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.connections }}" style="text-decoration:none">Connections</a><a class="tab" href="P-Settings.dc.html" onClick="{{ tabGo.data }}" style="text-decoration:none">Data &amp; exports</a><button type="button" class="tab on" aria-current="page">Members</button></nav>
+          <div class="hrow" style="margin-top:28px"><div><h2 class="ph" style="font-size:20px">Members</h2><p class="idl">Everyday</p></div><div class="hact"><button type="button" class="btn" disabled="{{ refreshOff }}" onClick="{{ refresh }}">Refresh</button></div></div>
         </sc-if>
       </div></div>
       <div class="pg">
@@ -249,7 +372,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           <section class="grp" aria-labelledby="h-ph">
             <h2 id="h-ph">Phone signing and members</h2>
             <div class="rows" style="border-top:0">
-              <div class="srow"><div><p class="lb">Pair with Keychain</p><p class="ds">Same Wi-Fi. No Connect account needed.</p></div><a class="btn" href="P-Signing.dc.html">Open Pair with Keychain</a></div>
+              <div class="srow"><div><p class="lb">Mobile</p><p class="ds">Pair a phone holding this Vault's Mobile key. Same Wi-Fi. No Connect account needed.</p></div><a class="btn" href="P-Settings.dc.html" onClick="{{ tabGo.pair }}">Pair phone</a></div>
               <sc-if value="{{ gateOff }}" hint-placeholder-val="{{ true }}">
                 <div class="srow"><div><p class="lb">Members<span class="off"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M6 9h6"/></svg>Not enabled</span></p><p class="ds">For eligible Connect Vaults only.</p></div><span></span></div>
               </sc-if>
@@ -269,7 +392,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           </sc-if>
 
           <sc-if value="{{ notReady }}" hint-placeholder-val="{{ false }}">
-            <div class="empty" style="border-top:1px solid var(--line);margin-top:24px"><b>Not ready — the cube is still registering.</b></div>
+            <div class="empty" style="border-top:1px solid var(--line);margin-top:24px"><b>Not ready — the Cube is still registering.</b></div>
           </sc-if>
 
           <sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
@@ -307,7 +430,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
                 <ul class="rows">
                   <sc-for list="{{ members }}" as="m" hint-placeholder-count="3">
                     <li class="row" style="align-items:flex-start">
-                      <span class="av" aria-hidden="true">{{ m.initial }}</span>
+                      <span class="pm" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" stroke-width="2.4" opacity=".28"></circle></svg><b>{{ m.initial }}</b></span>
                       <div class="main2"><p class="em">{{ m.email }}</p>
                         <sc-if value="{{ m.after }}" hint-placeholder-val="{{ false }}">
                           <p class="badge">Joined after Vault <button type="button" class="info" aria-expanded="{{ m.tipOpen }}" aria-controls="{{ m.tipId }}" aria-label="What Joined after Vault means" onClick="{{ m.toggleTip }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 8.25v4M9 5.75v.01"/></svg></button></p>
@@ -333,23 +456,61 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["ready","loading","empty","sending","invalidEmail","removeConflict","networkError","notRegistered"],"default":"ready","section":"Review"},"gate":{"editor":"enum","options":["on","off","hidden"],"default":"on","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":900}}'>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["ready","loading","empty","sending","sent","invalidEmail","removeConflict","networkError","notRegistered"],"default":"ready","section":"Review"},"gate":{"editor":"enum","options":["on","off","hidden"],"default":"on","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":1000}}'>
 class Component extends DCLogic {
+  // People: one or two initials in a thin ring (SPEC-cube-ring-mark-v1 section 7). Display name when Connect sends one, else the email.
+  _pi(name, email){
+    function personInitials(name, email){
+  const pick = ws => { let o = ""; for (const w of ws) { if (o.length >= 2) break; if (!w) continue; const g = [...new Intl.Segmenter().segment(w)][0].segment; if (!/^\p{Alphabetic}/u.test(g)) continue; const up = g.toUpperCase(); o += ([...new Intl.Segmenter().segment(up)].length === 1 ? up : g); } return o; };
+  const a = name && name.trim() ? pick(name.trim().split(/\p{White_Space}/u)) : "";
+  return a || (email ? pick(email.split("@")[0].split(/[._\-+]/)) : "");
+}
+    return personInitials(name, email);
+  }
   constructor(p){super(p); try { const bump = () => { try { this.setState({ protoTick: Date.now() }); } catch (e) {} }; window.addEventListener('tenshu-proto', bump); window.addEventListener('storage', bump); } catch (e) {}this.state={k:null,lockAsk:false};}
+
   renderVals(){
+    /* cc-toasts v1 */ try { if (!window.__ccToast) { const W = window; const TIMES = {info:8000,good:8000,warn:8000,bad:8000,debug:8000}; const MAX = 3;
+      const IC = {info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/>', good:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>', warn:'<path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v3.5"/><path d="M12 16.8h.01"/>', bad:'<circle cx="12" cy="12" r="9"/><path d="m14.8 9.2-5.6 5.6"/><path d="m9.2 9.2 5.6 5.6"/>', debug:'<path d="m5 8 4 4-4 4"/><path d="M12 16h7"/>'};
+      const svg = (p) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+      const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+      const parse = (s) => { const f = String(s || '').split('|'); return {tone: IC[f[0]] ? f[0] : 'info', title: f[1] || '', detail: f[2] || '', action: f[3] || '', href: f[4] || ''}; };
+      const hostFor = (el) => { const root = (el && el.closest && el.closest('.tenshu')) || document.querySelector('.tenshu'); if (!root) return null; let h = root.querySelector(':scope > .cc-toasts'); if (!h) { h = document.createElement('div'); h.className = 'cc-toasts'; h.setAttribute('aria-live', 'polite'); root.appendChild(h); }
+        const main = root.querySelector('.main'); if (main) { h.style.left = main.offsetLeft + 'px'; h.style.right = Math.max(0, root.clientWidth - main.offsetLeft - main.offsetWidth) + 'px'; } return h; };
+      const show = (spec, el) => { const t = typeof spec === 'string' ? parse(spec) : spec; if (!t.title) return; const h = hostFor(el); if (!h) return;
+        while (h.children.length >= MAX) h.removeChild(h.firstChild);
+        const n = document.createElement('div'); n.className = 'cc-toast t-' + t.tone; n.setAttribute('role', t.tone === 'bad' ? 'alert' : 'status');
+        n.innerHTML = '<div class="cti" aria-hidden="true">' + svg(IC[t.tone]) + '</div><div class="cbd"><div class="ctt">' + esc(t.title) + '</div>' + (t.detail ? '<div class="cdt">' + esc(t.detail) + '</div>' : '') + (t.action ? (t.href ? '<a class="cact" href="' + esc(t.href) + '">' + esc(t.action) + '</a>' : '<button type="button" class="cact">' + esc(t.action) + '</button>') : '') + '</div><button type="button" class="cx" aria-label="Dismiss">' + svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>') + '</button>';
+        const kill = () => { if (n.parentNode) n.parentNode.removeChild(n); };
+        n.querySelector('.cx').addEventListener('click', (e) => { e.stopPropagation(); kill(); });
+        const a = n.querySelector('button.cact'); if (a) a.addEventListener('click', (e) => { e.stopPropagation(); kill(); });
+        h.appendChild(n); const ms = TIMES[t.tone]; if (ms) setTimeout(kill, ms); };
+      W.__ccToast = show;
+      document.addEventListener('click', (e) => { const el = e.target && e.target.closest && e.target.closest('[data-toast],[data-toast-next]'); if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+        const now = el.getAttribute('data-toast'); const nxt = el.getAttribute('data-toast-next');
+        if (now) setTimeout(() => show(now, el), 0);
+        if (nxt) { try { localStorage.setItem('tenshu.proto.toast', nxt); } catch (x) {} } }, true);
+      W.__ccToastFlush = (root) => { try { const p = localStorage.getItem('tenshu.proto.toast'); if (p) { localStorage.removeItem('tenshu.proto.toast'); show(p, root); } } catch (x) {}
+        try { (root || document).querySelectorAll('[data-toast-auto]:not([data-toast-shown])').forEach((el) => { el.setAttribute('data-toast-shown', '1'); show(el.getAttribute('data-toast-auto'), el); }); } catch (x) {} };
+    } if (!this.__ccTm) { this.__ccTm = 1; setTimeout(() => window.__ccToastFlush && window.__ccToastFlush(), 450); } else { setTimeout(() => window.__ccToastFlush && window.__ccToastFlush(), 60); } } catch (e) {}
+ const r=this._rvBase(); const put=(k,v)=>()=>{ try { if(v===null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+    // prototype-only: sidebar hand-offs (P-Overview opens a wallet page from tenshu.proto.land; P-Settings opens a scope and tab from tenshu.proto.settingsScope)
+    r.sbNav={overview:put('tenshu.proto.land',null),spark:put('tenshu.proto.land',{page:'spark'}),vault:put('tenshu.proto.land',{page:'vault'}),backup:put('tenshu.proto.settingsScope',{scope:'cube',tab:'backup'}),settings:put('tenshu.proto.settingsScope',{scope:'cube',tab:'display'})};
+    return r; }
+  _rvBase(){
     // prototype-only: Appearance (App preferences) is a device setting shared across artboards: system follows the review lever
     let THEME = 'system'; try { THEME = localStorage.getItem('tenshu.proto.theme') || 'system'; } catch (e) {}
     const P=this.props,self=this;
     const L={st:P.state||'ready',gate:P.gate||'on'};
     const key=L.st+'|'+L.gate;
     const empty=L.st==='empty';
-    const init={key:key,email:L.st==='invalidEmail'?'jordan@example':'',busy:L.st==='sending',emailErr:L.st==='invalidEmail',
+    const init={key:key,email:L.st==='invalidEmail'?'taylor@example':(L.st==='sending'?'taylor@example.test':''),busy:L.st==='sending',emailErr:L.st==='invalidEmail',
       banner:L.st==='removeConflict'?'conflict':(L.st==='networkError'?'net':''),loading:L.st==='loading',
       tip:'',
       invites:empty?[]:[
         {id:'i1',email:'jordan@example.test',status:'pending',days:6},
         {id:'i2',email:'sam@example.test',status:'pending',days:0},
-        {id:'i3',email:'riley@example.test',status:'expired',days:-1}],
+        {id:'i3',email:'riley@example.test',status:'expired',days:-1}].concat(L.st==='sent'?[{id:'i4',email:'taylor@example.test',status:'pending',days:7}]:[]),
       members:empty?[]:[
         {id:'m1',email:'casey@example.test',joined:'Sep 14, 2026',after:false},
         {id:'m2',email:'morgan.with-a-long-household-address@family-office.example.test',joined:'Oct 18, 2026',after:true}]};
@@ -358,11 +519,12 @@ class Component extends DCLogic {
     const val=(e)=>(e&&e.target)?e.target.value:'';
     const valid=(s)=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
     const TONE={pending:'warn',accepted:'ok',revoked:'unk',expired:'unk'};
+    const STW={pending:'Pending invitation',accepted:'Accepted invitation',revoked:'Revoked invitation',expired:'Expired invitation'};
     const expText=(d)=>d<0?'Expired':(d===0?'Expires today':(d===1?'Expires in 1 day':'Expires in '+d+' days'));
-    const invites=S.invites.map((i)=>({email:i.email,status:i.status,tone:TONE[i.status]||'unk',exp:expText(i.days),expTone:i.days<0?'bad':'',
+    const invites=S.invites.map((i)=>({email:i.email,status:STW[i.status]||i.status,tone:TONE[i.status]||'unk',exp:expText(i.days),expTone:i.days<0?'bad':'',
       canRevoke:i.status==='pending',revokeLabel:'Revoke invite for '+i.email,
       revoke:()=>set({invites:S.invites.filter((x)=>x.id!==i.id)})}));
-    const members=S.members.map((m)=>({email:m.email,initial:m.email.charAt(0).toUpperCase(),joined:m.joined,after:m.after,
+    const members=S.members.map((m)=>({email:m.email,initial:self._pi(m.name||'',m.email),joined:m.joined,after:m.after,
       tipId:'tip-'+m.id,tipOpen:S.tip===m.id?'true':'false',showTip:S.tip===m.id,toggleTip:()=>set({tip:S.tip===m.id?'':m.id}),
       removeLabel:'Remove '+m.email,
       remove:()=>{if(m.id==='m1'){set({banner:'conflict'});}else{set({members:S.members.filter((x)=>x.id!==m.id)});}}}));
@@ -375,7 +537,7 @@ class Component extends DCLogic {
     };
     const gateOn=L.gate==='on';
     const foot=gateOn
-      ?'Prototype · synthetic members and invites · behind CUBE_MEMBERS_UI_ENABLED (off by default) · the app shows no roles: every member can view and attach keys'
+      ?'Prototype · synthetic members and invites · review note: in the app this Cube Settings tab exists only in builds with COINCUBE_CUBE_MEMBERS_UI set, which is off by default (lever gate) · no roles: every member can view and attach keys'
       :(L.gate==='off'?'Prototype · flag off drawn as a gated row for review · in the app the Members entry is simply absent':'Prototype · flag off as the app ships it: no Members entry anywhere');
     return {
       toNode:()=>{ try { localStorage.setItem('tenshu.proto.settingsScope', JSON.stringify({scope:'vault',tab:'node'})); } catch (e) {} },
@@ -383,7 +545,10 @@ class Component extends DCLogic {
       lockNow: () => { try { localStorage.removeItem('tenshu.proto.open'); } catch (e) {} },
       themeClass:this.props.forceTheme?(this.props.forceTheme==='light'?'light':''):((THEME==='light'||(THEME!=='dark'&&(P.theme||'dark')==='light'))?'light':''),motionClass:P.reducedMotion?'reduced':'',
       lockIdle:!self.state.lockAsk,lockAsk:!!self.state.lockAsk,askLock:()=>self.setState({lockAsk:true}),cancelLock:()=>self.setState({lockAsk:false}),
-      registered:!notReady,registering:notReady,connTitle:'Cube service · '+(notReady?'Registering':'Connected'),
+      registered:!notReady,registering:notReady,
+      tabGo:(function(){const h=(v)=>()=>{ try { localStorage.setItem('tenshu.proto.settingsScope', JSON.stringify(v)); } catch (e) {} };
+        return {display:h({scope:'cube',tab:'display'}),backup:h({scope:'cube',tab:'backup'}),payments:h({scope:'cube',tab:'payments'}),ai:h({scope:'cube',tab:'ai'}),connections:h({scope:'cube',tab:'connections'}),data:h({scope:'cube',tab:'data'}),
+          wallet:h({scope:'vault',tab:'wallet'}),node:h({scope:'vault',tab:'node'}),pair:h({scope:'vault',tab:'pair'}),vconn:h({scope:'vault',tab:'connections'}),vdata:h({scope:'vault',tab:'data'}),spark:h({scope:'spark',tab:'spark'})};})(),
       gateOn:gateOn,gateClosed:!gateOn,gateOff:L.gate==='off',
       ready:ready,notReady:notReady,refreshOff:S.loading,refresh:()=>{set({loading:true});setTimeout(()=>{const c=self.state.k;if(c&&c.loading)self.setState({k:Object.assign({},c,{loading:false})});},900);},
       banner:{net:S.banner==='net',conflict:S.banner==='conflict'},dismiss:()=>set({banner:''}),

@@ -8,8 +8,8 @@ Read this file first, then the review doc, then the inventory.
 
 | What | Where |
 | --- | --- |
-| Live prototype (clickable, needs a signed-in claude.ai browser) | https://claude.ai/artifact/4DkSWQshpyXVu2kVrbneRz (canvas v175; the sources below were exported from it on 2026-10-30, artifact version `1793315838-41d9`) |
-| Exported screenshots of every screen, dark and light (open without a browser session) | `screens/dark/`, `screens/light/`, `screens/studies/`, index in `screens/README.md` (canvas v175) |
+| Live prototype (clickable, needs a signed-in claude.ai browser) | https://claude.ai/artifact/4DkSWQshpyXVu2kVrbneRz (the sources below were re-exported at canvas version 345 on 2026-11-27, artifact version `1795761319-02e2`; see "Desktop V3 Phase 1 delta") |
+| Exported screenshots of every screen, dark and light (open without a browser session) | `screens/dark/`, `screens/light/`, `screens/studies/`, index in `screens/README.md` (canvas version 345; `H-*`, `G-*`, `O-*` studies v175) |
 | Artboard sources (canvas v175: the linked `P-*` prototype and its light twins, plus the v175 studies `H-*` page head, `G-*` ghost Cubes and `O-*` opening, and the `P-*-Rail` Launcher backdrop boards; plain HTML + CSS + a small script each) | `canvas/*.dc.html`, index and canvas pages in `canvas/canvas.json` |
 | Earlier exploration boards the prototype was distilled from (superseded) | `archive/explorations/` |
 | Every decision Robert made, in order, with reasons | `tenshu-launcher-and-settings-review.md` |
@@ -32,8 +32,29 @@ on Mobile, and a one-colour wordmark. The plan is in the company brain under
 `plans/desktop-v3-phase1/`. Where it touches a screen it supersedes the v175
 plan and the steps below.
 
-The exported sources in `canvas/` and the renders in `screens/` are from canvas
-v175 and predate this change. The live canvas wins until they are re-exported.
+**Re-exported 2026-11-27 at canvas version 345** (artifact version
+`1795761319-02e2`), the acceptance target for Desktop V3 (Phase 1 and Phase 2):
+
+- `canvas/` holds the boards from five canvas pages: Prototype (`P-*`), Light theme
+  (`P-Light-*`, `P-Launcher-Light*`), the Create and Import wizards (`W-*`), the
+  Mobile V3 studies (`MV-*`), and the D4 notice review (`D4-*`). The older studies
+  (`H-*`, `G-*`, `O-*`) are kept at v175. Boards that left the prototype
+  (`P-Liquid`, `P-Claim`, `P-Gaps*` other than `P-GapsAccount` and
+  `P-GapsInstaller`) are gone from this folder. They are on the canvas's
+  "Retired" page.
+- `screens/dark/`, `screens/light/` and `screens/studies/` are renders of those
+  boards at version 345, default state only.
+- **Buttons:** every `P-` and `W-` board carries one shared style block, marked
+  `/* cc-buttons v1 */`. It is the reference for the button rule, and since
+  version 345 also for notices and toasts.
+  - In a bar (top bar, sidebar, the Launcher's bottom bar), buttons have no
+    outline.
+  - In page content, every button has a 1 px ink outline and radius 8.
+  - The one primary is filled accent, with hover `#ff9a3f`.
+  - A warning or error notice or toast washes its panel 8% in its tone.
+- **Toasts:** the shared layer marked `/* cc-toasts v1 */` is the reference.
+
+The Phase 2 plan is `plans/desktop-v3-phase2/` in the company brain.
 
 ## v175 delta (2026-10-29)
 

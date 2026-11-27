@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 .tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--acc-ink:#f59a45;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff;--hover:rgba(245,240,232,.06);--on-accent:#1a1208;--scrim:rgba(0,0,0,.55)}
@@ -17,7 +17,7 @@ body{margin:0}
 .tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
 .tenshu.reduced *{animation:none!important;transition:none!important}
-a{color:#f3821d}a:hover{color:#ffa54d}
+a{color:#f3821d}a:hover{color:#ff9a3f}
 .tenshu *{box-sizing:border-box}
 .tenshu{font-variant-numeric:tabular-nums}
 .tenshu button,.tenshu input{font:inherit;color:inherit}
@@ -138,7 +138,7 @@ a{color:#f3821d}a:hover{color:#ffa54d}
 .scrim{position:absolute;inset:0;background:var(--scrim);display:grid;place-items:center;z-index:5}
 .dlg{width:560px;padding:20px 24px 24px;border:1px solid var(--line);border-radius:12px;background:var(--panel);box-shadow:0 24px 64px -16px rgba(0,0,0,.5)}
 .dlg .hd{display:flex;align-items:center;gap:12px}
-.dlg h2{flex:1;font-size:18px;font-weight:600}
+.dlg h2{flex:1;font-size:20px;font-weight:600}
 .bar{height:8px;border-radius:4px;background:var(--line);margin-top:24px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--accent)}
 .dlg .msg{margin-top:14px;text-align:center}
@@ -151,6 +151,7 @@ a{color:#f3821d}a:hover{color:#ffa54d}
 .av svg{width:24px;height:24px}
 .cubeid{display:flex;align-items:center;gap:10px;padding:6px 10px 12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
 .cubeid .av{width:36px;height:36px}
+.av.rm{background:none;border-radius:0}.av.rm svg{width:100%;height:100%;display:block}
 .cubeidt{display:flex;flex-direction:column;min-width:0}
 .cubeidt b{font-weight:600;font-size:14px;line-height:1.3}
 .cubeidt span{font-size:12px;color:var(--muted)}
@@ -177,7 +178,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 /* page head (Robert, 2026-10-29): every Cube page pins its head as Activity does: title and Cube line left, page actions right, tabs sitting on a rule that spans the content pane; the page scrolls under it. */
 .main>.phead{position:sticky;top:0;z-index:6;flex:none;background:var(--bg);border-bottom:1px solid var(--line)}
 .phead>.in{max-width:calc(var(--page-max) + 2 * var(--gutter));padding:24px var(--gutter) 20px}
-.phead h1,.phead .ph{margin-top:0;font-size:22px;font-weight:600;line-height:1.25}
+.phead h1,.phead .ph{margin-top:0;font-size:26px;font-weight:600;line-height:1.25}
 .phead .back{margin-bottom:8px}.phead a.back{text-decoration:none}
 .phead .crumbs{margin-bottom:8px}.phead .crumbs .back{margin-bottom:0}
 .phead .hrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
@@ -207,22 +208,136 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 .phead .hsteps li.cur .n{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#1a1208)}
 .phead .hsteps li.done .n{border-color:var(--good);color:var(--good)}
 .tenshu a.chip{color:var(--ink);text-decoration:none}.tenshu a.chip:hover{background:var(--hover,var(--selected))}
+
+/* Closer to Mobile V3 (Robert, 2026-11-25): one-colour wordmark; boxes have no outline; regions keep a quiet dividing line (ink at 10%, as Mobile); menu rows at medium weight; controls keep their outlines. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom-color:var(--rule)}
+.tenshu .side{border-right-color:var(--rule)}
+.tenshu .phead{border-bottom-color:var(--rule)}
+.tenshu .side .menu{border:0}
+.tenshu .mi b{font-weight:500}
+.tenshu .cubeid{border-bottom:0}
+.tenshu .phead .hact .back{background:var(--panel);border-color:transparent}
+.tenshu .idc{border:0}
+.tenshu .dlg{border:0}
+.tenshu .fxt{border:0}
+
+/* ---- V3 Phase 2, folded in from the study page (2026-11-26) ---- */
+/* Top bar as the app draws it: [eye, Connect, App preferences]. One Connect control: account glyph with a status light, Connect · account, a chevron; it opens a small panel. */
+.tenshu .chips{gap:8px}
+.tenshu .ccx{position:relative}
+.tenshu .ccx>summary{list-style:none;cursor:pointer}
+.tenshu .ccx>summary::-webkit-details-marker{display:none}
+.tenshu .chip.cc{gap:7px;padding:0 10px 0 10px}
+.tenshu .chip.cc b{font-weight:600}
+.tenshu .ccav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.tenshu .ccav .lt,.tenshu .cpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--panel)}
+.tenshu .ccsep,.tenshu .ccd{color:var(--muted)}
+.tenshu .ccd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .cchev{color:var(--muted);transition:transform .15s}
+.tenshu .ccx[open] .cchev{transform:rotate(180deg)}
+.tenshu .cpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left}
+.tenshu .cph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .cph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .cph span{color:var(--muted);font-size:13px}
+.tenshu .cpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .cpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .cpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .cpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .cpa:hover{background:var(--hover,var(--selected))}
+/* Hide balances: neutral when on. */
+.tenshu .top .chips .eye[aria-pressed="true"]{border-color:transparent;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+/* Sidebar backup strip: one line, a dot, no box. */
+.tenshu .attn{border:0;background:transparent;gap:9px;padding:8px 10px;font-size:13px}
+.tenshu .attn>svg,.tenshu .attn .st>svg{display:none}
+.tenshu .attn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.tenshu .attn .warn,.tenshu .attn .st{color:var(--ink);font-weight:500}
+.tenshu .attn .go{color:var(--muted);font-weight:400}
+.tenshu .attn:hover{background:var(--hover,var(--selected))}
+
+/* pairing code (local_signing.rs:256-316): shown only while the QR is live */
+.pcode{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.pcode .pc{margin:4px 0 6px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:26px;font-weight:600;letter-spacing:.06em}
+.pcode .pcf{margin-top:4px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px;line-height:1.6}
+
+/* sidebar rows: left-aligned text (the canvas centres button text by default) */
+.tenshu .side .ni,.tenshu .side .ni *{text-align:left!important}
+.tenshu .side .ni{justify-content:flex-start!important}
+
+/* Cube switcher: coin icon and Cube name on one line; the network name is gone (test networks show the tag beside the wordmark) */
+.tenshu .cubeidt.cid1{flex-direction:row!important;align-items:center;gap:8px}
+.tenshu .cubeidt.cid1 .net{flex:none;display:inline-flex}
+.tenshu .cubeidt.cid1 .net img{width:18px;height:18px}
+.tenshu .cubeidt.cid1 b{min-width:0;color:var(--ink);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* cc-toasts v1 */
+.tenshu{position:relative}
+.tenshu .cc-toasts{position:absolute;bottom:24px;left:0;right:0;z-index:90;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.tenshu .cc-toast{pointer-events:auto;display:flex;align-items:flex-start;gap:12px;width:420px;box-sizing:border-box;padding:10px 8px 10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px -8px rgba(0,0,0,.6),0 2px 6px rgba(0,0,0,.35);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;text-align:left;animation:ccToastIn .18s ease-out}
+.tenshu.rm .cc-toast,.tenshu.reduced .cc-toast{animation:none}
+@keyframes ccToastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tenshu .cc-toast .cti{flex:none;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.tenshu .cc-toast .cti svg{width:16px;height:16px}
+.tenshu .cc-toast .cbd{flex:1;min-width:0;padding:4px 0;display:flex;flex-direction:column;gap:2px}
+.tenshu .cc-toast .ctt{font-size:14px;line-height:20px;font-weight:500}
+.tenshu .cc-toast .cdt{font-size:13px;line-height:19px;color:var(--muted)}
+.tenshu .cc-toast .cact{margin:6px 0 0 -4px;align-self:flex-start;background:none;border:0;padding:2px 4px;border-radius:4px;color:var(--acc-ink);font:600 13px/18px 'IBM Plex Sans',sans-serif;cursor:pointer;text-decoration:none}
+.tenshu .cc-toast .cact:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.tenshu .cc-toast .cx{flex:none;width:28px;height:28px;border-radius:6px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tenshu .cc-toast .cx:hover{background:var(--hover);color:var(--ink)}
+.tenshu .cc-toast .cx:focus-visible{outline:2px solid var(--focus,#8fc1ff);outline-offset:1px}
+.tenshu .cc-toast .cx svg{width:16px;height:16px}
+.tenshu .cc-toast.t-info .cti{background:color-mix(in srgb,var(--focus,#8fc1ff) 13%,transparent);color:var(--focus,#8fc1ff)}
+.tenshu .cc-toast.t-good .cti{background:color-mix(in srgb,var(--good) 13%,transparent);color:var(--good)}
+.tenshu .cc-toast.t-warn{border-color:color-mix(in srgb,var(--warn) 38%,transparent)}
+.tenshu .cc-toast.t-warn .cti{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.tenshu .cc-toast.t-bad{border-color:color-mix(in srgb,var(--bad) 40%,transparent)}
+.tenshu .cc-toast.t-bad .cti{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.tenshu .cc-toast.t-debug .cti{background:color-mix(in srgb,var(--muted) 12%,transparent);color:var(--muted)}
+.tenshu .cc-toast.t-debug .ctt{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
 </style>
 </helmet>
 <div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:1100px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
 
   <header class="top">
-    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 1.75 15.5 5.5v7L9 16.25 2.5 12.5v-7z"/><path d="M2.5 5.5 9 9.25l6.5-3.75M9 9.25v7"/></svg>Tenshu</a>
+    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 1.75 15.5 5.5v7L9 16.25 2.5 12.5v-7z"/><path d="M2.5 5.5 9 9.25l6.5-3.75M9 9.25v7"/></svg><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;letter-spacing:.08em;color:var(--ink)">COINCUBE</span></a>
     <div class="chips">
-      <div class="chip" title="{{ acctTitle }}"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg>
-        <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ true }}"><a href="P-Connect-InCube.dc.html" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px"><span class="srl">Connect account alex@example.test:</span><span class="st ok"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Signed in</span></a></sc-if>
-        <sc-if value="{{ signedOut }}" hint-placeholder-val="{{ false }}"><span class="srl">Connect account:</span><span class="st unk"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M6 9h6"/></svg>Signed out</span><a class="mini" href="P-SignIn.dc.html" style="display:inline-flex;align-items:center;text-decoration:none">Sign in</a></sc-if>
-      </div>
-      <a class="chip" href="P-Settings.dc.html" onClick="{{ toNode }}" title="{{ connTitle }}" aria-label="{{ connTitle }}. Open Node settings"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><path d="M7.5 10.5a3 3 0 0 0 4.2 0l2.3-2.3a3 3 0 0 0-4.2-4.2l-.9.9"/><path d="M10.5 7.5a3 3 0 0 0-4.2 0L4 9.8A3 3 0 0 0 8.2 14l.9-.9"/></svg><span class="srl">Cube service:</span>
-        <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ true }}"><span class="st ok"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Connected</span></sc-if>
-        <sc-if value="{{ signedOut }}" hint-placeholder-val="{{ false }}"><span class="st unk">Not checked</span></sc-if>
-      </a>
       <button type="button" class="eye" aria-pressed="false" aria-label="Hide balances"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M1.75 9S4.5 4 9 4s7.25 5 7.25 5S13.5 14 9 14 1.75 9 1.75 9z"/><circle cx="9" cy="9" r="2.25"/></svg></button>
+      <sc-if value="{{ signedIn }}" hint-placeholder-val="{{ true }}"><details class="ccx"><summary class="chip cc" aria-label="Connect account, alex@example.test, live updates on"><span class="ccav"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><i class="lt"></i></span><b>Connect</b><span class="ccsep" aria-hidden="true">·</span><span class="ccd">alex@example.test</span><svg class="ic s cchev" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></summary><div class="cpanel" role="menu"><div class="cph"><b>alex@example.test</b><span>Signed in to COINCUBE | Connect</span></div><div class="cpl"><i class="lt"></i>Live updates on this computer</div><div class="cpr"></div><a class="cpa" role="menuitem" href="P-Connect-InCube.dc.html">Connect account</a><a class="cpa" role="menuitem" href="P-Settings.dc.html">Connections settings</a></div></details></sc-if><sc-if value="{{ signedOut }}" hint-placeholder-val="{{ false }}"><a class="chip cc" href="P-SignIn.dc.html" aria-label="Connect: Sign in"><span class="ccav"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg></span><b>Connect</b><span class="ccsep" aria-hidden="true">·</span><span class="ccd si">Sign in</span></a></sc-if>
       <a class="eye apg" href="P-AppPrefs-InCube.dc.html" aria-label="App preferences" data-tip="App preferences"><svg class="ic s" aria-hidden="true" viewBox="0 0 24 24" style="stroke-width:1.75"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a>
     </div>
   </header>
@@ -231,26 +346,25 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
     <nav class="side" aria-label="Cube navigation">
         <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
         <div class="menu">
-        <a class="mi" href="P-Launcher.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span class="grow"><b>All Cubes</b></span></a>
+        <a class="mi" href="P-Launcher.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span class="grow" style="text-align:left;justify-content:flex-start"><b>All Cubes</b></span></a>
         <hr>
-        <sc-if value="{{ lockIdle }}" hint-placeholder-val="{{ true }}"><button type="button" class="mi" onClick="{{ askLock }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="3.5" y="8" width="11" height="7.5" rx="1.5"/><path d="M6 8V5.75a3 3 0 0 1 6 0V8"/></svg><span class="grow"><b>Lock Cube</b></span></button></sc-if>
+        <sc-if value="{{ lockIdle }}" hint-placeholder-val="{{ true }}"><button type="button" class="mi" onClick="{{ askLock }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="3.5" y="8" width="11" height="7.5" rx="1.5"/><path d="M6 8V5.75a3 3 0 0 1 6 0V8"/></svg><span class="grow" style="text-align:left;justify-content:flex-start"><b>Lock Cube</b></span></button></sc-if>
         <sc-if value="{{ lockAsk }}" hint-placeholder-val="{{ false }}"><div class="lockq" role="group" aria-labelledby="lockq-t"><p id="lockq-t">Lock Everyday and open the Launcher?</p><a class="btn pri sm" href="P-Locking.dc.html" onMouseDown="{{ lockNow }}" onClick="{{ lockNow }}">Lock</a><button type="button" class="btn sm" onClick="{{ cancelLock }}">Cancel</button></div></sc-if>
         </div>
         </sc-if>
       <div class="navp">
-        <button type="button" class="cubeid" aria-haspopup="true" aria-expanded="{{ menuOpen }}" aria-label="Cube menu. Current: Everyday · Bitcoin mainnet" onClick="{{ toggleMenu }}"><span class="av" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="11" fill="currentColor" opacity=".08" stroke="none"></circle><path d="M12 4.2c4.6-.4 7.9 3.1 7.6 7.4-.3 4.6-4.2 8.2-8.6 7.6-4.2-.6-6.9-4.4-6.3-8.5.5-3.3 3-5.9 6.2-6.4"></path></svg></span><span class="cubeidt"><b>Everyday</b><span class="net"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt="">Bitcoin mainnet</span></span><svg class="ic s cv" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></button>
-        <a class="ni" href="P-Overview.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span>Overview</span></a>
-        <a class="ni" href="P-Activity.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l2.5 1.5"/></svg><span>Activity</span></a>
-        <a class="ni" href="P-Settings.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/><path d="m6.5 9 1.8 1.8 3.5-3.5"/></svg><span>Backup &amp; protection</span></a>
+        <button type="button" class="cubeid" aria-haspopup="true" aria-expanded="{{ menuOpen }}" aria-label="Cube menu. Current: Everyday · Bitcoin mainnet" onClick="{{ toggleMenu }}"><span class="av rm" aria-hidden="true" style="text-align:left;justify-content:flex-start"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M5.04 33.38A27 27 0 0 1 58.87 29.31" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M46.36 20.33A18.5 18.5 0 1 1 32.07 13.50" fill="none" stroke="var(--accent,#F3821D)" stroke-width="2.6" stroke-linecap="round"/><circle cx="32" cy="32" r="2.6" fill="currentColor"/></svg></span><span class="cubeidt cid1" style="text-align:left;justify-content:flex-start"><b>Everyday</b></span><svg class="ic s cv" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></button>
+        <a class="ni" href="P-Overview.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span style="text-align:left;justify-content:flex-start">Overview</span></a>
+        <a class="ni" href="P-Activity.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l2.5 1.5"/></svg><span style="text-align:left;justify-content:flex-start">Activity</span></a>
+        <a class="ni" href="P-Settings.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/><path d="m6.5 9 1.8 1.8 3.5-3.5"/></svg><span style="text-align:left;justify-content:flex-start">Backup &amp; protection</span></a>
       </div>
       <div class="mid">
         <h2 class="gh">Wallets</h2>
-        <a class="ni" href="P-Overview.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg><span>Spark · Daily spending</span></a>
-        <a class="ni {{ nav.vault }}" aria-current="{{ nav.vaultCur }}" href="P-Advanced.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/></svg><span>Vault · Family savings</span></a>
-        <a class="ni" href="P-Liquid.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5c2.6 3.2 4.5 5.8 4.5 8a4.5 4.5 0 0 1-9 0c0-2.2 1.9-4.8 4.5-8z"/></svg><span>Liquid · Travel</span></a>
+        <a class="ni" href="P-Spark.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg><span style="text-align:left;justify-content:flex-start">Spark · Daily spending</span></a>
+        <a class="ni {{ nav.vault }}" aria-current="{{ nav.vaultCur }}" href="P-Advanced.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/></svg><span style="text-align:left;justify-content:flex-start">Vault · Family savings</span></a>
       </div>
       <div class="sfoot">
-        <a class="ni {{ nav.settings }}" aria-current="{{ nav.settingsCur }}" href="P-Settings.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.25"/><circle cx="9" cy="9" r="5"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.05 4.05l1.41 1.41M12.54 12.54l1.41 1.41M4.05 13.95l1.41-1.41M12.54 5.46l1.41-1.41"/></svg><span>Settings</span></a>
+        <a class="ni {{ nav.settings }}" aria-current="{{ nav.settingsCur }}" href="P-Settings.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.25"/><circle cx="9" cy="9" r="5"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.05 4.05l1.41 1.41M12.54 12.54l1.41 1.41M4.05 13.95l1.41-1.41M12.54 5.46l1.41-1.41"/></svg><span style="text-align:left;justify-content:flex-start">Settings</span></a>
       </div>
     </nav>
 
@@ -261,6 +375,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
       <div class="pg">
 
         <!-- ===== HARDWARE SIGNING SESSION + FIRMWARE ADVISORIES ===== -->
+        <sc-if value="{{ sgToast.on }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="{{ sgToast.spec }}"></span></sc-if>
         <sc-if value="{{ is.hardware }}" hint-placeholder-val="{{ true }}">
           <p class="req"><span class="k" aria-hidden="true"><i class="{{ hw.dot1 }}"></i><i class="{{ hw.dot2 }}"></i></span><span>{{ hw.collected }}</span></p>
           <section class="sec" aria-labelledby="h-hw">
@@ -275,7 +390,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
                   <sc-if value="{{ hw.ccIdle }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn pri sm" onClick="{{ hw.sign }}">Sign</button></sc-if>
                   <sc-if value="{{ hw.ccBusy }}" hint-placeholder-val="{{ false }}"><span class="st unk" role="status">Processing…</span><span class="cap">Please check your device</span></sc-if>
                   <sc-if value="{{ hw.ccSigned }}" hint-placeholder-val="{{ false }}"><span class="st ok"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Signed</span></sc-if>
-                  <sc-if value="{{ hw.ccConn }}" hint-placeholder-val="{{ false }}"><span class="st bad">Connection error</span><button type="button" class="btn sm" onClick="{{ hw.sign }}">Retry</button></sc-if>
+                  <sc-if value="{{ hw.ccConn }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="bad|Can't talk to your hardware wallet|Check that the device is connected and unlocked, that the Bitcoin app is open for the right network, and that no other wallet software is using it. Ref CC-HW"></span><span class="st bad">Connection error</span><button type="button" class="btn sm" onClick="{{ hw.sign }}">Retry</button></sc-if>
                 </span>
                 <sc-if value="{{ hw.advOpen }}" hint-placeholder-val="{{ true }}">
                   <div class="advp" id="adv-cc"><b>Coldcard firmware advisory</b>
@@ -297,20 +412,20 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
         <!-- ===== KEYCHAIN REMOTE SIGNING (Send › Sign) ===== -->
         <sc-if value="{{ is.keychain }}" hint-placeholder-val="{{ false }}">
           <sc-if value="{{ kc.needsConnect }}" hint-placeholder-val="{{ false }}">
-            <div class="banner"><svg class="ic warn" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg><div class="tx"><b>Keychain signing needs Connect</b></div><a class="btn sm" href="P-SignIn.dc.html">Sign in to Connect</a></div>
+            <div class="banner"><svg class="ic warn" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg><div class="tx"><b>Mobile signing needs Connect</b></div><a class="btn sm" href="P-SignIn.dc.html">Sign in to Connect</a></div>
           </sc-if>
           <div class="req" style="justify-content:space-between"><span style="display:inline-flex;gap:10px;align-items:center"><span class="k" aria-hidden="true"><i class="on"></i><i class="{{ kc.dot2 }}"></i></span>{{ kc.collected }}</span><button type="button" class="btn sm" disabled="{{ kc.reqOff }}" onClick="{{ kc.request }}">Request from everyone</button></div>
           <section class="path" aria-labelledby="h-pp">
             <h3 id="h-pp">Primary path</h3><p class="pd">Able to move the funds at any time.</p>
             <ul class="rows">
               <li class="row"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="9.5" rx="1.5"/><path d="M6 15.5h6M9 12.5v3"/></svg><span><span class="nm">This device <span class="mono">a1b2c3d4</span></span><span class="sub">This computer</span></span><span class="st ok"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Signed</span></li>
-              <li class="row"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="5" y="1.75" width="8" height="14.5" rx="1.75"/><path d="M8 13.5h2"/></svg><span><span class="nm">Keychain · Alex's phone <span class="mono">e5f6a7b8</span></span><span class="sub">{{ kc.kind }}</span><sc-if value="{{ kc.hasReason }}" hint-placeholder-val="{{ false }}"><span class="sub {{ kc.reasonTone }}">{{ kc.reason }}</span></sc-if></span>
+              <li class="row"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="5" y="1.75" width="8" height="14.5" rx="1.75"/><path d="M8 13.5h2"/></svg><span><span class="nm">Mobile · Alex's phone <span class="mono">e5f6a7b8</span></span><span class="sub">{{ kc.kind }}</span><sc-if value="{{ kc.hasReason }}" hint-placeholder-val="{{ false }}"><span class="sub {{ kc.reasonTone }}">{{ kc.reason }}</span></sc-if></span>
                 <span class="stack">
                   <sc-if value="{{ kc.showStatus }}" hint-placeholder-val="{{ true }}"><span class="st {{ kc.tone }}" role="status">{{ kc.status }}</span></sc-if>
                   <sc-if value="{{ kc.canRequest }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn sm" onClick="{{ kc.request }}">Request</button></sc-if>
                   <sc-if value="{{ kc.canRetry }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn sm" onClick="{{ kc.request }}">Retry</button></sc-if>
-                  <sc-if value="{{ kc.lan }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn pri sm" onClick="{{ kc.request }}">Send through Connect</button><button type="button" class="btn sm" onClick="{{ kc.request }}">Try Wi-Fi again</button></sc-if>
-                  <sc-if value="{{ kc.out }}" hint-placeholder-val="{{ false }}"><a class="btn sm" href="P-SignIn.dc.html">Sign in to Connect</a></sc-if>
+                  <sc-if value="{{ kc.lan }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="bad|Couldn't sign with COINCUBE Mobile over Wi-Fi|Send the request through COINCUBE ∣ Connect instead, or check that the phone is on the same Wi-Fi with COINCUBE Mobile open, then try again. Ref CC-HW-LAN"></span><button type="button" class="btn pri sm" onClick="{{ kc.request }}">Send through Connect</button><button type="button" class="btn sm" onClick="{{ kc.request }}">Try Wi-Fi again</button></sc-if>
+                  <sc-if value="{{ kc.out }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="info|Couldn't find a Connect session.|Sign in to Connect, or pair a phone over Wi-Fi to sign locally."></span><a class="btn sm" href="P-SignIn.dc.html">Sign in to Connect</a></sc-if>
                 </span></li>
               <li class="row"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="4" y="2.5" width="10" height="13" rx="2"/><path d="M7 12.5h4"/></svg><span><span class="nm">Hardware · Ledger-style device <span class="mono">c9d0e1f2</span></span><span class="sub">Hardware wallet</span></span><button type="button" class="btn sm" onClick="{{ go.hardware }}">Sign</button></li>
             </ul>
@@ -327,10 +442,10 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           <section class="sec" aria-labelledby="h-pa">
             <h2 id="h-pa">Pair a phone</h2>
             <sc-if value="{{ pr.idle }}" hint-placeholder-val="{{ true }}"><div style="margin-top:12px"><button type="button" class="btn pri" onClick="{{ pr.start }}">Pair phone</button></div></sc-if>
-            <sc-if value="{{ pr.noKeys }}" hint-placeholder-val="{{ false }}"><p class="ds" style="margin-top:10px;color:var(--ink);font-weight:500">No Keychain keys to pair</p></sc-if>
+            <sc-if value="{{ pr.noKeys }}" hint-placeholder-val="{{ false }}"><p class="ds" style="margin-top:10px;color:var(--ink);font-weight:500">No Mobile keys to pair</p></sc-if>
             <sc-if value="{{ pr.key }}" hint-placeholder-val="{{ false }}">
-              <p class="ds" style="margin-top:10px">The Keychain key this phone will sign for:</p>
-              <div class="keyc"><p class="nm">Keychain · Alex's phone</p><p class="mono">Key e5f6a7b8</p>
+              <p class="ds" style="margin-top:10px">The Mobile key this phone will sign for:</p>
+              <div class="keyc"><p class="nm">Mobile · Alex's phone</p><p class="mono">Key e5f6a7b8</p>
                 <button type="button" class="lbtn" aria-expanded="{{ pr.detA }}" onClick="{{ pr.toggleDet }}">{{ pr.detLabel }}</button>
                 <sc-if value="{{ pr.det }}" hint-placeholder-val="{{ false }}"><p class="mono" style="margin-top:6px">[e5f6a7b8/48'/0'/0'/2']xpub…synthetic…q7Lm</p><p class="cap">Key names can be changed in Vault → Settings → Wallet.</p></sc-if>
               </div>
@@ -343,7 +458,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
               <div style="margin-top:12px"><button type="button" class="btn sm" onClick="{{ pr.reset }}">Back</button></div>
             </sc-if>
             <sc-if value="{{ pr.offering }}" hint-placeholder-val="{{ false }}">
-              <div class="offer"><div class="qr" role="img" aria-label="Pairing QR code (synthetic)"></div><div><p>Scan this QR with the Keychain app on phone 3f9a21c0 (192.0.2.24:54502).</p><p class="ds" role="status" style="margin-top:8px">{{ pr.wait }}</p><div style="margin-top:14px"><button type="button" class="btn sm" onClick="{{ pr.reset }}">Back</button></div></div></div>
+              <div class="offer"><sc-if value="{{ pr.live }}" hint-placeholder-val="{{ true }}"><div class="qr" role="img" aria-label="Pairing QR code (synthetic)"></div></sc-if><div style="min-width:0;flex:1"><p><b>Scan with COINCUBE Mobile on phone 3f9a21c0</b></p><p class="ds" style="margin-top:4px">Phone at 192.0.2.24:54502. The phone and COINCUBE Desktop verify pairing automatically; no private key leaves this computer.</p><p class="ds" style="margin-top:4px">If COINCUBE Mobile reports an unsupported QR version, update COINCUBE Mobile.</p><p class="ds" role="status" style="margin-top:8px">{{ pr.wait }}</p><div style="margin-top:10px"><button type="button" class="btn sm" onClick="{{ pr.reset }}">Cancel pairing</button><sc-if value="{{ pr.dead }}" hint-placeholder-val="{{ false }}"> <button type="button" class="btn pri sm" onClick="{{ pr.offer }}">Start a fresh pairing offer</button></sc-if></div><sc-if value="{{ pr.live }}" hint-placeholder-val="{{ false }}"><div class="pcode"><p class="ds">This computer's pairing code</p><p class="pc">A1B2 C3D4</p><p class="ds" style="max-width:52ch">If COINCUBE Mobile asks whether the codes match, compare its code with this one. If they are different, cancel on the phone.</p><sc-if value="{{ pr.fullOff }}" hint-placeholder-val="{{ true }}"><button type="button" class="lbtn" onClick="{{ pr.showFull }}">Show full pairing code</button></sc-if><sc-if value="{{ pr.fullOn }}" hint-placeholder-val="{{ false }}"><p class="ds" style="margin-top:8px">This computer's full pairing code</p><p class="pcf">A1B2 C3D4 E5F6 0718<br>293A 4B5C 6D7E 8F90<br>A1B2 C3D4 E5F6 0718<br>293A 4B5C 6D7E 8F90</p><div style="display:flex;gap:8px;margin-top:8px"><button type="button" class="btn sm" onClick="{{ pr.copyFull }}">{{ pr.copyLabel }}</button><button type="button" class="lbtn" onClick="{{ pr.hideFull }}">Hide full pairing code</button></div></sc-if></div></sc-if><sc-if value="{{ pr.dead }}" hint-placeholder-val="{{ false }}"><p class="ds" style="margin-top:10px">This offer can no longer be scanned. Start a fresh pairing offer.</p></sc-if></div></div>
             </sc-if>
             <sc-if value="{{ pr.failed }}" hint-placeholder-val="{{ false }}">
               <div class="fail" role="alert"><b>{{ pr.fTitle }}</b><p>{{ pr.fText }}</p><button type="button" class="btn sm" onClick="{{ pr.start }}">Try again</button></div>
@@ -436,10 +551,34 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["hardware","keychain","pair","labels","export","warnings","branta"],"default":"hardware","section":"Review"},"state":{"editor":"enum","options":["ready","processing","signed","connectionError","advisoryDismissed","requested","delivered","viewed","approved","signing","rejected","expired","lanFailed","signedOut","keyPick","discovering","pickPhone","offer","offerExpired","wrongWallet","qrUsed","verifyFailed","needsUpdate","networkError","noPaired","noKeys","editing","tooLong","choosePath","progress","timeout","canceled","success","labelsConflict","aliasesConflict","importAdvisory","coinSelection","backendDown","quoteStale","notIdentified","checksOff"],"default":"ready","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":1100}}'>
+<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["hardware","keychain","pair","labels","export","warnings","branta"],"default":"hardware","section":"Review"},"state":{"editor":"enum","options":["ready","processing","signed","connectionError","advisoryDismissed","requested","delivered","viewed","approved","signing","rejected","expired","lanFailed","signedOut","keyPick","discovering","pickPhone","offer","offerExpired","wrongWallet","qrUsed","verifyFailed","needsUpdate","networkError","noPaired","noKeys","editing","tooLong","choosePath","progress","timeout","canceled","success","labelsConflict","aliasesConflict","importAdvisory","coinSelection","backendDown","quoteStale","notIdentified","checksOff"],"default":"ready","section":"Review"},"toast":{"editor":"enum","options":["none","connectNoAccount","connectNoNetwork","connectRegisterFailed","lanRepair","deviceNotReady"],"default":"none","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":1100}}'>
 class Component extends DCLogic {
   constructor(p){super(p); try { const bump = () => { try { this.setState({ protoTick: Date.now() }); } catch (e) {} }; window.addEventListener('tenshu-proto', bump); window.addEventListener('storage', bump); } catch (e) {}this.state={k:null,lockAsk:false};}
   renderVals(){
+    /* cc-toasts v1 */ try { if (!window.__ccToast) { const W = window; const TIMES = {info:8000,good:8000,warn:8000,bad:8000,debug:8000}; const MAX = 3;
+      const IC = {info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/>', good:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>', warn:'<path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v3.5"/><path d="M12 16.8h.01"/>', bad:'<circle cx="12" cy="12" r="9"/><path d="m14.8 9.2-5.6 5.6"/><path d="m9.2 9.2 5.6 5.6"/>', debug:'<path d="m5 8 4 4-4 4"/><path d="M12 16h7"/>'};
+      const svg = (p) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+      const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+      const parse = (s) => { const f = String(s || '').split('|'); return {tone: IC[f[0]] ? f[0] : 'info', title: f[1] || '', detail: f[2] || '', action: f[3] || '', href: f[4] || ''}; };
+      const hostFor = (el) => { const root = (el && el.closest && el.closest('.tenshu')) || document.querySelector('.tenshu'); if (!root) return null; let h = root.querySelector(':scope > .cc-toasts'); if (!h) { h = document.createElement('div'); h.className = 'cc-toasts'; h.setAttribute('aria-live', 'polite'); root.appendChild(h); }
+        const main = root.querySelector('.main'); if (main) { h.style.left = main.offsetLeft + 'px'; h.style.right = Math.max(0, root.clientWidth - main.offsetLeft - main.offsetWidth) + 'px'; } return h; };
+      const show = (spec, el) => { const t = typeof spec === 'string' ? parse(spec) : spec; if (!t.title) return; const h = hostFor(el); if (!h) return;
+        while (h.children.length >= MAX) h.removeChild(h.firstChild);
+        const n = document.createElement('div'); n.className = 'cc-toast t-' + t.tone; n.setAttribute('role', t.tone === 'bad' ? 'alert' : 'status');
+        n.innerHTML = '<div class="cti" aria-hidden="true">' + svg(IC[t.tone]) + '</div><div class="cbd"><div class="ctt">' + esc(t.title) + '</div>' + (t.detail ? '<div class="cdt">' + esc(t.detail) + '</div>' : '') + (t.action ? (t.href ? '<a class="cact" href="' + esc(t.href) + '">' + esc(t.action) + '</a>' : '<button type="button" class="cact">' + esc(t.action) + '</button>') : '') + '</div><button type="button" class="cx" aria-label="Dismiss">' + svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>') + '</button>';
+        const kill = () => { if (n.parentNode) n.parentNode.removeChild(n); };
+        n.querySelector('.cx').addEventListener('click', (e) => { e.stopPropagation(); kill(); });
+        const a = n.querySelector('button.cact'); if (a) a.addEventListener('click', (e) => { e.stopPropagation(); kill(); });
+        h.appendChild(n); const ms = TIMES[t.tone]; if (ms) setTimeout(kill, ms); };
+      W.__ccToast = show;
+      document.addEventListener('click', (e) => { const el = e.target && e.target.closest && e.target.closest('[data-toast],[data-toast-next]'); if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+        const now = el.getAttribute('data-toast'); const nxt = el.getAttribute('data-toast-next');
+        if (now) setTimeout(() => show(now, el), 0);
+        if (nxt) { try { localStorage.setItem('tenshu.proto.toast', nxt); } catch (x) {} } }, true);
+      W.__ccToastFlush = (root) => { try { const p = localStorage.getItem('tenshu.proto.toast'); if (p) { localStorage.removeItem('tenshu.proto.toast'); show(p, root); } } catch (x) {}
+        try { (root || document).querySelectorAll('[data-toast-auto]:not([data-toast-shown])').forEach((el) => { el.setAttribute('data-toast-shown', '1'); show(el.getAttribute('data-toast-auto'), el); }); } catch (x) {} };
+    } if (!this.__ccTm) { this.__ccTm = 1; setTimeout(() => window.__ccToastFlush && window.__ccToastFlush(), 450); } else { setTimeout(() => window.__ccToastFlush && window.__ccToastFlush(), 60); } } catch (e) {}
+
     // prototype-only: Appearance (App preferences) is a device setting shared across artboards: system follows the review lever
     let THEME = 'system'; try { THEME = localStorage.getItem('tenshu.proto.theme') || 'system'; } catch (e) {}
     const P=this.props,self=this;
@@ -465,13 +604,13 @@ class Component extends DCLogic {
     const sec=S.sec;
 
     const HEAD={
-      hardware:{back:'PSBTs',backHref:'P-Advanced.dc.html',title:'Sign transaction',line:'Vault · Family savings · Bitcoin mainnet · 120,000 SATS out'},
-      keychain:{back:'Send',backHref:'P-Send.dc.html',title:'Sign transaction',line:'Vault · Family savings · Bitcoin mainnet · 120,000 SATS out'},
-      pair:{back:'Settings',backHref:'P-Settings.dc.html',title:'Pair with Keychain',line:'Vault · Family savings · Bitcoin mainnet'},
-      labels:{back:'Activity',backHref:'P-Activity.dc.html',title:'Outgoing transaction',line:'Vault · Family savings · Bitcoin mainnet'},
-      export:{back:'Settings',backHref:'P-Settings.dc.html',title:'Import/Export',line:'Vault · Family savings · Bitcoin mainnet'},
-      warnings:{back:'Overview',backHref:'P-Overview.dc.html',title:'Vault · Family savings',line:'Everyday · Bitcoin mainnet'},
-      branta:{back:'Send',backHref:'P-Send.dc.html',title:'Review payment',line:'Spark · Daily spending · Bitcoin mainnet'}
+      hardware:{back:'PSBTs',backHref:'P-Advanced.dc.html',title:'Sign transaction',line:'Vault · Family savings · 120,000 SATS out'},
+      keychain:{back:'Send',backHref:'P-Send.dc.html',title:'Sign transaction',line:'Vault · Family savings · 120,000 SATS out'},
+      pair:{back:'Settings',backHref:'P-Settings.dc.html',title:'Mobile',line:'Vault · Family savings'},
+      labels:{back:'Activity',backHref:'P-Activity.dc.html',title:'Outgoing transaction',line:'Vault · Family savings'},
+      export:{back:'Settings',backHref:'P-Settings.dc.html',title:'Import/Export',line:'Vault · Family savings'},
+      warnings:{back:'Overview',backHref:'P-Overview.dc.html',title:'Vault · Family savings',line:'Everyday'},
+      branta:{back:'Send',backHref:'P-Send.dc.html',title:'Review payment',line:'Spark · Daily spending'}
     };
 
     // hardware
@@ -499,7 +638,7 @@ class Component extends DCLogic {
     const advance=()=>{const c=self.state.k;if(!c)return;const i=ORDER.indexOf(c.kc);if(i>=0&&i<ORDER.length-1){self.setState({k:Object.assign({},c,{kc:ORDER[i+1]})});setTimeout(advance,800);}};
     const lan=k==='lanFailed',out=k==='signedOut';
     const kc={
-      kind:lan?'Keychain · local network':'Keychain',
+      kind:lan?'Mobile · local network':'COINCUBE Mobile',
       status:(KS[k]||['',''])[0],tone:(KS[k]||['','unk'])[1],showStatus:!!(KS[k]&&KS[k][0]),
       canRequest:k==='idle',canRetry:k==='rejected'||k==='expired'||k==='failed',lan:lan,out:out,
       hasReason:lan||out,reason:lan?"Couldn't sign over Wi-Fi":(out?'Connect a device to sign with this key.':''),reasonTone:lan?'bad':'',
@@ -514,7 +653,7 @@ class Component extends DCLogic {
       wrongWallet:['Wrong wallet','The phone reports it can sign for wallet 2d7e01aa but this wallet expects 9c1e44ab. Confirm the phone is paired with the right vault.'],
       qrUsed:['QR already used','This pairing QR has already completed a pairing. Go back and start a fresh offer rather than re-using it.'],
       verifyFailed:["Couldn't verify the phone","The device that scanned the QR couldn't prove it's the phone you're pairing. This can happen on an untrusted network. Make sure both devices are on a network you trust, then start a fresh pairing."],
-      needsUpdate:['Keychain needs updating',"This Keychain didn't send an encryption key, so signing requests to it couldn't be encrypted. Update the Keychain app on the phone, then pair again."],
+      needsUpdate:['COINCUBE Mobile needs updating',"This phone's COINCUBE Mobile didn't send an encryption key, so signing requests to it couldn't be encrypted. Update COINCUBE Mobile on the phone, then pair again."],
       networkError:['Network error','Could not finish the TLS handshake or stream the pairing envelope. Confirm both devices are on the same Wi-Fi and try again. (connection reset)']
     };
     const p=S.pr;
@@ -525,10 +664,10 @@ class Component extends DCLogic {
       idle:p==='idle'&&st!=='noKeys',noKeys:st==='noKeys'&&p==='idle',key:p==='keyPick',looking:p==='discovering',pick:p==='pickPhone',
       offering:p==='offer'||p==='offerWait',failed:!!FAIL[p],fTitle:FAIL[p]?FAIL[p][0]:'',fText:FAIL[p]?FAIL[p][1]:'',
       det:S.det,detA:S.det?'true':'false',detLabel:S.det?'Hide key details':'Show key details',toggleDet:()=>set({det:!S.det}),
-      wait:S.secs>0?'Waiting for 3f9a21c0 — expires in '+S.secs+'s':'Pairing offer expired.',
+      wait:S.secs>0?'Waiting · expires in '+S.secs+'s':'Pairing offer expired',live:S.secs>0,dead:!(S.secs>0),fullOn:!!S.pfull,fullOff:!S.pfull,showFull:()=>set({pfull:true}),hideFull:()=>set({pfull:false,pcopied:false}),copyFull:()=>set({pcopied:true}),copyLabel:S.pcopied?'Copied':'Copy full pairing code',
       start:()=>set({pr:'keyPick'}),reset:()=>set({pr:'idle'}),
       discover:()=>{set({pr:'discovering'});later(1200,(c)=>c.pr==='discovering',{pr:'pickPhone'});},
-      offer:()=>{set({pr:'offer',secs:54});},
+      offer:()=>{set({pr:'offer',secs:54,pfull:false});},
       noPaired:phones.length===0,phones:phones
     };
 
@@ -601,7 +740,9 @@ class Component extends DCLogic {
       head:HEAD[sec],
       is:{hardware:sec==='hardware',keychain:sec==='keychain',pair:sec==='pair',labels:sec==='labels',export:sec==='export',warnings:sec==='warnings',branta:sec==='branta'},
       go:{hardware:()=>set({sec:'hardware'})},
-      hw:hw,kc:kc,pr:pr,lb:lb,ex:ex,wn:wn,br:br,
+      // lever toast: Mobile signing over Connect (connect_stream.rs:199/219/245), LAN re-pair (report_lan_keychain), device not ready (psbt.rs:3061)
+       sgToast:(()=>{const T={connectNoAccount:'info|Couldn\'t find this Connect session.|Sign in to Connect, or pair a phone over Wi-Fi to sign locally.',connectNoNetwork:'info|Mobile signing over Connect isn\'t available on this network.|Pair a phone over Wi-Fi to sign locally instead.',connectRegisterFailed:'info|Couldn\'t register this device with Connect.|Try again, or pair a phone over Wi-Fi to sign locally.',lanRepair:'bad|This phone needs to be paired again|Send the request through COINCUBE ∣ Connect instead, or pair the phone again in Settings > Mobile. Ref CC-HW-LAN-REPAIR',deviceNotReady:'bad|This signing device is no longer ready.|Reconnect or unlock it, then try again.'};const t=T[P.toast];return {on:!!t,spec:t||''};})(),
+       hw:hw,kc:kc,pr:pr,lb:lb,ex:ex,wn:wn,br:br,
       foot:FOOT[sec]
     };
   }

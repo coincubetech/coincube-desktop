@@ -1,1 +1,1978 @@
-{"v":3,"attachments":{},"boards":{"G-Ghost-Details.dc.html":{"h":620,"page":"ghosts","title":"Ghost selected · the face each variety turns to","w":1120,"x":1520,"y":0},"G-Launcher.dc.html":{"h":900,"is_interactive":true,"page":"ghosts","title":"Launcher · Connect-only Cubes as ghosts, Key open","w":1440,"x":0,"y":0},"H-Overview.dc.html":{"h":900,"page":"header","title":"Overview · shared page head","w":1440,"x":0,"y":0},"H-Receive.dc.html":{"h":900,"page":"header","title":"Receive · same head (Vault shown)","w":1440,"x":1520,"y":1020},"H-Send.dc.html":{"h":900,"page":"header","title":"Send · the shipped Payment details card under the new head: Back on the right, steps on the rule","w":1440,"x":0,"y":1020},"H-Settings.dc.html":{"h":900,"page":"header","title":"Settings · scope in the head, tabs on the rule","w":1440,"x":3040,"y":0},"H-Wallet.dc.html":{"h":900,"page":"header","title":"Wallet (Spark) · one Swap BTC ⇄ USDB in the head; rows keep Send and Receive; See all opens Activity filtered, Wallet settings opens Settings scoped","w":1440,"x":1520,"y":0},"O-Finale-A.dc.html":{"h":980,"is_interactive":true,"page":"opening","title":"Finale A · Bloom","w":1440,"x":0,"y":1060},"O-Finale-B.dc.html":{"h":980,"is_interactive":true,"page":"opening","title":"Finale B · Flash","w":1440,"x":1520,"y":1060},"O-Finale-C.dc.html":{"h":980,"is_interactive":true,"page":"opening","title":"Finale C · Zoom","w":1440,"x":3040,"y":1060},"O-Glow-A.dc.html":{"h":980,"is_interactive":true,"page":"opening","title":"Edge glow A · Soft","w":1440,"x":0,"y":2120},"O-Glow-B.dc.html":{"h":980,"is_interactive":true,"page":"opening","title":"Edge glow B · Bright","w":1440,"x":1520,"y":2120},"O-Launcher.dc.html":{"h":900,"is_interactive":true,"page":"opening","title":"Launcher · PIN or passkey, then the Cube tumbles to its loading face and opens","w":1440,"x":0,"y":0},"O-List.dc.html":{"h":980,"is_interactive":true,"page":"opening","title":"List view · full screen","w":1440,"x":3040,"y":2120},"O-Stall.dc.html":{"h":980,"is_interactive":true,"page":"opening","title":"Stalled loader · Cancel","w":1440,"x":1520,"y":0},"P-AI-Access.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"AI access · paired clients, pairing, permissions, revoke (from Settings)","w":1440,"x":0,"y":7200},"P-AI-Setup.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"AI-led wallet setup · handoffs, states, final review","w":1440,"x":1600,"y":7200},"P-AI-Transaction.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"AI-prepared transaction · draft, review, signing states, failures","w":1440,"x":3200,"y":7200},"P-Activity.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Activity (sidebar)","w":1440,"x":1600,"y":2400},"P-Advanced-B2B.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Blake2b copy › Tools · Coin control and Split coins from Bitcoin Blake2b","w":1440,"x":6400,"y":3600},"P-Advanced.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Vault › Tools (from the Vault page)","w":1440,"x":0,"y":3600},"P-AppPrefs-InCube.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"App preferences · over an open Cube (from the Cube top bar)","w":1440,"x":11200,"y":0},"P-AppPrefs-Rail.dc.html":{"h":900,"is_interactive":true,"page":"backdrop","title":"B · App preferences › Launcher · Network activity on/off and source","w":1440,"x":4560,"y":0},"P-AppPrefs.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"App preferences (from the Launcher)","w":1440,"x":6400,"y":0},"P-BorderWallet.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Border Wallet","w":1440,"x":4800,"y":1200},"P-BuySell.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Marketplace · Buy/Sell","w":1440,"x":0,"y":6000},"P-Claim.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Claim BTCB2 (from Tools)","w":1440,"x":3200,"y":3600},"P-Connect-InCube.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Connect · over an open Cube (from the Cube top bar)","w":1440,"x":12800,"y":0},"P-Connect.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Connect (from the Launcher account entry)","w":1440,"x":8000,"y":0},"P-Create.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Create Cube (from the Launcher)","w":1440,"x":0,"y":1200},"P-Delete.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Delete Cube","w":1440,"x":6400,"y":1200},"P-Duress.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Duress (from Connect)","w":1440,"x":3200,"y":4800},"P-GapsAccount.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Account gap screens (from Settings)","w":1440,"x":4800,"y":4800},"P-GapsDetails.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Detail gap screens (from Settings)","w":1440,"x":8000,"y":4800},"P-GapsInstaller.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Installer gap screens (from Create)","w":1440,"x":3200,"y":1200},"P-GapsWallets.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Wallet gap screens (from Tools / Settings)","w":1440,"x":6400,"y":4800},"P-Launcher-Light-List.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Launcher · light · List","w":1440,"x":1600,"y":0},"P-Launcher-Light.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Launcher · light · Cubes","w":1440,"x":0,"y":0},"P-Launcher-Rail-Light.dc.html":{"h":900,"is_interactive":true,"page":"backdrop","title":"B · Launcher · light","w":1440,"x":3040,"y":0},"P-Launcher-Rail-Node.dc.html":{"h":900,"is_interactive":true,"page":"backdrop","title":"B · Launcher · network activity from a local node already running","w":1440,"x":1520,"y":0},"P-Launcher-Rail.dc.html":{"h":900,"is_interactive":true,"page":"backdrop","title":"B · Launcher · network activity via COINCUBE | Connect (no local node running)","w":1440,"x":0,"y":0},"P-Launcher.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"1 · Launcher (Open → PIN → checks → Continue)","w":1440,"x":0,"y":0},"P-Light-AI-Access.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"AI access · paired clients, pairing, permissions, revoke (from Settings) · light","w":1440,"x":0,"y":7200},"P-Light-AI-Setup.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"AI-led wallet setup · handoffs, states, final review · light","w":1440,"x":1600,"y":7200},"P-Light-AI-Transaction.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"AI-prepared transaction · draft, review, signing states, failures · light","w":1440,"x":3200,"y":7200},"P-Light-Activity.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Activity (sidebar) · light","w":1440,"x":1600,"y":2400},"P-Light-Advanced.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Vault › Tools (from the Vault page) · light","w":1440,"x":0,"y":3600},"P-Light-AppPrefs.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"App preferences (from the Launcher) · light","w":1440,"x":6400,"y":0},"P-Light-BorderWallet.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Border Wallet · light","w":1440,"x":4800,"y":1200},"P-Light-BuySell.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Marketplace · Buy/Sell · light","w":1440,"x":0,"y":6000},"P-Light-Claim.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Claim BTCB2 (from Tools) · light","w":1440,"x":3200,"y":3600},"P-Light-Connect.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Connect (from the Launcher account entry) · light","w":1440,"x":8000,"y":0},"P-Light-Create.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Create Cube (from the Launcher) · light","w":1440,"x":0,"y":1200},"P-Light-Delete.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Delete Cube · light","w":1440,"x":6400,"y":1200},"P-Light-Duress.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Duress (from Connect) · light","w":1440,"x":3200,"y":4800},"P-Light-GapsAccount.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Account gap screens (from Settings) · light","w":1440,"x":4800,"y":4800},"P-Light-GapsDetails.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Detail gap screens (from Settings) · light","w":1440,"x":8000,"y":4800},"P-Light-GapsInstaller.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Installer gap screens (from Create) · light","w":1440,"x":3200,"y":1200},"P-Light-GapsWallets.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Wallet gap screens (from Tools / Settings) · light","w":1440,"x":6400,"y":4800},"P-Light-Liquid.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Liquid wallet · light","w":1440,"x":8000,"y":2400},"P-Light-Members.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Members (from Settings) · light","w":1440,"x":1600,"y":4800},"P-Light-Opening.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Opening Cube (after checks / create / restore) · light","w":1440,"x":4800,"y":0},"P-Light-Overview.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Overview hub (wallet pages, Send/Receive, Transfer, Tools) · light","w":1440,"x":0,"y":2400},"P-Light-P2P.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Marketplace · P2P · light","w":1440,"x":1600,"y":6000},"P-Light-Receive.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Receive(Bitcoin / Stablecoin selectors) · light","w":1440,"x":4800,"y":2400},"P-Light-Restore.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Import or restore (from the Launcher) · light","w":1440,"x":1600,"y":1200},"P-Light-Send.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Send (from any Send pill) · light","w":1440,"x":3200,"y":2400},"P-Light-Settings.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Settings (sidebar foot) · light","w":1440,"x":0,"y":4800},"P-Light-SignIn.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Connect sign-in / sign-up · light","w":1440,"x":9600,"y":0},"P-Light-Signing.dc.html":{"h":1100,"is_interactive":true,"page":"light","title":"Signing, pairing, labels, export · light","w":1440,"x":4800,"y":3600},"P-Light-Split.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Bitcoin Blake2b copy wizard (from Tools › Split coins) · light","w":1440,"x":1600,"y":3600},"P-Light-Transfer.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"Transfer (from the Transfer pill) · light","w":1440,"x":6400,"y":2400},"P-Light-Unlock.dc.html":{"h":900,"is_interactive":true,"page":"light","title":"PIN / passkey unlock (standalone) · light","w":1440,"x":3200,"y":0},"P-Liquid.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Liquid wallet","w":1440,"x":8000,"y":2400},"P-Locking.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Locking Cube (hand-off → Launcher)","w":1440,"x":4800,"y":0},"P-Members.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Members (from Settings)","w":1440,"x":1600,"y":4800},"P-Opening.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Opening Cube (after checks / create / restore)","w":1440,"x":3200,"y":0},"P-Overview.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"2 · Overview hub (wallet pages, Send/Receive, Transfer, Tools)","w":1440,"x":0,"y":2400},"P-P2P.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Marketplace · P2P","w":1440,"x":1600,"y":6000},"P-Receive.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Receive(Bitcoin / Stablecoin selectors)","w":1440,"x":4800,"y":2400},"P-Restore.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Import or restore (from the Launcher)","w":1440,"x":1600,"y":1200},"P-Send.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Send (from any Send pill)","w":1440,"x":3200,"y":2400},"P-Settings.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Settings (sidebar foot)","w":1440,"x":0,"y":4800},"P-SignIn.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Connect sign-in / sign-up","w":1440,"x":9600,"y":0},"P-Signing.dc.html":{"h":1100,"is_interactive":true,"page":"proto","title":"Signing, pairing, labels, export","w":1440,"x":4800,"y":3600},"P-Split.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Bitcoin Blake2b copy wizard (from Tools › Split coins)","w":1440,"x":1600,"y":3600},"P-Transfer.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"Transfer (from the Transfer pill)","w":1440,"x":6400,"y":2400},"P-Unlock.dc.html":{"h":900,"is_interactive":true,"page":"proto","title":"PIN / passkey unlock (standalone)","w":1440,"x":1600,"y":0},"H-Convert.dc.html":{"h":900,"page":"header","title":"Swap BTC ⇄ USDB · from the Spark page head: From and To swap, amount, indicative rate; Get quote","w":1440,"x":3040,"y":1020},"H-Convert-Review.dc.html":{"h":900,"page":"header","title":"Swap · review: quoted rate, fee, max price change, then Swap","w":1440,"x":0,"y":2040},"H-Settings-Spark.dc.html":{"h":900,"page":"header","title":"Settings scoped to Spark · auto-convert received bitcoin, pay from USDB, max price change","w":1440,"x":1520,"y":2040},"H-Settings-Spark-Off.dc.html":{"h":900,"page":"header","title":"Settings · Spark · turning auto-convert off converts the USDB balance back","w":1440,"x":3040,"y":2040},"H-Send-From.dc.html":{"h":900,"page":"header","title":"Send · You send Change: pay from Bitcoin or US Dollar (USDB)","w":1440,"x":0,"y":3060},"H-Send-To.dc.html":{"h":900,"page":"header","title":"Send · They receive Change: Lightning, on-chain, Spark, or a cross-chain stablecoin","w":1440,"x":1520,"y":3060},"H-Vault.dc.html":{"h":900,"page":"header","title":"Wallet (Vault) · same page as Spark: one Bitcoin row, protection strip (time lock, PSBTs), Tools and Wallet settings in the head","w":1440,"x":0,"y":4080},"H-Send-Vault.dc.html":{"h":900,"page":"header","title":"Send (Vault) · same card as Spark, plus network fee and coins; Sign step for 2 of 3","w":1440,"x":1520,"y":4080},"H-Settings-Vault.dc.html":{"h":900,"page":"header","title":"Settings scoped to Vault · spending keys and recovery path","w":1440,"x":3040,"y":4080},"P-Swap.dc.html":{"x":9600,"y":2400,"w":1440,"h":900,"title":"Swap BTC ⇄ USDB (from the Spark page head) · Details, Review, Swapped","is_interactive":true,"page":"proto"},"P-Light-Swap.dc.html":{"x":9600,"y":2400,"w":1440,"h":900,"title":"Swap BTC ⇄ USDB (from the Spark page head) · light","is_interactive":true,"page":"light"}},"createdOnFiles":{"at":"2026-10-21T22:46:41Z","v":1},"designSystems":[],"launch":{"file":"P-Launcher.dc.html","view":"focused"},"notes":{"backdropB":{"kind":"title1","maxW":6000,"page":"backdrop","text":"Launcher backdrop · design B (block rail)","w":240,"x":0,"y":-300},"backdropBnote":{"fill":"orange","page":"backdrop","text":"Sample chain data. Cubes sit lower (horizon through their centres, as in the app) so the sky holds a block rail plus four stats: block, mempool, hashrate (from difficulty) and next halving (from the tip). Follows the Network filter. Bottom bar: source (Automatic / Local node / COINCUBE | Connect); Blake2b comes from Connect without sign-in. A block lands every 9 s. Levers on P-Launcher: backdrop, localNode, blockDemo.","w":360,"x":6080,"y":0},"g1":{"kind":"title1","maxW":8000,"text":"Launcher & account · start here, press Play on the Launcher and walk the whole app","w":240,"x":0,"y":-140},"g2":{"kind":"title1","maxW":8000,"text":"Create, restore, delete","w":240,"x":0,"y":1060},"g3":{"kind":"title1","maxW":8000,"text":"Inside a Cube · overview, wallets, activity, send, receive, transfer","w":240,"x":0,"y":2260},"g4":{"kind":"title1","maxW":6400,"text":"Vault tools & signing","w":240,"x":0,"y":3460},"g5":{"kind":"title1","maxW":8000,"text":"Settings & protection","w":240,"x":0,"y":4660},"g6":{"kind":"title1","maxW":3200,"text":"Marketplace","w":240,"x":0,"y":5860},"g7":{"kind":"title1","maxW":4800,"text":"AI access · pair once, AI-led wallet setup, AI-prepared transactions (planned extension; labels mark what exists today)","w":240,"x":0,"y":7060},"hdr1":{"kind":"title1","maxW":4400,"page":"header","text":"Page head · the Activity header on every Cube page","w":240,"x":0,"y":-300},"hdr2":{"fill":"orange","page":"header","text":"One pinned head per page: title + Cube line left, page actions right, optional control row (tabs or filters) sitting on a rule that spans the content pane. Content scrolls under it. Toggle 'scrolled' on any artboard to see content pass beneath the rule.","w":360,"x":4560,"y":0},"image-4agae0":{"alt":"Screenshot 2026-10-29 at 1.15.01 PM","h":777,"kind":"image","page":"opening","src":"/_blob/669a01e67a95523d368cceadb89d5b27","w":1200,"x":-645,"y":1210},"image-tdxxlc":{"alt":"Screenshot 2026-10-29 at 10.56.52 AM","h":194,"kind":"image","page":"ghosts","src":"/_blob/d40eb3724b2fa0c684782f59b358e207","w":408,"x":-162,"y":1377},"lg1":{"kind":"title1","maxW":8000,"page":"light","text":"Launcher & account · light theme","w":240,"x":0,"y":-140},"lg2":{"kind":"title1","maxW":8000,"page":"light","text":"Create, restore, delete · light theme","w":240,"x":0,"y":1060},"lg3":{"kind":"title1","maxW":8000,"page":"light","text":"Inside a Cube · light theme","w":240,"x":0,"y":2260},"lg4":{"kind":"title1","maxW":8000,"page":"light","text":"Vault tools & signing · light theme","w":240,"x":0,"y":3460},"lg5":{"kind":"title1","maxW":8000,"page":"light","text":"Settings & protection · light theme","w":240,"x":0,"y":4660},"lg6":{"kind":"title1","maxW":4800,"page":"light","text":"Marketplace · light theme","w":240,"x":0,"y":5860},"lg7":{"kind":"title1","maxW":6400,"page":"light","text":"AI access · light theme","w":240,"x":0,"y":7060}},"order":["P-Launcher.dc.html","P-Unlock.dc.html","P-Opening.dc.html","P-Locking.dc.html","P-AppPrefs.dc.html","P-Connect.dc.html","P-SignIn.dc.html","P-Create.dc.html","P-Restore.dc.html","P-GapsInstaller.dc.html","P-BorderWallet.dc.html","P-Delete.dc.html","P-Overview.dc.html","P-Activity.dc.html","P-Send.dc.html","P-Receive.dc.html","P-Transfer.dc.html","P-Swap.dc.html","P-Liquid.dc.html","P-Advanced.dc.html","P-Split.dc.html","P-Advanced-B2B.dc.html","P-Claim.dc.html","P-Signing.dc.html","P-Settings.dc.html","P-Members.dc.html","P-Duress.dc.html","P-GapsAccount.dc.html","P-GapsWallets.dc.html","P-GapsDetails.dc.html","P-BuySell.dc.html","P-P2P.dc.html","P-AI-Access.dc.html","P-AI-Setup.dc.html","P-AI-Transaction.dc.html","P-Launcher-Light.dc.html","P-Launcher-Light-List.dc.html","P-Light-Unlock.dc.html","P-Light-Opening.dc.html","P-Light-AppPrefs.dc.html","P-Light-Connect.dc.html","P-Light-SignIn.dc.html","P-Light-Create.dc.html","P-Light-Restore.dc.html","P-Light-GapsInstaller.dc.html","P-Light-BorderWallet.dc.html","P-Light-Delete.dc.html","P-Light-Overview.dc.html","P-Light-Activity.dc.html","P-Light-Send.dc.html","P-Light-Receive.dc.html","P-Light-Transfer.dc.html","P-Light-Swap.dc.html","P-Light-Liquid.dc.html","P-Light-Advanced.dc.html","P-Light-Split.dc.html","P-Light-Claim.dc.html","P-Light-Signing.dc.html","P-Light-Settings.dc.html","P-Light-Members.dc.html","P-Light-Duress.dc.html","P-Light-GapsAccount.dc.html","P-Light-GapsWallets.dc.html","P-Light-GapsDetails.dc.html","P-Light-BuySell.dc.html","P-Light-P2P.dc.html","P-Light-AI-Access.dc.html","P-Light-AI-Setup.dc.html","P-Light-AI-Transaction.dc.html","P-AppPrefs-InCube.dc.html","P-Connect-InCube.dc.html","P-Launcher-Rail.dc.html","P-Launcher-Rail-Node.dc.html","P-Launcher-Rail-Light.dc.html","P-AppPrefs-Rail.dc.html","H-Overview.dc.html","H-Wallet.dc.html","H-Settings.dc.html","H-Send.dc.html","H-Send-From.dc.html","H-Send-To.dc.html","H-Receive.dc.html","H-Vault.dc.html","H-Send-Vault.dc.html","H-Settings-Vault.dc.html","H-Convert.dc.html","H-Convert-Review.dc.html","H-Settings-Spark.dc.html","H-Settings-Spark-Off.dc.html","G-Launcher.dc.html","G-Ghost-Details.dc.html","O-Launcher.dc.html","O-Finale-A.dc.html","O-Finale-B.dc.html","O-Finale-C.dc.html","O-Glow-A.dc.html","O-Glow-B.dc.html","O-List.dc.html","O-Stall.dc.html"],"pages":[{"id":"proto","name":"Prototype (clickable)"},{"id":"light","name":"Light theme (same prototype, forced light)"},{"id":"backdrop","name":"Launcher backdrop (design B)"},{"id":"header","name":"Page header study"},{"id":"ghosts","name":"Connect Cubes as ghosts"},{"id":"opening","name":"Opening on the Cube"}],"title":"Tenshu Launcher & Concept C"}
+{
+ "v": 3,
+ "attachments": {},
+ "boards": {
+  "G-Ghost-Details.dc.html": {
+   "h": 620,
+   "page": "ghosts",
+   "title": "Ghost selected · the face each variety turns to",
+   "w": 1120,
+   "x": 1520,
+   "y": 0
+  },
+  "G-Launcher.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "ghosts",
+   "title": "Launcher · Connect-only Cubes as ghosts, Key open",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  },
+  "H-Overview.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Overview · shared page head",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  },
+  "H-Receive.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Receive · same head (Vault shown)",
+   "w": 1440,
+   "x": 1520,
+   "y": 1020
+  },
+  "H-Send.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Send · the shipped Payment details card under the new head: Back on the right, steps on the rule",
+   "w": 1440,
+   "x": 0,
+   "y": 1020
+  },
+  "H-Settings.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Settings · scope in the head, tabs on the rule",
+   "w": 1440,
+   "x": 3040,
+   "y": 0
+  },
+  "H-Wallet.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Wallet (Spark) · one Swap BTC ⇄ USDB in the head; rows keep Send and Receive; See all opens Activity filtered, Wallet settings opens Settings scoped",
+   "w": 1440,
+   "x": 1520,
+   "y": 0
+  },
+  "O-Finale-A.dc.html": {
+   "h": 980,
+   "is_interactive": true,
+   "page": "opening",
+   "title": "Finale A · Bloom",
+   "w": 1440,
+   "x": 0,
+   "y": 1060
+  },
+  "O-Finale-B.dc.html": {
+   "h": 980,
+   "is_interactive": true,
+   "page": "opening",
+   "title": "Finale B · Flash",
+   "w": 1440,
+   "x": 1520,
+   "y": 1060
+  },
+  "O-Finale-C.dc.html": {
+   "h": 980,
+   "is_interactive": true,
+   "page": "opening",
+   "title": "Finale C · Zoom",
+   "w": 1440,
+   "x": 3040,
+   "y": 1060
+  },
+  "O-Glow-A.dc.html": {
+   "h": 980,
+   "is_interactive": true,
+   "page": "opening",
+   "title": "Edge glow A · Soft",
+   "w": 1440,
+   "x": 0,
+   "y": 2120
+  },
+  "O-Glow-B.dc.html": {
+   "h": 980,
+   "is_interactive": true,
+   "page": "opening",
+   "title": "Edge glow B · Bright",
+   "w": 1440,
+   "x": 1520,
+   "y": 2120
+  },
+  "O-Launcher.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "opening",
+   "title": "Launcher · PIN or passkey, then the Cube tumbles to its loading face and opens",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  },
+  "O-List.dc.html": {
+   "h": 980,
+   "is_interactive": true,
+   "page": "opening",
+   "title": "List view · full screen",
+   "w": 1440,
+   "x": 3040,
+   "y": 2120
+  },
+  "O-Stall.dc.html": {
+   "h": 980,
+   "is_interactive": true,
+   "page": "opening",
+   "title": "Stalled loader · Cancel",
+   "w": 1440,
+   "x": 1520,
+   "y": 0
+  },
+  "H-Convert.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Swap BTC ⇄ USDB · from the Spark page head: From and To swap, amount, indicative rate; Get quote",
+   "w": 1440,
+   "x": 3040,
+   "y": 1020
+  },
+  "H-Convert-Review.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Swap · review: quoted rate, fee, max price change, then Swap",
+   "w": 1440,
+   "x": 0,
+   "y": 2040
+  },
+  "H-Settings-Spark.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Settings scoped to Spark · auto-convert received bitcoin, pay from USDB, max price change",
+   "w": 1440,
+   "x": 1520,
+   "y": 2040
+  },
+  "H-Settings-Spark-Off.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Settings · Spark · turning auto-convert off converts the USDB balance back",
+   "w": 1440,
+   "x": 3040,
+   "y": 2040
+  },
+  "H-Send-From.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Send · You send Change: pay from Bitcoin or US Dollar (USDB)",
+   "w": 1440,
+   "x": 0,
+   "y": 3060
+  },
+  "H-Send-To.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Send · They receive Change: Lightning, on-chain, Spark, or a cross-chain stablecoin",
+   "w": 1440,
+   "x": 1520,
+   "y": 3060
+  },
+  "H-Vault.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Wallet (Vault) · same page as Spark: one Bitcoin row, protection strip (time lock, PSBTs), Tools and Wallet settings in the head",
+   "w": 1440,
+   "x": 0,
+   "y": 4080
+  },
+  "H-Send-Vault.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Send (Vault) · same card as Spark, plus network fee and coins; Sign step for 2 of 3",
+   "w": 1440,
+   "x": 1520,
+   "y": 4080
+  },
+  "H-Settings-Vault.dc.html": {
+   "h": 900,
+   "page": "header",
+   "title": "Settings scoped to Vault · spending keys and recovery path",
+   "w": 1440,
+   "x": 3040,
+   "y": 4080
+  },
+  "P-AI-Access.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "AI access · paired clients, pairing, permissions, revoke (from Settings)",
+   "w": 1440,
+   "x": 0,
+   "y": 7200
+  },
+  "P-AI-Setup.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Wallet proposal (planned · build feature, AI access) · AI-led wallet setup",
+   "w": 1440,
+   "x": 1600,
+   "y": 7200
+  },
+  "P-AI-Transaction.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Prepared transaction (planned · build feature, AI access) · draft, review, signing",
+   "w": 1440,
+   "x": 3200,
+   "y": 7200
+  },
+  "P-Activity.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Activity (sidebar)",
+   "w": 1440,
+   "x": 1600,
+   "y": 2400
+  },
+  "P-Advanced-B2B.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Blake2b copy › Tools · Coin control and Split coins from Bitcoin Blake2b",
+   "w": 1440,
+   "x": 6400,
+   "y": 3600
+  },
+  "P-Advanced.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Vault tools (Coin control, PSBT proposals, Recovery path, Split coins)",
+   "w": 1440,
+   "x": 0,
+   "y": 3600
+  },
+  "P-AppPrefs-InCube.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "App preferences · over an open Cube (from the Cube top bar)",
+   "w": 1440,
+   "x": 11200,
+   "y": 0
+  },
+  "P-AppPrefs.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "App preferences (Appearance, Launcher, Balances & motion, Developer, Diagnostics, About)",
+   "w": 1440,
+   "x": 6400,
+   "y": 0
+  },
+  "P-BorderWallet.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Border Wallet",
+   "w": 1440,
+   "x": 4800,
+   "y": 1200
+  },
+  "P-BuySell.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Marketplace · Buy/Sell",
+   "w": 1440,
+   "x": 0,
+   "y": 6000
+  },
+  "P-Connect-InCube.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Connect · over an open Cube (from the Cube top bar)",
+   "w": 1440,
+   "x": 12800,
+   "y": 0
+  },
+  "P-Connect.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Connect sheet (Account, Plan & billing, Contacts, Devices & security, Recovery services)",
+   "w": 1440,
+   "x": 8000,
+   "y": 0
+  },
+  "P-Create.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Create Cube (Launcher sheet: Cube, Backup, Done)",
+   "w": 1440,
+   "x": 0,
+   "y": 1200
+  },
+  "P-Delete.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Delete Cube (Launcher modal)",
+   "w": 1440,
+   "x": 6400,
+   "y": 1200
+  },
+  "P-Duress.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Duress (Connect sheet, gated by plan and server flag)",
+   "w": 1440,
+   "x": 3200,
+   "y": 4800
+  },
+  "P-GapsAccount.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Settings sub-flows (Recovery Kit, Recovery alerts)",
+   "w": 1440,
+   "x": 4800,
+   "y": 4800
+  },
+  "P-GapsInstaller.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Create Vault wizard (inside the Cube, from \"Set up Vault\")",
+   "w": 1440,
+   "x": 3200,
+   "y": 1200
+  },
+  "P-Launcher-Light-List.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Launcher · light · List",
+   "w": 1440,
+   "x": 1600,
+   "y": 0
+  },
+  "P-Launcher-Light.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Launcher · light · Cubes",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  },
+  "P-Launcher.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "1 · Launcher (filters, plan, Cube details face → PIN/passkey → opening)",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  },
+  "P-Light-AI-Access.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "AI access · paired clients, pairing, permissions, revoke (from Settings) · light",
+   "w": 1440,
+   "x": 0,
+   "y": 7200
+  },
+  "P-Light-AI-Setup.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Wallet proposal (planned · build feature, AI access) · AI-led wallet setup · light",
+   "w": 1440,
+   "x": 1600,
+   "y": 7200
+  },
+  "P-Light-AI-Transaction.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Prepared transaction (planned · build feature, AI access) · draft, review, signing · light",
+   "w": 1440,
+   "x": 3200,
+   "y": 7200
+  },
+  "P-Light-Activity.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Activity (sidebar) · light",
+   "w": 1440,
+   "x": 1600,
+   "y": 2400
+  },
+  "P-Light-Advanced.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Vault tools (Coin control, PSBT proposals, Recovery path, Split coins) · light",
+   "w": 1440,
+   "x": 0,
+   "y": 3600
+  },
+  "P-Light-AppPrefs.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "App preferences (Appearance, Launcher, Balances & motion, Developer, Diagnostics, About) · light",
+   "w": 1440,
+   "x": 6400,
+   "y": 0
+  },
+  "P-Light-BorderWallet.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Border Wallet · light",
+   "w": 1440,
+   "x": 4800,
+   "y": 1200
+  },
+  "P-Light-BuySell.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Marketplace · Buy/Sell · light",
+   "w": 1440,
+   "x": 0,
+   "y": 6000
+  },
+  "P-Light-Connect.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Connect sheet (Account, Plan & billing, Contacts, Devices & security, Recovery services) · light",
+   "w": 1440,
+   "x": 8000,
+   "y": 0
+  },
+  "P-Light-Create.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Create Cube (Launcher sheet: Cube, Backup, Done) · light",
+   "w": 1440,
+   "x": 0,
+   "y": 1200
+  },
+  "P-Light-Delete.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Delete Cube (Launcher modal) · light",
+   "w": 1440,
+   "x": 6400,
+   "y": 1200
+  },
+  "P-Light-Duress.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Duress (Connect sheet, gated by plan and server flag) · light",
+   "w": 1440,
+   "x": 3200,
+   "y": 4800
+  },
+  "P-Light-GapsAccount.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Settings sub-flows (Recovery Kit, Recovery alerts) · light",
+   "w": 1440,
+   "x": 4800,
+   "y": 4800
+  },
+  "P-Light-GapsInstaller.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Create Vault wizard (inside the Cube, from \"Set up Vault\") · light",
+   "w": 1440,
+   "x": 3200,
+   "y": 1200
+  },
+  "P-Light-Members.dc.html": {
+   "h": 1000,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Members (Cube Settings tab, behind a build flag, off by default) · light",
+   "w": 1440,
+   "x": 1600,
+   "y": 4800
+  },
+  "P-Light-Opening.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Opening Cube (after checks / create / restore) · light",
+   "w": 1440,
+   "x": 4800,
+   "y": 0
+  },
+  "P-Light-Overview.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "2 · Overview (and the Spark and Vault wallet pages) · light",
+   "w": 1440,
+   "x": 0,
+   "y": 2400
+  },
+  "P-Light-P2P.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Marketplace · P2P · light",
+   "w": 1440,
+   "x": 1600,
+   "y": 6000
+  },
+  "P-Light-Receive.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Receive (They send → You receive; Spark and Vault) · light",
+   "w": 1440,
+   "x": 4800,
+   "y": 2400
+  },
+  "P-Light-Restore.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Import or restore (Launcher sheet) · light",
+   "w": 1440,
+   "x": 1600,
+   "y": 1200
+  },
+  "P-Light-Send.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Send (You send → They receive; Spark and Vault) · light",
+   "w": 1440,
+   "x": 3200,
+   "y": 2400
+  },
+  "P-Light-Settings.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Settings (Cube / Vault / Spark scopes, tabs; from the sidebar foot) · light",
+   "w": 1440,
+   "x": 0,
+   "y": 4800
+  },
+  "P-Light-SignIn.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Connect sign-in / sign-up · light",
+   "w": 1440,
+   "x": 9600,
+   "y": 0
+  },
+  "P-Light-Signing.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Signing & phone pairing (PSBT signers, pairing QR and code) · light",
+   "w": 1440,
+   "x": 4800,
+   "y": 3600
+  },
+  "P-Light-Split.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Bitcoin Blake2b copy (explainer and steps) · light",
+   "w": 1440,
+   "x": 1600,
+   "y": 3600
+  },
+  "P-Light-Swap.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Swap BTC ⇄ USDB (from the Spark page) · Details, Review, Swapped · light",
+   "w": 1440,
+   "x": 9600,
+   "y": 2400
+  },
+  "P-Light-Transfer.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "Transfer (Cube-level: between wallets and into other Cubes) · light",
+   "w": 1440,
+   "x": 6400,
+   "y": 2400
+  },
+  "P-Light-Unlock.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "light",
+   "title": "PIN / passkey unlock face (error states) · light",
+   "w": 1440,
+   "x": 3200,
+   "y": 0
+  },
+  "P-Locking.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Locking Cube (hand-off → Launcher)",
+   "w": 1440,
+   "x": 4800,
+   "y": 0
+  },
+  "P-Members.dc.html": {
+   "h": 1000,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Members (Cube Settings tab, behind a build flag, off by default)",
+   "w": 1440,
+   "x": 1600,
+   "y": 4800
+  },
+  "P-Opening.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Opening Cube (after checks / create / restore)",
+   "w": 1440,
+   "x": 3200,
+   "y": 0
+  },
+  "P-Overview.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "2 · Overview (and the Spark and Vault wallet pages)",
+   "w": 1440,
+   "x": 0,
+   "y": 2400
+  },
+  "P-P2P.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Marketplace · P2P",
+   "w": 1440,
+   "x": 1600,
+   "y": 6000
+  },
+  "P-Receive.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Receive (They send → You receive; Spark and Vault)",
+   "w": 1440,
+   "x": 4800,
+   "y": 2400
+  },
+  "P-Restore.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Import or restore (Launcher sheet)",
+   "w": 1440,
+   "x": 1600,
+   "y": 1200
+  },
+  "P-Send.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Send (You send → They receive; Spark and Vault)",
+   "w": 1440,
+   "x": 3200,
+   "y": 2400
+  },
+  "P-Settings.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Settings (Cube / Vault / Spark scopes, tabs; from the sidebar foot)",
+   "w": 1440,
+   "x": 0,
+   "y": 4800
+  },
+  "P-SignIn.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Connect sign-in / sign-up",
+   "w": 1440,
+   "x": 9600,
+   "y": 0
+  },
+  "P-Signing.dc.html": {
+   "h": 1100,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Signing & phone pairing (PSBT signers, pairing QR and code)",
+   "w": 1440,
+   "x": 4800,
+   "y": 3600
+  },
+  "P-Split.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Bitcoin Blake2b copy (explainer and steps)",
+   "w": 1440,
+   "x": 1600,
+   "y": 3600
+  },
+  "P-Swap.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Swap BTC ⇄ USDB (from the Spark page) · Details, Review, Swapped",
+   "w": 1440,
+   "x": 9600,
+   "y": 2400
+  },
+  "P-Transfer.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "Transfer (Cube-level: between wallets and into other Cubes)",
+   "w": 1440,
+   "x": 6400,
+   "y": 2400
+  },
+  "P-Unlock.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "proto",
+   "title": "PIN / passkey unlock face (error states)",
+   "w": 1440,
+   "x": 1600,
+   "y": 0
+  },
+  "W-Create-Cube.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Create Cube · step 2 (Bitcoin Blake2b)",
+   "w": 1440,
+   "x": 1520,
+   "y": 0
+  },
+  "W-Create-Done.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Create Cube · Done",
+   "w": 1440,
+   "x": 5160,
+   "y": 0
+  },
+  "W-Create.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Create Cube · modal over the Launcher, Close top right (Play to walk it)",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  },
+  "W-Import-Choice.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Two backups · opening a Connect Cube that has both a Recovery Kit and a phone backup",
+   "w": 1440,
+   "x": 6080,
+   "y": 1020
+  },
+  "W-Import-Kit-Done.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recovery Kit 4 · Done",
+   "w": 1440,
+   "x": 7600,
+   "y": 2040
+  },
+  "W-Import-Kit-None.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recovery Kit · no Recovery Kits on this network (Regtest)",
+   "w": 1440,
+   "x": 6080,
+   "y": 2040
+  },
+  "W-Import-Kit-Password.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recovery Kit 2 · recovery password",
+   "w": 1440,
+   "x": 1520,
+   "y": 2040
+  },
+  "W-Import-Kit-Pin.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recovery Kit 3 · set a PIN (no passkey on restore) and the Bitcoin server",
+   "w": 1440,
+   "x": 4560,
+   "y": 2040
+  },
+  "W-Import-Kit-WrongPw.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recovery Kit 2 · wrong password",
+   "w": 1440,
+   "x": 3040,
+   "y": 2040
+  },
+  "W-Import-Kit.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recovery Kit 1 · Cube: filtered to the network (Signet), Show all to switch",
+   "w": 1440,
+   "x": 0,
+   "y": 2040
+  },
+  "W-Import-Menu.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Network menu · the same menu in Create and Import",
+   "w": 1440,
+   "x": 4560,
+   "y": 1020
+  },
+  "W-Import-Overview-In.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Overview · signed in on Bitcoin: Connect tags turn green",
+   "w": 1440,
+   "x": 3040,
+   "y": 1020
+  },
+  "W-Import-Phone-Approve.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recover with phone 2 · waiting for approval on the phone",
+   "w": 1440,
+   "x": 1520,
+   "y": 3060
+  },
+  "W-Import-Phone-Denied.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recover with phone 2 · declined on the phone",
+   "w": 1440,
+   "x": 3040,
+   "y": 3060
+  },
+  "W-Import-Phone-Done.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recover with phone 4 · Done",
+   "w": 1440,
+   "x": 7600,
+   "y": 3060
+  },
+  "W-Import-Phone-Expired.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recover with phone 2 · request expired",
+   "w": 1440,
+   "x": 4560,
+   "y": 3060
+  },
+  "W-Import-Phone-None.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recover with phone · no phone backups on this network (Testnet4)",
+   "w": 1440,
+   "x": 6080,
+   "y": 3060
+  },
+  "W-Import-Phone.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Recover with phone 1 · Cubes whose backup is on a paired phone",
+   "w": 1440,
+   "x": 0,
+   "y": 3060
+  },
+  "W-Import-Signet.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Overview · signed out on Signet: Connect options wait for sign-in, wallet import not on this network",
+   "w": 1440,
+   "x": 1520,
+   "y": 1020
+  },
+  "W-Import-Wallet-Done.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Import Bitcoin wallet 7 · Done",
+   "w": 1440,
+   "x": 9120,
+   "y": 4080
+  },
+  "W-Import-Wallet-Pin.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Import Bitcoin wallet 6 · set a PIN",
+   "w": 1440,
+   "x": 7600,
+   "y": 4080
+  },
+  "W-Import-Wallet-Review.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Import Bitcoin wallet 4 · review",
+   "w": 1440,
+   "x": 3040,
+   "y": 4080
+  },
+  "W-Import-Wallet-Scan.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Import Bitcoin wallet 5 · scanning history",
+   "w": 1440,
+   "x": 4560,
+   "y": 4080
+  },
+  "W-Import-Wallet-ScanError.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Import Bitcoin wallet 5 · scan failed: retry or change server",
+   "w": 1440,
+   "x": 6080,
+   "y": 4080
+  },
+  "W-Import-Wallet-Source.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Import Bitcoin wallet 2 · source and Bitcoin server",
+   "w": 1440,
+   "x": 1520,
+   "y": 4080
+  },
+  "W-Import-Wallet.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Import Bitcoin wallet 1 · name the Cube (Bitcoin and Bitcoin Blake2b only)",
+   "w": 1440,
+   "x": 0,
+   "y": 4080
+  },
+  "W-Import.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Overview · clickable: walk every option in Play",
+   "w": 1440,
+   "x": 0,
+   "y": 1020
+  },
+  "W-LauncherBar.dc.html": {
+   "h": 580,
+   "is_interactive": true,
+   "page": "wizards",
+   "title": "Launcher bottom bar · before, after, and plan full",
+   "w": 1440,
+   "x": 3040,
+   "y": 0
+  },
+  "W-Create-Backup.dc.html": {
+   "x": 0,
+   "y": 5340,
+   "w": 1440,
+   "h": 900,
+   "page": "wizards",
+   "is_interactive": true,
+   "title": "Backup · choose Seed phrase and/or Recovery Kit"
+  },
+  "W-Create-Seed-Intro.dc.html": {
+   "x": 1520,
+   "y": 5340,
+   "w": 1440,
+   "h": 900,
+   "page": "wizards",
+   "is_interactive": true,
+   "title": "Seed phrase 1 of 3 · before you see the words"
+  },
+  "W-Create-Seed-Words.dc.html": {
+   "x": 3040,
+   "y": 5340,
+   "w": 1440,
+   "h": 900,
+   "page": "wizards",
+   "is_interactive": true,
+   "title": "Seed phrase 2 of 3 · the 12 words, hidden until Reveal"
+  },
+  "W-Create-Seed-Verify.dc.html": {
+   "x": 4560,
+   "y": 5340,
+   "w": 1440,
+   "h": 900,
+   "page": "wizards",
+   "is_interactive": true,
+   "title": "Seed phrase 3 of 3 · check words 3, 7 and 11"
+  },
+  "W-Create-Kit-Password.dc.html": {
+   "x": 6080,
+   "y": 5340,
+   "w": 1440,
+   "h": 900,
+   "page": "wizards",
+   "is_interactive": true,
+   "title": "Recovery Kit 1 of 2 · recovery password, checked live"
+  },
+  "W-Create-Kit-Where.dc.html": {
+   "x": 7600,
+   "y": 5340,
+   "w": 1440,
+   "h": 900,
+   "page": "wizards",
+   "is_interactive": true,
+   "title": "Recovery Kit 2 of 2 · Connect and/or a file on this computer"
+  },
+  "W-Create-Backup-Done.dc.html": {
+   "x": 9120,
+   "y": 5340,
+   "w": 1440,
+   "h": 900,
+   "page": "wizards",
+   "is_interactive": true,
+   "title": "Backup · seed phrase confirmed, Continue enabled"
+  },
+  "MV-Overview-Before.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Before · Overview today, with the worldview art the app draws beside Total balance"
+  },
+  "MV-Overview-After.dc.html": {
+   "x": 1520,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "After · Receive and Send as on Mobile, no artwork, fill instead of outlines"
+  },
+  "MV-Overview-After-Light.dc.html": {
+   "x": 3040,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "After · light theme"
+  },
+  "MV-Cube-Sidebar.dc.html": {
+   "x": 4560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Cube in the sidebar · above the selector, four faces; click the sidebar or a face"
+  },
+  "MV-Notices-Today.dc.html": {
+   "x": 6080,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Notices and status · today in the app"
+  },
+  "MV-Notices-Proposed.dc.html": {
+   "x": 7600,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Notices and status · proposed"
+  },
+  "MV-Receive-Today.dc.html": {
+   "x": 9120,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Receive · today in the app"
+  },
+  "MV-Receive-Proposed.dc.html": {
+   "x": 10640,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Receive · proposed · They send open"
+  },
+  "MV-Send-Today.dc.html": {
+   "x": 13680,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Send · today in the app"
+  },
+  "MV-Send-Proposed.dc.html": {
+   "x": 15200,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Send · proposed · They receive open"
+  },
+  "MV-Receive-Proposed-YouReceive.dc.html": {
+   "x": 12160,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Receive · proposed · You receive open (Bitcoin or US Dollar, in Spark)"
+  },
+  "MV-Send-Proposed-YouSend.dc.html": {
+   "x": 16720,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Send · proposed · You send open (Bitcoin or US Dollar, in Spark)"
+  },
+  "MV-Type-Scale.dc.html": {
+   "x": 18240,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Type scale · Mobile V3, Desktop today, Desktop proposed"
+  },
+  "MV-Type-Today.dc.html": {
+   "x": 19760,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Type · Overview today"
+  },
+  "MV-Type-Proposed.dc.html": {
+   "x": 21280,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Type · Overview on Mobile V3's steps"
+  },
+  "MV-Cube-Faces.dc.html": {
+   "x": 4560,
+   "y": 1400,
+   "w": 1440,
+   "h": 1000,
+   "page": "mobilev3",
+   "is_interactive": true,
+   "title": "Cube in the sidebar · faces, states and unlock"
+  },
+  "P-Spark.dc.html": {
+   "x": 8000,
+   "y": 2400,
+   "w": 1440,
+   "h": 900,
+   "page": "proto",
+   "is_interactive": true,
+   "title": "Spark wallet page (Overview board on page=spark; link target)"
+  },
+  "P-Vault.dc.html": {
+   "x": 11200,
+   "y": 2400,
+   "w": 1440,
+   "h": 900,
+   "page": "proto",
+   "is_interactive": true,
+   "title": "Vault wallet page (Overview board on page=vault; link target)"
+  },
+  "D4-Notices.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 860,
+   "page": "d4review",
+   "is_interactive": false,
+   "title": "Standing notices · dark"
+  },
+  "D4-Notices-Light.dc.html": {
+   "x": 1520,
+   "y": 0,
+   "w": 1440,
+   "h": 860,
+   "page": "d4review",
+   "is_interactive": false,
+   "title": "Standing notices · light"
+  },
+  "P-AppPrefs-Rail.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "backdrop",
+   "title": "B · App preferences › Launcher · Network activity on/off and source",
+   "w": 1440,
+   "x": 4560,
+   "y": 0
+  },
+  "P-Launcher-Rail-Light.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "backdrop",
+   "title": "B · Launcher · light",
+   "w": 1440,
+   "x": 3040,
+   "y": 0
+  },
+  "P-Launcher-Rail-Node.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "backdrop",
+   "title": "B · Launcher · network activity from a local node already running",
+   "w": 1440,
+   "x": 1520,
+   "y": 0
+  },
+  "P-Launcher-Rail.dc.html": {
+   "h": 900,
+   "is_interactive": true,
+   "page": "backdrop",
+   "title": "B · Launcher · network activity via COINCUBE | Connect (no local node running)",
+   "w": 1440,
+   "x": 0,
+   "y": 0
+  }
+ },
+ "createdOnFiles": {
+  "at": "2026-10-21T22:46:41Z",
+  "v": 1
+ },
+ "designSystems": [],
+ "launch": {
+  "file": "P-Launcher.dc.html",
+  "view": "focused"
+ },
+ "notes": {
+  "backdropB": {
+   "kind": "title1",
+   "maxW": 6000,
+   "page": "backdrop",
+   "text": "Launcher backdrop · design B (block rail)",
+   "w": 240,
+   "x": 0,
+   "y": -300
+  },
+  "backdropBnote": {
+   "fill": "orange",
+   "page": "backdrop",
+   "text": "Sample chain data. Cubes sit lower (horizon through their centres, as in the app) so the sky holds a block rail plus four stats: block, mempool, hashrate (from difficulty) and next halving (from the tip). Follows the Network filter. Bottom bar: source (Automatic / Local node / COINCUBE | Connect); Blake2b comes from Connect without sign-in. A block lands every 9 s. Levers on P-Launcher: backdrop, localNode, blockDemo.",
+   "w": 360,
+   "x": 6080,
+   "y": 0
+  },
+  "g1": {
+   "kind": "title1",
+   "maxW": 8000,
+   "text": "Launcher & account · start here, press Play on the Launcher and walk the whole app",
+   "w": 240,
+   "x": 0,
+   "y": -140
+  },
+  "g2": {
+   "kind": "title1",
+   "maxW": 8000,
+   "text": "Create, restore, delete",
+   "w": 240,
+   "x": 0,
+   "y": 1060
+  },
+  "g3": {
+   "kind": "title1",
+   "maxW": 8000,
+   "text": "Inside a Cube · overview, wallets, activity, send, receive, transfer",
+   "w": 240,
+   "x": 0,
+   "y": 2260
+  },
+  "g4": {
+   "kind": "title1",
+   "maxW": 6400,
+   "text": "Vault tools & signing",
+   "w": 240,
+   "x": 0,
+   "y": 3460
+  },
+  "g5": {
+   "kind": "title1",
+   "maxW": 8000,
+   "text": "Settings & protection",
+   "w": 240,
+   "x": 0,
+   "y": 4660
+  },
+  "g6": {
+   "kind": "title1",
+   "maxW": 3200,
+   "text": "Marketplace",
+   "w": 240,
+   "x": 0,
+   "y": 5860
+  },
+  "g7": {
+   "kind": "title1",
+   "maxW": 4800,
+   "text": "AI access · pair once, AI-led wallet setup, AI-prepared transactions (planned extension; labels mark what exists today)",
+   "w": 240,
+   "x": 0,
+   "y": 7060
+  },
+  "hdr1": {
+   "kind": "title1",
+   "maxW": 4400,
+   "page": "header",
+   "text": "Page head · the Activity header on every Cube page",
+   "w": 240,
+   "x": 0,
+   "y": -300
+  },
+  "hdr2": {
+   "fill": "orange",
+   "page": "header",
+   "text": "One pinned head per page: title + Cube line left, page actions right, optional control row (tabs or filters) sitting on a rule that spans the content pane. Content scrolls under it. Toggle 'scrolled' on any artboard to see content pass beneath the rule.",
+   "w": 360,
+   "x": 4560,
+   "y": 0
+  },
+  "image-4agae0": {
+   "alt": "Screenshot 2026-10-29 at 1.15.01 PM",
+   "h": 777,
+   "kind": "image",
+   "page": "opening",
+   "src": "/_blob/669a01e67a95523d368cceadb89d5b27",
+   "w": 1200,
+   "x": -645,
+   "y": 1210
+  },
+  "image-tdxxlc": {
+   "alt": "Screenshot 2026-10-29 at 10.56.52 AM",
+   "h": 194,
+   "kind": "image",
+   "page": "ghosts",
+   "src": "/_blob/d40eb3724b2fa0c684782f59b358e207",
+   "w": 408,
+   "x": -162,
+   "y": 1377
+  },
+  "imp1": {
+   "x": 0,
+   "y": -300,
+   "text": "Settings · revised: one home for connections, no repeated headings, state before prose",
+   "kind": "title1",
+   "maxW": 4480,
+   "page": "impeccable"
+  },
+  "lg1": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "light",
+   "text": "Launcher & account · light theme",
+   "w": 240,
+   "x": 0,
+   "y": -140
+  },
+  "lg2": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "light",
+   "text": "Create, restore, delete · light theme",
+   "w": 240,
+   "x": 0,
+   "y": 1060
+  },
+  "lg3": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "light",
+   "text": "Inside a Cube · light theme",
+   "w": 240,
+   "x": 0,
+   "y": 2260
+  },
+  "lg4": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "light",
+   "text": "Vault tools & signing · light theme",
+   "w": 240,
+   "x": 0,
+   "y": 3460
+  },
+  "lg5": {
+   "kind": "title1",
+   "maxW": 8000,
+   "page": "light",
+   "text": "Settings & protection · light theme",
+   "w": 240,
+   "x": 0,
+   "y": 4660
+  },
+  "lg6": {
+   "kind": "title1",
+   "maxW": 4800,
+   "page": "light",
+   "text": "Marketplace · light theme",
+   "w": 240,
+   "x": 0,
+   "y": 5860
+  },
+  "lg7": {
+   "kind": "title1",
+   "maxW": 6400,
+   "page": "light",
+   "text": "AI access · light theme",
+   "w": 240,
+   "x": 0,
+   "y": 7060
+  },
+  "node1": {
+   "kind": "title1",
+   "maxW": 4480,
+   "page": "node",
+   "text": "Node tab · moving a Vault from Connect to your local node",
+   "w": 240,
+   "x": 0,
+   "y": -300
+  },
+  "node2": {
+   "fill": "orange",
+   "page": "node",
+   "size": 24,
+   "text": "One card, three steps: sync → bring history over → switch.\n\n• Step 3 is always visible, disabled with its reason, instead of the Switch button vanishing.\n• The recommended path and the date path are two choices up front, not a hidden “Advanced” toggle.\n• Every running state names its phase and shows progress; “Preparing” replaces the bare “Processing the current batch…”.\n• The node log moves behind a button; Rescan and Block retention become rows under Advanced node tools, disabled with a reason while recovery runs.\n\nNeeds an engine change: today “Import” fetches and scans EVERY block from the Vault's oldest coin to the tip, 32 at a time, from Bitcoin peers. The “fetches only the blocks that hold payments Connect found” copy assumes a targeted fetch of just those blocks.\n\nBlock numbers and dates are sample values.",
+   "w": 420,
+   "x": 4640,
+   "y": 0
+  },
+  "wiz1": {
+   "kind": "title1",
+   "maxW": 4480,
+   "page": "wizards",
+   "text": "Create Cube and Import or restore · both as modals over the Launcher",
+   "w": 240,
+   "x": 0,
+   "y": -300
+  },
+  "wiz2": {
+   "fill": "orange",
+   "page": "wizards",
+   "size": 24,
+   "text": "Proposal (2026-11-04)\n\n1. Launcher button reads “Import or restore Bitcoin wallet” and always opens on Overview.\n2. Network lives in the modal head as the same menu in both wizards (no separate Network step in Create). Preselected from the Launcher's Network filter.\n3. One frame for Create, Import, Connect and App preferences: a sheet over the dimmed Launcher, the normal top bar above it, Close top right. No “Back to Cube list”; Back lives in the sheet footer.\n4. Import or restore works on every network. Only the wallet-import row is limited to Bitcoin and Bitcoin Blake2b, with the reason inline and a one-click switch. On other networks its nav item and Start are disabled; the import screen is never shown there.\n5. Restores and imports set a PIN only: a passkey can't hold a secret brought in from outside. Create keeps Passkey or PIN.",
+   "w": 440,
+   "x": 4560,
+   "y": 0
+  },
+  "wiz3": {
+   "kind": "title1",
+   "page": "wizards",
+   "x": 0,
+   "y": 5060,
+   "maxW": 10560,
+   "text": "Create Cube · Backup: Seed phrase and/or Recovery Kit, each finished in place, then back to Backup"
+  },
+  "rdel1": {
+   "x": 0,
+   "y": -300,
+   "text": "Delete Remote Cube · revised: state the consequences, not just the warning",
+   "kind": "title1",
+   "maxW": 1440,
+   "page": "remotedel"
+  },
+  "cs_title": {
+   "x": 0,
+   "y": -300,
+   "text": "Connect account, live updates and Vault health · automatic recovery, offline and Vault alerts",
+   "kind": "title1",
+   "maxW": 6000,
+   "page": "b836716b6841"
+  },
+  "cs_launcher_title": {
+   "x": 0,
+   "y": 4300,
+   "text": "Launcher · the same Connect control, describing the account (no live updates before a Cube opens)",
+   "kind": "title1",
+   "maxW": 6000,
+   "page": "b836716b6841"
+  },
+  "wv1": {
+   "x": 0,
+   "y": -300,
+   "text": "Bitcoin Worldview · pick a mode by its tagline, then see its network names and example wording",
+   "kind": "title1",
+   "maxW": 3280,
+   "page": "a85820616f7f"
+  },
+  "aip1": {
+   "x": 0,
+   "y": -300,
+   "text": "AI access · redesign-native pass: one switch, one access choice, honest status",
+   "kind": "title1",
+   "maxW": 4480,
+   "page": "aiaccess2"
+  },
+  "tc_title": {
+   "x": 0,
+   "y": -300,
+   "text": "Transfer · route cards: the Send / Receive / Swap language (the original Transfer stays on the Prototype page)",
+   "kind": "title1",
+   "maxW": 4400,
+   "page": "transfercards"
+  },
+  "pr_title": {
+   "x": 0,
+   "y": -300,
+   "text": "Payment received / sent · the receipt leads, the worldview frames it",
+   "kind": "title1",
+   "maxW": 4480,
+   "page": "payresult"
+  },
+  "ohTitle": {
+   "x": 0,
+   "y": -300,
+   "text": "Overview · the worldview line sits at the far right of Total balance; no artwork",
+   "kind": "title1",
+   "maxW": 3280,
+   "page": "overviewhero"
+  },
+  "ohNote": {
+   "x": 0,
+   "y": 740,
+   "w": 520,
+   "page": "overviewhero",
+   "text": "Tweaks on each board: mode, light, narrow. The line drops when the Overview has no voice line (Samurai). No artwork and no worldview tint (Robert, 2026-11-25): Bitcoin Worldview changes wording only. This study showed art beside the balance until then."
+  },
+  "ks_title": {
+   "x": 0,
+   "y": -300,
+   "page": "keysstep",
+   "kind": "title1",
+   "text": "Import Bitcoin wallet · Keys: one signer list, where a device lands beside the key it holds",
+   "maxW": 4480
+  },
+  "tfa_t1": {
+   "x": 0,
+   "y": -300,
+   "text": "Connect account · Devices & security › Authenticator app and backup codes",
+   "kind": "title1",
+   "maxW": 16640,
+   "page": "tfa"
+  },
+  "tfa_t2": {
+   "x": 0,
+   "y": 1300,
+   "text": "Connect sign-in · an Authenticator step after the email code, with a backup-code path",
+   "kind": "title1",
+   "maxW": 16640,
+   "page": "tfa"
+  },
+  "tfa_n1": {
+   "x": 16720,
+   "y": 0,
+   "w": 460,
+   "fill": "orange",
+   "size": "m",
+   "page": "tfa",
+   "text": "For review (updated 2026-11-16). Nothing is built in the app yet.\n\nWhere it lives\n• Connect account › Devices & security gets an \"Authenticator app\" group at the top, above Verified Devices. Once on, a second row shows \"Backup codes · N of 10 left\" with \"Make new codes…\".\n• Account › Sign-in method names it and links there.\n• Everything opens inline under the rows, the same way Sign out and Remove device do. No modal.\n\nTurning it on\n• Scan the QR (or copy the setup key), then type one code. Nothing changes until that code checks out.\n• Next, the 10 backup codes are shown once, with Copy all, Save as text file and \"I've saved them\".\n\nBackup codes\n• Each works once in place of an authenticator code: to finish signing in, or to turn the app off.\n• At 3 or fewer left, the row turns amber. \"Make new codes\" needs a code from the app and invalidates the old set.\n\nTurning it off\n• With a current code from the app, or \"Use a backup code instead\". The account gets an email.\n• The emailed turn-off link was dropped here: it opens a website page that needs a login the site no longer has.\n\nSign-in\n• After the email code, accounts with an authenticator get a third step. \"Use a backup code instead\" switches the field.\n• Signing in with a backup code shows how many are left; at 3 or fewer it says to make a new set now.\n• \"No app and no backup codes?\" explains the way back in.\n• States: wrong code, wrong backup code, too many tries (5 per 5 minutes), timed out, lost both.\n\nAPI: coincubetech/coincube-api#476 (draft). Desktop still ignores requires_2fa today; this step fixes that.\n\nQR, setup key, codes, dates and support contact are samples or placeholders.\n"
+  },
+  "px_title": {
+   "x": 0,
+   "y": -300,
+   "page": "4c11d83a5779",
+   "kind": "title1",
+   "text": "Vault Tools · PSBT proposals: a signing queue, not a table of hashes",
+   "maxW": 4480
+  },
+  "sc_title": {
+   "x": 0,
+   "y": -300,
+   "page": "splitflow",
+   "kind": "title1",
+   "text": "Vault Tools · Split coins: one flow in the tab, one step at a time",
+   "maxW": 6000
+  },
+  "mvTitle": {
+   "x": 0,
+   "y": -300,
+   "text": "Overview · three changes that bring Desktop closer to Mobile V3",
+   "kind": "title1",
+   "maxW": 6000,
+   "page": "mobilev3"
+  },
+  "mvNote": {
+   "x": 0,
+   "y": 1020,
+   "w": 640,
+   "page": "mobilev3",
+   "text": "Three changes only. 1 Buttons: Receive is a neutral outline with a down arrow, Send is filled with an up arrow, and Receive comes first, as on Mobile (40 px tall, 10 px corners). 2 Artwork: none on Overview. 3 Fill, not outlines: cards, the backup strip and menus have no border. Regions of the window (top bar, sidebar, page title) keep a dividing line in a quieter colour, ink at 10%, as Mobile uses; hairlines also stay between rows. Also changed: the wordmark is one colour with Mobile's letter spacing, and menu rows use a medium weight. Left alone on purpose: the status chips in the top bar, the table, type sizes and all wording. Each board keeps the Overview levers (page, theme, review state), so the same changes can be seen on the Spark and Vault pages."
+  },
+  "mvCube": {
+   "x": 4560,
+   "y": 1020,
+   "w": 640,
+   "page": "mobilev3",
+   "text": "Second pass (Robert, 2026-11-26). The Cube sits above the Cube selector and fills most of the sidebar's width. Four faces, turning as Mobile's Cube does: Overview, Wallets, Activity, Settings, with the face you are on lit at the front left and the next one showing at the right. Click a sidebar item, or a face on the Cube. Spark and Vault share the Wallets face; Backup & protection shows the Settings face; Marketplace is not on a face yet. Levers: page; unlock (once, loop, off); payment arrived (the Activity face turns green); backup confirmed (the Settings gear is amber until it is); test network (dashed edges and a tag). Unlock: the Cube pulses in the middle of the window, then shrinks and travels to its place while the page fades in. The Launcher is not changed. The sheet below shows the four poses, the states and the unlock as still frames. The first pass, a small Cube at the top right of the sidebar, is in this canvas's version history (version 315 and earlier)."
+  },
+  "mvNoticesTitle": {
+   "x": 6080,
+   "y": -300,
+   "text": "Notices and status · today in the app, and proposed",
+   "kind": "title1",
+   "maxW": 2900,
+   "page": "mobilev3"
+  },
+  "mvNotices": {
+   "x": 6080,
+   "y": 1020,
+   "w": 640,
+   "page": "mobilev3",
+   "text": "Left: what the app shows today, on a test-network Cube with balances hidden, the backup not confirmed, one warning and one error. Seen in the running app on 2026-11-25: the blue bar, the orange hide toggle, the boxed backup strip. Drawn from the app's code, not seen live: the orange warning block and the outlined error card. Right: one treatment for all of them, taken from the toasts (Tenshu Toasts, Nov 2026). Each notice is a filled row with its tone in a small icon tile, a title, one line and at most one action. The test network becomes a tag beside the wordmark, on every page. Hide balances turns neutral when on, and the eyes beside each section step back while everything is hidden. The backup strip becomes one line. Not changed: the single Connect control with its status light is already how the app works; the older boards still show two chips. The notice wording is sample text. Levers: All clear shows the same screen with nothing to report; Hide balances and theme work as before."
+  },
+  "mvTilesTitle": {
+   "x": 9120,
+   "y": -300,
+   "text": "Receive and Send · the two dropdown tiles, today and proposed",
+   "kind": "title1",
+   "maxW": 9000,
+   "page": "mobilev3"
+  },
+  "mvTiles": {
+   "x": 9120,
+   "y": 1020,
+   "w": 640,
+   "page": "mobilev3",
+   "text": "Receive and Send share one pattern: two dropdown tiles joined by an arrow. Today boards redraw the running app (signed local build, 2026-11-25). Proposed keeps both tiles and changes how they are drawn. 1 No card around the form: the tiles sit on the page as a fill with no outline, so there is one level where the app has three. 2 The tile's type drops a step and the coin icon is smaller. 3 The lists lead with what differs. Today four rows read Bitcoin and differ only by a small orange tag; proposed groups them under Bitcoin and names the method. Stablecoins take one row each, with the networks as chips, so the Receive list fits without scrolling (seven rows where the app has twelve). 4 The selected row is a neutral fill with a tick, not brown and orange. 5 Fields keep their outlines, as controls do; the dividers between them are gone, and the button is the 40 px pill. Wording is the app's, rearranged; the stablecoin chips are a layout change to check. Levers: Open (closed, first, second) shows either list; the tiles also open on click. Both tiles are pickers on both pages: on Receive, You receive is Bitcoin or US Dollar (USDB) in Spark; on Send, You send is Bitcoin or US Dollar (USDB) in Spark. Each has its own board with that list open."
+  },
+  "mvTypeTitle": {
+   "x": 18240,
+   "y": -300,
+   "text": "Type scale · Desktop on Mobile V3's steps",
+   "kind": "title1",
+   "maxW": 4400,
+   "page": "mobilev3"
+  },
+  "mvType": {
+   "x": 18240,
+   "y": 1020,
+   "w": 640,
+   "page": "mobilev3",
+   "text": "Desktop and Mobile already share the typeface and weights. The sizes differ. Proposed: the large sizes take Mobile V3's steps (main amount 40 to 46, page title 22 to 26, section title 18 to 20), and the odd sizes go (12.5, 34), which leaves 8 sizes on Overview where there are 12. Running text stays as it is, one step under Mobile (rows 14 where Mobile has 16, secondary lines 13 where Mobile has 14), because a Desktop window holds more per screen. To see every step at Mobile's size, set the text lever on the right-hand board to as Mobile: rows grow to 16 and some lines start to wrap. Mobile sizes are read from the Mobile V3 prototype; Desktop sizes from the Overview study board. The right-hand board keeps the page lever, so the same sizes can be checked on the Spark, Vault and Backup pages."
+  },
+  "retTitle": {
+   "kind": "title1",
+   "maxW": 6000,
+   "page": "retired",
+   "text": "Retired from the prototype · 2026-11-26",
+   "w": 240,
+   "x": 0,
+   "y": -300
+  },
+  "retNote": {
+   "page": "retired",
+   "x": 0,
+   "y": -200,
+   "w": 1400,
+   "text": "These boards draw screens the app no longer has (checked against COINCUBE Desktop master 088c9f9). The Liquid wallet is gone; the only Liquid the app still shows is \"USDt on Liquid\" as a SideShift receive option. \"Claim\" in the app means making a Bitcoin Blake2b copy Cube, now drawn on \"Bitcoin Blake2b copy\". Kept here for reference, not linked from the prototype. The two \"state collection\" boards (P-GapsDetails, P-GapsWallets) were retired on 2026-11-26 after every state moved onto its owner board as a lever."
+  },
+  "protoTitle": {
+   "kind": "title1",
+   "maxW": 6000,
+   "page": "proto",
+   "text": "COINCUBE Desktop V3 · clickable prototype (source of truth)",
+   "w": 240,
+   "x": 0,
+   "y": -420
+  },
+  "protoNote": {
+   "page": "proto",
+   "x": 0,
+   "y": -330,
+   "w": 1440,
+   "text": "Checked against the running app, master 088c9f9, on 2026-11-26 (signed local build on scratch data, plus a code inventory for signed-in, Vault, Marketplace and Duress screens). Boards show what the app does today, plus the V3 decisions that deliberately differ: no worldview artwork (Overview, opening, App preferences); Receive before Send; fills instead of outlines; one Connect control in the top bar; the test network as a tag beside the wordmark; notices in the toast anatomy; the decided Receive/Send tiles; display sizes on Mobile's steps with running text one step under. The Cube in the sidebar is not part of V3 (see the study page). Liquid is gone; its boards, and the two former gap boards, are on \"Retired\". Most boards have levers for the app's other states (signed out, no Vault, errors, gated features)."
+  },
+  "mvFolded": {
+   "page": "mobilev3",
+   "x": 0,
+   "y": -420,
+   "w": 1400,
+   "text": "2026-11-26: the decided studies (notices and status, Receive/Send tiles, type scale) are folded into the clickable prototype, which is the source of truth for V3. The Cube in the sidebar is left out for now and recorded in the Desktop plan as a possible future direction."
+  }
+ },
+ "order": [
+  "P-Launcher.dc.html",
+  "P-Unlock.dc.html",
+  "P-Opening.dc.html",
+  "P-Locking.dc.html",
+  "P-AppPrefs.dc.html",
+  "P-Connect.dc.html",
+  "P-SignIn.dc.html",
+  "P-Create.dc.html",
+  "P-Restore.dc.html",
+  "P-GapsInstaller.dc.html",
+  "P-BorderWallet.dc.html",
+  "P-Delete.dc.html",
+  "P-Overview.dc.html",
+  "P-Activity.dc.html",
+  "P-Send.dc.html",
+  "P-Receive.dc.html",
+  "P-Transfer.dc.html",
+  "P-Swap.dc.html",
+  "P-Advanced.dc.html",
+  "P-Split.dc.html",
+  "P-Advanced-B2B.dc.html",
+  "P-Signing.dc.html",
+  "P-Settings.dc.html",
+  "P-Members.dc.html",
+  "P-Duress.dc.html",
+  "P-GapsAccount.dc.html",
+  "P-BuySell.dc.html",
+  "P-P2P.dc.html",
+  "P-AI-Access.dc.html",
+  "P-AI-Setup.dc.html",
+  "P-AI-Transaction.dc.html",
+  "P-Launcher-Light.dc.html",
+  "P-Launcher-Light-List.dc.html",
+  "P-Light-Unlock.dc.html",
+  "P-Light-Opening.dc.html",
+  "P-Light-AppPrefs.dc.html",
+  "P-Light-Connect.dc.html",
+  "P-Light-SignIn.dc.html",
+  "P-Light-Create.dc.html",
+  "P-Light-Restore.dc.html",
+  "P-Light-GapsInstaller.dc.html",
+  "P-Light-BorderWallet.dc.html",
+  "P-Light-Delete.dc.html",
+  "P-Light-Overview.dc.html",
+  "P-Light-Activity.dc.html",
+  "P-Light-Send.dc.html",
+  "P-Light-Receive.dc.html",
+  "P-Light-Transfer.dc.html",
+  "P-Light-Swap.dc.html",
+  "P-Light-Advanced.dc.html",
+  "P-Light-Split.dc.html",
+  "P-Light-Signing.dc.html",
+  "P-Light-Settings.dc.html",
+  "P-Light-Members.dc.html",
+  "P-Light-Duress.dc.html",
+  "P-Light-GapsAccount.dc.html",
+  "P-Light-BuySell.dc.html",
+  "P-Light-P2P.dc.html",
+  "P-Light-AI-Access.dc.html",
+  "P-Light-AI-Setup.dc.html",
+  "P-Light-AI-Transaction.dc.html",
+  "P-AppPrefs-InCube.dc.html",
+  "P-Connect-InCube.dc.html",
+  "H-Overview.dc.html",
+  "H-Wallet.dc.html",
+  "H-Settings.dc.html",
+  "H-Send.dc.html",
+  "H-Send-From.dc.html",
+  "H-Send-To.dc.html",
+  "H-Receive.dc.html",
+  "H-Vault.dc.html",
+  "H-Send-Vault.dc.html",
+  "H-Settings-Vault.dc.html",
+  "H-Convert.dc.html",
+  "H-Convert-Review.dc.html",
+  "H-Settings-Spark.dc.html",
+  "H-Settings-Spark-Off.dc.html",
+  "G-Launcher.dc.html",
+  "G-Ghost-Details.dc.html",
+  "O-Launcher.dc.html",
+  "O-Finale-A.dc.html",
+  "O-Finale-B.dc.html",
+  "O-Finale-C.dc.html",
+  "O-Glow-A.dc.html",
+  "O-Glow-B.dc.html",
+  "O-List.dc.html",
+  "O-Stall.dc.html",
+  "W-Create.dc.html",
+  "W-Create-Cube.dc.html",
+  "W-LauncherBar.dc.html",
+  "W-Import.dc.html",
+  "W-Import-Signet.dc.html",
+  "W-Import-Menu.dc.html",
+  "W-Import-Kit.dc.html",
+  "W-Import-Wallet.dc.html",
+  "W-Import-Phone.dc.html",
+  "W-Import-Phone-Approve.dc.html",
+  "W-Import-Overview-In.dc.html",
+  "W-Import-Choice.dc.html",
+  "W-Import-Kit-Password.dc.html",
+  "W-Import-Kit-WrongPw.dc.html",
+  "W-Import-Kit-Pin.dc.html",
+  "W-Import-Kit-None.dc.html",
+  "W-Import-Phone-Denied.dc.html",
+  "W-Import-Phone-Expired.dc.html",
+  "W-Import-Phone-None.dc.html",
+  "W-Import-Wallet-Source.dc.html",
+  "W-Import-Wallet-Review.dc.html",
+  "W-Import-Wallet-Scan.dc.html",
+  "W-Import-Wallet-ScanError.dc.html",
+  "W-Import-Wallet-Pin.dc.html",
+  "W-Import-Wallet-Done.dc.html",
+  "W-Import-Kit-Done.dc.html",
+  "W-Import-Phone-Done.dc.html",
+  "W-Create-Done.dc.html",
+  "W-Create-Backup.dc.html",
+  "W-Create-Seed-Intro.dc.html",
+  "W-Create-Seed-Words.dc.html",
+  "W-Create-Seed-Verify.dc.html",
+  "W-Create-Kit-Password.dc.html",
+  "W-Create-Kit-Where.dc.html",
+  "W-Create-Backup-Done.dc.html",
+  "MV-Overview-Before.dc.html",
+  "MV-Overview-After.dc.html",
+  "MV-Overview-After-Light.dc.html",
+  "MV-Cube-Sidebar.dc.html",
+  "MV-Notices-Today.dc.html",
+  "MV-Notices-Proposed.dc.html",
+  "MV-Receive-Today.dc.html",
+  "MV-Receive-Proposed.dc.html",
+  "MV-Send-Today.dc.html",
+  "MV-Send-Proposed.dc.html",
+  "MV-Receive-Proposed-YouReceive.dc.html",
+  "MV-Send-Proposed-YouSend.dc.html",
+  "MV-Type-Scale.dc.html",
+  "MV-Type-Today.dc.html",
+  "MV-Type-Proposed.dc.html",
+  "MV-Cube-Faces.dc.html",
+  "P-Spark.dc.html",
+  "P-Vault.dc.html",
+  "D4-Notices.dc.html",
+  "D4-Notices-Light.dc.html",
+  "H-Overview.dc.html",
+  "H-Wallet.dc.html",
+  "H-Settings.dc.html",
+  "H-Send.dc.html",
+  "H-Send-From.dc.html",
+  "H-Send-To.dc.html",
+  "H-Receive.dc.html",
+  "H-Vault.dc.html",
+  "H-Send-Vault.dc.html",
+  "H-Settings-Vault.dc.html",
+  "H-Convert.dc.html",
+  "H-Convert-Review.dc.html",
+  "H-Settings-Spark.dc.html",
+  "H-Settings-Spark-Off.dc.html",
+  "G-Launcher.dc.html",
+  "G-Ghost-Details.dc.html",
+  "O-Launcher.dc.html",
+  "O-Finale-A.dc.html",
+  "O-Finale-B.dc.html",
+  "O-Finale-C.dc.html",
+  "O-Glow-A.dc.html",
+  "O-Glow-B.dc.html",
+  "O-List.dc.html",
+  "O-Stall.dc.html",
+  "P-AppPrefs-Rail.dc.html",
+  "P-Launcher-Rail-Light.dc.html",
+  "P-Launcher-Rail-Node.dc.html",
+  "P-Launcher-Rail.dc.html"
+ ],
+ "pages": [
+  {
+   "id": "d4review",
+   "name": "D4 review · standing notices (Nov 2026)"
+  },
+  {
+   "id": "proto",
+   "name": "Prototype (clickable)"
+  },
+  {
+   "id": "light",
+   "name": "Light theme (same prototype, forced light)"
+  },
+  {
+   "id": "wizards",
+   "name": "Create & Import · modal wizards (proposal)"
+  },
+  {
+   "id": "mobilev3",
+   "name": "Overview · closer to Mobile V3 (study, Nov 2026)"
+  },
+  {
+   "id": "header",
+   "name": "Page header study"
+  },
+  {
+   "id": "ghosts",
+   "name": "Connect Cubes as ghosts"
+  },
+  {
+   "id": "opening",
+   "name": "Opening on the Cube"
+  },
+  {
+   "id": "backdrop",
+   "name": "Launcher backdrop (design B)"
+  }
+ ],
+ "title": "COINCUBE | Desktop Launcher & Concept C"
+}
