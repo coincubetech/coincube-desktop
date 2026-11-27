@@ -7,6 +7,7 @@ pub mod date_picker;
 pub mod form;
 pub mod hw;
 pub mod modal;
+pub mod notice;
 pub mod notification;
 pub mod pagination;
 pub mod payment_result;
