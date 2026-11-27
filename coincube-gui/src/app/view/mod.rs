@@ -753,9 +753,14 @@ pub fn feature_unavailable_panel(reason: String) -> Element<'static, Message> {
         .into()
 }
 
+/// A panel's turning Cube: 48 px is 2 px to each unit of the logo's 24-unit
+/// grid, so it stays crisp and reads clearly under the card's 56–80 px icon
+/// without competing with it.
+const PANEL_LOADING_CUBE: f32 = 48.0;
+
 /// Loading-state card mirroring [`placeholder`]'s layout, but with the
-/// app's pulsing-dots `loading_indicator` (the same one shown while a Cube
-/// loads) below the title instead of a subtitle. Shown while an initial
+/// app's loading mark, the turning Cube (the same one the Cube loader shows),
+/// below the title instead of a subtitle. Shown while an initial
 /// fetch is in flight so panels don't briefly flash an empty
 /// "No transactions" state before data arrives.
 pub fn loading_placeholder<'a, T: Into<Element<'a, Message>>>(
@@ -765,7 +770,9 @@ pub fn loading_placeholder<'a, T: Into<Element<'a, Message>>>(
     let content = Column::new()
         .push(icon)
         .push(text(title).style(theme::text::secondary).bold())
-        .push(crate::loading::loading_indicator::<Message>(None))
+        .push(coincube_ui::component::tenshu::turning_cube::loading_cube(
+            PANEL_LOADING_CUBE,
+        ))
         .spacing(16)
         .align_x(Alignment::Center);
 

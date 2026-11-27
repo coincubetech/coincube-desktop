@@ -2600,42 +2600,13 @@ fn opening_quotes<'a, M: 'a>(
         .into()
 }
 
-/// The loading face's three progress dots (`P-Opening` `.dots`): 8 px ink
-/// circles 10 px apart, each at its own opacity from `Opening::dots`.
-fn opening_dots<'a, M: 'a>(dots: [f32; 3], alpha: f32) -> Element<'a, M> {
-    dots.iter()
-        .copied()
-        .fold(
-            Row::new().spacing(10).height(Length::Fixed(10.0)),
-            |row, dot| {
-                row.push(
-                    Container::new(Space::new())
-                        .width(Length::Fixed(8.0))
-                        .height(Length::Fixed(8.0))
-                        .style(move |theme: &theme::Theme| iced::widget::container::Style {
-                            background: Some(iced::Background::Color(
-                                theme.colors.shell.ink.scale_alpha(dot * alpha),
-                            )),
-                            border: iced::Border {
-                                radius: 4.0.into(),
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        }),
-                )
-            },
-        )
-        .align_y(Alignment::Center)
-        .into()
-}
-
 /// `.lhead`, `.lquote`, `.lstage` and `.lslow`: the loading face's content.
 fn opening_content<'a, M: 'a>(
     face: &OpeningFace<'a, M>,
     light: bool,
     alpha: f32,
     quote_width: f32,
-    dots: [f32; 3],
+    cube_size: f32,
 ) -> (Element<'a, M>, Element<'a, M>) {
     use coincube_ui::font;
     let network = face.cube.network;
@@ -2666,13 +2637,19 @@ fn opening_content<'a, M: 'a>(
             alpha,
         ));
     let ready = face.stage == super::launcher_opening::Stage::Ready;
-    // The Cube loader shows the quote and no Cube (Robert, 2026-11-27).
+    // The Cube loader: the turning Cube, then the quote, then the status
+    // (Robert, 2026-11-27), spaced as `loader::cube_loader`.
+    let gap = crate::loader::CUBE_LOADER_GAP;
     let mut body = Column::new()
         .align_x(Alignment::Center)
+        .push(tenshu::turning_cube::turning_cube_faded(
+            cube_size,
+            tenshu::turning_cube::motion_reduced(),
+            alpha,
+        ))
+        .push(Space::new().height(Length::Fixed(gap)))
         .push(opening_quotes(face, alpha, quote_width))
-        .push(Space::new().height(Length::Fixed(32.0)))
-        .push(opening_dots(dots, alpha))
-        .push(Space::new().height(Length::Fixed(14.0)))
+        .push(Space::new().height(Length::Fixed(gap)))
         .push(
             opening_words(
                 face.stage.text(),
@@ -2753,14 +2730,23 @@ fn opening_details<'a, M: 'a>(
         .into()
 }
 
+/// The Cube loader's Cube on a stage `height` px tall: compact where the
+/// quote, status and a stalled stage's action would otherwise crowd.
+fn opening_cube_size(height: f32) -> f32 {
+    if height < 640.0 {
+        crate::loader::CUBE_LOADER_COMPACT_SIZE
+    } else {
+        crate::loader::CUBE_LOADER_SIZE
+    }
+}
+
 fn opening_face_content<'a, M: 'a>(
     face: &OpeningFace<'a, M>,
     light: bool,
     alpha: f32,
     side: f32,
-    dots: [f32; 3],
 ) -> Element<'a, M> {
-    let (heading, body) = opening_content(face, light, alpha, 520.0, dots);
+    let (heading, body) = opening_content(face, light, alpha, 520.0, opening_cube_size(side));
     let k = side / launcher_scene::OPEN_FACE_SIZE;
     Container::new(opening_details(heading, body, 44.0 * k, 72.0 * k))
         .width(Length::Fixed(side))
@@ -2790,7 +2776,7 @@ pub(crate) fn opening_on_floor<'a, M: 'a + 'static>(
         let overlay = (alpha > 0.0).then(|| {
             (
                 layout.open_target().1 - side / 2.0,
-                opening_face_content(&face, light, alpha, side, opening.dots(now)),
+                opening_face_content(&face, light, alpha, side),
             )
         });
         floor_stage(
@@ -2826,7 +2812,8 @@ pub(crate) fn opening_full_screen<'a, M: 'a + 'static>(
     let alpha = opening.content(now);
     let scene = project_opening(&face.cube.name, face.cube.network);
     let stage = responsive(move |size: Size| {
-        let (heading, body) = opening_content(&face, light, alpha, 640.0, opening.dots(now));
+        let (heading, body) =
+            opening_content(&face, light, alpha, 640.0, opening_cube_size(size.height));
         let top = (size.height * 0.09).min(64.0);
         Stack::new()
             .width(Length::Fill)
@@ -4898,8 +4885,13 @@ mod tests {
         assert!(mounted.has_focus(launcher_catalog::details_open_id(&key)));
     }
 
+    /// The Launcher's opening face is the Cube loader (Robert, 2026-11-27):
+    /// the turning Cube, then the quote, then the stage line, one centred
+    /// group, at every stage, in every worldview, theme and language. The
+    /// Cube is a canvas, found by its container; the face body draws no
+    /// raster or SVG picture.
     #[test]
-    fn live_opening_body_shows_the_quote_and_status_without_a_picture() {
+    fn the_opening_face_turns_the_cube_above_the_quote_and_status() {
         use super::super::launcher_opening::Stage;
         use coincube_ui::locale::{render_in, Language};
         let cube = crate::app::settings::CubeSettings::new_with_raw_id(
@@ -4916,6 +4908,15 @@ mod tests {
             length: "short".into(),
             contexts: Vec::new(),
         };
+        let stages = [
+            Stage::Connecting,
+            Stage::StartingDaemon,
+            Stage::Scanning,
+            Stage::Syncing,
+            Stage::AlmostThere,
+            Stage::Spark,
+            Stage::Ready,
+        ];
         for language in [Language::English, Language::Spanish] {
             for palette in [theme::Theme::dark(), theme::Theme::light()] {
                 for mode in [
@@ -4923,42 +4924,57 @@ mod tests {
                     theme::WorldviewMode::Suitcoiner,
                     theme::WorldviewMode::Luke,
                 ] {
-                    let face = OpeningFace {
-                        cube: &cube,
-                        quote: &quote,
-                        outgoing: None,
-                        stage: Stage::Spark,
-                        stalled: false,
-                        cancel: || (),
-                        without_spark: || (),
-                    };
-                    let (_, body) = render_in(language, || {
-                        coincube_ui::worldview_copy::render_in(mode, || {
-                            opening_content(&face, false, 1.0, 520.0, [0.9, 0.25, 0.25])
-                        })
-                    });
-                    let shown = capture::inspect_rendered_filled(
-                        "live-opening-brand",
-                        body,
-                        (1024, 768),
-                        if palette.mode == theme::palette::ThemeMode::Light {
+                    for stage in stages {
+                        let face = OpeningFace {
+                            cube: &cube,
+                            quote: &quote,
+                            outgoing: None,
+                            stage,
+                            stalled: false,
+                            cancel: || (),
+                            without_spark: || (),
+                        };
+                        let (_, body) = render_in(language, || {
+                            coincube_ui::worldview_copy::render_in(mode, || {
+                                opening_content(
+                                    &face,
+                                    false,
+                                    1.0,
+                                    520.0,
+                                    crate::loader::CUBE_LOADER_SIZE,
+                                )
+                            })
+                        });
+                        let appearance = if palette.mode == theme::palette::ThemeMode::Light {
                             "light"
                         } else {
                             "dark"
-                        },
-                        palette.with_worldview(mode),
-                    );
-                    assert_eq!(
-                        shown.drawn_images(),
-                        capture::DrawnImages {
-                            raster: 0,
-                            vector: 0
-                        },
-                        "the Cube loader shows the quote and no picture"
-                    );
-                    assert!(shown.contains(&quote.text));
-                    let status = render_in(language, || Stage::Spark.text());
-                    assert!(shown.contains(status));
+                        };
+                        let at =
+                            format!("opening-face-{language:?}-{mode:?}-{stage:?}-{appearance}");
+                        let shown = capture::inspect_rendered_filled(
+                            &at,
+                            body,
+                            (1024, 768),
+                            appearance,
+                            palette.with_worldview(mode),
+                        );
+                        shown.assert_cube_loader(
+                            &at,
+                            crate::loader::CUBE_LOADER_SIZE,
+                            &quote.text,
+                            "\u{2014} Author, Source",
+                            render_in(language, || stage.text()),
+                        );
+                        assert_eq!(
+                            shown.drawn_images(),
+                            capture::DrawnImages {
+                                raster: 0,
+                                vector: 0
+                            },
+                            "{at}: no picture beyond the turning Cube"
+                        );
+                    }
                 }
             }
         }
@@ -5021,6 +5037,15 @@ mod tests {
                     );
                     assert!(mounted.contains("Loading your Spark wallet"));
                     assert!(mounted.contains("The wording can change"));
+                    // The Cube loader's Cube heads the face in both layouts,
+                    // compact on a short window so the action stays in view.
+                    let cubes = mounted.turning_cubes();
+                    assert_eq!(cubes.len(), 1, "{layout} {height}: {cubes:?}");
+                    let said = mounted.text_bounds("Verify the network").unwrap();
+                    assert!(cubes[0].y + cubes[0].height <= said.y);
+                    if height < 640 {
+                        assert_eq!(cubes[0].width, crate::loader::CUBE_LOADER_COMPACT_SIZE);
+                    }
                     let action = mounted
                         .text
                         .iter()

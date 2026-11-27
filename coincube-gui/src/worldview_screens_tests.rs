@@ -3,8 +3,9 @@
 //! both languages (invariant R8): the quote stays (R7), the worldview's
 //! wording stays (R2), and nothing else replaces the picture: every screen
 //! is drawn with the software renderer and must queue no image or SVG. The
-//! Opening paths are the exception: they draw the line Cube (an SVG) above
-//! the quote, per the brand brief of 2026-11-26, and still no raster art.
+//! Cube loader (the Opening and the loader) also turns the line Cube above
+//! its quote (Robert, 2026-11-27); that Cube is a canvas, which the counter
+//! does not see, so its own test finds it by its container.
 
 use coincube_ui::component::{
     amount::BitcoinDisplayUnit,
@@ -80,8 +81,9 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 assert!(opened.contains("— Author, Source"));
                 // The Opening rail above the stage draws the brand mark and
                 // the network coin, which are not artwork (R9); the loading
-                // stage under it is the Cube loader: the quote and no picture,
-                // not even the line Cube (Robert, 2026-11-27).
+                // stage under it is the Cube loader: the turning Cube (a
+                // canvas, see `every_cube_loader_turns_the_cube_above_the_
+                // quote_and_status`), the quote and the status, and no image.
                 let stage = capture::inspect_rendered_filled(
                     &scenario("opening-stage"),
                     render_in(language, || {
@@ -359,127 +361,137 @@ fn a_mode_switch_changes_network_names_and_voice_lines_and_no_colour() {
     }
 }
 
-/// The Cube loader shows the quote and no picture (Robert, 2026-11-27): the
-/// Launcher's Opening (the rail over the loader), the loader on its own
-/// (connecting, starting, scanning and its error) and `loader::opening_quote`.
-/// No raster image (the ink art was raster) and no SVG beyond the Opening
-/// rail's own bar icons, so the line Cube is gone too. The passkey Opening
-/// draws the turning Cube on a canvas and has its own tests in
-/// `passkey_unlock`. Counted from what the software renderer actually drew,
-/// so a picture cannot hide in a view the text probe passes over.
+/// The Cube loader (Robert, 2026-11-27): "spinning Cube, then the quote below
+/// that, then the status text", one centred group. Checked on the Launcher's
+/// Opening (the rail over the loader) and on every loader step, the error
+/// included, in every worldview, theme and language. The Cube is a canvas,
+/// which the drawn-image counter does not see, so it is found and placed by
+/// its container (`capture::Inspection::assert_cube_loader`); the counter
+/// still shows no raster art and no SVG beyond the Opening rail's own bar
+/// icons. The Launcher's opening face is checked in `launcher_presenter` and
+/// the passkey unlock in `gui::tab`.
 #[test]
-fn every_opening_shows_the_quote_and_no_picture() {
-    let quote = quote_display::random_quote("loading");
-    let words = quote.localized_text().to_owned();
+fn every_cube_loader_turns_the_cube_above_the_quote_and_status() {
+    let quote = fixture_quote("loading");
+    let attribution = "\u{2014} Author, Source";
     let error = crate::loader::Step::Error(Box::new(crate::loader::Error::Unexpected(
         "Fixture startup error".into(),
     )));
+    // Never connected: the Syncing step only needs a daemon handle to hold.
+    let daemon = || -> std::sync::Arc<dyn crate::daemon::Daemon + Sync + Send> {
+        std::sync::Arc::new(crate::daemon::client::Coincubed::new(
+            crate::daemon::client::jsonrpc::JsonRPCClient::new("/nonexistent/fixture.sock"),
+        ))
+    };
     let steps = [
-        ("connecting", crate::loader::Step::Connecting),
-        (
-            "starting",
-            crate::loader::Step::StartingDaemon { progress: 0.4 },
-        ),
-        ("scanning", crate::loader::Step::FullScan { progress: 0.4 }),
+        crate::loader::Step::Connecting,
+        crate::loader::Step::StartingDaemon { progress: 0.4 },
+        crate::loader::Step::FullScan { progress: 0.4 },
+        crate::loader::Step::Syncing {
+            daemon: daemon(),
+            progress: 0.4,
+            bitcoind_logs: "Fixture node log".into(),
+        },
+        crate::loader::Step::Syncing {
+            daemon: daemon(),
+            progress: 0.99,
+            bitcoind_logs: String::new(),
+        },
+        error,
     ];
-    for (mode, name) in [
-        (WorldviewMode::Samurai, "samurai"),
-        (WorldviewMode::Suitcoiner, "suitcoiner"),
-        (WorldviewMode::Luke, "luke"),
-    ] {
-        for (appearance, theme) in [("dark", Theme::dark()), ("light", Theme::light())] {
-            let theme = theme.with_worldview(mode);
-            let rail_icons = capture::inspect_rendered_filled(
-                &format!("opening-quote-{name}-rail"),
-                crate::home::launcher_presenter::opening_rail::<()>(&project_opening(
-                    "Everyday",
-                    ChainId::Bitcoin,
-                )),
-                (1024, 768),
-                appearance,
-                theme,
-            )
-            .drawn_images()
-            .vector;
-            let launcher = capture::inspect_rendered_filled(
-                &format!("opening-quote-{name}-launcher"),
-                opening_body(
-                    project_opening("Everyday", ChainId::Bitcoin),
-                    &crate::loader::Step::Connecting,
-                    &quote,
-                    false,
-                ),
-                (1024, 768),
-                appearance,
-                theme,
-            );
-            assert!(
-                launcher.contains(&words),
-                "{} {}: no quote",
-                name,
-                appearance
-            );
-            let drawn = launcher.drawn_images();
-            assert_eq!(
-                drawn.raster, 0,
-                "{} {} launcher: raster art",
-                name, appearance
-            );
-            assert_eq!(
-                drawn.vector, rail_icons,
-                "{} {} launcher: a picture beyond the rail's icons",
-                name, appearance
-            );
-            let mut views: Vec<(String, capture::Inspection)> = vec![(
-                "opening-quote".into(),
-                capture::inspect_rendered_filled(
-                    &format!("opening-quote-{name}-quote"),
-                    crate::loader::opening_quote::<()>(&quote),
+    for language in [Language::English, Language::Spanish] {
+        for (mode, name) in [
+            (WorldviewMode::Samurai, "samurai"),
+            (WorldviewMode::Suitcoiner, "suitcoiner"),
+            (WorldviewMode::Luke, "luke"),
+        ] {
+            for (appearance, theme) in [("dark", Theme::dark()), ("light", Theme::light())] {
+                let theme = theme.with_worldview(mode);
+                let scenario = |screen: &str| format!("cube-loader-{language:?}-{name}-{screen}");
+                let rail_icons = capture::inspect_rendered_filled(
+                    &scenario("rail"),
+                    crate::home::launcher_presenter::opening_rail::<()>(&project_opening(
+                        "Everyday",
+                        ChainId::Bitcoin,
+                    )),
                     (1024, 768),
                     appearance,
                     theme,
-                ),
-            )];
-            for (step_name, step) in &steps {
-                views.push((
-                    format!("loader-{step_name}"),
-                    capture::inspect_rendered_filled(
-                        &format!("opening-quote-{name}-loader-{step_name}"),
-                        crate::loader::view(step, &quote),
-                        (1024, 768),
-                        appearance,
-                        theme,
-                    ),
-                ));
-            }
-            let failed = capture::inspect_rendered_filled(
-                &format!("opening-quote-{name}-loader-error"),
-                crate::loader::view(&error, &quote),
-                (1024, 768),
-                appearance,
-                theme,
-            );
-            assert!(failed.contains("COINCUBE Desktop failed to start"));
-            views.push(("loader-error".into(), failed));
-            for (view, inspection) in &views {
-                assert!(
-                    inspection.contains(&words),
-                    "{} {} {}: no quote",
-                    name,
-                    appearance,
-                    view
-                );
-                let drawn = inspection.drawn_images();
-                assert_eq!(
-                    drawn.raster, 0,
-                    "{} {} {}: raster art",
-                    name, appearance, view
-                );
-                assert_eq!(
-                    drawn.vector, 0,
-                    "{} {} {}: an SVG picture",
-                    name, appearance, view
-                );
+                )
+                .drawn_images()
+                .vector;
+                for (index, step) in steps.iter().enumerate() {
+                    let status = render_in(language, || match step {
+                        crate::loader::Step::Connecting => {
+                            coincube_ui::locale::Text::ConnectingToDaemon.get()
+                        }
+                        crate::loader::Step::StartingDaemon { .. } => {
+                            coincube_ui::locale::Text::StartingDaemon.get()
+                        }
+                        crate::loader::Step::FullScan { .. } => {
+                            coincube_ui::locale::Text::ScanningTheBlockchain.get()
+                        }
+                        crate::loader::Step::Syncing { progress, .. } if *progress > 0.98 => {
+                            coincube_ui::locale::Text::AlmostThere.get()
+                        }
+                        crate::loader::Step::Syncing { .. } => {
+                            coincube_ui::locale::Text::SyncingBlockchain.get()
+                        }
+                        crate::loader::Step::Error(_) => {
+                            coincube_ui::locale::Text::TenshuFailedToStart.get()
+                        }
+                    });
+                    let screens = [
+                        (
+                            "loader",
+                            0,
+                            render_in(language, || {
+                                coincube_ui::worldview_copy::render_in(mode, || {
+                                    crate::loader::view(step, &quote)
+                                })
+                            }),
+                        ),
+                        (
+                            "launcher-opening",
+                            rail_icons,
+                            render_in(language, || {
+                                coincube_ui::worldview_copy::render_in(mode, || {
+                                    opening_body(
+                                        project_opening("Everyday", ChainId::Bitcoin),
+                                        step,
+                                        &quote,
+                                        false,
+                                    )
+                                })
+                            }),
+                        ),
+                    ];
+                    for (screen, icons, view) in screens {
+                        let at = scenario(&format!("{screen}-{index}-{appearance}"));
+                        let shown = capture::inspect_rendered_filled(
+                            &at,
+                            view,
+                            (1024, 900),
+                            appearance,
+                            theme,
+                        );
+                        shown.assert_cube_loader(
+                            &at,
+                            crate::loader::CUBE_LOADER_SIZE,
+                            &quote.text,
+                            attribution,
+                            status,
+                        );
+                        assert_eq!(
+                            shown.drawn_images(),
+                            capture::DrawnImages {
+                                raster: 0,
+                                vector: icons
+                            },
+                            "{at}: no picture beyond the turning Cube"
+                        );
+                    }
+                }
             }
         }
     }

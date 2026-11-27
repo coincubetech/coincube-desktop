@@ -998,6 +998,9 @@ struct CubeOpening {
     loads: Vec<iced::task::Handle>,
     /// The user chose to go on while Spark was still loading.
     without_spark: bool,
+    /// The motion preference read when the unlock was verified, which the
+    /// opening face's turning Cube follows as the scene does.
+    reduced: bool,
 }
 
 pub struct Tab {
@@ -5516,6 +5519,22 @@ impl Tab {
         &self,
         worldview: crate::app::settings::preferences::WorldviewMode,
     ) -> Element<Message> {
+        // Every turning Cube in the tab (the Cube loader, a panel's wait)
+        // follows the motion preference; the opening's, the one it started
+        // with.
+        let reduced = self
+            .opening
+            .as_ref()
+            .map_or(self.reduce_motion, |opening| opening.reduced);
+        coincube_ui::component::tenshu::turning_cube::render_with_motion(reduced, || {
+            self.opening_or_state_view(worldview)
+        })
+    }
+
+    fn opening_or_state_view(
+        &self,
+        worldview: crate::app::settings::preferences::WorldviewMode,
+    ) -> Element<Message> {
         let Some(opening) = self.opening.as_ref() else {
             return self.state_view(worldview);
         };
@@ -5656,24 +5675,10 @@ impl Tab {
     /// `Some(None)` keeps it but has no stage (a loader error page).
     fn opening_stage(&self) -> Option<Option<home::launcher_opening::Stage>> {
         use home::launcher_opening::Stage;
-        // The unlock routes past its screen (to the Loader, or back to the
-        // Launcher for a legacy Liana Connect Vault) exactly when it carries Bitcoin wallet settings: a
-        // Vault or an imported wallet. Without them there is no daemon to
-        // start: the wallets load and the Cube is almost there.
-        let unlocked = |on_success: &crate::pin_entry::PinEntrySuccess| {
-            let crate::pin_entry::PinEntrySuccess::LoadApp {
-                wallet_settings, ..
-            } = on_success;
-            Some(if wallet_settings.is_some() {
-                Stage::Connecting
-            } else {
-                Stage::AlmostThere
-            })
-        };
         match &self.state {
-            State::PinEntry(pin) if pin.is_loading() => Some(unlocked(&pin.on_success)),
+            State::PinEntry(pin) if pin.is_loading() => Some(Some(pin.on_success.opening_stage())),
             State::PasskeyUnlock(passkey) if passkey.is_opening() => {
-                Some(unlocked(&passkey.on_success))
+                Some(Some(passkey.on_success.opening_stage()))
             }
             State::Loader(loader) => Some(loader.opening_stage()),
             // The App is up, but its Spark wallet may still be loading:
@@ -5703,6 +5708,10 @@ impl Tab {
             State::PinEntry(pin) if pin_verified && pin.is_loading() => {
                 Some((pin.loading_quote().clone(), datadir(&pin.on_success)))
             }
+            // A passkey has no classification step to wait for: the update
+            // that enters its Opening phase starts the same opening as a
+            // verified PIN, so its face covers the passkey screen from the
+            // first frame, from the floor or the list and with reduced motion.
             State::PasskeyUnlock(passkey) if passkey.is_opening() => Some((
                 passkey.loading_quote().clone(),
                 datadir(&passkey.on_success),
@@ -5711,11 +5720,6 @@ impl Tab {
         };
         if let (None, Some((quote, root))) = (self.opening.as_ref(), verified) {
             let reduced = home::motion_reduced(&root, self.system_reduces_motion);
-            // The passkey screen's own loading view (shown when no opening
-            // runs) turns a Cube; it follows the same motion preference.
-            if let State::PasskeyUnlock(passkey) = &mut self.state {
-                passkey.set_reduce_motion(reduced);
-            }
             if let Some(Some(stage)) = self.opening_stage() {
                 self.opening_cancelled = false;
                 self.opening = Some(CubeOpening {
@@ -5728,6 +5732,7 @@ impl Tab {
                     quotes: home::launcher_opening::QuoteCycle::new(quote, reduced, now),
                     loads: Vec::new(),
                     without_spark: false,
+                    reduced,
                 });
             }
         }
@@ -9611,6 +9616,113 @@ mod opening_tests {
         std::fs::remove_dir_all(root).unwrap();
     }
 
+    /// A verified passkey opens the Cube exactly as a verified PIN does
+    /// (Robert, 2026-11-27: "this passkey path also uses the same loading
+    /// screen as the PIN one"). There is no PIN check to wait for, so the
+    /// update that enters the passkey's Opening phase starts the opening:
+    /// from the floor or the list, with motion or without. The tab then
+    /// draws the opening face (its heading names the Cube, then the Cube
+    /// loader: the turning Cube, the quote, the stage), not the passkey
+    /// screen.
+    #[test]
+    fn a_verified_passkey_opens_through_the_same_face_as_a_pin() {
+        use crate::app::view::shared::landing::capture;
+        use home::launcher_opening::{Opening, Stage};
+        let root = datadir();
+        for from_floor in [true, false] {
+            for reduced in [false, true] {
+                let cube = CubeSettings::new("Everyday".into(), ChainId::Bitcoin).with_passkey(
+                    crate::app::settings::PasskeyMetadata {
+                        credential_id: "Y3JlZC1pZA==".to_string(),
+                        rp_id: "coincube.io".to_string(),
+                        created_at: 1_786_122_245,
+                        label: None,
+                    },
+                );
+                let state = unlock_state(
+                    cube,
+                    root.clone(),
+                    crate::pin_entry::PinEntrySuccess::LoadApp {
+                        datadir: crate::dir::CoincubeDirectory::new(root.clone()),
+                        config: crate::app::Config::new(false),
+                        network: Network::Bitcoin,
+                        internal_bitcoind: None,
+                        backup: None,
+                        wallet_settings: None,
+                        connect_client: None,
+                    },
+                    None,
+                );
+                let mut tab = Tab::new(1, state);
+                tab.system_reduces_motion = Some(reduced);
+                if from_floor {
+                    tab.unlock_floor = Some(floor());
+                }
+                let State::PasskeyUnlock(passkey) = &mut tab.state else {
+                    unreachable!("a passkey Cube");
+                };
+                passkey.enter_opening_for_test();
+                let quote = passkey.loading_quote().clone();
+                // The ceremony's next poll is the update that lands in Opening;
+                // the tab's own update follows it with `track_opening`.
+                drop(tab.update(Message::PasskeyUnlock(crate::passkey_unlock::Message::Tick)));
+                let case = format!("floor {from_floor}, reduced {reduced}");
+                let opening = tab.opening.as_mut().unwrap_or_else(|| {
+                    panic!("{}", format!("{case}: a verified passkey opens the Cube"))
+                });
+                assert_eq!(opening.scene.floor().is_some(), from_floor, "{case}");
+                assert_eq!(opening.scene.stage(), Stage::AlmostThere, "{case}");
+                assert_eq!(opening.reduced, reduced, "{case}");
+                assert!(
+                    tab.unlock_floor.is_none(),
+                    "{}",
+                    format!("{case}: the opening took the floor")
+                );
+                // Well into the opening, past the tumble, so the face's
+                // content shows on the floor too.
+                opening.scene = Opening::new(
+                    from_floor.then(floor),
+                    reduced,
+                    Stage::AlmostThere,
+                    std::time::Instant::now() - std::time::Duration::from_secs(5),
+                );
+                let shown = capture::inspect_filled(
+                    &format!("passkey-opening-face-{from_floor}-{reduced}"),
+                    tab.view(Default::default()),
+                    (1024, 768),
+                    "dark",
+                    coincube_ui::theme::Theme::dark(),
+                    (1024, 768),
+                );
+                assert!(
+                    shown.contains(coincube_ui::locale::Text::Opening.get()),
+                    "{}",
+                    format!("{case}")
+                );
+                assert!(
+                    shown.contains("Everyday"),
+                    "{}",
+                    format!("{case}: the face names the Cube")
+                );
+                let side = shown.turning_cubes().first().map_or(0.0, |cube| cube.width);
+                assert!(
+                    side == crate::loader::CUBE_LOADER_SIZE
+                        || side == crate::loader::CUBE_LOADER_COMPACT_SIZE,
+                    "{}",
+                    format!("{case}: the Cube loader's Cube, not {side} px")
+                );
+                shown.assert_cube_loader(
+                    &case,
+                    side,
+                    quote.localized_text(),
+                    &format!("\u{2014} {}, {}", quote.author, quote.source),
+                    Stage::AlmostThere.text(),
+                );
+            }
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     /// A Cube whose Bitcoin wallet is imported has no Vault id, but its
     /// unlock carries wallet settings and routes to the Loader. The opening
     /// has to start where the Loader does, or the stage line and the light
@@ -9852,6 +9964,7 @@ mod opening_tests {
             ),
             loads: Vec::new(),
             without_spark: false,
+            reduced: false,
         });
         // The loader fails; the error page holds the wait once, then the
         // tab goes to the background and gets no more ticks.
@@ -9921,6 +10034,7 @@ mod opening_tests {
                     ),
                     loads: Vec::new(),
                     without_spark: false,
+                    reduced: false,
                 });
                 tab.sync_opening(Instant::now());
                 let stage = |tab: &Tab| tab.opening.as_ref().map(|o| o.scene.stage());
