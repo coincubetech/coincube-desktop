@@ -189,14 +189,20 @@ fn dock_button(
 /// A network's full name (`CH.full`), for a Cube's face and its unlock.
 pub(crate) fn network_name(chain: ChainId) -> &'static str {
     match chain {
-        ChainId::Bitcoin => "Bitcoin mainnet",
-        ChainId::BitcoinBlake2b => "Bitcoin Blake2b mainnet",
+        ChainId::Bitcoin | ChainId::BitcoinBlake2b => mainnet_name(chain),
         ChainId::Testnet => "Bitcoin Testnet",
         ChainId::Testnet4 => "Bitcoin Testnet4",
         ChainId::Signet => "Bitcoin Signet",
         ChainId::Regtest => "Bitcoin Regtest",
         ChainId::BitcoinBlake2bTestnet4 => "Bitcoin Blake2b Testnet4",
     }
+}
+
+/// A mainnet's name in the reader's language. The test networks' names
+/// (Testnet4, Signet, Regtest) are proper names and stay as they are.
+/// Shared with the Cube's own shell (`nav::shell::network_label`).
+fn mainnet_name(chain: ChainId) -> &'static str {
+    crate::app::view::nav::shell::network_label(chain)
 }
 
 /// A Network menu row's count: this device's Cubes, then the network's
@@ -242,8 +248,7 @@ fn scope_menu_count(projection: &Projection<'_>, scope: NetworkFilter) -> String
 /// A network's menu name (`CH.menu`), for the Network chip and menu.
 pub(super) fn network_menu_name(chain: ChainId) -> &'static str {
     match chain {
-        ChainId::Bitcoin => "Bitcoin mainnet",
-        ChainId::BitcoinBlake2b => "Bitcoin Blake2b mainnet",
+        ChainId::Bitcoin | ChainId::BitcoinBlake2b => mainnet_name(chain),
         ChainId::BitcoinBlake2bTestnet4 => "Blake2b Testnet4",
         other => other.label(),
     }

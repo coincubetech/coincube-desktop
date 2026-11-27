@@ -90,8 +90,9 @@ pub struct ShellState {
 
 pub(crate) fn network_label(network: ChainId) -> &'static str {
     match network {
-        ChainId::Bitcoin => "Bitcoin mainnet",
-        ChainId::BitcoinBlake2b => "Bitcoin Blake2b mainnet",
+        // The mainnets' names are words; the test networks' are proper names.
+        ChainId::Bitcoin => coincube_ui::locale::copy("Bitcoin mainnet"),
+        ChainId::BitcoinBlake2b => coincube_ui::locale::copy("Bitcoin Blake2b mainnet"),
         other => other.label(),
     }
 }

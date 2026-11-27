@@ -5775,6 +5775,58 @@ mod tests {
     }
 
     #[test]
+    fn mainnet_names_are_spanish_in_the_bar_menu_and_no_match() {
+        use coincube_ui::locale::{render_in, Language};
+        let mut home = all_networks();
+        home.displayed_networks.push(ChainId::BitcoinBlake2b);
+        catalog(
+            &mut home,
+            CatalogMessage::Filter(NetworkFilter::Network(ChainId::Bitcoin)),
+        );
+        catalog(&mut home, CatalogMessage::NetworkMenu(true));
+        let tree = render_in(Language::Spanish, || {
+            home_tree("spanish-mainnet", &home, WIDE, "dark", theme::Theme::dark())
+        });
+        assert!(
+            tree.bar_text().contains(&"Red principal de Bitcoin"),
+            "{:?}",
+            tree.bar_text()
+        );
+        assert!(tree.contains("Red principal de Bitcoin Blake2b"));
+        assert!(!tree.contains("mainnet"), "{:?}", tree.text);
+        // Proper names stay.
+        assert!(tree.contains("Testnet4"));
+        assert!(tree.contains("Signet"));
+        assert!(tree.contains("Regtest"));
+
+        home.catalog.network_menu = false;
+        home.catalog.filter = NetworkFilter::Network(ChainId::BitcoinBlake2b);
+        let tree = render_in(Language::Spanish, || {
+            home_tree(
+                "spanish-mainnet-none",
+                &home,
+                WIDE,
+                "dark",
+                theme::Theme::dark(),
+            )
+        });
+        assert!(
+            tree.contains("No hay Cubes en Red principal de Bitcoin Blake2b"),
+            "{:?}",
+            tree.text
+        );
+        // English is unchanged.
+        let tree = home_tree(
+            "english-mainnet-none",
+            &home,
+            WIDE,
+            "dark",
+            theme::Theme::dark(),
+        );
+        assert!(tree.contains("No Cubes on Bitcoin Blake2b mainnet"));
+    }
+
+    #[test]
     fn the_count_sits_at_the_foot_in_grid_and_list() {
         let (width, height) = (WIDE.0 as f32, WIDE.1 as f32);
         // Two pages of Cubes on the floor: the count, then the page dots.
