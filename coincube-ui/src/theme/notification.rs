@@ -43,8 +43,8 @@ pub fn info(theme: &Theme) -> Style {
     notification(&theme.colors.notifications.info)
 }
 
-/// Severity of a toast. Sets the icon, its tint and whether the border is
-/// tinted; every toast otherwise shares the panel surface.
+/// Severity of a toast. Sets the icon, its tint and whether the panel is
+/// washed in the tone; every toast otherwise shares the panel surface.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ToastTone {
     /// Confirmations and background progress.
@@ -71,7 +71,7 @@ impl From<log::Level> for ToastTone {
 }
 
 impl ToastTone {
-    /// Tone colour for the icon and, on toasts that need attention, the border.
+    /// Tone colour for the icon and, on toasts that need attention, the wash.
     pub fn color(self, theme: &Theme) -> iced::Color {
         use super::tenshu::Tone;
         match self {
@@ -84,29 +84,38 @@ impl ToastTone {
         }
     }
 
-    /// Warnings and errors tint their border so they stand apart from
-    /// confirmations.
+    /// Warnings and errors wash their panel in the tone so they stand apart
+    /// from confirmations (option D, Robert 2026-11-27).
     pub fn needs_attention(self) -> bool {
         matches!(self, ToastTone::Warning | ToastTone::Error)
     }
 }
 
-/// Opacity of the tone on a tinted toast border.
-const TOAST_BORDER_ALPHA: f32 = 0.4;
+/// Share of the tone washed over the panel of a warning or error,
+/// `color-mix(in srgb, var(--tone) 8%, var(--panel))` on the canvas.
+pub const ATTENTION_WASH: f32 = 0.08;
 /// Opacity of the tone behind the toast icon.
 const TOAST_TILE_ALPHA: f32 = 0.13;
 
-/// Toast surface: the menu/popover panel (`tenshu::surface::panel`) with a
-/// line border, tone-tinted on warnings and errors. Notices keep their
-/// border: the tint is part of what a warning says.
+/// The panel fill of a toast: the plain panel, or for a warning or error the
+/// panel washed [`ATTENTION_WASH`] in its tone.
+pub fn toast_fill(theme: &Theme, tone: ToastTone) -> iced::Color {
+    let panel = theme.colors.shell.panel;
+    if tone.needs_attention() {
+        super::tenshu::mix(panel, tone.color(theme), ATTENTION_WASH)
+    } else {
+        panel
+    }
+}
+
+/// Toast surface (`/* cc-toasts v1 */`, option D): the menu/popover panel
+/// (`tenshu::surface::panel`) with a 1px line border on every tone. A
+/// warning or error washes its fill in its tone instead of a tone edge.
 pub fn toast(theme: &Theme, tone: ToastTone) -> Style {
     let mut style = super::tenshu::surface::panel(theme);
+    style.background = Some(Background::Color(toast_fill(theme, tone)));
     style.border.width = 1.0;
-    style.border.color = if tone.needs_attention() {
-        super::tenshu::faded(tone.color(theme), TOAST_BORDER_ALPHA)
-    } else {
-        theme.colors.shell.line
-    };
+    style.border.color = theme.colors.shell.line;
     style
 }
 
@@ -128,9 +137,10 @@ pub fn toast_icon_tile(theme: &Theme, tone: ToastTone) -> Style {
 
 #[cfg(test)]
 mod toast_tests {
-    use super::{toast, ToastTone};
+    use super::{toast, toast_fill, ToastTone, ATTENTION_WASH};
     use crate::theme::tenshu::contrast;
     use crate::theme::Theme;
+    use iced::Background;
 
     const TONES: [ToastTone; 5] = [
         ToastTone::Info,
@@ -140,16 +150,14 @@ mod toast_tests {
         ToastTone::Debug,
     ];
 
-    /// Notices keep their border when the menu panel they share loses its own.
+    /// Every toast keeps the plain line border; no tone edge (option D).
     #[test]
-    fn every_toast_keeps_its_border() {
+    fn every_toast_keeps_the_line_border() {
         for theme in [Theme::dark(), Theme::light()] {
             for tone in TONES {
                 let style = toast(&theme, tone);
                 assert_eq!(style.border.width, 1.0, "{tone:?}");
-                if !tone.needs_attention() {
-                    assert_eq!(style.border.color, theme.colors.shell.line, "{tone:?}");
-                }
+                assert_eq!(style.border.color, theme.colors.shell.line, "{tone:?}");
             }
         }
     }
@@ -163,16 +171,50 @@ mod toast_tests {
         assert_eq!(ToastTone::from(log::Level::Trace), ToastTone::Debug);
     }
 
+    /// Warnings and errors wash the panel 8% in their tone; the rest stay
+    /// plain.
     #[test]
-    fn only_warnings_and_errors_tint_the_border() {
-        let theme = Theme::dark();
-        for tone in TONES {
-            let border = toast(&theme, tone).border.color;
-            assert_eq!(
-                border == theme.colors.shell.line,
-                !tone.needs_attention(),
-                "{tone:?}"
-            );
+    fn only_warnings_and_errors_wash_the_panel() {
+        for theme in [Theme::dark(), Theme::light()] {
+            let panel = theme.colors.shell.panel;
+            for tone in TONES {
+                let Some(Background::Color(fill)) = toast(&theme, tone).background else {
+                    panic!("{tone:?} has no flat fill");
+                };
+                assert_eq!(fill, toast_fill(&theme, tone), "{tone:?}");
+                if tone.needs_attention() {
+                    let wash = tone.color(&theme);
+                    for (f, p, w) in [
+                        (fill.r, panel.r, wash.r),
+                        (fill.g, panel.g, wash.g),
+                        (fill.b, panel.b, wash.b),
+                    ] {
+                        assert!(
+                            (f - (p + (w - p) * ATTENTION_WASH)).abs() < 1e-5,
+                            "{tone:?}"
+                        );
+                    }
+                    assert_ne!(fill, panel, "{tone:?}");
+                } else {
+                    assert_eq!(fill, panel, "{tone:?}");
+                }
+            }
+        }
+    }
+
+    /// The title (ink) and detail (muted) stay readable on the washed panel.
+    #[test]
+    fn copy_holds_contrast_on_the_washed_panel() {
+        for theme in [Theme::dark(), Theme::light()] {
+            for tone in [ToastTone::Warning, ToastTone::Error] {
+                let fill = toast_fill(&theme, tone);
+                let ink = contrast(theme.colors.shell.ink, fill);
+                let muted = contrast(theme.colors.shell.muted, fill);
+                assert!(ink >= 4.5, "{tone:?} title is {ink:.2}:1");
+                assert!(muted >= 4.5, "{tone:?} detail is {muted:.2}:1");
+                let icon = contrast(tone.color(&theme), fill);
+                assert!(icon >= 3.0, "{tone:?} icon is {icon:.2}:1");
+            }
         }
     }
 
