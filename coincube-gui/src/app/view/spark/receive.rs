@@ -61,9 +61,7 @@ pub struct SparkReceiveView<'a> {
     pub received_amount_display: &'a str,
     /// The payment ID for a one-payment receipt.
     pub received_payment_id: Option<&'a str>,
-    pub received_celebration_context: &'a str,
     pub received_quote: &'a coincube_ui::component::quote_display::Quote,
-    pub received_image_handle: &'a iced::widget::image::Handle,
     pub recent_transactions: &'a [SparkRecentTransaction],
     /// Unified balance (sats: BTC + Stable Balance), shown on the YOU RECEIVE card.
     pub balance_sats: u64,
@@ -106,15 +104,13 @@ impl<'a> SparkReceiveView<'a> {
                 .into();
         }
 
-        // ── Payment result: the receipt first, the worldview art beside it ──
+        // ── Payment result: the receipt first, the quote beside it ──
         if let SparkReceivePhase::Received { count, .. } = self.phase {
             return received_payment_result(
                 count,
                 self.mask_amounts,
                 self.received_amount_display,
-                self.received_celebration_context,
                 self.received_quote,
-                self.received_image_handle,
                 self.received_payment_id,
             );
         }
@@ -1063,9 +1059,7 @@ fn received_payment_result<'a>(
     count: &u32,
     mask_amounts: bool,
     received_amount_display: &'a str,
-    received_celebration_context: &'a str,
     received_quote: &'a coincube_ui::component::quote_display::Quote,
-    received_image_handle: &'a iced::widget::image::Handle,
     received_payment_id: Option<&'a str>,
 ) -> Element<'a, Message> {
     use coincube_ui::component::payment_result::{payment_result, short_id, Outcome, ReceiptRow};
@@ -1089,9 +1083,7 @@ fn received_payment_result<'a>(
         } else {
             received_amount_display
         },
-        received_celebration_context,
         received_quote,
-        received_image_handle,
         Message::SparkReceive(SparkReceiveMessage::Reset),
     )
     .detail(detail)
@@ -2156,8 +2148,6 @@ mod tests {
         let claiming = HashSet::new();
         let transactions = Vec::new();
         let quote = coincube_ui::component::quote_display::random_quote("spark-receive");
-        let image =
-            coincube_ui::component::quote_display::image_handle_for_context("spark-receive");
         for (appearance, theme) in [
             ("dark", theme::Theme::dark()),
             ("light", theme::Theme::light()),
@@ -2184,9 +2174,7 @@ mod tests {
                         cube_name: "Everyday",
                         received_amount_display: "",
                         received_payment_id: None,
-                        received_celebration_context: "spark-receive",
                         received_quote: &quote,
-                        received_image_handle: &image,
                         recent_transactions: &transactions,
                         balance_sats: 42_000,
                         balances: crate::app::view::spark::SparkBalances {
@@ -2336,8 +2324,6 @@ mod tests {
         let claiming = HashSet::new();
         let transactions = Vec::new();
         let quote = coincube_ui::component::quote_display::random_quote("spark-receive");
-        let image =
-            coincube_ui::component::quote_display::image_handle_for_context("spark-receive");
         for privacy in [
             None,
             Some(BalancePrivacy::Unresolved),
@@ -2370,9 +2356,7 @@ mod tests {
                     cube_name: "Everyday",
                     received_amount_display: "+87,654,321 sats",
                     received_payment_id: Some("0123456789abcdef0123456789abcdef"),
-                    received_celebration_context: "spark-receive",
                     received_quote: &quote,
-                    received_image_handle: &image,
                     recent_transactions: &transactions,
                     balance_sats: 0,
                     balances: crate::app::view::spark::SparkBalances {

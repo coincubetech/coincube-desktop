@@ -36,7 +36,7 @@
 
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::locale::{copy as localized_copy, notice as localized_notice};
-use iced::widget::{image, Space};
+use iced::widget::Space;
 use iced::{Alignment, Length, Task};
 
 use coincube_ui::{
@@ -91,7 +91,6 @@ pub struct PasskeyUnlock {
     #[cfg(target_os = "macos")]
     ceremony: Option<crate::services::passkey::macos::NativePasskeyCeremony>,
     loading_quote: Quote,
-    loading_image_handle: image::Handle,
 }
 
 /// Whether a seed the assertion just derived may open this Cube.
@@ -179,7 +178,6 @@ impl PasskeyUnlock {
             #[cfg(target_os = "macos")]
             ceremony: None,
             loading_quote: quote_display::random_quote("loading"),
-            loading_image_handle: quote_display::image_handle_for_context("loading"),
         }
     }
 
@@ -485,9 +483,7 @@ impl PasskeyUnlock {
                     .align_x(Alignment::Center)
                     .push(Space::new().height(Length::Fill))
                     .push(quote_display::display(&QuoteDisplayProps::new(
-                        "loading",
                         &self.loading_quote,
-                        &self.loading_image_handle,
                     )))
                     .push(crate::loading::loading_indicator(None))
                     .push(text(CopyText::LoadingYourCube.get()).style(theme::text::secondary))

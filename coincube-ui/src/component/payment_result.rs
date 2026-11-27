@@ -1,11 +1,11 @@
 //! The page every wallet shows once a payment completes.
 //!
 //! The receipt leads: status, amount, where the money went, the rows a user
-//! might need later (fee, total, ID), then Done. The worldview artwork, its
-//! quote and the worldview line frame the receipt from the right, or sit
-//! below it when the window is too narrow for both.
+//! might need later (fee, total, ID), then Done. A quote and the worldview
+//! line frame the receipt from the right, or sit below it when the window
+//! is too narrow for both. There is no artwork (Desktop V3).
 //!
-//! Only Done, Enter and Esc close the page. Clicking the art or empty space
+//! Only Done, Enter and Esc close the page. Clicking the quote or empty space
 //! does nothing, so a stray click never throws the confirmation away.
 
 use std::borrow::Cow;
@@ -14,7 +14,7 @@ use iced::advanced::layout;
 use iced::keyboard::{self, key};
 use iced::{Alignment, Length, Size};
 
-use super::quote_display::{self as qd, Quote, QuoteDisplayProps};
+use super::quote_display::{self as qd, Quote};
 use super::tenshu::arranged::arranged;
 use super::tenshu::scope::KeyScope;
 use super::{button, separation};
@@ -24,9 +24,9 @@ use crate::locale::{copy as localized_copy, Text as CopyText};
 use crate::theme::tenshu::{text as tone_text, Tone};
 use crate::widget::{Column, Container, Element, Row, Text};
 
-/// The artwork's side in the two-column layout.
-const ART_SIDE: u16 = 300;
-/// The receipt never narrows below this to keep the art beside it.
+/// The quote column's width in the two-column layout.
+const FRAME_WIDTH: f32 = 300.0;
+/// The receipt never narrows below this to keep the quote beside it.
 const RECEIPT_MIN_WIDTH: f32 = 420.0;
 const COLUMN_GAP: f32 = 56.0;
 const STACK_GAP: f32 = 36.0;
@@ -121,22 +121,18 @@ pub struct PaymentResult<'a, M> {
     amount: Cow<'a, str>,
     detail: Option<Cow<'a, str>>,
     rows: Vec<ReceiptRow<'a, M>>,
-    context: String,
     quote: &'a Quote,
-    image: &'a iced::widget::image::Handle,
     voice: Option<&'a str>,
     on_done: M,
     on_activity: Option<M>,
 }
 
 /// A finished payment. `amount` is the display string the wallet already
-/// formats (number and unit, or the privacy mask); `context` picks the art.
+/// formats (number and unit, or the privacy mask).
 pub fn payment_result<'a, M>(
     outcome: Outcome,
     amount: impl Into<Cow<'a, str>>,
-    context: &str,
     quote: &'a Quote,
-    image: &'a iced::widget::image::Handle,
     on_done: M,
 ) -> PaymentResult<'a, M> {
     PaymentResult {
@@ -145,9 +141,7 @@ pub fn payment_result<'a, M>(
         amount: amount.into(),
         detail: None,
         rows: Vec::new(),
-        context: context.to_string(),
         quote,
-        image,
         voice: None,
         on_done,
         on_activity: None,
@@ -362,31 +356,12 @@ fn receipt<'a, M: Clone + 'a>(
         .into()
 }
 
-fn frame<'a, M: 'a>(
-    context: &str,
-    quote: &'a Quote,
-    image: &'a iced::widget::image::Handle,
-    outcome: Outcome,
-    voice: Option<&'a str>,
-) -> Element<'a, M> {
-    let slot = match outcome {
-        Outcome::Received => crate::illustration::Slot::Received,
-        Outcome::Sent | Outcome::Confirming => crate::illustration::Slot::Sent,
-    };
-    let props = QuoteDisplayProps::new(context, quote, image)
-        .illustration_slot(slot)
-        .image_size(ART_SIDE);
-    let mut col = Column::new()
-        .width(Length::Fill)
-        .push(qd::artwork(&props))
-        .push(
-            Container::new(
-                super::tenshu::body(quote.localized_text())
-                    .size(15)
-                    .width(Length::Fill),
-            )
-            .padding(iced::Padding::ZERO.top(20)),
-        );
+fn frame<'a, M: 'a>(quote: &'a Quote, voice: Option<&'a str>) -> Element<'a, M> {
+    let mut col = Column::new().width(Length::Fill).push(
+        super::tenshu::body(quote.localized_text())
+            .size(15)
+            .width(Length::Fill),
+    );
     if let Some(attribution) = qd::format_attribution(quote) {
         col = col.push(
             Container::new(super::tenshu::caption(attribution).size(13))
@@ -417,9 +392,7 @@ impl<'a, M: Clone + 'a> From<PaymentResult<'a, M>> for Element<'a, M> {
             amount,
             detail,
             rows,
-            context,
             quote,
-            image,
             voice,
             on_done,
             on_activity,
@@ -434,7 +407,7 @@ impl<'a, M: Clone + 'a> From<PaymentResult<'a, M>> for Element<'a, M> {
             on_done.clone(),
             on_activity,
         );
-        let side = frame(&context, quote, image, outcome, voice);
+        let side = frame(quote, voice);
 
         let body = arranged(
             vec![lead, side],
@@ -444,9 +417,9 @@ impl<'a, M: Clone + 'a> From<PaymentResult<'a, M>> for Element<'a, M> {
                 let width = if max.width.is_finite() {
                     max.width
                 } else {
-                    RECEIPT_MIN_WIDTH + COLUMN_GAP + f32::from(ART_SIDE)
+                    RECEIPT_MIN_WIDTH + COLUMN_GAP + FRAME_WIDTH
                 };
-                let frame_side = f32::from(ART_SIDE);
+                let frame_side = FRAME_WIDTH;
                 let beside = width >= RECEIPT_MIN_WIDTH + COLUMN_GAP + frame_side;
                 let (lead_w, frame_w) = if beside {
                     (width - COLUMN_GAP - frame_side, frame_side)

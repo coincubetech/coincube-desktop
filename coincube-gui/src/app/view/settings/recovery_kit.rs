@@ -5,7 +5,7 @@ use coincube_ui::locale::copy as localized_copy;
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::{
     component::tenshu::{self, ActionButton, ActionKind, Tone},
-    image, theme,
+    theme,
     widget::{CheckBox, Element, TextInput},
 };
 use iced::widget::{progress_bar, Column, Row, Space};
@@ -25,27 +25,9 @@ fn wrap(msg: RecoveryKitMessage) -> Message {
     Message::Settings(SettingsMessage::RecoveryKit(msg))
 }
 
-/// Keep the task aligned with Settings. The ink illustration is supporting art,
-/// never an action or the only indicator of a consequential state.
-fn flow<'a, M: 'a>(
-    title: &'a str,
-    detail: &'a str,
-    removing: bool,
-) -> Column<'a, M, theme::Theme, iced::Renderer> {
-    page::illustrated_flow(
-        title,
-        detail,
-        if removing {
-            image::recovery_kit_withdrawn()
-        } else {
-            image::recovery_kit_protected()
-        },
-        if removing {
-            coincube_ui::illustration::Slot::KitRemoval
-        } else {
-            coincube_ui::illustration::Slot::KitProtection
-        },
-    )
+/// Keep the task aligned with Settings: its title and the line under it.
+fn flow<'a, M: 'a>(title: &'a str, detail: &'a str) -> Column<'a, M, theme::Theme, iced::Renderer> {
+    page::flow_intro(title, detail)
 }
 
 fn error_note<'a, M: 'a>(message: &'a str) -> Element<'a, M> {
@@ -86,11 +68,9 @@ fn actions<'a, M: Clone + 'a>(
 }
 
 pub fn pin_entry_view<'a>(pin: &'a PinInput, error: Option<&'a str>) -> Element<'a, Message> {
-    let mut content = page::illustrated_flow(
+    let mut content = page::flow_intro(
         CopyText::ConfirmYourCubePin.get(),
         CopyText::EnterYourCubePinToUnlockYourMasterSeed.get(),
-        image::pin_unlock_lock(),
-        coincube_ui::illustration::Slot::Pin,
     )
     .push(
         Column::new()
@@ -188,7 +168,6 @@ pub fn password_entry_view<'a, M: Clone + 'a>(
     let mut content = flow(
         CopyText::ChooseARecoveryPassword.get(),
         CopyText::ThisIsSeparateFromYourCubePinWriteIt.get(),
-        false,
     )
     .push(fields)
     .push(
@@ -223,7 +202,6 @@ pub fn protection_choice_view<'a>(
     let mut content = flow(
         CopyText::ChooseHowToProtectYourRecoveryKit.get(),
         CopyText::KitProtectionOptions.get(),
-        false,
     );
     if password_backed || keychain_backed {
         let mut status = Row::new().spacing(16).align_y(Alignment::Center);
@@ -309,7 +287,6 @@ pub fn phone_sealing_view() -> Element<'static, Message> {
     flow(
         CopyText::SealingToYourPhone.get(),
         CopyText::KitPhoneEncryptionProgress.get(),
-        false,
     )
     .push(page::status(page::Status::Busy, CopyText::BackingUp.get()))
     .into()
@@ -319,7 +296,6 @@ pub fn passkey_reauth_view() -> Element<'static, Message> {
     flow(
         CopyText::ConfirmWithTouchId.get(),
         CopyText::YourRecoveryKitCarriesThisCubeSMasterSeed.get(),
-        false,
     )
     .push(page::status(
         page::Status::Busy,
@@ -338,7 +314,6 @@ pub fn uploading_view() -> Element<'static, Message> {
     flow(
         CopyText::EncryptingAndUploading.get(),
         CopyText::ThisTakesAMoment.get(),
-        false,
     )
     .push(page::status(page::Status::Busy, CopyText::BackingUp.get()))
     .into()
@@ -363,7 +338,6 @@ pub fn confirm_remove_view<'a>(password: bool, keychain: bool) -> Element<'a, Me
     flow(
         CopyText::RemoveYourRecoveryKit.get(),
         CopyText::ThisWillDeleteFromYourConnectAccount.get(),
-        true,
     )
     .push(page::rows(paths))
     .push(tenshu::body(
@@ -395,7 +369,7 @@ pub fn confirm_remove_view<'a>(password: bool, keychain: bool) -> Element<'a, Me
 }
 
 pub fn removing_view() -> Element<'static, Message> {
-    flow(CopyText::RemovingRecoveryKitFromConnect.get(), "", true)
+    flow(CopyText::RemovingRecoveryKitFromConnect.get(), "")
         .push(page::status(page::Status::Busy, CopyText::Removing.get()))
         .into()
 }
@@ -411,7 +385,7 @@ pub fn completed_view(
         (false, true) => CopyText::YourWalletDescriptorIsBackedUp.get(),
         (false, false) => CopyText::NothingIsCurrentlyBackedUp.get(),
     };
-    flow(CopyText::RecoveryKitBackedUp.get(), subtitle, false)
+    flow(CopyText::RecoveryKitBackedUp.get(), subtitle)
         .push(page::status(
             if has_seed || has_descriptor {
                 page::Status::Ok
@@ -439,7 +413,7 @@ pub fn completed_view(
 }
 
 pub fn error_view(message: &str) -> Element<'static, Message> {
-    flow(CopyText::CouldnTCompleteRecoveryKitAction.get(), "", false)
+    flow(CopyText::CouldnTCompleteRecoveryKitAction.get(), "")
         .push(page::note(
             Tone::Bad,
             tenshu::body(coincube_ui::locale::notice(message.to_owned()))
