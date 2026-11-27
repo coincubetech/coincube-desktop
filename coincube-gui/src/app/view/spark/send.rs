@@ -2404,6 +2404,9 @@ pub fn send_target_picker_menu<'a>(
 #[cfg(test)]
 mod surface_style_tests {
     use super::*;
+    use coincube_ui::theme::tenshu::separation::{
+        contrast_ratio, delta_e, JUST_NOTICEABLE_DELTA_E, NON_TEXT_CONTRAST,
+    };
     use iced::widget::button::Status;
 
     fn themes() -> [(&'static str, theme::Theme); 2] {
@@ -2420,36 +2423,89 @@ mod surface_style_tests {
         }
     }
 
-    /// The Send and Receive form card has no outline (V4).
+    /// Two fills visibly apart: at least the CIELAB just-noticeable
+    /// difference, not merely unequal.
+    fn apart(a: iced::Color, b: iced::Color) -> bool {
+        delta_e(a, b) >= JUST_NOTICEABLE_DELTA_E
+    }
+
+    /// R4 for something set on the card: its fill is visibly apart from the
+    /// card's, or its border has non-text contrast (3:1) on the card.
+    fn assert_reads_on_card(
+        name: &str,
+        what: &str,
+        card: iced::Color,
+        fill: iced::Color,
+        border: Option<(f32, iced::Color)>,
+    ) {
+        let separation = delta_e(fill, card);
+        let edge = border
+            .filter(|(width, _)| *width >= 1.0)
+            .map(|(_, color)| contrast_ratio(color, card))
+            .unwrap_or(1.0);
+        assert!(
+            separation >= JUST_NOTICEABLE_DELTA_E || edge >= NON_TEXT_CONTRAST,
+            "{} {}: fill only {} from the card and edge contrast {}",
+            name,
+            what,
+            separation,
+            edge
+        );
+    }
+
+    /// The Send and Receive form card has no outline (V4), and its fill is
+    /// visibly apart from the page.
     #[test]
     fn payment_card_has_no_border() {
         for (name, theme) in themes() {
             let card = payment_card_style(&theme);
-            assert_eq!(card.border.width, 0.0, "{name}");
-            assert_eq!(fill(card.background), theme.colors.shell.panel, "{name}");
-            assert_ne!(
-                fill(card.background),
-                theme.colors.shell.background,
-                "{name}: the card vanishes into the page"
+            assert_eq!(card.border.width, 0.0, "{}", name);
+            assert_eq!(fill(card.background), theme.colors.shell.panel, "{}", name);
+            assert!(
+                apart(fill(card.background), theme.colors.shell.background),
+                "{}: the card is only {} from the page",
+                name,
+                delta_e(fill(card.background), theme.colors.shell.background)
             );
         }
     }
 
-    /// Every tile inside the card has a fill that differs from the card's, at
-    /// rest, hovered and open, so it still reads without the card's outline
-    /// (R4). This matters most in light theme, where panel and background
-    /// are closest.
+    /// Every tile still reads on the card without the card's outline (R4).
+    /// At rest the tile's own fill does it: the page background is a visible
+    /// step from the panel in both themes (light's #faf9f6 on #ffffff is the
+    /// closest pair, about 2.6 against a JND of 2.3). Hovered or open, dark
+    /// theme's hover fill (#232423) sits only about 2.0 from the panel,
+    /// below the JND, so there the ink border carries the separation.
     #[test]
-    fn tiles_fill_differs_from_the_card_fill() {
+    fn tiles_read_on_the_card() {
         for (name, theme) in themes() {
             let card = fill(payment_card_style(&theme).background);
-            let fixed = fill(fixed_tile_style(&theme).background);
-            assert_ne!(fixed, card, "{name}: fixed tile");
+            assert!(
+                apart(fill(fixed_tile_style(&theme).background), card),
+                "{}: fixed tile",
+                name
+            );
+            assert!(
+                apart(
+                    fill(receive_tile_button_style(&theme, Status::Active).background),
+                    card
+                ),
+                "{}: tile at rest",
+                name
+            );
             for status in [Status::Active, Status::Hovered, Status::Pressed] {
-                let tile = fill(receive_tile_button_style(&theme, status).background);
-                assert_ne!(tile, card, "{name} {status:?}: tile");
-                let open = fill(open_tile_button_style(&theme, status).background);
-                assert_ne!(open, card, "{name} {status:?}: open tile");
+                for (what, style) in [
+                    ("tile", receive_tile_button_style(&theme, status)),
+                    ("open tile", open_tile_button_style(&theme, status)),
+                ] {
+                    assert_reads_on_card(
+                        name,
+                        what,
+                        card,
+                        fill(style.background),
+                        Some((style.border.width, style.border.color)),
+                    );
+                }
             }
         }
     }
@@ -2462,35 +2518,32 @@ mod surface_style_tests {
         for (name, theme) in themes() {
             let shell = theme.colors.shell;
             let rest = receive_tile_button_style(&theme, Status::Active);
-            assert_eq!(rest.border.width, 1.0, "{name}");
-            assert_eq!(rest.border.color, shell.line, "{name}");
+            assert_eq!(rest.border.width, 1.0, "{}", name);
+            assert_eq!(rest.border.color, shell.line, "{}", name);
             for style in [
                 receive_tile_button_style(&theme, Status::Hovered),
                 open_tile_button_style(&theme, Status::Active),
                 open_tile_button_style(&theme, Status::Hovered),
             ] {
-                assert_eq!(style.border.width, 1.0, "{name}");
-                assert_eq!(style.border.color, shell.ink, "{name}");
-                assert_ne!(style.border.color, coincube_ui::color::ORANGE, "{name}");
+                assert_eq!(style.border.width, 1.0, "{}", name);
+                assert_eq!(style.border.color, shell.ink, "{}", name);
+                assert_ne!(style.border.color, coincube_ui::color::ORANGE, "{}", name);
             }
             let fixed = fixed_tile_style(&theme);
-            assert_eq!(fixed.border.width, 1.0, "{name}");
-            assert_eq!(fixed.border.color, shell.line, "{name}");
+            assert_eq!(fixed.border.width, 1.0, "{}", name);
+            assert_eq!(fixed.border.color, shell.line, "{}", name);
         }
     }
 
     /// Neutral notice strips inside the card are fill only, and their fill
-    /// is not the card's.
+    /// is visibly apart from the card's.
     #[test]
     fn neutral_notices_are_fill_only() {
         for (name, theme) in themes() {
             let notice = notice_style(&theme);
-            assert_eq!(notice.border.width, 0.0, "{name}");
-            assert_ne!(
-                fill(notice.background),
-                fill(payment_card_style(&theme).background),
-                "{name}"
-            );
+            assert_eq!(notice.border.width, 0.0, "{}", name);
+            let card = fill(payment_card_style(&theme).background);
+            assert_reads_on_card(name, "notice", card, fill(notice.background), None);
         }
     }
 }

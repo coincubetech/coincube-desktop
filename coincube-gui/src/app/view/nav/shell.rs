@@ -848,8 +848,6 @@ fn marketplace_children<'a>(menu: &Menu, ctx: &NavContext<'a>) -> Vec<Element<'a
 
 pub const BACKUP_ATTENTION_ID: &str = "tenshu.shell.backup-attention";
 
-/// `.attn`: a bordered panel card above the foot, a warning mark and
-/// "Backup not confirmed" in the warning ink, with "Review" in the accent.
 /// The sidebar's backup strip: the panel fill on the rail, with no outline
 /// (V4). Hover takes the selected fill. Phase 2 redesigns the strip.
 fn backup_attention_style(
@@ -876,6 +874,9 @@ fn backup_attention_style(
     }
 }
 
+/// `.attn`: a fill-only strip above the foot (see [`backup_attention_style`]),
+/// a warning mark and "Backup not confirmed" in the warning ink, with
+/// "Review" in the accent.
 fn backup_attention<'a>() -> Element<'a, Message> {
     let body = row![
         glyph::glyph(glyph::WARNING, 16.0, glyph::warn),
@@ -1312,10 +1313,18 @@ mod backup_strip_style_tests {
             for status in [Status::Active, Status::Hovered] {
                 let style = backup_attention_style(&theme, status);
                 assert_eq!(style.border.width, 0.0, "{name} {status:?}");
-                assert_ne!(
-                    style.background,
-                    Some(iced::Background::Color(theme.colors.shell.rail)),
-                    "{name} {status:?}: the strip vanishes into the rail"
+                let fill = match style.background {
+                    Some(iced::Background::Color(color)) => color,
+                    other => panic!("{:?}", other),
+                };
+                let separation =
+                    coincube_ui::theme::tenshu::separation::delta_e(fill, theme.colors.shell.rail);
+                assert!(
+                    separation >= coincube_ui::theme::tenshu::separation::JUST_NOTICEABLE_DELTA_E,
+                    "{} {:?}: the strip is only {} from the rail",
+                    name,
+                    status,
+                    separation
                 );
             }
         }

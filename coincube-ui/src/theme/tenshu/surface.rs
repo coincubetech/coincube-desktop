@@ -71,10 +71,16 @@ mod tests {
                 Some(Background::Color(theme.colors.shell.panel)),
                 "{name}"
             );
-            assert_ne!(
-                style.background,
-                page(&theme).background,
-                "{name}: card and page share a fill"
+            // Visibly apart, not merely unequal (R4). Light theme's #ffffff
+            // on #faf9f6 is the closest pair, at about 2.6.
+            let fill = |s: Style| match s.background {
+                Some(Background::Color(color)) => color,
+                other => panic!("{:?}", other),
+            };
+            let separation = super::super::separation::delta_e(fill(style), fill(page(&theme)));
+            assert!(
+                separation >= super::super::separation::JUST_NOTICEABLE_DELTA_E,
+                "{name}: card on page is only {separation} apart"
             );
         }
     }
