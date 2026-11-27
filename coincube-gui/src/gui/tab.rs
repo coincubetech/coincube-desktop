@@ -668,6 +668,22 @@ pub(crate) fn discard_closed_loader_result(message: Message) {
     }
 }
 
+/// The Spark load an unlock hands on. With a Vault it is returned still
+/// running, so the Loader starts the daemon beside it and waits for Spark
+/// only where it builds the App. Without a Vault there is no daemon start to
+/// overlap: the load is finished here, before the App is built, as it always
+/// was. Both unlock paths (PIN and passkey) go through this.
+async fn spark_for_unlock(
+    spark: app::breez_spark::SparkStartup,
+    wallet_settings: Option<&WalletSettings>,
+) -> app::breez_spark::SparkStartup {
+    if wallet_settings.is_some() {
+        spark
+    } else {
+        spark.finish().await
+    }
+}
+
 /// A Spark load's result as the App takes it: a failure is logged and the
 /// Cube opens without Spark.
 fn spark_backend_or_none(
@@ -914,24 +930,68 @@ mod admitted_app_startup_tests {
         })
     }
 
+    fn vault_settings() -> WalletSettings {
+        WalletSettings {
+            name: "Vault".into(),
+            alias: None,
+            descriptor_checksum: "kt6ht0kt".into(),
+            pinned_at: Some(1_720_000_000),
+            keys: Vec::new(),
+            hardware_wallets: Vec::new(),
+            remote_backend_auth: None,
+            start_internal_bitcoind: Some(false),
+            pending_rescan: None,
+            keychain_keys_recorded: false,
+        }
+    }
+
+    /// The choice both unlock paths make: hand a running Spark load on when
+    /// there is a Vault (its daemon starts beside it), finish it first when
+    /// there is none.
+    #[test]
+    fn an_unlock_overlaps_spark_only_when_there_is_a_vault() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let _enter = runtime.enter();
+        let bound = std::time::Duration::from_secs(5);
+
+        let (_release, gate) = tokio::sync::oneshot::channel();
+        let spark = gated_spark(gate, Arc::default(), Arc::default());
+        let handed = runtime
+            .block_on(tokio::time::timeout(
+                bound,
+                spark_for_unlock(spark, Some(&vault_settings())),
+            ))
+            .expect("with a Vault the unlock does not wait for Spark");
+        assert!(handed.outcome().is_none(), "handed on still loading");
+
+        let (release, gate) = tokio::sync::oneshot::channel();
+        let spark = gated_spark(gate, Arc::default(), Arc::default());
+        let mut finishing = Box::pin(spark_for_unlock(spark, None));
+        assert!(
+            runtime
+                .block_on(tokio::time::timeout(
+                    std::time::Duration::from_millis(200),
+                    &mut finishing,
+                ))
+                .is_err(),
+            "without a Vault the unlock waits for Spark"
+        );
+        release.send(()).unwrap();
+        let finished = runtime
+            .block_on(tokio::time::timeout(bound, finishing))
+            .expect("and finishes once Spark has");
+        assert!(matches!(finished.outcome(), Some(Some(_))));
+    }
+
     #[test]
     fn an_unlocked_vault_starts_its_daemon_while_spark_still_loads() {
         with_fixture("unlock-overlap", |_runtime, root, settings, _, _, _| {
             let dropped = Arc::new(std::sync::atomic::AtomicBool::new(false));
             let (_release, gate) = tokio::sync::oneshot::channel();
             let spark = gated_spark(gate, dropped.clone(), Arc::default());
-            let wallet_settings = WalletSettings {
-                name: "Vault".into(),
-                alias: None,
-                descriptor_checksum: "kt6ht0kt".into(),
-                pinned_at: Some(1_720_000_000),
-                keys: Vec::new(),
-                hardware_wallets: Vec::new(),
-                remote_backend_auth: None,
-                start_internal_bitcoind: Some(false),
-                pending_rescan: None,
-                keychain_keys_recorded: false,
-            };
             let mut tab = Tab::new(1, State::Home(Home::new(root.clone(), None).0));
             let startup = tab.update(Message::WalletsLoadedAfterUnlock {
                 connect_client: None,
@@ -943,7 +1003,7 @@ mod admitted_app_startup_tests {
                 datadir: root.clone(),
                 network: settings.network.bitcoin_network(),
                 cube: settings.clone(),
-                wallet_settings: Some(wallet_settings),
+                wallet_settings: Some(vault_settings()),
                 internal_bitcoind: None,
                 backup: None,
             });
@@ -1061,6 +1121,133 @@ mod admitted_app_startup_tests {
                 },
             );
         }
+    }
+
+    /// Cancel, lock or a dropped tab while a Vault waits for Spark stop its
+    /// daemon, and never on the UI thread: the poller may be mid-request on
+    /// a slow network. The daemon's stop is held open here, so a stop on the
+    /// calling thread would block the update until the watchdog lets go.
+    #[test]
+    fn leaving_a_held_vault_stops_its_daemon_in_the_background() {
+        for (name, how) in [
+            ("held-stop-cancel", "cancel"),
+            ("held-stop-lock", "lock"),
+            ("held-stop-drop", "drop"),
+        ] {
+            with_fixture(
+                name,
+                move |_runtime, root, settings, cache, wallet, fixture| {
+                    let config = fixture.config().cloned().expect("embedded fixture config");
+                    let dir = config
+                        .data_directory()
+                        .expect("fixture data directory")
+                        .path()
+                        .to_path_buf();
+                    let embedded = Arc::new(
+                        crate::daemon::embedded::EmbeddedDaemon::unstarted_for_test(config, None),
+                    );
+                    let daemon: Arc<dyn crate::daemon::Daemon + Sync + Send> = embedded.clone();
+                    // Keep its stop waiting until released (or the watchdog fires).
+                    let held_open = embedded
+                        .handle_for_test()
+                        .try_lock_owned()
+                        .expect("nothing else holds the fixture daemon");
+                    let (release, released) = std::sync::mpsc::channel::<()>();
+                    let watchdog = std::thread::spawn(move || {
+                        let _ = released.recv_timeout(std::time::Duration::from_secs(10));
+                        drop(held_open);
+                    });
+
+                    let (_spark_release, gate) = tokio::sync::oneshot::channel();
+                    let spark = gated_spark(gate, Arc::default(), Arc::default());
+                    let mut tab = Tab::new(1, State::Loader(loader_with(&root, &settings, spark)));
+                    drop(tab.update(vault_loaded(&root, &settings, &cache, &wallet, &daemon)));
+                    assert!(matches!(tab.state, State::Loader(_)), "the Vault is held");
+
+                    let started = std::time::Instant::now();
+                    match how {
+                        "cancel" => {
+                            drop(tab.update(Message::Load(loader::Message::View(
+                                loader::ViewMessage::SwitchNetwork,
+                            ))));
+                            assert!(matches!(tab.state, State::Home(_)));
+                        }
+                        "lock" => {
+                            tab.stop_in_background();
+                            drop(tab);
+                        }
+                        _ => drop(tab),
+                    }
+                    assert!(
+                        started.elapsed() < std::time::Duration::from_secs(5),
+                        "{}: the UI thread did not wait for the daemon",
+                        name
+                    );
+                    assert!(
+                        crate::daemon::stopping::any_stopping(std::slice::from_ref(&dir)),
+                        "{}: the held daemon is stopping in the background",
+                        name
+                    );
+                    release.send(()).unwrap();
+                    watchdog.join().unwrap();
+                    assert!(
+                        crate::daemon::stopping::wait_for_within(
+                            &dir,
+                            std::time::Duration::from_secs(5)
+                        ),
+                        "{}: and it finished stopping, so a reopen can proceed",
+                        name
+                    );
+                },
+            );
+        }
+    }
+
+    #[test]
+    fn a_holding_loader_keeps_one_daemon_held_twice() {
+        with_fixture(
+            "held-twice",
+            |_runtime, root, settings, cache, wallet, fixture| {
+                let config = fixture.config().cloned().expect("embedded fixture config");
+                let dir = config
+                    .data_directory()
+                    .expect("fixture data directory")
+                    .path()
+                    .to_path_buf();
+                let embedded = Arc::new(
+                    crate::daemon::embedded::EmbeddedDaemon::unstarted_for_test(config, None),
+                );
+                let daemon: Arc<dyn crate::daemon::Daemon + Sync + Send> = embedded.clone();
+                // A stop, if one were sent, would stay pending while this is held.
+                let held_open = embedded
+                    .handle_for_test()
+                    .try_lock_owned()
+                    .expect("nothing else holds the fixture daemon");
+                let (_spark_release, gate) = tokio::sync::oneshot::channel();
+                let spark = gated_spark(gate, Arc::default(), Arc::default());
+                let mut loader = loader_with(&root, &settings, spark);
+                let loaded = || match vault_loaded(&root, &settings, &cache, &wallet, &daemon) {
+                    Message::Load(message) => message,
+                    _ => unreachable!(),
+                };
+                drop(loader.hold_for_spark(loaded()));
+                drop(loader.hold_for_spark(loaded()));
+                assert!(
+                    !crate::daemon::stopping::any_stopping(std::slice::from_ref(&dir)),
+                    "the daemon the new hold carries was not stopped"
+                );
+                assert!(
+                    loader.release_held_for_spark().is_none(),
+                    "Spark still loads"
+                );
+                drop(held_open);
+                drop(loader);
+                assert!(crate::daemon::stopping::wait_for_within(
+                    &dir,
+                    std::time::Duration::from_secs(5)
+                ));
+            },
+        );
     }
 
     #[test]
@@ -5029,12 +5216,7 @@ impl Tab {
                             &pin,
                             master_signer_fingerprint,
                         );
-                        // Only a Vault has a daemon start to overlap.
-                        let spark = if wallet_settings_clone.is_some() {
-                            spark
-                        } else {
-                            spark.finish().await
-                        };
+                        let spark = spark_for_unlock(spark, wallet_settings_clone.as_ref()).await;
 
                         (
                             config_clone,
@@ -5442,12 +5624,7 @@ impl Tab {
                         )
                     })
                 };
-                // Only a Vault has a daemon start to overlap.
-                let spark = if wallet_settings_clone.is_some() {
-                    spark
-                } else {
-                    spark.finish().await
-                };
+                let spark = spark_for_unlock(spark, wallet_settings_clone.as_ref()).await;
 
                 Message::WalletsLoadedAfterUnlock {
                     cube_signer: signer_result,
