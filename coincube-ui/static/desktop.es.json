@@ -624,6 +624,7 @@
   "Confirmations": "Confirmaciones",
   "Confirmed": "Confirmado",
   "Confirmed history": "Historial confirmado",
+  "Connect is off for this Cube: it is over the plan's Cube limit.": "Connect está desactivado en este Cube: supera el límite de Cubes del plan.",
   "Connect COINCUBE Desktop to a Bitcoin node already running locally or remotely.": "Conecta COINCUBE Desktop a un nodo Bitcoin que ya se esté ejecutando en local o en remoto.",
   "Connect a device to sign with this key.": "Conecta un dispositivo para firmar con esta clave.",
   "Connect a hardware wallet first.": "Primero conecta una cartera de hardware.",

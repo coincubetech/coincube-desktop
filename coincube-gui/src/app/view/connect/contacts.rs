@@ -534,6 +534,10 @@ fn invite_form_ux<'a>(state: &'a ConnectAccountPanel) -> Element<'a, ConnectAcco
 
 /// Renders the cube multi-select list. Each row is a labelled
 /// [`CheckBox`] emitting `ToggleInviteCube(id)` on toggle.
+/// Why a Cube in the invite form can't be ticked.
+const INVITE_CUBE_CONNECT_OFF: &str =
+    "Connect is off for this Cube: it is over the plan's Cube limit.";
+
 fn invite_cubes_section<'a>(
     cubes: &'a [crate::app::state::connect::InviteCubeOption],
     selections: &'a [u64],
@@ -543,6 +547,26 @@ fn invite_cubes_section<'a>(
         let checked = selections.contains(&cube.id);
         let id = cube.id;
         let label = format!("{} ({})", cube.name, cube.network);
+        if cube.connect_off {
+            // Connect is off for this Cube (over its owner's plan Cube
+            // limit), so the API refuses an invitation naming it. Shown,
+            // so the list matches the user's Cubes, but it can't be ticked.
+            col = col.push(
+                Column::new()
+                    .spacing(2)
+                    .push(
+                        CheckBox::new(false)
+                            .label(label)
+                            .style(theme::checkbox::primary)
+                            .size(18),
+                    )
+                    .push(
+                        text::caption(localized_copy(INVITE_CUBE_CONNECT_OFF))
+                            .style(theme::text::secondary),
+                    ),
+            );
+            continue;
+        }
         col = col.push(
             CheckBox::new(checked)
                 .label(label)

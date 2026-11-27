@@ -556,6 +556,11 @@ pub struct InviteCubeOption {
     pub id: u64,
     pub name: String,
     pub network: String,
+    /// Connect reports the Cube over its owner's plan Cube limit
+    /// (`connectFeaturesDisabled`): Connect features such as invites are
+    /// off, so the API refuses an invitation naming it (403
+    /// CONNECT_FEATURES_OFF). The invite form shows it but can't tick it.
+    pub connect_off: bool,
 }
 
 /// Public, non-secret Connect metadata for a Recovery services row. R03 may
@@ -7383,6 +7388,7 @@ impl ConnectAccountPanel {
             | ContactsMessage::InviteEmailChanged(_)
             | ContactsMessage::SubmitInvite
             | ContactsMessage::InviteCubeForbidden(_)
+            | ContactsMessage::InviteConnectOff(_)
             | ContactsMessage::InviteCreated
             | ContactsMessage::ResendInvite(_)
             | ContactsMessage::InviteResent(_)
@@ -7441,6 +7447,19 @@ impl ConnectAccountPanel {
             }
 
             ContactsMessage::ToggleInviteCube(cube_id) => {
+                // A Cube with Connect off can't be named on an invitation
+                // (the API refuses it); its checkbox is disabled, and this
+                // guards any other path to the same message.
+                let connect_off = self
+                    .contacts_state
+                    .invite_available_cubes
+                    .as_deref()
+                    .unwrap_or_default()
+                    .iter()
+                    .any(|c| c.id == cube_id && c.connect_off);
+                if connect_off {
+                    return iced::Task::none();
+                }
                 let selections = &mut self.contacts_state.invite_cube_selections;
                 if let Some(pos) = selections.iter().position(|id| *id == cube_id) {
                     selections.remove(pos);
@@ -7478,6 +7497,8 @@ impl ConnectAccountPanel {
             ContactsMessage::InviteCubeForbidden(msg) => {
                 return self.recover_unavailable_invite_cubes(msg)
             }
+
+            ContactsMessage::InviteConnectOff(msg) => return self.recover_connect_off_invite(msg),
 
             ContactsMessage::InviteCreated => {
                 self.contacts_state.invite_sending = false;
@@ -7565,6 +7586,24 @@ impl ConnectAccountPanel {
         // Refresh the cube list so the checkboxes reflect the
         // user's current memberships. We stay on the form so
         // the user can adjust and retry.
+        let request = self.next_invite_cubes_request();
+        load_invite_cubes(
+            &self.client,
+            self.session_generation,
+            request,
+            self.contacts_state.active_network.clone(),
+        )
+    }
+
+    /// The API refused the invitation because a chosen Cube has Connect
+    /// features off (over its owner's plan Cube limit). The form stays
+    /// open with the server's explanation, and the Cube list reloads so
+    /// that Cube shows as off and drops out of the selection; ticking it
+    /// again is not possible, so the same refusal can't repeat.
+    fn recover_connect_off_invite(&mut self, msg: String) -> iced::Task<Message> {
+        self.contacts_state.invite_sending = false;
+        self.contacts_state.invite_cube_error = None;
+        self.contacts_state.error = Some(msg);
         let request = self.next_invite_cubes_request();
         load_invite_cubes(
             &self.client,
@@ -7750,7 +7789,13 @@ impl ConnectAccountPanel {
         // Drop any prior selection that's no longer in the
         // authoritative list (e.g. after a 403 reload where
         // the user lost access to a cube mid-form).
-        let valid_ids: std::collections::HashSet<u64> = cubes.iter().map(|c| c.id).collect();
+        // A Cube that left the list, or whose Connect features are now off,
+        // can't stay ticked.
+        let valid_ids: std::collections::HashSet<u64> = cubes
+            .iter()
+            .filter(|c| !c.connect_off)
+            .map(|c| c.id)
+            .collect();
         self.contacts_state
             .invite_cube_selections
             .retain(|id| valid_ids.contains(id));
@@ -7799,11 +7844,20 @@ impl ConnectAccountPanel {
                 Ok(()) => Message::View(view::Message::ConnectAccount(
                     ConnectAccountMessage::Contacts(ContactsMessage::InviteCreated),
                 )),
-                // A 403 when cubes were attached almost always means
-                // the caller is no longer a member of one of them
-                // (the per-cube membership check failed). Route to
-                // the dedicated handler so the form stays open with
-                // a clear "some cubes are no longer available" msg.
+                // A Cube over its owner's plan limit has Connect features
+                // off: the API refuses with 403 CONNECT_FEATURES_OFF. That
+                // is not lost access, so it gets its own handler and the
+                // server's explanation, not "no longer available".
+                Err(e) if is_connect_features_off(&e) => Message::View(
+                    view::Message::ConnectAccount(ConnectAccountMessage::Contacts(
+                        ContactsMessage::InviteConnectOff(e.to_string()),
+                    )),
+                ),
+                // Any other 403 when cubes were attached means the caller
+                // is no longer a member of one of them (the per-cube
+                // membership check failed). Route to the dedicated handler
+                // so the form stays open with a clear "some cubes are no
+                // longer available" msg.
                 Err(e)
                     if had_cubes
                         && matches!(
@@ -8736,6 +8790,18 @@ fn load_duress_state(client: &CoincubeClient, generation: u64) -> iced::Task<Mes
     )
 }
 
+/// Whether an API error is the 403 CONNECT_FEATURES_OFF refusal (a Cube over
+/// its owner's plan Cube limit), told apart from other 403s by the error
+/// envelope's code.
+fn is_connect_features_off(e: &crate::services::coincube::CoincubeError) -> bool {
+    matches!(
+        e,
+        crate::services::coincube::CoincubeError::Unsuccessful(info)
+            if info.status_code == 403
+                && info.code().as_deref() == Some("CONNECT_FEATURES_OFF")
+    )
+}
+
 /// Load the user's cubes for the W12 invite-form multi-select, mapping
 /// the raw `CubeResponse`s into lightweight `InviteCubeOption`s. Used by
 /// both the initial `ShowInviteForm` load and the `InviteCubeForbidden`
@@ -8768,6 +8834,7 @@ fn load_invite_cubes(
                     id: c.id,
                     name: c.name,
                     network: c.network,
+                    connect_off: c.connect_features_disabled,
                 })
                 .collect()),
             Err(e) => {
@@ -8847,6 +8914,7 @@ fn load_add_to_cube_candidates(
                     id: cube.id,
                     name: cube.name,
                     network: cube.network,
+                    connect_off: cube.connect_features_disabled,
                 });
             }
             out
@@ -9960,6 +10028,7 @@ mod invite_form_tests {
             id,
             name: name.to_string(),
             network: "bitcoin".to_string(),
+            connect_off: false,
         }
     }
 
@@ -10125,6 +10194,91 @@ mod invite_form_tests {
         assert!(panel.contacts_state.invite_sending);
     }
 
+    fn off(id: u64, name: &str) -> InviteCubeOption {
+        InviteCubeOption {
+            connect_off: true,
+            ..option(id, name)
+        }
+    }
+
+    fn api_error(status: u16, body: &str) -> crate::services::coincube::CoincubeError {
+        crate::services::coincube::CoincubeError::Unsuccessful(
+            crate::services::http::NotSuccessResponseInfo {
+                status_code: status,
+                text: body.to_string(),
+            },
+        )
+    }
+
+    /// The API's two invite 403s are told apart by the envelope's code:
+    /// only CONNECT_FEATURES_OFF is the plan-limit refusal.
+    #[test]
+    fn a_connect_features_off_refusal_is_told_apart_by_its_code() {
+        let off = r#"{"success":false,"error":{"code":"CONNECT_FEATURES_OFF","message":"This Cube is over its owner's plan Cube limit."}}"#;
+        let member = r#"{"success":false,"error":{"code":"FORBIDDEN","message":"You are not a member of cube 7"}}"#;
+        assert!(is_connect_features_off(&api_error(403, off)));
+        assert!(!is_connect_features_off(&api_error(403, member)));
+        assert!(!is_connect_features_off(&api_error(
+            403,
+            "<html>nope</html>"
+        )));
+        assert!(!is_connect_features_off(&api_error(409, off)));
+    }
+
+    /// A plan-limit refusal is not lost access: the form stays open with
+    /// the server's explanation (no "no longer available" card) and the
+    /// Cube list reloads under a new request number.
+    #[test]
+    fn a_connect_off_refusal_explains_itself_and_reloads_the_list() {
+        let mut panel = ConnectAccountPanel::new();
+        panel.contacts_state.invite_sending = true;
+        let before = panel.contacts_state.invite_cubes_request;
+        dispatch(
+            &mut panel,
+            ContactsMessage::InviteConnectOff(
+                "This Cube is over its owner's plan Cube limit.".into(),
+            ),
+        );
+        assert!(!panel.contacts_state.invite_sending);
+        assert!(panel.contacts_state.invite_cube_error.is_none());
+        assert_eq!(
+            panel.contacts_state.error.as_deref(),
+            Some("This Cube is over its owner's plan Cube limit.")
+        );
+        assert_ne!(panel.contacts_state.invite_cubes_request, before);
+    }
+
+    /// A Cube with Connect off can't be ticked, and a reload that finds a
+    /// ticked Cube now off drops it, so the same refusal can't repeat.
+    #[test]
+    fn a_connect_off_cube_cannot_be_ticked_or_stay_ticked() {
+        let mut panel = ConnectAccountPanel::new();
+        let gen = panel.session_generation();
+        dispatch(
+            &mut panel,
+            ContactsMessage::InviteCubesAvailable(
+                Ok(vec![option(1, "Alpha"), off(2, "Over")]),
+                gen,
+                0,
+            ),
+        );
+        dispatch(&mut panel, ContactsMessage::ToggleInviteCube(2));
+        assert!(panel.contacts_state.invite_cube_selections.is_empty());
+        dispatch(&mut panel, ContactsMessage::ToggleInviteCube(1));
+        assert_eq!(panel.contacts_state.invite_cube_selections, vec![1]);
+
+        // Alpha goes over the limit between loads.
+        dispatch(
+            &mut panel,
+            ContactsMessage::InviteCubesAvailable(
+                Ok(vec![off(1, "Alpha"), off(2, "Over")]),
+                gen,
+                0,
+            ),
+        );
+        assert!(panel.contacts_state.invite_cube_selections.is_empty());
+    }
+
     #[test]
     fn toggle_cube_adds_and_removes_from_selection() {
         let mut panel = ConnectAccountPanel::new();
@@ -10249,6 +10403,7 @@ mod add_to_cube_tests {
             id,
             name: name.to_string(),
             network: network.to_string(),
+            connect_off: false,
         }
     }
 
