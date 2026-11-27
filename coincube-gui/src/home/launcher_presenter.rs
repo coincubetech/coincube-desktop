@@ -2655,7 +2655,7 @@ fn opening_content<'a, M: 'a>(
     let ready = face.stage == super::launcher_opening::Stage::Ready;
     let mut body = Column::new()
         .align_x(Alignment::Center)
-        .push(coincube_ui::illustration::opening_image(
+        .push(coincube_ui::component::tenshu::top_bar::display_cube(
             artwork_size,
             alpha,
         ))
@@ -2896,20 +2896,14 @@ pub(crate) fn opening_body<'a>(
     scene: OpeningScene,
     step: &'a loader::Step,
     quote: &'a Quote,
-    image: &'a iced::widget::image::Handle,
     restricted_claim: bool,
 ) -> Element<'a, loader::ViewMessage> {
     let rail = opening_rail(&scene);
-    let stage = Container::new(loader::view_with_retry(
-        step,
-        quote,
-        image,
-        !restricted_claim,
-    ))
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .center_x(Length::Fill)
-    .center_y(Length::Fill);
+    let stage = Container::new(loader::view_with_retry(step, quote, !restricted_claim))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .center_x(Length::Fill)
+        .center_y(Length::Fill);
     Column::new()
         .width(Length::Fill)
         .height(Length::Fill)
@@ -4973,9 +4967,6 @@ mod tests {
             length: "short".into(),
             contexts: Vec::new(),
         };
-        let (bytes, _) =
-            coincube_ui::component::quote_display::default_image_for_context("loading");
-        let image = iced::widget::image::Handle::from_bytes(bytes);
         for (step, expected) in [
             (loader::Step::Connecting, "Connecting to daemon..."),
             (
@@ -4990,7 +4981,7 @@ mod tests {
             ] {
                 let mounted = capture::inspect(
                     "v113-opening",
-                    opening_body(scene.clone(), &step, &quote, &image, false),
+                    opening_body(scene.clone(), &step, &quote, false),
                     (1024, 768),
                     appearance,
                     palette,
@@ -5019,9 +5010,6 @@ mod tests {
             length: "short".into(),
             contexts: Vec::new(),
         };
-        let (bytes, _) =
-            coincube_ui::component::quote_display::default_image_for_context("loading");
-        let image = iced::widget::image::Handle::from_bytes(bytes);
         let step = loader::Step::Connecting;
         for raw_name in ["W".repeat(80), "旅".repeat(80)] {
             let scene = project_opening(&raw_name, ChainId::Bitcoin);
@@ -5033,7 +5021,7 @@ mod tests {
                 // bound stays inside its compact viewport.
                 let mounted = capture::inspect(
                     "v113-opening-long-name",
-                    opening_body(scene.clone(), &step, &quote, &image, false),
+                    opening_body(scene.clone(), &step, &quote, false),
                     (1024, 768),
                     appearance,
                     palette,

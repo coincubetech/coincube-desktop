@@ -355,36 +355,42 @@ pub fn display<'a, M: 'a>(props: &QuoteDisplayProps<'a>) -> Container<'a, M> {
 
     // Quote + attribution
     if props.show_quote {
-        let quote_text = iced::widget::text(props.quote.localized_text())
-            .size(P2_SIZE)
-            .font(font::REGULAR)
-            .style(theme::text::secondary)
+        col = col.push(quote_block(props.quote));
+    }
+
+    Container::new(col).center_x(Length::Fill).max_width(448)
+}
+
+/// The quote and its attribution as [`display`] sets them, without the
+/// artwork, for a screen that puts the Cube above it instead.
+pub fn quote_block<'a, M: 'a>(quote: &'a Quote) -> Column<'a, M> {
+    let quote_text = iced::widget::text(quote.localized_text())
+        .size(P2_SIZE)
+        .font(font::REGULAR)
+        .style(theme::text::secondary)
+        .shaping(iced::advanced::text::Shaping::Advanced)
+        .align_x(Alignment::Center)
+        .width(Length::Fill);
+
+    let mut quote_col = Column::new()
+        .align_x(Alignment::Center)
+        .spacing(6)
+        .padding(24)
+        .push(quote_text);
+
+    if let Some(attribution) = format_attribution(quote) {
+        let attr_text = iced::widget::text(attribution)
+            .size(CAPTION_SIZE)
+            .font(font::ITALIC)
+            .color(color::GREY_3)
             .shaping(iced::advanced::text::Shaping::Advanced)
             .align_x(Alignment::Center)
             .width(Length::Fill);
 
-        let mut quote_col = Column::new()
-            .align_x(Alignment::Center)
-            .spacing(6)
-            .padding(24)
-            .push(quote_text);
-
-        if let Some(attribution) = format_attribution(props.quote) {
-            let attr_text = iced::widget::text(attribution)
-                .size(CAPTION_SIZE)
-                .font(font::ITALIC)
-                .color(color::GREY_3)
-                .shaping(iced::advanced::text::Shaping::Advanced)
-                .align_x(Alignment::Center)
-                .width(Length::Fill);
-
-            quote_col = quote_col.push(attr_text);
-        }
-
-        col = col.push(quote_col);
+        quote_col = quote_col.push(attr_text);
     }
 
-    Container::new(col).center_x(Length::Fill).max_width(448)
+    quote_col
 }
 
 /// The artwork alone, as [`display`] draws it, for layouts that place the
