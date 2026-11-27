@@ -121,8 +121,11 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 assert!(failed.contains(&error.text));
                 assert!(failed.contains("Fixture startup error"));
                 assert_eq!(
-                    failed.drawn_images().raster,
-                    0,
+                    failed.drawn_images(),
+                    capture::DrawnImages {
+                        raster: 0,
+                        vector: 1
+                    },
                     "{}",
                     scenario("startup-error")
                 );

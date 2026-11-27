@@ -10,7 +10,8 @@ mainnet network names and voice lines.
 > and the modes have no accent colours. Desktop V3 Phase 1 (on
 > `feature/desktop-v3`) implements this: the app draws no artwork, has no
 > Artwork row, and a mode switch changes wording only. The plan is in the
-> company brain under `plans/desktop-v3-phase1/`.
+> company brain under `plans/desktop-v3-phase1/`. The line Cube on Opening
+> is the shared brand mark, not Worldview artwork; it stays above the quote.
 
 ## Modes
 

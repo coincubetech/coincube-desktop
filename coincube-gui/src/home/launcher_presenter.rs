@@ -2635,8 +2635,8 @@ fn opening_content<'a, M: 'a>(
     light: bool,
     alpha: f32,
     quote_width: f32,
-    artwork_size: f32,
     dots: [f32; 3],
+    mark_size: f32,
 ) -> (Element<'a, M>, Element<'a, M>) {
     use coincube_ui::font;
     let network = face.cube.network;
@@ -2669,10 +2669,7 @@ fn opening_content<'a, M: 'a>(
     let ready = face.stage == super::launcher_opening::Stage::Ready;
     let mut body = Column::new()
         .align_x(Alignment::Center)
-        .push(coincube_ui::component::tenshu::top_bar::display_cube(
-            artwork_size,
-            alpha,
-        ))
+        .push(top_bar::display_cube(mark_size, alpha))
         .push(Space::new().height(Length::Fixed(16.0)))
         .push(opening_quotes(face, alpha, quote_width))
         .push(Space::new().height(Length::Fixed(32.0)))
@@ -2758,7 +2755,8 @@ fn opening_details<'a, M: 'a>(
         .into()
 }
 
-fn opening_art_size(height: f32) -> f32 {
+/// Keep the mark compact on short windows so stall actions remain reachable.
+fn opening_mark_size(height: f32) -> f32 {
     (height - 430.0).clamp(96.0, 160.0)
 }
 
@@ -2769,7 +2767,7 @@ fn opening_face_content<'a, M: 'a>(
     side: f32,
     dots: [f32; 3],
 ) -> Element<'a, M> {
-    let (heading, body) = opening_content(face, light, alpha, 520.0, opening_art_size(side), dots);
+    let (heading, body) = opening_content(face, light, alpha, 520.0, dots, opening_mark_size(side));
     let k = side / launcher_scene::OPEN_FACE_SIZE;
     Container::new(opening_details(heading, body, 44.0 * k, 72.0 * k))
         .width(Length::Fixed(side))
@@ -2840,8 +2838,8 @@ pub(crate) fn opening_full_screen<'a, M: 'a + 'static>(
             light,
             alpha,
             640.0,
-            opening_art_size(size.height),
             opening.dots(now),
+            opening_mark_size(size.height),
         );
         let top = (size.height * 0.09).min(64.0);
         Stack::new()
@@ -4912,6 +4910,72 @@ mod tests {
         assert!(mounted.has_focus(launcher_catalog::select_id(&key)));
         assert!(mounted.has_focus(launcher_catalog::open_id(&key)));
         assert!(mounted.has_focus(launcher_catalog::details_open_id(&key)));
+    }
+
+    #[test]
+    fn live_opening_body_keeps_one_line_cube_above_the_quote() {
+        use super::super::launcher_opening::Stage;
+        use coincube_ui::locale::{render_in, Language};
+        let cube = crate::app::settings::CubeSettings::new_with_raw_id(
+            "fixture".into(),
+            "Everyday".into(),
+            ChainId::Bitcoin,
+        );
+        let quote = Quote {
+            id: "brand".into(),
+            text: "A stable opening quote".into(),
+            author: "Author".into(),
+            source: "Source".into(),
+            category: "loading".into(),
+            length: "short".into(),
+            contexts: Vec::new(),
+        };
+        for language in [Language::English, Language::Spanish] {
+            for palette in [theme::Theme::dark(), theme::Theme::light()] {
+                for mode in [
+                    theme::WorldviewMode::Samurai,
+                    theme::WorldviewMode::Suitcoiner,
+                    theme::WorldviewMode::Luke,
+                ] {
+                    let face = OpeningFace {
+                        cube: &cube,
+                        quote: &quote,
+                        outgoing: None,
+                        stage: Stage::Spark,
+                        stalled: false,
+                        cancel: || (),
+                        without_spark: || (),
+                    };
+                    let (_, body) = render_in(language, || {
+                        coincube_ui::worldview_copy::render_in(mode, || {
+                            opening_content(&face, false, 1.0, 520.0, [0.9, 0.25, 0.25], 128.0)
+                        })
+                    });
+                    let shown = capture::inspect_rendered_filled(
+                        "live-opening-brand",
+                        body,
+                        (1024, 768),
+                        if palette.mode == theme::palette::ThemeMode::Light {
+                            "light"
+                        } else {
+                            "dark"
+                        },
+                        palette.with_worldview(mode),
+                    );
+                    assert_eq!(
+                        shown.drawn_images(),
+                        capture::DrawnImages {
+                            raster: 0,
+                            vector: 1
+                        },
+                        "only the line Cube, no artwork"
+                    );
+                    assert!(shown.contains(&quote.text));
+                    let status = render_in(language, || Stage::Spark.text());
+                    assert!(shown.contains(status));
+                }
+            }
+        }
     }
 
     #[test]

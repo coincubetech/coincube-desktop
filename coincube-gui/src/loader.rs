@@ -17,7 +17,7 @@ use coincube_core::miniscript::bitcoin;
 use coincube_ui::{
     component::{
         button, notification,
-        quote_display::{self, Quote, QuoteProvider},
+        quote_display::{self, Quote, QuoteDisplayProps, QuoteProvider},
         text::{p2_regular, text},
     },
     theme,
@@ -1345,8 +1345,8 @@ pub fn view<'a>(step: &'a Step, quote: &'a Quote) -> Element<'a, ViewMessage> {
     view_with_retry(step, quote, true)
 }
 
-/// The line Cube alone, with the loading quote as text below it (brand brief,
-/// 2026-11-26, section 5). No artwork.
+/// The line Cube is a brand mark, not artwork (V3 R9). Keep the quote
+/// beneath it on every loader and passkey Opening path.
 pub(crate) fn cube_and_quote<'a, M: 'a>(quote: &'a Quote) -> Element<'a, M> {
     Container::new(
         Column::new()
@@ -1354,7 +1354,7 @@ pub(crate) fn cube_and_quote<'a, M: 'a>(quote: &'a Quote) -> Element<'a, M> {
             .push(coincube_ui::component::tenshu::top_bar::display_cube(
                 128.0, 1.0,
             ))
-            .push(quote_display::quote_block(quote)),
+            .push(quote_display::display(&QuoteDisplayProps::new(quote))),
     )
     .center_x(Length::Fill)
     .max_width(448)
