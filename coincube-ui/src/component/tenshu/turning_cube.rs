@@ -11,16 +11,56 @@
 //! Motion: a quarter turn in [`TURN`], eased, then [`REST`] on the logo pose.
 //! The canvas asks for the next frame itself, so the screen that shows it
 //! needs no timer.
+//!
+//! It is the app's one loading mark (Robert, 2026-11-27): the Cube loader
+//! (turning Cube, then the quote, then the status) and the smaller waits in
+//! panels both use it. Views that do not hold the motion preference build
+//! [`loading_cube`] inside [`render_with_motion`], which the GUI shell sets
+//! for every tab view.
 
-use std::time::Duration;
+use std::{cell::Cell, time::Duration};
 
 use iced::{
+    advanced::widget::Id,
     mouse,
     widget::canvas::{self, Canvas, Frame, Geometry, LineCap, LineJoin, Path, Stroke},
     window, Length, Point, Rectangle, Renderer,
 };
 
-use crate::{theme::Theme, widget::Element};
+use crate::{
+    theme::Theme,
+    widget::{Container, Element},
+};
+
+thread_local! {
+    static MOTION_REDUCED: Cell<bool> = const { Cell::new(false) };
+}
+
+/// Build a view with the window's reduce-motion preference, for the
+/// [`loading_cube`]s inside it.
+pub fn render_with_motion<T>(reduced: bool, render: impl FnOnce() -> T) -> T {
+    struct Restore(bool);
+    impl Drop for Restore {
+        fn drop(&mut self) {
+            MOTION_REDUCED.set(self.0);
+        }
+    }
+
+    let _restore = Restore(MOTION_REDUCED.replace(reduced));
+    render()
+}
+
+/// Whether the view being built reduces motion (see [`render_with_motion`]).
+pub fn motion_reduced() -> bool {
+    MOTION_REDUCED.get()
+}
+
+/// The id of the container every turning Cube is drawn in. A canvas reports
+/// nothing to widget operations, so tests find the Cube, and where it sits
+/// relative to the text around it, by this id.
+pub fn id() -> Id {
+    Id::new("turning-cube")
+}
 
 /// One quarter turn.
 pub const TURN: Duration = Duration::from_millis(700);
@@ -141,6 +181,7 @@ pub fn line_units(size: f32) -> f32 {
 struct TurningCube {
     size: f32,
     reduced: bool,
+    opacity: f32,
 }
 
 /// When the motion started and the frame being drawn.
@@ -196,7 +237,7 @@ impl<M> canvas::Program<M, Theme> for TurningCube {
         let mut frame = Frame::new(renderer, bounds.size());
         let unit = bounds.width.min(bounds.height) / 24.0;
         let stroke = Stroke::default()
-            .with_color(theme.colors.shell.ink)
+            .with_color(theme.colors.shell.ink.scale_alpha(self.opacity))
             .with_width(line_units(self.size) * unit)
             .with_line_cap(LineCap::Round)
             .with_line_join(LineJoin::Round);
@@ -212,10 +253,28 @@ impl<M> canvas::Program<M, Theme> for TurningCube {
 /// The turning line Cube, `size` pixels square, in the theme's ink. With
 /// `reduced` set it holds the logo pose.
 pub fn turning_cube<'a, M: 'a>(size: f32, reduced: bool) -> Element<'a, M> {
-    Canvas::new(TurningCube { size, reduced })
+    turning_cube_faded(size, reduced, 1.0)
+}
+
+/// [`turning_cube`] at `opacity`, for a screen whose content fades in.
+pub fn turning_cube_faded<'a, M: 'a>(size: f32, reduced: bool, opacity: f32) -> Element<'a, M> {
+    Container::new(
+        Canvas::new(TurningCube {
+            size,
+            reduced,
+            opacity,
+        })
         .width(Length::Fixed(size))
-        .height(Length::Fixed(size))
-        .into()
+        .height(Length::Fixed(size)),
+    )
+    .id(id())
+    .into()
+}
+
+/// [`turning_cube`] under the motion preference of the view being built
+/// (see [`render_with_motion`]).
+pub fn loading_cube<'a, M: 'a>(size: f32) -> Element<'a, M> {
+    turning_cube(size, motion_reduced())
 }
 
 #[cfg(test)]
@@ -317,6 +376,20 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn the_motion_preference_scopes_to_one_view() {
+        assert!(!motion_reduced());
+        let inside = render_with_motion(true, || {
+            let nested = render_with_motion(false, motion_reduced);
+            (motion_reduced(), nested)
+        });
+        assert_eq!(inside, (true, false));
+        assert!(
+            !motion_reduced(),
+            "the preference is restored after the view"
+        );
     }
 
     #[test]
