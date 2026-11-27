@@ -1345,15 +1345,12 @@ pub fn view<'a>(step: &'a Step, quote: &'a Quote) -> Element<'a, ViewMessage> {
     view_with_retry(step, quote, true)
 }
 
-/// The line Cube alone, with the loading quote as text below it (brand brief,
-/// 2026-11-26, section 5). No artwork.
-pub(crate) fn cube_and_quote<'a, M: 'a>(quote: &'a Quote) -> Element<'a, M> {
+/// The loading quote alone: the Cube loader shows the quote and no Cube or
+/// other picture (Robert, 2026-11-27).
+pub(crate) fn opening_quote<'a, M: 'a>(quote: &'a Quote) -> Element<'a, M> {
     Container::new(
         Column::new()
             .align_x(Alignment::Center)
-            .push(coincube_ui::component::tenshu::top_bar::display_cube(
-                128.0, 1.0,
-            ))
             .push(quote_display::quote_block(quote)),
     )
     .center_x(Length::Fill)
@@ -1373,7 +1370,7 @@ pub(crate) fn view_with_retry<'a>(
                 .width(Length::Fill)
                 .spacing(20)
                 .align_x(Alignment::Center)
-                .push(cube_and_quote(quote))
+                .push(opening_quote(quote))
                 .push(crate::loading::loading_indicator(None))
                 .push(text(CopyText::StartingDaemon.get()).style(theme::text::secondary)),
         ),
@@ -1383,7 +1380,7 @@ pub(crate) fn view_with_retry<'a>(
                 .width(Length::Fill)
                 .spacing(10)
                 .align_x(Alignment::Center)
-                .push(cube_and_quote(quote))
+                .push(opening_quote(quote))
                 .push(crate::loading::loading_indicator(None))
                 .push(text(CopyText::ScanningTheBlockchain.get()).style(theme::text::secondary))
                 .push_maybe(
@@ -1399,7 +1396,7 @@ pub(crate) fn view_with_retry<'a>(
                 .width(Length::Fill)
                 .spacing(20)
                 .align_x(Alignment::Center)
-                .push(cube_and_quote(quote))
+                .push(opening_quote(quote))
                 .push(crate::loading::loading_indicator(None))
                 .push(text(CopyText::ConnectingToDaemon.get()).style(theme::text::secondary)),
         ),
@@ -1413,7 +1410,7 @@ pub(crate) fn view_with_retry<'a>(
                 .width(Length::Fill)
                 .spacing(5)
                 .align_x(Alignment::Center)
-                .push(cube_and_quote(quote))
+                .push(opening_quote(quote))
                 .push(crate::loading::loading_indicator(None))
                 .push(
                     text(if *progress > 0.98 {
@@ -1449,7 +1446,7 @@ pub(crate) fn view_with_retry<'a>(
                     .spacing(20)
                     .width(Length::Fill)
                     .align_x(Alignment::Center)
-                    .push(cube_and_quote(quote))
+                    .push(opening_quote(quote))
                     .push(text(headline))
                     .push({
                         let actions = Row::new().spacing(10).push(

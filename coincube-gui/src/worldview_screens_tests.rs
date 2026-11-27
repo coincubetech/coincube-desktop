@@ -355,16 +355,18 @@ fn a_mode_switch_changes_network_names_and_voice_lines_and_no_colour() {
     }
 }
 
-/// The Opening paths draw the line Cube and no artwork: the Launcher's
-/// Opening face, the loader (connecting, starting, scanning and its error),
-/// and `loader::cube_and_quote`. The passkey Opening draws the turning Cube
-/// on a canvas instead and has its own tests in `passkey_unlock`. Counted
-/// from what the software renderer actually drew, so a picture cannot hide
-/// in a view the text probe passes over: no raster image (the ink art was
-/// raster), and at least one SVG (the Cube) on every Opening view.
+/// The Cube loader shows the quote and no picture (Robert, 2026-11-27): the
+/// Launcher's Opening (the rail over the loader), the loader on its own
+/// (connecting, starting, scanning and its error) and `loader::opening_quote`.
+/// No raster image (the ink art was raster) and no SVG beyond the Opening
+/// rail's own bar icons, so the line Cube is gone too. The passkey Opening
+/// draws the turning Cube on a canvas and has its own tests in
+/// `passkey_unlock`. Counted from what the software renderer actually drew,
+/// so a picture cannot hide in a view the text probe passes over.
 #[test]
-fn every_opening_draws_the_cube_and_no_raster_art() {
+fn every_opening_shows_the_quote_and_no_picture() {
     let quote = quote_display::random_quote("loading");
+    let words = quote.localized_text().to_owned();
     let error = crate::loader::Step::Error(Box::new(crate::loader::Error::Unexpected(
         "Fixture startup error".into(),
     )));
@@ -383,38 +385,62 @@ fn every_opening_draws_the_cube_and_no_raster_art() {
     ] {
         for (appearance, theme) in [("dark", Theme::dark()), ("light", Theme::light())] {
             let theme = theme.with_worldview(mode);
-            let mut views: Vec<(String, capture::Inspection)> = vec![
-                (
-                    "launcher-opening".into(),
-                    capture::inspect_rendered_filled(
-                        &format!("opening-cube-{name}-launcher"),
-                        opening_body(
-                            project_opening("Everyday", ChainId::Bitcoin),
-                            &crate::loader::Step::Connecting,
-                            &quote,
-                            false,
-                        ),
-                        (1024, 768),
-                        appearance,
-                        theme,
-                    ),
+            let rail_icons = capture::inspect_rendered_filled(
+                &format!("opening-quote-{name}-rail"),
+                crate::home::launcher_presenter::opening_rail::<()>(&project_opening(
+                    "Everyday",
+                    ChainId::Bitcoin,
+                )),
+                (1024, 768),
+                appearance,
+                theme,
+            )
+            .drawn_images()
+            .vector;
+            let launcher = capture::inspect_rendered_filled(
+                &format!("opening-quote-{name}-launcher"),
+                opening_body(
+                    project_opening("Everyday", ChainId::Bitcoin),
+                    &crate::loader::Step::Connecting,
+                    &quote,
+                    false,
                 ),
-                (
-                    "cube-and-quote".into(),
-                    capture::inspect_rendered_filled(
-                        &format!("opening-cube-{name}-cube-and-quote"),
-                        crate::loader::cube_and_quote::<()>(&quote),
-                        (1024, 768),
-                        appearance,
-                        theme,
-                    ),
+                (1024, 768),
+                appearance,
+                theme,
+            );
+            assert!(
+                launcher.contains(&words),
+                "{} {}: no quote",
+                name,
+                appearance
+            );
+            let drawn = launcher.drawn_images();
+            assert_eq!(
+                drawn.raster, 0,
+                "{} {} launcher: raster art",
+                name, appearance
+            );
+            assert_eq!(
+                drawn.vector, rail_icons,
+                "{} {} launcher: a picture beyond the rail's icons",
+                name, appearance
+            );
+            let mut views: Vec<(String, capture::Inspection)> = vec![(
+                "opening-quote".into(),
+                capture::inspect_rendered_filled(
+                    &format!("opening-quote-{name}-quote"),
+                    crate::loader::opening_quote::<()>(&quote),
+                    (1024, 768),
+                    appearance,
+                    theme,
                 ),
-            ];
+            )];
             for (step_name, step) in &steps {
                 views.push((
                     format!("loader-{step_name}"),
                     capture::inspect_rendered_filled(
-                        &format!("opening-cube-{name}-loader-{step_name}"),
+                        &format!("opening-quote-{name}-loader-{step_name}"),
                         crate::loader::view(step, &quote),
                         (1024, 768),
                         appearance,
@@ -423,33 +449,32 @@ fn every_opening_draws_the_cube_and_no_raster_art() {
                 ));
             }
             let failed = capture::inspect_rendered_filled(
-                &format!("opening-cube-{name}-loader-error"),
+                &format!("opening-quote-{name}-loader-error"),
                 crate::loader::view(&error, &quote),
                 (1024, 768),
                 appearance,
                 theme,
             );
             assert!(failed.contains("COINCUBE Desktop failed to start"));
-            assert_eq!(
-                failed.drawn_images().raster,
-                0,
-                "{} {}: the startup error draws raster art",
-                name,
-                appearance
-            );
+            views.push(("loader-error".into(), failed));
             for (view, inspection) in &views {
-                let drawn = inspection.drawn_images();
-                assert_eq!(
-                    drawn.raster, 0,
-                    "{} {} {}: draws raster art",
-                    name, appearance, view
-                );
                 assert!(
-                    drawn.vector >= 1,
-                    "{} {} {}: the line Cube is missing",
+                    inspection.contains(&words),
+                    "{} {} {}: no quote",
                     name,
                     appearance,
                     view
+                );
+                let drawn = inspection.drawn_images();
+                assert_eq!(
+                    drawn.raster, 0,
+                    "{} {} {}: raster art",
+                    name, appearance, view
+                );
+                assert_eq!(
+                    drawn.vector, 0,
+                    "{} {} {}: an SVG picture",
+                    name, appearance, view
                 );
             }
         }

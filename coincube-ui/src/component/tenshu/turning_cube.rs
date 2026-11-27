@@ -55,6 +55,14 @@ pub fn yaw_at(elapsed: Duration, reduced: bool) -> f32 {
     REST_YAW + ((turns + progress) * std::f64::consts::FRAC_PI_2) as f32
 }
 
+/// While the Cube rests on the logo pose `elapsed` into the motion, how long
+/// until the next turn starts. `None` while it is turning.
+pub fn rest_left(elapsed: Duration) -> Option<Duration> {
+    let cycle = (TURN + REST).as_nanos();
+    let into = elapsed.as_nanos() % cycle;
+    (into >= TURN.as_nanos()).then(|| Duration::from_nanos((cycle - into) as u64))
+}
+
 /// Ease in and out (cubic).
 fn ease(t: f64) -> f64 {
     if t < 0.5 {
@@ -167,7 +175,12 @@ impl<M> canvas::Program<M, Theme> for TurningCube {
         if let iced::Event::Window(window::Event::RedrawRequested(now)) = event {
             state.start.get_or_insert(*now);
             state.now = Some(*now);
-            return Some(canvas::Action::request_redraw());
+            // Every frame while turning; while resting, one wake when the next
+            // turn starts (the resting frame does not change).
+            return Some(match rest_left(state.elapsed()) {
+                Some(left) => canvas::Action::request_redraw_at(*now + left),
+                None => canvas::Action::request_redraw(),
+            });
         }
         None
     }
@@ -268,6 +281,41 @@ mod tests {
             let yaw = REST_YAW + (step as f32).to_radians();
             let n = visible_edges(yaw).len();
             assert!((7..=9).contains(&n), "{n} edges at step {step}");
+        }
+    }
+
+    #[test]
+    fn it_idles_through_each_rest() {
+        let at = |ms: u64| rest_left(Duration::from_millis(ms));
+        assert_eq!(at(0), None);
+        assert_eq!(at(699), None);
+        assert_eq!(at(700), Some(Duration::from_millis(500)));
+        assert_eq!(at(1000), Some(Duration::from_millis(200)));
+        assert_eq!(at(1200), None, "the next turn has begun");
+    }
+
+    /// The bottom-back corner is behind the box at every turn: no drawn edge
+    /// ends there. (At rest it projects onto the logo's inner corner, so the
+    /// check starts a little into a turn.) Fails if face culling is inverted.
+    #[test]
+    fn the_hidden_corner_is_never_drawn() {
+        for step in (5..90).step_by(5) {
+            let yaw = REST_YAW + (step as f32).to_radians();
+            let farthest = [[-0.5, -0.5], [-0.5, 0.5], [0.5, -0.5], [0.5, 0.5]]
+                .into_iter()
+                .map(|[x, z]| project([x, -HALF_HEIGHT, z], yaw))
+                .min_by(|a, b| a[2].total_cmp(&b[2]))
+                .unwrap();
+            let hidden = Point::new(
+                12.0 + farthest[0] * UNITS_PER_SIDE,
+                12.0 - farthest[1] * UNITS_PER_SIDE,
+            );
+            for (a, b) in visible_edges(yaw) {
+                assert!(
+                    a.distance(hidden) > 1e-3 && b.distance(hidden) > 1e-3,
+                    "step {step}: an edge ends at the hidden corner"
+                );
+            }
         }
     }
 
