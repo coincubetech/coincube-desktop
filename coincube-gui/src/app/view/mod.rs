@@ -493,11 +493,15 @@ fn dashboard_layout<'a, T: Into<Element<'a, Message>>>(
 pub(crate) fn responsive<'a, M: 'a>(
     build: impl Fn(iced::Size) -> Element<'a, M> + 'a,
 ) -> iced::widget::Responsive<'a, M, theme::Theme, iced::Renderer> {
+    use coincube_ui::component::tenshu::turning_cube;
     let language = coincube_ui::locale::language();
     let mode = coincube_ui::worldview_copy::mode();
+    let reduced = turning_cube::motion_reduced();
     iced::widget::responsive(move |size| {
         coincube_ui::locale::render_in(language, || {
-            coincube_ui::worldview_copy::render_in(mode, || build(size))
+            coincube_ui::worldview_copy::render_in(mode, || {
+                turning_cube::render_with_motion(reduced, || build(size))
+            })
         })
     })
 }
@@ -1735,6 +1739,55 @@ mod spark_notice_button_tests {
             assert!(on_warning_button(false)(&t, Status::Hovered)
                 .background
                 .is_some());
+        }
+    }
+}
+
+#[cfg(test)]
+mod loading_placeholder_tests {
+    use super::*;
+    use crate::app::view::shared::landing::capture;
+
+    /// A panel's wait is the app's loading mark: one 48 px turning Cube,
+    /// centred under the card's title (Robert, 2026-11-27: the three dots are
+    /// replaced), in both themes.
+    #[test]
+    fn a_panel_waits_with_one_turning_cube_under_its_title() {
+        for (appearance, palette) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let at = format!("panel-loading-placeholder-{appearance}");
+            let shown = capture::inspect_rendered_filled(
+                &at,
+                loading_placeholder(
+                    coincube_ui::icon::receipt_icon().size(80),
+                    "Loading transactions",
+                ),
+                (1024, 768),
+                appearance,
+                palette,
+            );
+            let cubes = shown.turning_cubes();
+            assert_eq!(cubes.len(), 1, "{at}: {cubes:?}");
+            assert!(
+                shown.still_cubes().is_empty(),
+                "{}",
+                format!("{at}: it turns")
+            );
+            let cube = cubes[0];
+            assert_eq!(
+                (cube.width, cube.height),
+                (PANEL_LOADING_CUBE, PANEL_LOADING_CUBE)
+            );
+            let title = shown.text_bounds("Loading transactions").unwrap();
+            assert!(
+                title.y + title.height <= cube.y,
+                "{}",
+                format!("{at}: below the title")
+            );
+            let centre = |r: iced::Rectangle| r.x + r.width / 2.0;
+            assert!((centre(title) - centre(cube)).abs() <= 1.0);
         }
     }
 }

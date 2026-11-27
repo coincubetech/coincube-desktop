@@ -1365,16 +1365,50 @@ pub(crate) fn cube_loader<'a, M: 'a>(
     quote: &'a Quote,
     status: impl Into<Element<'a, M>>,
 ) -> Column<'a, M> {
+    cube_group(
+        coincube_ui::component::tenshu::turning_cube::loading_cube(CUBE_LOADER_SIZE),
+        quote,
+        status,
+    )
+}
+
+/// [`cube_loader`]'s layout for a screen that is not loading (the startup
+/// error): the Cube holds the logo pose.
+pub(crate) fn still_cube_loader<'a, M: 'a>(
+    quote: &'a Quote,
+    status: impl Into<Element<'a, M>>,
+) -> Column<'a, M> {
+    cube_group(
+        coincube_ui::component::tenshu::turning_cube::turning_cube(CUBE_LOADER_SIZE, true),
+        quote,
+        status,
+    )
+}
+
+fn cube_group<'a, M: 'a>(
+    cube: Element<'a, M>,
+    quote: &'a Quote,
+    status: impl Into<Element<'a, M>>,
+) -> Column<'a, M> {
     Column::new()
         .width(Length::Fill)
         // The quote's own padding makes up the rest of each gap.
         .spacing(CUBE_LOADER_GAP - QUOTE_DISPLAY_PADDING)
         .align_x(Alignment::Center)
-        .push(coincube_ui::component::tenshu::turning_cube::loading_cube(
-            CUBE_LOADER_SIZE,
-        ))
+        .push(cube)
         .push(quote_display::display(&QuoteDisplayProps::new(quote)))
         .push(status)
+}
+
+/// The id of the container that holds a Cube loader's group (the Cube, the
+/// quote, the status and what follows it), so tests can check it is centred.
+pub(crate) fn cube_loader_group_id() -> iced::advanced::widget::Id {
+    iced::advanced::widget::Id::new("cube-loader-group")
+}
+
+/// The id of the frame a Cube loader's group is centred in.
+pub(crate) fn cube_loader_frame_id() -> iced::advanced::widget::Id {
+    iced::advanced::widget::Id::new("cube-loader-frame")
 }
 
 pub(crate) fn view_with_retry<'a>(
@@ -1447,7 +1481,8 @@ pub(crate) fn view_with_retry<'a>(
             };
             cover(
                 Some((CopyText::ErrorWhileStartingTenshu.get(), error)),
-                cube_loader(quote, text(headline))
+                // An error is not loading: the Cube holds still.
+                still_cube_loader(quote, text(headline))
                     .push(iced::widget::Space::new().height(Length::Fixed(12.0)))
                     .push({
                         let actions = Row::new().spacing(10).push(
@@ -1483,10 +1518,11 @@ pub fn cover<'a, T: 'a + Clone, C: Into<Element<'a, T>>>(
     Column::new()
         .push(warn.map(|w| notification::warning(w.0.to_string(), w.1.to_string())))
         .push(
-            Container::new(content)
+            Container::new(Container::new(content).id(cube_loader_group_id()))
                 .center_x(iced::Length::Fill)
                 .center_y(iced::Length::Fill)
-                .padding(50),
+                .padding(50)
+                .id(cube_loader_frame_id()),
         )
         .into()
 }

@@ -441,55 +441,57 @@ fn every_cube_loader_turns_the_cube_above_the_quote_and_status() {
                             coincube_ui::locale::Text::TenshuFailedToStart.get()
                         }
                     });
-                    let screens = [
-                        (
-                            "loader",
-                            0,
-                            render_in(language, || {
-                                coincube_ui::worldview_copy::render_in(mode, || {
-                                    crate::loader::view(step, &quote)
-                                })
-                            }),
-                        ),
-                        (
-                            "launcher-opening",
-                            rail_icons,
-                            render_in(language, || {
-                                coincube_ui::worldview_copy::render_in(mode, || {
-                                    opening_body(
-                                        project_opening("Everyday", ChainId::Bitcoin),
-                                        step,
-                                        &quote,
-                                        false,
-                                    )
-                                })
-                            }),
-                        ),
-                    ];
-                    for (screen, icons, view) in screens {
-                        let at = scenario(&format!("{screen}-{index}-{appearance}"));
-                        let shown = capture::inspect_rendered_filled(
-                            &at,
-                            view,
-                            (1024, 900),
-                            appearance,
-                            theme,
-                        );
-                        shown.assert_cube_loader(
-                            &at,
-                            crate::loader::CUBE_LOADER_SIZE,
-                            &quote.text,
-                            attribution,
-                            status,
-                        );
-                        assert_eq!(
-                            shown.drawn_images(),
-                            capture::DrawnImages {
-                                raster: 0,
-                                vector: icons
-                            },
-                            "{at}: no picture beyond the turning Cube"
-                        );
+                    // The 768 px minimum window as well as a tall one.
+                    for size in [(1024, 900), (1024, 768)] {
+                        let screens = [
+                            (
+                                "loader",
+                                0,
+                                render_in(language, || {
+                                    coincube_ui::worldview_copy::render_in(mode, || {
+                                        crate::loader::view(step, &quote)
+                                    })
+                                }),
+                            ),
+                            (
+                                "launcher-opening",
+                                rail_icons,
+                                render_in(language, || {
+                                    coincube_ui::worldview_copy::render_in(mode, || {
+                                        opening_body(
+                                            project_opening("Everyday", ChainId::Bitcoin),
+                                            step,
+                                            &quote,
+                                            false,
+                                        )
+                                    })
+                                }),
+                            ),
+                        ];
+                        for (screen, icons, view) in screens {
+                            let at = scenario(&format!("{screen}-{index}-{appearance}-{}", size.1));
+                            let shown = capture::inspect_rendered_filled(
+                                &at, view, size, appearance, theme,
+                            );
+                            shown.assert_cube_loader(
+                                &at,
+                                crate::loader::CUBE_LOADER_SIZE,
+                                &quote.text,
+                                attribution,
+                                status,
+                            );
+                            assert_eq!(
+                                shown.drawn_images(),
+                                capture::DrawnImages {
+                                    raster: 0,
+                                    vector: icons
+                                },
+                                "{at}: no picture beyond the turning Cube"
+                            );
+                            // An error is not loading: its Cube holds still.
+                            let error = matches!(step, crate::loader::Step::Error(_));
+                            assert_eq!(shown.still_cubes().len(), usize::from(error), "{}", at);
+                        }
                     }
                 }
             }

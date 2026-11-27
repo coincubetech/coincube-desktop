@@ -45,7 +45,7 @@ use coincube_ui::{
         text::p1_regular,
     },
     theme,
-    widget::{action::Action, Column, Container, Element},
+    widget::{action::Action, Column, Element},
 };
 
 use coincube_core::miniscript::bitcoin::bip32::Fingerprint;
@@ -419,6 +419,12 @@ impl PasskeyUnlock {
         self.phase = Phase::Opening;
     }
 
+    /// Stand in for a raised system prompt.
+    #[cfg(test)]
+    pub(crate) fn enter_authenticating_for_test(&mut self) {
+        self.phase = Phase::Authenticating;
+    }
+
     /// The reason shown on the idle screen, if any.
     #[cfg(test)]
     pub(crate) fn error_for_test(&self) -> Option<&str> {
@@ -489,17 +495,14 @@ impl PasskeyUnlock {
             // capture, or a frame after the tab dropped its opening), it is
             // the same Cube loader the full-page loader shows, at the stage
             // the opening face starts on.
-            return Container::new(crate::loader::cube_loader(
-                &self.loading_quote,
-                coincube_ui::component::text::text(self.on_success.opening_stage().text())
-                    .style(theme::text::secondary),
-            ))
-            .center_x(Length::Fill)
-            .center_y(Length::Fill)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .padding(50)
-            .into();
+            return crate::loader::cover(
+                None,
+                crate::loader::cube_loader(
+                    &self.loading_quote,
+                    coincube_ui::component::text::text(self.on_success.opening_stage().text())
+                        .style(theme::text::secondary),
+                ),
+            );
         }
 
         if let Some(floor) = floor {
@@ -533,13 +536,10 @@ impl PasskeyUnlock {
                     .push(Space::new().height(Length::Fixed(12.0)))
                     // The app's loading mark at the size of the face's
                     // controls: 24 px is the logo's own grid, one pixel a
-                    // unit.
-                    .push(
-                        Container::new(coincube_ui::component::tenshu::turning_cube::loading_cube(
-                            24.0,
-                        ))
-                        .center_x(Length::Fill),
-                    );
+                    // unit, aligned with the face's left-aligned line.
+                    .push(coincube_ui::component::tenshu::turning_cube::loading_cube(
+                        24.0,
+                    ));
             }
             Phase::Idle { error } => {
                 // Deliberately no explanatory line here.

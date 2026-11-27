@@ -701,6 +701,8 @@ fn opening_capture_element<'a>(
         outgoing: None,
         stage,
         stalled: opening.stalled(now),
+        // Reduced motion is what stills the breath.
+        reduced: !opening.breathes(),
         cancel: || (),
         without_spark: || (),
     };

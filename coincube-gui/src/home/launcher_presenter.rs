@@ -2509,6 +2509,9 @@ pub(crate) struct OpeningFace<'a, M> {
     pub outgoing: Option<(&'a Quote, f32)>,
     pub stage: super::launcher_opening::Stage,
     pub stalled: bool,
+    /// The opening's motion preference: its Cube holds the logo pose. Passed
+    /// explicitly because the face is built inside `responsive`, at layout.
+    pub reduced: bool,
     pub cancel: fn() -> M,
     pub without_spark: fn() -> M,
 }
@@ -2644,7 +2647,7 @@ fn opening_content<'a, M: 'a>(
         .align_x(Alignment::Center)
         .push(tenshu::turning_cube::turning_cube_faded(
             cube_size,
-            tenshu::turning_cube::motion_reduced(),
+            face.reduced,
             alpha,
         ))
         .push(Space::new().height(Length::Fixed(gap)))
@@ -2715,7 +2718,8 @@ fn opening_details<'a, M: 'a>(
 ) -> Element<'a, M> {
     let content = Container::new(body)
         .padding([0.0, horizontal])
-        .center_x(Length::Fill);
+        .center_x(Length::Fill)
+        .id(crate::loader::cube_loader_group_id());
     Column::new()
         .width(Length::Fill)
         .height(Length::Fill)
@@ -2725,7 +2729,8 @@ fn opening_details<'a, M: 'a>(
         .push(
             Container::new(iced::widget::scrollable(content).height(Length::Shrink))
                 .center_x(Length::Fill)
-                .center_y(Length::Fill),
+                .center_y(Length::Fill)
+                .id(crate::loader::cube_loader_frame_id()),
         )
         .into()
 }
@@ -2986,6 +2991,7 @@ mod tests {
                         outgoing: None,
                         stage: Stage::Syncing,
                         stalled,
+                        reduced: true,
                         cancel: || (),
                         without_spark: || (),
                     },
@@ -3031,6 +3037,7 @@ mod tests {
                     outgoing: None,
                     stage: Stage::Connecting,
                     stalled: false,
+                    reduced: true,
                     cancel: || (),
                     without_spark: || (),
                 },
@@ -4887,9 +4894,9 @@ mod tests {
 
     /// The Launcher's opening face is the Cube loader (Robert, 2026-11-27):
     /// the turning Cube, then the quote, then the stage line, one centred
-    /// group, at every stage, in every worldview, theme and language. The
-    /// Cube is a canvas, found by its container; the face body draws no
-    /// raster or SVG picture.
+    /// group centred under the heading, at every stage, in every worldview,
+    /// theme and language. The Cube is a canvas, found by its container; the
+    /// face draws no picture beyond the heading's 18 px network coin.
     #[test]
     fn the_opening_face_turns_the_cube_above_the_quote_and_status() {
         use super::super::launcher_opening::Stage;
@@ -4931,18 +4938,22 @@ mod tests {
                             outgoing: None,
                             stage,
                             stalled: false,
+                            reduced: false,
                             cancel: || (),
                             without_spark: || (),
                         };
-                        let (_, body) = render_in(language, || {
+                        // The face's own frame: the heading, then the body
+                        // centred under it.
+                        let body = render_in(language, || {
                             coincube_ui::worldview_copy::render_in(mode, || {
-                                opening_content(
+                                let (heading, body) = opening_content(
                                     &face,
                                     false,
                                     1.0,
                                     520.0,
                                     crate::loader::CUBE_LOADER_SIZE,
-                                )
+                                );
+                                opening_details(heading, body, 44.0, 72.0)
                             })
                         });
                         let appearance = if palette.mode == theme::palette::ThemeMode::Light {
@@ -4970,9 +4981,9 @@ mod tests {
                             shown.drawn_images(),
                             capture::DrawnImages {
                                 raster: 0,
-                                vector: 0
+                                vector: 1
                             },
-                            "{at}: no picture beyond the turning Cube"
+                            "{at}: no picture beyond the heading's network coin and the Cube"
                         );
                     }
                 }
@@ -5016,6 +5027,7 @@ mod tests {
                         outgoing: None,
                         stage: opening.stage(),
                         stalled: true,
+                        reduced: false,
                         cancel: || (),
                         without_spark: || (),
                     };

@@ -55,11 +55,18 @@ pub fn motion_reduced() -> bool {
     MOTION_REDUCED.get()
 }
 
-/// The id of the container every turning Cube is drawn in. A canvas reports
+/// The id of the container a turning Cube is drawn in. A canvas reports
 /// nothing to widget operations, so tests find the Cube, and where it sits
 /// relative to the text around it, by this id.
 pub fn id() -> Id {
     Id::new("turning-cube")
+}
+
+/// The id of the container a Cube held still on the logo pose (reduced
+/// motion, or a screen that is not loading) is drawn in, so a test can tell
+/// it from a turning one.
+pub fn still_id() -> Id {
+    Id::new("turning-cube-still")
 }
 
 /// One quarter turn.
@@ -267,7 +274,7 @@ pub fn turning_cube_faded<'a, M: 'a>(size: f32, reduced: bool, opacity: f32) -> 
         .width(Length::Fixed(size))
         .height(Length::Fixed(size)),
     )
-    .id(id())
+    .id(if reduced { still_id() } else { id() })
     .into()
 }
 

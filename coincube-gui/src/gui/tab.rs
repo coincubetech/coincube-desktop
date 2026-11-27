@@ -5557,6 +5557,7 @@ impl Tab {
                 outgoing: opening.quotes.outgoing(now),
                 stage: opening.scene.stage(),
                 stalled: opening.scene.stalled(now),
+                reduced: opening.reduced,
                 cancel: || Message::CancelOpening,
                 without_spark: || Message::OpenWithoutSpark,
             };
@@ -9718,6 +9719,73 @@ mod opening_tests {
                     &format!("\u{2014} {}, {}", quote.author, quote.source),
                     Stage::AlmostThere.text(),
                 );
+                // The face is built inside `responsive`, at layout, after
+                // `Tab::view` returned: the opening's own preference must
+                // still reach its Cube.
+                assert_eq!(
+                    shown.still_cubes().len(),
+                    usize::from(reduced),
+                    "{case}: the Cube holds still exactly under reduced motion"
+                );
+            }
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    /// The passkey prompt's wait (a 24 px turning Cube under "Confirm with
+    /// Touch ID") is also built inside `responsive`. Under reduced motion it
+    /// holds the logo pose, on the floor and in the list.
+    #[test]
+    fn the_passkey_prompt_holds_its_cube_still_under_reduced_motion() {
+        use crate::app::view::shared::landing::capture;
+        let root = datadir();
+        for from_floor in [true, false] {
+            for reduced in [false, true] {
+                let cube = CubeSettings::new("Everyday".into(), ChainId::Bitcoin).with_passkey(
+                    crate::app::settings::PasskeyMetadata {
+                        credential_id: "Y3JlZC1pZA==".to_string(),
+                        rp_id: "coincube.io".to_string(),
+                        created_at: 1_786_122_245,
+                        label: None,
+                    },
+                );
+                let state = unlock_state(
+                    cube,
+                    root.clone(),
+                    crate::pin_entry::PinEntrySuccess::LoadApp {
+                        datadir: crate::dir::CoincubeDirectory::new(root.clone()),
+                        config: crate::app::Config::new(false),
+                        network: Network::Bitcoin,
+                        internal_bitcoind: None,
+                        backup: None,
+                        wallet_settings: None,
+                        connect_client: None,
+                    },
+                    None,
+                );
+                let mut tab = Tab::new(1, state);
+                tab.set_reduce_motion(reduced);
+                if from_floor {
+                    tab.unlock_floor = Some(floor());
+                }
+                let State::PasskeyUnlock(passkey) = &mut tab.state else {
+                    unreachable!("a passkey Cube");
+                };
+                passkey.enter_authenticating_for_test();
+                let case = format!("passkey-prompt-floor-{from_floor}-reduced-{reduced}");
+                let shown = capture::inspect_filled(
+                    &case,
+                    tab.view(Default::default()),
+                    (1024, 768),
+                    "dark",
+                    coincube_ui::theme::Theme::dark(),
+                    (1024, 768),
+                );
+                assert!(shown.contains("Confirm with Touch ID"), "{}", case);
+                let cubes = shown.turning_cubes();
+                assert_eq!(cubes.len(), 1, "{case}: {cubes:?}");
+                assert_eq!((cubes[0].width, cubes[0].height), (24.0, 24.0), "{}", case);
+                assert_eq!(shown.still_cubes().len(), usize::from(reduced), "{}", case);
             }
         }
         std::fs::remove_dir_all(root).unwrap();

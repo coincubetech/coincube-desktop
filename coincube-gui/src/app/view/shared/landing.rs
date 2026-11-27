@@ -311,11 +311,27 @@ pub(crate) mod capture {
         /// Where each turning Cube was laid out. Its canvas reports nothing
         /// to widget operations and is not counted by [`Self::drawn_images`],
         /// so the Cube is found by its container's id.
+        /// Turning and still alike: [`Self::still_cubes`] tells them apart.
         pub fn turning_cubes(&self) -> Vec<Rectangle> {
-            let cube = coincube_ui::component::tenshu::turning_cube::id();
+            use coincube_ui::component::tenshu::turning_cube;
+            let (turning, still) = (turning_cube::id(), turning_cube::still_id());
             self.containers
                 .iter()
-                .filter_map(|(id, bounds)| (*id == cube).then_some(*bounds))
+                .filter_map(|(id, bounds)| (*id == turning || *id == still).then_some(*bounds))
+                .collect()
+        }
+
+        /// The Cubes held still on the logo pose (reduced motion, or a
+        /// screen that is not loading).
+        pub fn still_cubes(&self) -> Vec<Rectangle> {
+            self.containers_with(coincube_ui::component::tenshu::turning_cube::still_id())
+        }
+
+        /// Where each container carrying `id` was laid out.
+        pub fn containers_with(&self, id: Id) -> Vec<Rectangle> {
+            self.containers
+                .iter()
+                .filter_map(|(actual, bounds)| (*actual == id).then_some(*bounds))
                 .collect()
         }
 
@@ -329,7 +345,9 @@ pub(crate) mod capture {
         /// The Cube loader (Robert, 2026-11-27), read top to bottom: one
         /// turning Cube `side` px square, then the quote (`quote`, and its
         /// `attribution` line), then the status, centred on one axis, with
-        /// the same gap above and below the quote.
+        /// the same gap above and below the quote, and the whole group
+        /// (`loader::cube_loader_group_id`) vertically centred in its frame
+        /// (`loader::cube_loader_frame_id`).
         pub fn assert_cube_loader(
             &self,
             scenario: &str,
@@ -370,6 +388,24 @@ pub(crate) mod capture {
                 (above - below).abs() <= 1.0,
                 "{}",
                 format!("{scenario}: {above} px above the quote but {below} px below it")
+            );
+            let one = |id: Id, what: &str| {
+                let found = self.containers_with(id);
+                assert_eq!(found.len(), 1, "{scenario}: one {what}, {found:?}");
+                found[0]
+            };
+            let group = one(crate::loader::cube_loader_group_id(), "Cube loader group");
+            let frame = one(crate::loader::cube_loader_frame_id(), "Cube loader frame");
+            assert!(
+                group.y <= cube.y && state.y + state.height <= group.y + group.height,
+                "{}",
+                format!("{scenario}: the group {group:?} holds the Cube and the status")
+            );
+            let middle = |r: Rectangle| r.y + r.height / 2.0;
+            assert!(
+                (middle(group) - middle(frame)).abs() <= 1.0,
+                "{}",
+                format!("{scenario}: the group {group:?} is centred in its frame {frame:?}")
             );
             let centre = |r: Rectangle| r.x + r.width / 2.0;
             for (what, bounds) in [("quote", said), ("status", state)] {
