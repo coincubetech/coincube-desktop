@@ -96,20 +96,6 @@ pub(crate) fn network_label(network: ChainId) -> &'static str {
     }
 }
 
-/// The Launcher's coin for the Cube's chain, beside its network name.
-fn network_coin<'a>(ctx: &NavContext<'a>) -> Element<'a, Message> {
-    let light = matches!(
-        ctx.theme_mode,
-        coincube_ui::theme::palette::ThemeMode::Light
-    );
-    iced::widget::Svg::new(iced::widget::svg::Handle::from_memory(
-        crate::home::launcher_coin::widget_source(ctx.network, 14.0, 1.0, light).into_bytes(),
-    ))
-    .width(Length::Fixed(14.0))
-    .height(Length::Fixed(14.0))
-    .into()
-}
-
 pub(crate) fn short_cube_name(name: &str) -> String {
     // Names are persisted without a length limit and may contain line breaks.
     // Keep fixed sidebar regions to one short, predictable label. The cut
@@ -746,33 +732,15 @@ fn section(label: &'static str) -> Element<'static, Message> {
 }
 
 fn identity<'a>(ctx: &NavContext<'a>) -> Element<'a, Message> {
-    // The Cube's ring mark: decoration beside its name, which the switcher
-    // always shows.
+    // `.cubeid` with `.cubeidt.cid1`: the Cube's ring mark and its name on
+    // one line. The network is not named here: a test network has the tag
+    // beside the wordmark (S1), and the page subtitle starts with the coin.
     let avatar: Element<'a, Message> = ring_mark::ring_mark(ctx.mark_seed, 36.0);
-    let title = if ctx.cube_name.is_empty() {
-        "Cube".to_owned()
-    } else {
-        short_cube_name(ctx.cube_name)
-    };
     let control = Action::new(
         CUBE_SWITCHER_ID,
         row![
             avatar,
-            column![
-                text(title)
-                    .size(14)
-                    .wrapping(iced::widget::text::Wrapping::WordOrGlyph),
-                // `.net { white-space: nowrap }`: the coin and the name stay on one line.
-                row![
-                    network_coin(ctx),
-                    muted(network_label(ctx.network), 12)
-                        .wrapping(iced::widget::text::Wrapping::None)
-                ]
-                .spacing(5)
-                .align_y(Alignment::Center)
-            ]
-            .spacing(1)
-            .width(Length::Fill),
+            switcher_name(ctx.cube_name),
             // `.side .cv`: one muted 16px chevron; the open menu shows the state.
             glyph::glyph(glyph::CHEVRON_DOWN, 16.0, glyph::muted),
         ]
@@ -785,6 +753,39 @@ fn identity<'a>(ctx: &NavContext<'a>) -> Element<'a, Message> {
     .style(theme::button::shell_nav)
     .on_press(Message::ToggleCubeSwitcher);
     container(control).padding([4, 8]).into()
+}
+
+/// Graphemes of a Cube name the switcher lays out before cutting it to its
+/// width. Names have no length limit; no sidebar width shows more than this.
+const SWITCHER_NAME_GRAPHEMES: usize = 64;
+
+/// The switcher's name (`.cubeidt.cid1 b`): 15px semibold ink, one line,
+/// cut with an ellipsis where it meets the chevron at either sidebar width.
+fn switcher_name<'a>(cube_name: &str) -> Element<'a, Message> {
+    use unicode_segmentation::UnicodeSegmentation;
+    let name = if cube_name.trim().is_empty() {
+        "Cube".to_owned()
+    } else {
+        // One line: breaks and other whitespace read as spaces, as in
+        // [`short_cube_name`].
+        cube_name
+            .chars()
+            .map(|ch| {
+                if ch.is_whitespace() || ch.is_control() {
+                    ' '
+                } else {
+                    ch
+                }
+            })
+            .collect::<String>()
+            .graphemes(true)
+            .take(SWITCHER_NAME_GRAPHEMES)
+            .collect()
+    };
+    coincube_ui::widget::one_line::one_line(name)
+        .size(15)
+        .font(font::SEMIBOLD)
+        .into()
 }
 
 /// The Cube menu's surface: the floating panel, shadowed and unoutlined.
