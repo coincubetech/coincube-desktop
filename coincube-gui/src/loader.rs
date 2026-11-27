@@ -845,6 +845,12 @@ impl Loader {
         info!("Close requested");
         // A Vault held for Spark owns a started daemon that no step names.
         let (held_daemon, held_node) = self.held_for_spark.take_resources();
+        // Its poller may be mid-request on a slow network, and Cancel on a
+        // stalled Spark load reaches here from the UI thread: always stop it
+        // in the background. A reopen waits for that stop
+        // (`stopping::wait_for_async` in the daemon start), and the process
+        // waits for it before exiting.
+        let in_background = in_background || held_daemon.is_some();
         // NOTE: we take() the internal_bitcoind here to make sure the debug.log reader
         // subscription is dropped.
         let bitcoind = self.internal_bitcoind.take().or(held_node);
@@ -873,7 +879,17 @@ impl Loader {
     /// load alive: dropping the Loader still aborts it.
     pub(crate) fn hold_for_spark(&mut self, loaded: Message) -> Task<Message> {
         debug_assert!(matches!(loaded, Message::WalletsLoaded { .. }));
-        // A Vault already held (never expected) is stopped as it drops.
+        // A Vault already held (never expected) is stopped as it drops,
+        // unless it is the same daemon the new one carries.
+        if let (
+            Some(Message::WalletsLoaded { daemon: held, .. }),
+            Message::WalletsLoaded { daemon: new, .. },
+        ) = (&self.held_for_spark.0, &loaded)
+        {
+            if Arc::ptr_eq(held, new) {
+                self.held_for_spark.0 = None;
+            }
+        }
         drop(std::mem::replace(
             &mut self.held_for_spark,
             HeldForSpark(Some(loaded)),
