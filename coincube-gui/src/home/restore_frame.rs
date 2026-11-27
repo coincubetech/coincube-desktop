@@ -298,21 +298,36 @@ pub(crate) fn nav_action<'a, M: Clone + 'a>(
         .into()
 }
 
-/// The wizard sheet over a plain backdrop, for screens with no Launcher
-/// behind them (the installer's restores, an open Cube's import): the same
-/// dimmed modal presentation, under a bar with the brand.
-pub(crate) fn standalone<'a, M: 'a>(sheet: Element<'a, M>) -> Element<'a, M> {
+/// The 64px bar with the brand, and on a test network the test-network tag
+/// beside the wordmark (S1), for screens drawn without the Cube's top bar.
+pub(crate) fn brand_bar<'a, M: 'a>(chain: ChainId) -> Element<'a, M> {
     let bar = Container::new(
         Row::new()
             .spacing(8)
             .align_y(Alignment::Center)
             .push(coincube_ui::icon::cube_outline_icon())
-            .push(coincube_ui::image::coincube_wordmark(15.0)),
+            .push(coincube_ui::image::coincube_wordmark(15.0))
+            .push_maybe(
+                crate::chain::test_network_tag(chain)
+                    .map(|tag| Container::new(tag).padding(iced::Padding::ZERO.left(8))),
+            ),
     )
     .center_y(Length::Fixed(64.0))
     .padding([0, 24])
     .width(Length::Fill)
-    .style(theme::container::shell_rail);
+    .style(theme::container::shell_sidebar);
+    // The quiet rule under the bar, as under the Cube's and the Launcher's.
+    Column::new()
+        .push(bar)
+        .push(coincube_ui::component::tenshu::top_bar::rule())
+        .into()
+}
+
+/// The wizard sheet over a plain backdrop, for screens with no Launcher
+/// behind them (the installer's restores, an open Cube's import): the same
+/// dimmed modal presentation, under a bar with the brand.
+pub(crate) fn standalone<'a, M: 'a>(chain: ChainId, sheet: Element<'a, M>) -> Element<'a, M> {
+    let bar = brand_bar(chain);
     let backdrop = Container::new(
         Column::new()
             .width(Length::Fill)
@@ -565,6 +580,58 @@ pub(crate) fn full_rule<'a, M: 'a>() -> Element<'a, M> {
             ..Default::default()
         })
         .into()
+}
+
+/// The bounds of the first text equal to `needle` in a view laid out at
+/// 1440×900.
+#[cfg(test)]
+pub(crate) async fn rendered_bounds<M>(
+    element: Element<'_, M>,
+    needle: &str,
+) -> Option<iced::Rectangle> {
+    use iced::advanced::{
+        layout,
+        renderer::Headless,
+        widget::{Id, Operation, Tree},
+        Layout,
+    };
+
+    struct Find<'n>(&'n str, Option<iced::Rectangle>);
+    impl Operation for Find<'_> {
+        fn traverse(&mut self, operate: &mut dyn FnMut(&mut dyn Operation)) {
+            operate(self);
+        }
+        fn text(&mut self, _: Option<&Id>, bounds: iced::Rectangle, text: &str) {
+            if self.1.is_none() && text == self.0 {
+                self.1 = Some(bounds);
+            }
+        }
+    }
+    for bytes in coincube_ui::font::load() {
+        iced::advanced::graphics::text::font_system()
+            .write()
+            .unwrap()
+            .load_font(bytes);
+    }
+    let renderer = <iced::Renderer as Headless>::new(
+        coincube_ui::font::REGULAR,
+        iced::Pixels(16.0),
+        Some("tiny-skia"),
+    )
+    .await
+    .expect("software renderer");
+    let mut element = element;
+    let mut tree = Tree::new(element.as_widget());
+    let node = element.as_widget_mut().layout(
+        &mut tree,
+        &renderer,
+        &layout::Limits::new(iced::Size::ZERO, iced::Size::new(1440.0, 900.0)),
+    );
+    let mut find = Find(needle, None);
+    element
+        .as_widget_mut()
+        .operate(&mut tree, Layout::new(&node), &renderer, &mut find);
+    find.1
 }
 
 /// Every text a view lays out at 1440×900, in tree order.

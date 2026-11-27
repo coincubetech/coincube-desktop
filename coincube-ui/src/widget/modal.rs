@@ -22,6 +22,59 @@ pub struct Modal<'a, Message, Theme, Renderer> {
 /// The gap a window-covering modal keeps from the window's edges.
 pub const WINDOW_MARGIN: f32 = 24.0;
 
+/// The id of a container in the base that a modal's scrim leaves undimmed:
+/// the Cube's top bar, which carries the test-network tag. A dialog over a
+/// Cube page must not dim the only sign that its coins have no value
+/// (Phase 2 S1), so the bar stays as bright as it is without the dialog.
+pub const UNDIMMED_ID: &str = "coincube.modal.undimmed";
+
+/// Finds the bounds of the base's [`UNDIMMED_ID`] container, if it has one.
+#[derive(Default)]
+struct FindUndimmed(Option<Rectangle>);
+
+impl widget::Operation for FindUndimmed {
+    fn traverse(&mut self, operate: &mut dyn FnMut(&mut dyn widget::Operation)) {
+        if self.0.is_none() {
+            operate(self);
+        }
+    }
+
+    fn container(&mut self, id: Option<&widget::Id>, bounds: Rectangle) {
+        if self.0.is_none() && id.is_some_and(|id| *id == widget::Id::new(UNDIMMED_ID)) {
+            self.0 = Some(bounds);
+        }
+    }
+}
+
+/// The parts of `area` outside `hole`, as at most four rectangles.
+fn around(area: Rectangle, hole: Option<Rectangle>) -> Vec<Rectangle> {
+    let Some(hole) = hole.and_then(|hole| area.intersection(&hole)) else {
+        return vec![area];
+    };
+    let (left, top) = (area.x, area.y);
+    let (right, bottom) = (area.x + area.width, area.y + area.height);
+    let (h_left, h_top) = (hole.x, hole.y);
+    let (h_right, h_bottom) = (hole.x + hole.width, hole.y + hole.height);
+    [
+        Rectangle::new(Point::new(left, top), Size::new(area.width, h_top - top)),
+        Rectangle::new(
+            Point::new(left, h_bottom),
+            Size::new(area.width, bottom - h_bottom),
+        ),
+        Rectangle::new(
+            Point::new(left, h_top),
+            Size::new(h_left - left, hole.height),
+        ),
+        Rectangle::new(
+            Point::new(h_right, h_top),
+            Size::new(right - h_right, hole.height),
+        ),
+    ]
+    .into_iter()
+    .filter(|r| r.width > 0.0 && r.height > 0.0)
+    .collect()
+}
+
 impl<'a, Message, Theme, Renderer> Modal<'a, Message, Theme, Renderer> {
     /// Returns a new [`Modal`]
     pub fn new(
@@ -172,7 +225,12 @@ where
                 translation,
             );
         };
+        let mut undimmed = FindUndimmed::default();
+        self.base
+            .as_widget_mut()
+            .operate(&mut state.children[0], layout, renderer, &mut undimmed);
         Some(overlay::Element::new(Box::new(Overlay {
+            undimmed: undimmed.0.map(|bounds| bounds + translation),
             position: layout.position() + translation,
             content: modal,
             tree: &mut state.children[1],
@@ -220,6 +278,8 @@ where
 }
 
 struct Overlay<'a, 'b, Message, Theme, Renderer> {
+    /// The base's [`UNDIMMED_ID`] container, in window coordinates.
+    undimmed: Option<Rectangle>,
     position: Point,
     content: &'b mut Element<'a, Message, Theme, Renderer>,
     tree: &'b mut Tree,
@@ -325,16 +385,18 @@ where
         layout: Layout<'_>,
         cursor: mouse::Cursor,
     ) {
-        renderer.fill_quad(
-            renderer::Quad {
-                bounds: layout.bounds(),
-                ..renderer::Quad::default()
-            },
-            Color {
-                a: 0.80,
-                ..Color::BLACK
-            },
-        );
+        for bounds in around(layout.bounds(), self.undimmed) {
+            renderer.fill_quad(
+                renderer::Quad {
+                    bounds,
+                    ..renderer::Quad::default()
+                },
+                Color {
+                    a: 0.80,
+                    ..Color::BLACK
+                },
+            );
+        }
 
         self.content.as_widget().draw(
             self.tree,
@@ -507,6 +569,29 @@ mod tests {
         })
     }
 
+    /// The scrim covers the base except the undimmed container: a top bar
+    /// across the base leaves exactly the area below it, and no container
+    /// leaves the whole base.
+    #[test]
+    fn the_scrim_leaves_out_the_undimmed_container() {
+        let base = Rectangle::new(Point::new(0.0, 0.0), Size::new(1440.0, 900.0));
+        assert_eq!(around(base, None), vec![base]);
+        let bar = Rectangle::new(Point::new(0.0, 0.0), Size::new(1440.0, 65.0));
+        assert_eq!(
+            around(base, Some(bar)),
+            vec![Rectangle::new(
+                Point::new(0.0, 65.0),
+                Size::new(1440.0, 835.0)
+            )]
+        );
+        // A hole inside leaves four pieces that add up to the rest.
+        let hole = Rectangle::new(Point::new(100.0, 100.0), Size::new(200.0, 50.0));
+        let pieces = around(base, Some(hole));
+        assert_eq!(pieces.len(), 4);
+        let area: f32 = pieces.iter().map(|r| r.width * r.height).sum();
+        assert_eq!(area, 1440.0 * 900.0 - 200.0 * 50.0);
+    }
+
     /// A modal over a base smaller than itself: by default the base's bounds
     /// clip it; `cover_window` lays it out against the window instead.
     #[test]
@@ -523,6 +608,7 @@ mod tests {
                     .into();
             let mut tree = Tree::new(&content);
             let mut overlay = Overlay {
+                undimmed: None,
                 position: Point::new(200.0, 300.0),
                 content: &mut content,
                 tree: &mut tree,

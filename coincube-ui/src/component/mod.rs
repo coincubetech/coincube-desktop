@@ -1,4 +1,3 @@
-use crate::locale::copy as localized_copy;
 pub mod amount;
 pub mod badge;
 pub mod button;
@@ -8,6 +7,7 @@ pub mod date_picker;
 pub mod form;
 pub mod hw;
 pub mod modal;
+pub mod notice;
 pub mod notification;
 pub mod pagination;
 pub mod payment_result;
@@ -17,20 +17,21 @@ pub mod session_status;
 pub mod spinner;
 pub mod tabs;
 pub mod tenshu;
+pub mod test_network;
 pub mod text;
 pub mod toast;
 pub mod tooltip;
 pub mod transaction;
 pub mod wordmark;
 
-use bitcoin::Network;
+pub use test_network::{test_network_name, test_network_tag};
 pub use tooltip::{tooltip, tooltip_custom};
 
 use iced::Length;
 
 use crate::{
     theme,
-    widget::{Column, Container, Element, Row},
+    widget::{Column, Container, Element},
 };
 
 use self::text::Text;
@@ -77,28 +78,4 @@ pub fn empty_placeholder<'a, M: 'a + 'static, T: Into<Element<'a, M>>>(
             ..Default::default()
         })
         .into()
-}
-
-pub fn network_banner<'a, T: 'a>(network: Network) -> Container<'a, T> {
-    Container::new(
-        Row::new()
-            .push(super::icon::warning_icon())
-            .push(text::text(localized_copy("THIS IS A ")))
-            .push(
-                text::text(match network {
-                    Network::Signet => localized_copy("SIGNET WALLET"),
-                    Network::Testnet => localized_copy("TESTNET WALLET"),
-                    Network::Testnet4 => localized_copy("TESTNET4 WALLET"),
-                    Network::Regtest => localized_copy("REGTEST WALLET"),
-                    _ => unreachable!(),
-                })
-                .bold(),
-            )
-            .push(text::text(localized_copy(", COINS HAVE ")))
-            .push(text::text(localized_copy("NO VALUE")).bold())
-            .align_y(iced::Alignment::Center),
-    )
-    .padding(5)
-    .center_x(Length::Fill)
-    .style(theme::banner::network)
 }
