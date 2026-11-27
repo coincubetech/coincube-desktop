@@ -419,9 +419,9 @@ pub fn vault_overview_view<'a>(
                     .push(
                         Column::new()
                             .spacing(8)
-                            .push(coincube_ui::component::tenshu::heading(localized_copy(
-                                "Total balance",
-                            )))
+                            .push(crate::app::view::shared::landing::balance_label(
+                                localized_copy("Total balance"),
+                            ))
                             .push(wallet_header::<Message>(WalletHeaderProps {
                                 sats: total_balance,
                                 fiat: fiat_balance,
@@ -1066,12 +1066,13 @@ mod capture_tests {
     }
 
     /// The Vault page on the type scale (`MV-Type-Scale`, "Desktop
-    /// proposed"): "Total balance" is a 20px section title (29px at 1.45)
+    /// proposed"; `P-Overview`): "Total balance" is the board's 13px label
+    /// (`.kbal`, an 18.85px line at 1.45)
     /// and the main amount is 46px, like the Overview's total: the sats row
     /// at Iced's 1.3, the fiat figure and the mask at `.big`'s 1.15. Before,
     /// the title was 20px bold and the amount 29px.
     #[test]
-    fn vault_main_amount_is_46px_under_a_20px_section_title() {
+    fn vault_main_amount_is_46px_under_a_13px_label() {
         let balance = bitcoin::Amount::from_sat(250_000);
         let zero = bitcoin::Amount::ZERO;
         let converter = || {
@@ -1139,7 +1140,12 @@ mod capture_tests {
                         theme,
                     );
                     let title = tallest(&mounted, "Total balance", &scenario);
-                    assert!((title - 29.0).abs() < 0.01, "{}: title {}", scenario, title);
+                    assert!(
+                        (title - 13.0 * 1.45).abs() < 0.01,
+                        "{}: label {}",
+                        scenario,
+                        title
+                    );
                     let amount = tallest(&mounted, figure, &scenario);
                     assert!(
                         (amount - height).abs() < 0.01,

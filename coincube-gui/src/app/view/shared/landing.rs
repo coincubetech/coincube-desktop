@@ -188,6 +188,7 @@ pub fn amount_cell<'a, M: 'a>(cell: AmountCell, tier: AmountTier) -> Element<'a,
                     tier.figure_line_height(),
                 ))
                 .font(SEMIBOLD)
+                .style(theme::tenshu::text::ink)
         }
         AmountTier::Row => text(cell.primary).size(P1_SIZE).bold(),
     };
@@ -213,6 +214,18 @@ pub fn amount_cell<'a, M: 'a>(cell: AmountCell, tier: AmountTier) -> Element<'a,
         }))
         .into()
 }
+
+/// The small muted label over a balance (`.kbal { font-size: 13px; color:
+/// var(--muted) }`): "Total balance" on Overview, Spark and Vault. A label,
+/// not a section title; "Wallets" is the section title.
+pub fn balance_label<'a>(content: impl iced::widget::text::IntoFragment<'a>) -> Text<'a> {
+    coincube_ui::component::tenshu::body(content)
+        .size(BALANCE_LABEL_SIZE)
+        .style(theme::tenshu::text::muted)
+}
+
+/// `.kbal { font-size: 13px }`.
+pub const BALANCE_LABEL_SIZE: f32 = 13.0;
 
 pub fn section_heading<'a, M: 'a>(
     title: &'static str,

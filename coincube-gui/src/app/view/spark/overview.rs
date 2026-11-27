@@ -490,7 +490,7 @@ fn connected_view<'a>(
     let total_col = Column::new()
         .spacing(4)
         .push(Row::new().spacing(8).align_y(Alignment::Center).push(
-            coincube_ui::component::tenshu::heading(localized_copy("Total balance")),
+            crate::app::view::shared::landing::balance_label(localized_copy("Total balance")),
         ))
         .push(if mask_amounts {
             amount_cell::<SparkOverviewMessage>(AmountCell::masked(), AmountTier::Total)
@@ -1573,12 +1573,13 @@ mod tests {
     }
 
     /// The Spark page on the type scale (`MV-Type-Scale`, "Desktop
-    /// proposed"): "Total balance" is a 20px section title (29px at 1.45)
+    /// proposed"; `P-Overview`): "Total balance" is the board's 13px label
+    /// (`.kbal`, an 18.85px line at 1.45)
     /// and the main amount is 46px, like the Overview's total, shown (the
     /// sats row at Iced's 1.3) and hidden (the mask at `.big`'s 1.15).
-    /// Before, the title was 20px bold and the amount 29px.
+    /// Before, it was a 20px bold title and the amount 29px.
     #[test]
-    fn spark_main_amount_is_46px_under_a_20px_section_title() {
+    fn spark_main_amount_is_46px_under_a_13px_label() {
         let snapshot = SparkBalanceSnapshot {
             balance_sats: 125_000,
             usdb_balance: None,
@@ -1597,7 +1598,12 @@ mod tests {
                     theme,
                 );
                 let title = tallest(&shown, "Total balance", &scenario);
-                assert!((title - 29.0).abs() < 0.01, "{}: title {}", scenario, title);
+                assert!(
+                    (title - 13.0 * 1.45).abs() < 0.01,
+                    "{}: label {}",
+                    scenario,
+                    title
+                );
                 let amount = tallest(&shown, "125,000", &scenario);
                 assert!(
                     (amount - 46.0 * 1.3).abs() < 0.01,

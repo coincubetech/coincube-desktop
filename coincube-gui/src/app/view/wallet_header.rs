@@ -203,6 +203,19 @@ pub fn wallet_header<'a, M: Clone + 'static>(props: WalletHeaderProps<M>) -> Col
         display_mode,
     );
 
+    // The figure draws in ink (`.big`, `.amt`). The click-to-swap control
+    // below is a transparent button whose palette text is grey, and text
+    // with no colour of its own takes the colour of the control it sits in,
+    // so the ink is set on a container around the figure; the control is
+    // otherwise unchanged. Text that names its own colour (the leading
+    // zeros, the unit) keeps it.
+    let primary: Element<'a, M> = iced::widget::container(primary)
+        .style(|theme: &theme::Theme| iced::widget::container::Style {
+            text_color: theme::tenshu::text::ink(theme).color,
+            ..Default::default()
+        })
+        .into();
+
     // Wrap the primary in a click-to-swap mouse_area when `on_swap` is
     // provided. Pointer cursor on hover is the only discoverability cue
     // — no adjacent glyph, per design feedback.

@@ -3184,9 +3184,9 @@ fn overview_total<'a>(
         .spacing(8)
         .width(Length::Fill)
         .align_y(Alignment::Center)
-        .push(coincube_ui::component::tenshu::heading(localized_copy(
-            "Total balance",
-        )))
+        .push(crate::app::view::shared::landing::balance_label(
+            localized_copy("Total balance"),
+        ))
         .push(overview_eye(
             cube_id,
             coincube_ui::locale::copy("Total Balance"),
@@ -5276,29 +5276,38 @@ mod tests {
         let fixture = ViewFixture::new();
         let activity = overview_activity();
         let menu = Menu::Cube(crate::app::menu::CubeSubMenu::Overview);
+        // Each appearance in English, then in Spanish (`overview-es`) so the
+        // longer labels beside the type scale's sizes can be checked by eye.
         for (appearance, palette) in capture_tests::themes() {
             let light = appearance == "light";
             let cache = capture_tests::cache(light, BalancePrivacy::Shown);
-            capture_tests::save_page_head_frames(
-                &mut renderer,
-                &directory,
-                "overview",
-                appearance,
-                &palette,
-                || {
-                    let mut config = fixture.config(0, None, None);
-                    config.light_theme = light;
-                    config.pending_spark_incoming = None;
-                    let transfer = transfer_head_action(&config);
-                    overview_page(
-                        &menu,
-                        &cache,
-                        transfer,
-                        overview(config),
-                        Some(recent_activity(&activity, &cache, RecentScope::Cube, None)),
+            for (name, language) in [
+                ("overview", coincube_ui::locale::Language::English),
+                ("overview-es", coincube_ui::locale::Language::Spanish),
+            ] {
+                coincube_ui::locale::render_in(language, || {
+                    capture_tests::save_page_head_frames(
+                        &mut renderer,
+                        &directory,
+                        name,
+                        appearance,
+                        &palette,
+                        || {
+                            let mut config = fixture.config(0, None, None);
+                            config.light_theme = light;
+                            config.pending_spark_incoming = None;
+                            let transfer = transfer_head_action(&config);
+                            overview_page(
+                                &menu,
+                                &cache,
+                                transfer,
+                                overview(config),
+                                Some(recent_activity(&activity, &cache, RecentScope::Cube, None)),
+                            )
+                        },
                     )
-                },
-            );
+                });
+            }
         }
     }
 
@@ -5324,16 +5333,18 @@ mod tests {
     }
 
     /// The Overview on the type scale (`MV-Type-Scale`, "Desktop proposed";
-    /// `P-Overview`): "Total balance" and "Wallets" are 20px section titles
-    /// (29px lines at 1.45), the total is a 46px figure (`.big`, line 1.15)
-    /// and each wallet card's amount is 26px (`.amt`, line 1.2), shown and
-    /// hidden, in both themes at both sizes. Before, the titles were 24px,
-    /// the total 40px and the cards 29px.
+    /// `P-Overview`): "Total balance" is the board's 13px label (`.kbal`,
+    /// an 18.85px line at 1.45), "Wallets" a 20px section title (29px), the
+    /// total a 46px figure (`.big`, line 1.15) and each wallet card's amount
+    /// 26px (`.amt`, line 1.2), shown and hidden, in both themes at both
+    /// sizes. Before, both headings were 24px, the total 40px and the cards
+    /// 29px.
     #[test]
     fn overview_amounts_and_section_titles_take_the_type_scale() {
         let hero = 46.0 * 1.15;
         let card = 26.0 * 1.2;
         let section = 20.0 * coincube_ui::theme::tenshu::type_size::LINE_HEIGHT;
+        let label = 13.0 * coincube_ui::theme::tenshu::type_size::LINE_HEIGHT;
         let fixture = ViewFixture::new();
         for (appearance, theme) in [
             ("dark", theme::Theme::dark()),
@@ -5348,14 +5359,18 @@ mod tests {
                     appearance,
                     theme,
                 );
-                for title in ["Total balance", "Wallets"] {
-                    assert_height(
-                        line_height_of(&shown, title, &scenario),
-                        section,
-                        title,
-                        &scenario,
-                    );
-                }
+                assert_height(
+                    line_height_of(&shown, "Total balance", &scenario),
+                    label,
+                    "the Total balance label",
+                    &scenario,
+                );
+                assert_height(
+                    line_height_of(&shown, "Wallets", &scenario),
+                    section,
+                    "the Wallets title",
+                    &scenario,
+                );
                 // $312.50 in total, $125.00 on Spark and $187.50 on the Vault.
                 assert_height(
                     line_height_of(&shown, "312.50", &scenario),
@@ -5393,6 +5408,71 @@ mod tests {
                 assert_height(masks[0], card, "a card mask", &scenario);
                 assert_height(masks[1], card, "a card mask", &scenario);
                 assert_height(masks[2], hero, "the total mask", &scenario);
+            }
+        }
+    }
+
+    /// The strongest pixel of the figure drawn inside the flip control `id`:
+    /// the one furthest from the panel the screenshot is taken on.
+    fn figure_core(
+        pixels: &capture::Pixels,
+        id: &iced::advanced::widget::Id,
+        panel: iced::Color,
+    ) -> iced::Color {
+        let bounds = pixels.bounds(id);
+        let distance =
+            |c: iced::Color| (c.r - panel.r).abs() + (c.g - panel.g).abs() + (c.b - panel.b).abs();
+        let mut core = panel;
+        for y in bounds.y.ceil() as u32..(bounds.y + bounds.height).floor() as u32 {
+            for x in bounds.x.ceil() as u32..(bounds.x + bounds.width).floor() as u32 {
+                let colour = pixels.at(x, y);
+                if distance(colour) > distance(core) {
+                    core = colour;
+                }
+            }
+        }
+        core
+    }
+
+    /// The Overview's total and both wallet-card amounts draw in ink, as on
+    /// `P-Overview`, in both themes and as dollars or sats. They sit in the
+    /// click-to-swap control, a transparent button whose grey palette text
+    /// used to colour them.
+    #[test]
+    fn overview_amounts_draw_in_ink() {
+        let fixture = ViewFixture::new();
+        for (appearance, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let ink = theme.colors.shell.ink;
+            let panel = theme.colors.shell.panel;
+            for display_mode in [DisplayMode::FiatNative, DisplayMode::BitcoinNative] {
+                let mut config = fixture.config(0, None, None);
+                config.display_mode = display_mode;
+                let pixels = capture::render_pixels(overview(config), (952, 900), &theme, None);
+                for (wallet, control) in [
+                    ("Hub", "total-flip-balance"),
+                    ("Spark", "flip-balance"),
+                    ("Vault", "flip-balance"),
+                ] {
+                    let core = figure_core(
+                        &pixels,
+                        &landing_control_id("test-cube", wallet, control),
+                        panel,
+                    );
+                    let off =
+                        (core.r - ink.r).abs() + (core.g - ink.g).abs() + (core.b - ink.b).abs();
+                    assert!(
+                        off < 0.06,
+                        "{} {:?} {} amount draws in ink {:?}, got {:?}",
+                        appearance,
+                        display_mode,
+                        wallet,
+                        ink,
+                        core
+                    );
+                }
             }
         }
     }
