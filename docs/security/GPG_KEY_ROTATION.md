@@ -37,14 +37,20 @@ GPG signing provides vendor-level trust independent of platform vendors (Apple, 
 
 ## Rotation Overview
 
-Generate new GPG key  
-→ Export new private & public keys  
-→ Update GitHub Secrets  
-→ Verify in CI  
-→ Publish new public key  
-→ Deprecate old key
+1. Generate the replacement key and export its public and private material.
+2. Restore-test the protected backup and verify a signature from the new key.
+3. Stage the GitHub secrets.
+4. Publish the new public key and update the workflow fingerprints.
+5. Enable release signing with the replacement.
 
-Never remove the old public key immediately — users may need it to verify historical releases.
+Keep each retired public key under `docs/security/release-keys/` with its full
+fingerprint as the filename. The existing release key is preserved byte for
+byte in [the release key archive](release-keys/ED4D0D710103D6252854681367F9701BF0D2DAF4.asc).
+
+Before activating the replacement key, record the first release version that
+uses it. Update the active public key and both `expected_fingerprint` checks
+in `.github/workflows/releases.yml` together. Update the verification guide and
+keep the archived key available for releases from before the cutoff.
 
 ---
 
@@ -86,32 +92,29 @@ Store the private key securely.
 
 ---
 
-### 3. Update GitHub Secrets
+### 3. Verify the Replacement
 
-Update the following secrets:
-
-| Secret | Description |
-|------|-------------|
-| GPG_PRIVATE_KEY | New private key (ASCII armored) |
-| GPG_PASSPHRASE | Passphrase for the key |
-
-Do not commit private keys.
+Restore the encrypted backup into an isolated GPG keyring. Use it to sign a
+sample checksum file and verify the signature in a second keyring that holds
+only the replacement public key. Check the full signature fingerprint. Use a
+historical checksum and signature to confirm that the archived public key
+still works for historical verification.
 
 ---
 
-### 4. Verify in CI
+### 4. Stage GitHub Secrets
 
-Trigger a test release:
+Keep production release signing paused while the secrets and workflow
+fingerprints are being updated. Set both secrets in the standalone repo.
 
-```bash
-git tag vX.Y.Z-test-gpg
-git push origin vX.Y.Z-test-gpg
-```
+| Secret | Description |
+|--------|-------------|
+| GPG_PRIVATE_KEY | New private key (ASCII armored) |
+| GPG_PASSPHRASE | Passphrase for the key |
 
-Confirm:
-- CI imports new key
-- Artifacts are signed
-- .asc files are uploaded
+The tag-triggered production workflow publishes release assets. Use an
+owner-approved release for the first live verification after reviewing and
+merging the public key and both workflow fingerprints.
 
 ---
 

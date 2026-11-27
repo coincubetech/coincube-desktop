@@ -1062,7 +1062,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_REF_NAME" = "v$RELEASE_VERSION"
-          expected_fingerprint=ED4D0D710103D6252854681367F9701BF0D2DAF4
+          expected_fingerprint=B847C6267DD910B90B0DBDB448A152377E8FB081
           actual_fingerprint=$(gpg --batch --show-keys --with-colons docs/security/coincube-release-public.asc \
             | awk -F: '$1 == "fpr" { print $10; exit }')
           test "$actual_fingerprint" = "$expected_fingerprint"
@@ -1117,7 +1117,7 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REF_NAME" = "v$RELEASE_VERSION" \
             || { echo "release tag $GITHUB_REF_NAME does not match Cargo version $RELEASE_VERSION"; exit 1; }
-          expected_fingerprint=ED4D0D710103D6252854681367F9701BF0D2DAF4
+          expected_fingerprint=B847C6267DD910B90B0DBDB448A152377E8FB081
           actual_fingerprint=$(gpg --batch --show-keys --with-colons docs/security/coincube-release-public.asc \
             | awk -F: '$1 == "fpr" { print $10; exit }')
           test "$actual_fingerprint" = "$expected_fingerprint"
