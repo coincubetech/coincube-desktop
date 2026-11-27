@@ -1,8 +1,9 @@
 //! The legacy card family.
 //!
 //! Desktop V3 (plan V5): a neutral card is a fill and a 16 px radius, with no
-//! outline. Coloured alert cards (`invalid`, `warning`, `error`) keep their
-//! coloured border and fill (invariant R5); they only share the radius.
+//! outline. Coloured alert cards (`invalid`, `warning`, `error`) are not
+//! restyled in Phase 1 (invariant R5): they keep their coloured border, fill
+//! and the legacy 25 px radius.
 //!
 //! A box must never sit on a box of the same fill with nothing between them
 //! (invariant R4). A card inside a panel-filled card uses [`inset`]; a card
@@ -33,14 +34,17 @@ fn neutral(fill: Color, text_color: Option<Color>) -> Style {
     }
 }
 
-/// A coloured alert card: keeps its palette border.
+/// The legacy radius coloured alerts keep until Phase 2 (R5).
+pub const ALERT_RADIUS: f32 = 25.0;
+
+/// A coloured alert card, unchanged from before V3 (R5).
 fn alert(palette: &ContainerPalette) -> Style {
     Style {
         background: Some(Background::Color(palette.background)),
         text_color: palette.text,
         border: match palette.border {
             Some(color) => Border {
-                radius: RADIUS.into(),
+                radius: ALERT_RADIUS.into(),
                 width: 1.0,
                 color,
             },
@@ -173,20 +177,73 @@ mod tests {
                 assert_eq!(Some(style.border.color), palette.border, "{name}");
                 assert_eq!(fill(&style), Some(palette.background), "{name}");
                 assert_eq!(style.text_color, palette.text, "{name}");
-                assert_eq!(style.border.radius.top_left, 16.0, "{name}");
+                assert_eq!(style.border.radius.top_left, 25.0, "{name} keeps 25 (R5)");
             }
         }
     }
 
+    /// WCAG relative luminance of an sRGB colour.
+    fn luminance(c: Color) -> f32 {
+        let lin = |v: f32| {
+            if v <= 0.040_45 {
+                v / 12.92
+            } else {
+                ((v + 0.055) / 1.055).powf(2.4)
+            }
+        };
+        0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b)
+    }
+
+    /// WCAG contrast ratio between two opaque colours (always >= 1).
+    fn contrast(a: Color, b: Color) -> f32 {
+        let (la, lb) = (luminance(a), luminance(b));
+        (la.max(lb) + 0.05) / (la.min(lb) + 0.05)
+    }
+
+    /// The fill-only design separates a card from what it sits on by fill
+    /// alone. The pair is the same as a card on the page (panel on
+    /// background): about 1.10:1 in dark and 1.05:1 in light. This floor is
+    /// a regression guard on that pair, not an accessibility claim; it is
+    /// far below WCAG 1.4.11's 3:1 for UI components.
+    const MIN_FILL_SEPARATION: f32 = 1.04;
+
     #[test]
     fn inset_separates_from_a_panel_card() {
         for theme in themes() {
-            assert_ne!(
-                fill(&inset(&theme)),
-                fill(&simple(&theme)),
-                "inset must differ from the panel fill in {:?}",
+            let inset = fill(&inset(&theme)).unwrap();
+            let panel = fill(&simple(&theme)).unwrap();
+            let ratio = contrast(inset, panel);
+            assert!(
+                ratio >= MIN_FILL_SEPARATION,
+                "inset vs panel is {ratio:.3}:1 in {:?}, below {MIN_FILL_SEPARATION}:1",
                 theme.mode
             );
+        }
+    }
+
+    /// The `outlined` and `tooltip` line must stand apart from the panel it
+    /// borders: about 1.62:1 in dark and 1.85:1 in light. Also below WCAG's
+    /// 3:1, like every line token in the shell palette.
+    const MIN_LINE_SEPARATION: f32 = 1.5;
+
+    #[test]
+    fn outline_stands_apart_from_the_panel() {
+        for theme in themes() {
+            let panel = theme.colors.shell.panel;
+            for (name, style) in [("outlined", outlined(&theme)), ("tooltip", tooltip(&theme))] {
+                let ratio = contrast(style.border.color, panel);
+                assert!(
+                    ratio >= MIN_LINE_SEPARATION,
+                    "{name} line vs panel is {ratio:.3}:1 in {:?}, below {MIN_LINE_SEPARATION}:1",
+                    theme.mode
+                );
+                // Over the page background too, where `outlined` often sits.
+                let ratio = contrast(style.border.color, theme.colors.shell.background);
+                assert!(
+                    ratio >= MIN_LINE_SEPARATION,
+                    "{name} line vs background {ratio:.3}:1"
+                );
+            }
         }
     }
 
