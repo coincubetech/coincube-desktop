@@ -7466,10 +7466,13 @@ impl ConnectAccountPanel {
                 } else {
                     selections.push(cube_id);
                 }
-                // Clear the "cube unavailable" dialog on any edit so a
-                // stale message doesn't linger after the user adjusts
-                // their picks.
+                // Clear the "cube unavailable" dialog, and the plan-limit
+                // line, on any edit so a stale message doesn't linger
+                // after the user adjusts their picks.
                 self.contacts_state.invite_cube_error = None;
+                if self.contacts_state.error.as_deref() == Some(INVITE_CONNECT_OFF_ERROR) {
+                    self.contacts_state.error = None;
+                }
             }
 
             ContactsMessage::BackToList => {
@@ -7601,9 +7604,12 @@ impl ConnectAccountPanel {
     /// that Cube shows as off and drops out of the selection; ticking it
     /// again is not possible, so the same refusal can't repeat.
     fn recover_connect_off_invite(&mut self, msg: String) -> iced::Task<Message> {
+        // The server's text is English only; the line shown is the app's
+        // own, translated, and the server's goes to the log.
+        log::warn!("[CONTACTS] Invite refused, Connect off for a chosen Cube: {msg}");
         self.contacts_state.invite_sending = false;
         self.contacts_state.invite_cube_error = None;
-        self.contacts_state.error = Some(msg);
+        self.contacts_state.error = Some(INVITE_CONNECT_OFF_ERROR.to_string());
         let request = self.next_invite_cubes_request();
         load_invite_cubes(
             &self.client,
@@ -8789,6 +8795,10 @@ fn load_duress_state(client: &CoincubeClient, generation: u64) -> iced::Task<Mes
         },
     )
 }
+
+/// The invite form's error line after a 403 CONNECT_FEATURES_OFF refusal.
+/// The view passes it through `locale::notice`, which translates it.
+pub(crate) const INVITE_CONNECT_OFF_ERROR: &str = "Invitations can't name a Cube with Connect off. That Cube is over its owner's plan Cube limit.";
 
 /// Whether an API error is the 403 CONNECT_FEATURES_OFF refusal (a Cube over
 /// its owner's plan Cube limit), told apart from other 403s by the error
@@ -10241,11 +10251,25 @@ mod invite_form_tests {
         );
         assert!(!panel.contacts_state.invite_sending);
         assert!(panel.contacts_state.invite_cube_error.is_none());
+        // The app's own, translatable line; not the server's English.
         assert_eq!(
             panel.contacts_state.error.as_deref(),
-            Some("This Cube is over its owner's plan Cube limit.")
+            Some(INVITE_CONNECT_OFF_ERROR)
         );
         assert_ne!(panel.contacts_state.invite_cubes_request, before);
+
+        // Ticking another Cube clears the line; an email error is left alone.
+        let gen = panel.session_generation();
+        let request = panel.contacts_state.invite_cubes_request;
+        dispatch(
+            &mut panel,
+            ContactsMessage::InviteCubesAvailable(Ok(vec![option(1, "Alpha")]), gen, request),
+        );
+        dispatch(&mut panel, ContactsMessage::ToggleInviteCube(1));
+        assert!(panel.contacts_state.error.is_none());
+        panel.contacts_state.error = Some("Please enter a valid email address".into());
+        dispatch(&mut panel, ContactsMessage::ToggleInviteCube(1));
+        assert!(panel.contacts_state.error.is_some());
     }
 
     /// A Cube with Connect off can't be ticked, and a reload that finds a

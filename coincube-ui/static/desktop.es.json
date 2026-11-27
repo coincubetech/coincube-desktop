@@ -1322,6 +1322,7 @@
   "Invitation": "Invitación",
   "Invitation token is invalid or expired": "El token de invitación no es válido o caducó",
   "Invitation was sent": "Se envió una invitación",
+  "Invitations can't name a Cube with Connect off. That Cube is over its owner's plan Cube limit.": "Las invitaciones no pueden nombrar un Cube con Connect desactivado. Ese Cube supera el límite de Cubes del plan de su propietario.",
   "Invite Contact": "Invitar contacto",
   "Invite by email. Existing contacts are added immediately; new emails get an invite and join on accept.": "Invita por correo electrónico. Los contactos existentes se añaden de inmediato; los correos nuevos reciben una invitación y se unen al aceptarla.",
   "Invite resent": "Invitación reenviada",

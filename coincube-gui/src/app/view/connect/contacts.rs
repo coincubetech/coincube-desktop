@@ -532,12 +532,13 @@ fn invite_form_ux<'a>(state: &'a ConnectAccountPanel) -> Element<'a, ConnectAcco
     form.into()
 }
 
-/// Renders the cube multi-select list. Each row is a labelled
-/// [`CheckBox`] emitting `ToggleInviteCube(id)` on toggle.
 /// Why a Cube in the invite form can't be ticked.
 const INVITE_CUBE_CONNECT_OFF: &str =
     "Connect is off for this Cube: it is over the plan's Cube limit.";
 
+/// Renders the cube multi-select list. Each row is a labelled
+/// [`CheckBox`] emitting `ToggleInviteCube(id)` on toggle; a Cube with
+/// Connect off is shown dimmed, with its reason, and can't be ticked.
 fn invite_cubes_section<'a>(
     cubes: &'a [crate::app::state::connect::InviteCubeOption],
     selections: &'a [u64],
@@ -557,7 +558,13 @@ fn invite_cubes_section<'a>(
                     .push(
                         CheckBox::new(false)
                             .label(label)
-                            .style(theme::checkbox::primary)
+                            // Dimmed: the primary style looks the same
+                            // whether or not the box can be ticked.
+                            .style(|t: &theme::Theme, status| {
+                                let mut style = theme::checkbox::primary(t, status);
+                                style.text_color = Some(t.colors.text.secondary);
+                                style
+                            })
                             .size(18),
                     )
                     .push(

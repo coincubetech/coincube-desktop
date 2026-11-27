@@ -389,6 +389,18 @@ fn a_connect_off_cube_is_listed_but_cannot_be_ticked() {
     ));
     assert!(spanish
         .contains("Connect está desactivado en este Cube: supera el límite de Cubes del plan."));
+
+    // After a plan-limit refusal the form's error line is translated too.
+    let mut refused = invite_form(Some(vec![cube()]));
+    refused.contacts_state.error =
+        Some(crate::app::state::connect::INVITE_CONNECT_OFF_ERROR.to_string());
+    let spanish = inspect(coincube_ui::locale::render_in(
+        coincube_ui::locale::Language::Spanish,
+        || contacts_ux(&refused),
+    ));
+    assert!(spanish.contains(
+        "Las invitaciones no pueden nombrar un Cube con Connect desactivado. Ese Cube supera el límite de Cubes del plan de su propietario."
+    ));
 }
 
 #[test]
