@@ -1347,7 +1347,7 @@ pub fn view<'a>(step: &'a Step, quote: &'a Quote) -> Element<'a, ViewMessage> {
 
 /// The line Cube alone, with the loading quote as text below it (brand brief,
 /// 2026-11-26, section 5). No artwork.
-fn cube_and_quote<'a>(quote: &'a Quote) -> Element<'a, ViewMessage> {
+pub(crate) fn cube_and_quote<'a, M: 'a>(quote: &'a Quote) -> Element<'a, M> {
     Container::new(
         Column::new()
             .align_x(Alignment::Center)

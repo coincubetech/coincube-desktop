@@ -45,9 +45,9 @@ pub const APP_PREFERENCES: &str = "App preferences";
 pub const CUBE: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
 /// The same Cube with the lighter line the brand brief (2026-11-26, section
 /// 3) gives it from 48 to 128 px.
-const CUBE_DISPLAY: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
+const CUBE_DISPLAY: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
 /// And with the line it takes above 128 px.
-const CUBE_HERO: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="0.75" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
+const CUBE_HERO: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="0.75" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
 /// The eye while balances are shown.
 pub const EYE_OPEN: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>"##;
 /// The eye while balances are hidden or not yet known.
@@ -560,13 +560,15 @@ mod tests {
     /// grows: 1 unit up to 128 px, 0.75 above (brand brief, section 3).
     #[test]
     fn the_display_cube_is_the_bar_cube_with_a_lighter_line() {
-        let geometry = |svg: &str| svg[svg.find("<path").unwrap()..].to_owned();
-        assert!(display_cube_source(96.0).contains(r#"stroke-width="1""#));
-        assert!(display_cube_source(128.0).contains(r#"stroke-width="1""#));
-        assert!(display_cube_source(160.0).contains(r#"stroke-width="0.75""#));
-        for side in [96.0, 160.0] {
-            assert_eq!(geometry(display_cube_source(side)), geometry(CUBE));
-        }
+        let as_bar = |svg: &str, width: &str| {
+            svg.replace(
+                &format!(r#"stroke-width="{width}""#),
+                r#"stroke-width="1.5""#,
+            )
+        };
+        assert_eq!(as_bar(display_cube_source(96.0), "1"), CUBE);
+        assert_eq!(as_bar(display_cube_source(128.0), "1"), CUBE);
+        assert_eq!(as_bar(display_cube_source(160.0), "0.75"), CUBE);
     }
     use iced::advanced::renderer::Headless;
     use iced::advanced::widget::operation::{focusable, Focusable, Outcome};
