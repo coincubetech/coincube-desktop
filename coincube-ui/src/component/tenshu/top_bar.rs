@@ -168,9 +168,17 @@ fn mark<'a, M: 'a>(
 /// Opening's mark, where the ink artwork used to be. Its line lightens as it
 /// grows, so it never reads heavier than the bar's 20 px Cube.
 pub fn display_cube<'a, M: 'a>(side: f32, opacity: f32) -> Element<'a, M> {
-    mark(display_cube_source(side), side, move |theme| {
-        theme.colors.shell.ink.scale_alpha(opacity)
+    // SVG tint alpha is ignored by Iced's renderers; fade the widget itself.
+    svg(svg::Handle::from_memory(
+        display_cube_source(side).as_bytes(),
+    ))
+    .width(Length::Fixed(side))
+    .height(Length::Fixed(side))
+    .opacity(opacity)
+    .style(|theme: &Theme, _| svg::Style {
+        color: Some(theme.colors.shell.ink),
     })
+    .into()
 }
 
 /// 1 unit of line up to 128 px, 0.75 above.
@@ -581,6 +589,57 @@ mod tests {
     use crate::font;
     use iced::advanced::renderer::Headless;
     use iced::advanced::widget::operation::{focusable, Focusable, Outcome};
+
+    #[test]
+    fn display_cube_fades_at_intermediate_opacity_without_changing_full_ink() {
+        let render = |mut element: Element<'_, ()>, theme: &Theme, side: u32| {
+            let mut renderer = renderer();
+            let size = Size::new(side as f32, side as f32);
+            let mut tree = Tree::new(element.as_widget());
+            let node = element.as_widget_mut().layout(
+                &mut tree,
+                &renderer,
+                &layout::Limits::new(Size::ZERO, size),
+            );
+            element.as_widget().draw(
+                &tree,
+                &mut renderer,
+                theme,
+                &renderer::Style {
+                    text_color: theme.colors.shell.ink,
+                },
+                Layout::new(&node),
+                mouse::Cursor::Unavailable,
+                &Rectangle::with_size(size),
+            );
+            renderer.screenshot(Size::new(side, side), 1.0, theme.colors.shell.background)
+        };
+        for theme in [Theme::dark(), Theme::light()] {
+            for side in [96, 160] {
+                let full = render(display_cube(side as f32, 1.0), &theme, side);
+                let original = render(
+                    mark(display_cube_source(side as f32), side as f32, |theme| {
+                        theme.colors.shell.ink
+                    }),
+                    &theme,
+                    side,
+                );
+                assert!(full == original, "full opacity must preserve the ink");
+                let blank = render(Space::new().into(), &theme, side);
+                assert!(render(display_cube(side as f32, 0.0), &theme, side) == blank);
+                let contrast = |pixels: &[u8]| -> u64 {
+                    pixels
+                        .iter()
+                        .zip(&blank)
+                        .map(|(a, b)| u64::from(a.abs_diff(*b)))
+                        .sum()
+                };
+                let quarter = contrast(&render(display_cube(side as f32, 0.25), &theme, side));
+                let half = contrast(&render(display_cube(side as f32, 0.5), &theme, side));
+                assert!(0 < quarter && quarter < half && half < contrast(&full));
+            }
+        }
+    }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     enum Message {
