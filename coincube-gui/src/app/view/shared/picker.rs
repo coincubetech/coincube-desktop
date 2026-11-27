@@ -180,14 +180,15 @@ where
     .into()
 }
 
+/// A dropdown's floating list: the shadow sets it apart, so it has no
+/// outline.
 pub fn dropdown_menu_style(theme: &theme::Theme) -> container::Style {
     let shell = &theme.colors.shell;
     container::Style {
         background: Some(Background::Color(shell.background)),
         border: iced::Border {
-            color: shell.line,
-            width: 1.0,
             radius: 8.0.into(),
+            ..Default::default()
         },
         shadow: iced::Shadow {
             color: shell.shadow,
@@ -364,5 +365,19 @@ pub fn open_tile_style(theme: &theme::Theme, _: iced_button::Status) -> iced_but
             radius: 8.0.into(),
         },
         ..Default::default()
+    }
+}
+
+#[cfg(test)]
+mod menu_style_tests {
+    use super::*;
+
+    #[test]
+    fn the_dropdown_floats_on_its_shadow_without_an_outline() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let style = dropdown_menu_style(&theme);
+            assert_eq!(style.border.width, 0.0);
+            assert!(style.shadow.color.a > 0.0 && style.shadow.blur_radius > 0.0);
+        }
     }
 }
