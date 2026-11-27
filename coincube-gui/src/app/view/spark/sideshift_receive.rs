@@ -36,6 +36,19 @@ use crate::app::state::spark::sideshift_receive::{SparkShiftPhase, SparkSideshif
 use crate::app::view::SparkSideshiftReceiveMessage as Msg;
 use crate::services::sideshift::{DepositOption, ShiftResponse, ShiftStatusKind};
 
+/// A box in the SideShift body on Receive's page (P-Receive `.ngen`): the
+/// panel fill, 12px corners and no outline, apart from the page fill (R4).
+pub(crate) fn panel_box_style(theme: &theme::Theme) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(theme.colors.shell.panel)),
+        border: iced::Border {
+            radius: 12.0.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
 /// `confirmations` is how many blocks the swap's settle transaction has, when
 /// the caller can match it to one of the wallet's pending deposits;
 /// `reduce_motion` holds the in-progress pulse steady.
@@ -103,8 +116,9 @@ fn setup_body(flow: &SparkSideshiftReceiveFlow) -> Element<'_, Msg> {
     let refund_card = Container::new(refund)
         .padding(16)
         .width(Length::Fill)
-        // Inside the panel-filled Spark receive card: background fill (R4).
-        .style(theme::card::inset);
+        // Receive has no card around its form (P-Receive), so this box sits on
+        // the page: the panel fill keeps it apart from the page (R4).
+        .style(panel_box_style);
 
     // Master invariant 9: name the third party and the jurisdictional caveat.
     // The user is handing funds to SideShift, not to us, and they should know
@@ -121,8 +135,8 @@ fn setup_body(flow: &SparkSideshiftReceiveFlow) -> Element<'_, Msg> {
     )
     .padding([8, 12])
     .width(Length::Fill)
-    // Inside the panel-filled Spark receive card: background fill (R4).
-    .style(theme::card::inset);
+    // On the page, like the refund box: the panel fill (R4).
+    .style(panel_box_style);
 
     let generate_btn = if flow.is_loading() {
         button::primary(None, localized_copy("Generating…")).width(Length::Fill)
