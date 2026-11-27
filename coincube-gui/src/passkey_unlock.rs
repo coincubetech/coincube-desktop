@@ -41,7 +41,7 @@ use iced::{Alignment, Length, Task};
 
 use coincube_ui::{
     component::{
-        quote_display::{self, Quote, QuoteDisplayProps},
+        quote_display::{self, Quote},
         text::{p1_regular, text},
     },
     theme,
@@ -482,9 +482,11 @@ impl PasskeyUnlock {
                     .spacing(20)
                     .align_x(Alignment::Center)
                     .push(Space::new().height(Length::Fill))
-                    .push(quote_display::display(&QuoteDisplayProps::new(
-                        &self.loading_quote,
-                    )))
+                    // The line Cube, not a quote: only the Cube loader (the
+                    // Launcher's opening face and the full-page loader)
+                    // shows one (Robert, 2026-11-27). `loading_quote` still
+                    // seeds the opening face's quote cycle.
+                    .push(coincube_ui::component::tenshu::top_bar::cube_mark(128.0))
                     .push(crate::loading::loading_indicator(None))
                     .push(text(CopyText::LoadingYourCube.get()).style(theme::text::secondary))
                     .push(Space::new().height(Length::Fill)),
@@ -613,6 +615,32 @@ mod tests {
         );
         assert!(shown.contains("Desbloquear con llave de acceso"));
         assert!(shown.contains("Se canceló la comprobación con Touch ID"));
+    }
+
+    /// "Loading your Cube" shows the line Cube, not a quote: only the Cube
+    /// loader (the opening face and the full-page loader) shows one
+    /// (Robert, 2026-11-27).
+    #[test]
+    fn opening_shows_no_quote() {
+        use crate::app::view::shared::landing::capture;
+
+        let mut passkey = screen();
+        passkey.phase = Phase::Opening;
+        let quote = passkey.loading_quote().localized_text().to_owned();
+        let view =
+            passkey.view_with_theme_and_floor(coincube_ui::theme::palette::ThemeMode::Dark, None);
+        let shown = capture::inspect(
+            "passkey-opening",
+            view,
+            (1024, 768),
+            "dark",
+            theme::Theme::dark(),
+        );
+        assert!(shown.contains(CopyText::LoadingYourCube.get()));
+        assert!(
+            !shown.contains(&quote),
+            "the passkey loading view must not show a quote"
+        );
     }
 
     /// Losing the session between a successful assertion and the wallet load

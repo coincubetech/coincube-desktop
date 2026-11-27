@@ -43,6 +43,9 @@ pub const APP_PREFERENCES: &str = "App preferences";
 
 /// `.brand`'s cube.
 pub const CUBE: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
+/// The cube at display size (48 to 128 px): the same drawing with the lighter
+/// 1-unit line (brand brief, 2026-11-26, section 3).
+pub const CUBE_DISPLAY: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>"##;
 /// The eye while balances are shown.
 pub const EYE_OPEN: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>"##;
 /// The eye while balances are hidden or not yet known.
@@ -187,6 +190,13 @@ pub fn brand_mark<'a, M: 'a>(muted: bool) -> Element<'a, M> {
         brand_word(move |theme| ink(theme, muted)),
     )
     .into()
+}
+
+/// The line Cube on its own, in the theme's ink: the mark a loading screen
+/// shows when it has no quote. 48 px and up use the lighter display line.
+pub fn cube_mark<'a, M: 'a>(size: f32) -> Element<'a, M> {
+    let source = if size >= 48.0 { CUBE_DISPLAY } else { CUBE };
+    mark(source, size, |theme| ink(theme, false))
 }
 
 /// `.brand` as the way back to the Launcher. Hover turns the whole mark the
