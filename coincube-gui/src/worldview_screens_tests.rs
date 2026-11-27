@@ -212,3 +212,43 @@ fn spanish_samurai_wallet_actions_and_errors_render_together() {
     assert!(rendered.contains("Ingresa un número entero de sats"));
     assert!(rendered.contains("CC-XFER-INPUT"));
 }
+
+/// Desktop V3 Phase 1 (V7): a mode switch changes the network names and the
+/// voice line, and no colour. The accent, its ink, the whole palette and the
+/// rule over the Overview's voice line are the same in all three worldviews,
+/// in both themes.
+#[test]
+fn a_mode_switch_changes_network_names_and_voice_lines_and_no_colour() {
+    use coincube_ui::component::tenshu::worldview_hero::voice_rule_color;
+    use coincube_ui::worldview_copy::VoiceLine;
+    use std::collections::BTreeSet;
+
+    let modes = [
+        WorldviewMode::Samurai,
+        WorldviewMode::Suitcoiner,
+        WorldviewMode::Luke,
+    ];
+    for base in [Theme::dark(), Theme::light()] {
+        let mut names = BTreeSet::new();
+        let mut lines = BTreeSet::new();
+        for mode in modes {
+            let theme = base.with_worldview(mode);
+            assert_eq!(theme.colors.shell.accent, base.colors.shell.accent);
+            assert_eq!(theme.colors.shell.accent_ink, base.colors.shell.accent_ink);
+            assert_eq!(theme.colors, base.colors, "{mode:?}: no colour changes");
+            assert_eq!(voice_rule_color(&theme), voice_rule_color(&base));
+
+            names.insert((
+                crate::chain::worldview_chain_label(ChainId::Bitcoin, mode),
+                crate::chain::worldview_chain_label(ChainId::BitcoinBlake2b, mode),
+            ));
+            lines.insert(VoiceLine::Overview.for_mode(mode));
+        }
+        assert_eq!(
+            names.len(),
+            modes.len(),
+            "each mode names the networks its way"
+        );
+        assert_eq!(lines.len(), modes.len(), "each mode has its own voice line");
+    }
+}
