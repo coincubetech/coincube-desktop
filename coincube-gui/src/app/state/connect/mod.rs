@@ -138,6 +138,8 @@ mod secret_isolation_tests {
     }
 }
 
+#[cfg(test)]
+pub(crate) use account::INVITE_CONNECT_OFF_ERROR;
 pub use account::{
     cube_backup_completeness, duress_gate_blocked, duress_tier1_gate_blocked, AddToCubeDialog,
     CheckoutPhase, CheckoutState, ConnectAccountPanel, ConnectFlowStep, ContactsState,

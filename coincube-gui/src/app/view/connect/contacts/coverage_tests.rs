@@ -18,6 +18,7 @@ fn cube() -> InviteCubeOption {
         id: 9,
         name: "Synthetic Cube".into(),
         network: "bitcoin".into(),
+        connect_off: false,
     }
 }
 
@@ -353,6 +354,53 @@ fn send_needs_a_cube_ticked() {
     state.contacts_state.invite_cube_selections = vec![9];
     let messages = capture::click_text(contacts_ux(&state), "Send Invite", 0, (1024, 1600));
     assert!(has_submit(&messages), "Send is enabled with a Cube ticked");
+}
+
+/// A Cube over its owner's plan limit (Connect off) is listed with the
+/// reason and can't be ticked: clicking it sends nothing, and with only
+/// such Cubes Send stays disabled.
+#[test]
+fn a_connect_off_cube_is_listed_but_cannot_be_ticked() {
+    let off = InviteCubeOption {
+        id: 4,
+        name: "Over Limit".into(),
+        network: "bitcoin".into(),
+        connect_off: true,
+    };
+    let state = invite_form(Some(vec![off]));
+    let view = inspect(contacts_ux(&state));
+    assert!(view.contains("Over Limit (bitcoin)"));
+    assert!(view.contains("Connect is off for this Cube: it is over the plan's Cube limit."));
+    assert!(!view.contains(NO_CUBE), "the user does own a Cube");
+    let messages =
+        capture::click_text(contacts_ux(&state), "Over Limit (bitcoin)", 0, (1024, 1600));
+    assert!(
+        !messages.iter().any(|m| matches!(
+            m,
+            ConnectAccountMessage::Contacts(ContactsMessage::ToggleInviteCube(_))
+        )),
+        "a Cube with Connect off can't be ticked"
+    );
+    let messages = capture::click_text(contacts_ux(&state), "Send Invite", 0, (1024, 1600));
+    assert!(!has_submit(&messages));
+    let spanish = inspect(coincube_ui::locale::render_in(
+        coincube_ui::locale::Language::Spanish,
+        || contacts_ux(&state),
+    ));
+    assert!(spanish
+        .contains("Connect está desactivado en este Cube: supera el límite de Cubes del plan."));
+
+    // After a plan-limit refusal the form's error line is translated too.
+    let mut refused = invite_form(Some(vec![cube()]));
+    refused.contacts_state.error =
+        Some(crate::app::state::connect::INVITE_CONNECT_OFF_ERROR.to_string());
+    let spanish = inspect(coincube_ui::locale::render_in(
+        coincube_ui::locale::Language::Spanish,
+        || contacts_ux(&refused),
+    ));
+    assert!(spanish.contains(
+        "Las invitaciones no pueden nombrar un Cube con Connect desactivado. Ese Cube supera el límite de Cubes del plan de su propietario."
+    ));
 }
 
 #[test]

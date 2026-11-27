@@ -2018,6 +2018,10 @@ pub enum ContactsMessage {
     /// A cube id from the last submit was 403'd by the backend (W12).
     /// Triggers an "unavailable cubes" dialog and reloads the cube list.
     InviteCubeForbidden(String),
+    /// The last submit was refused because a chosen Cube has Connect
+    /// features off (403 CONNECT_FEATURES_OFF, over its owner's plan Cube
+    /// limit). Shows the server's explanation and reloads the cube list.
+    InviteConnectOff(String),
     // --- W14: add-existing-contact-to-cube ---
     /// Open the multi-select "Add to Cube(s)…" dialog for an existing
     /// contact. Kicks off the candidate-cube fetch.
