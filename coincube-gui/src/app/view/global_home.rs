@@ -3431,7 +3431,7 @@ mod tests {
     /// A transfer step as the shell shows it: the page head (as
     /// [`transfer_page_head`] builds it from the Cube) above the body.
     fn transfer_dialog_for(config: GlobalViewConfig<'_>) -> Element<'_, Message> {
-        let context = format!("{} · {}", config.cube_name, network_name(config.chain));
+        let context = config.cube_name.to_owned();
         let screen = global_home_view(config)
             .1
             .expect("a transfer step renders its page");
@@ -5653,7 +5653,7 @@ mod tests {
         let amount = inspect_dialog("transfer-details", amount);
         for label in [
             "Transfer",
-            "Everyday · Bitcoin mainnet",
+            "Everyday",
             "Transfer details",
             "From",
             "Available 250,000 SATS",

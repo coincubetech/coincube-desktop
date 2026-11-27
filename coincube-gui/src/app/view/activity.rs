@@ -1029,20 +1029,6 @@ pub fn render<'a>(activity: &'a Activity, cache: &'a Cache) -> Element<'a, Messa
     .into()
 }
 
-/// The Cube's coin before its name (`.idl > img`).
-fn network_coin<'a>(cache: &Cache) -> Element<'a, Message> {
-    let light = matches!(
-        cache.theme_mode,
-        coincube_ui::theme::palette::ThemeMode::Light
-    );
-    iced::widget::Svg::new(iced::widget::svg::Handle::from_memory(
-        crate::home::launcher_coin::widget_source(cache.chain(), 16.0, 1.0, light).into_bytes(),
-    ))
-    .width(Length::Fixed(16.0))
-    .height(Length::Fixed(16.0))
-    .into()
-}
-
 /// `.lbtn`: an accent text button.
 fn link_button<'a>(
     id: &'static str,
@@ -1177,17 +1163,11 @@ fn header<'a>(
             iced::widget::text::LineHeight::Relative(page_head::TITLE_LINE_HEIGHT)
         ),
         row![
-            network_coin(cache),
+            // `.idl`: the coin, then the Cube's name as every page head
+            // shows it, cut short; no network (S1: the tag names a test one).
+            super::cube_coin(cache),
             words(
-                format!(
-                    "{} · {}",
-                    if cache.cube_name.is_empty() {
-                        "Cube"
-                    } else {
-                        cache.cube_name.as_str()
-                    },
-                    super::nav::shell::network_label(cache.chain())
-                ),
+                super::cube_display_name(cache),
                 13.0,
                 font::REGULAR,
                 glyph::muted
@@ -2876,7 +2856,10 @@ mod tests {
 
     #[test]
     fn activity_title_sits_where_every_page_head_puts_it() {
-        let cache = Cache::default();
+        let cache = Cache {
+            cube_name: "Everyday".into(),
+            ..Cache::default()
+        };
         let activity = Activity::new(None);
         let line = |inspection: &capture::Inspection, value: &str| {
             inspection
@@ -2896,7 +2879,7 @@ mod tests {
         let cube_line = activity_page
             .text
             .iter()
-            .find(|(text, _)| text.contains(" · "))
+            .find(|(text, _)| text == "Everyday")
             .expect("rendered Cube line")
             .clone();
         let shared = mount(
@@ -2914,6 +2897,47 @@ mod tests {
         assert_eq!(activity_title.y, overview_title.y);
         assert_eq!(activity_title.height, overview_title.height);
         assert_eq!(cube_line.1.y, line(&shared, &cube_line.0).y);
+    }
+
+    /// W6: Activity's Cube line is the short name every page head uses,
+    /// with no network after it, on mainnet and on a test network.
+    #[test]
+    fn activity_head_shows_the_short_cube_name_and_no_network() {
+        for chain in [
+            crate::chain::ChainId::Bitcoin,
+            crate::chain::ChainId::Testnet4,
+        ] {
+            let cache = Cache {
+                cube_name: "A very long Cube name\nthat goes on and on".into(),
+                fiat_chain: chain,
+                ..Cache::default()
+            };
+            let activity = Activity::new(None);
+            let shown = mount(
+                "activity-head-short-name",
+                render_at_width(&activity, &cache, 1192.0),
+                (1440, 900),
+                "dark",
+                coincube_ui::theme::Theme::dark(),
+                1192,
+            );
+            assert!(
+                shown
+                    .text
+                    .iter()
+                    .any(|(text, _)| text == "A very long Cube…"),
+                "{:?}: {:?}",
+                chain,
+                shown.text
+            );
+            let network = crate::app::view::nav::shell::network_label(chain);
+            assert!(
+                !shown.text.iter().any(|(text, _)| text.contains(network)),
+                "{:?} named in {:?}",
+                network,
+                shown.text
+            );
+        }
     }
 
     #[test]
@@ -3142,7 +3166,9 @@ mod tests {
                     assert!(mounted.contains("Search label or id"));
                     assert!(mounted.contains("−4,200"));
                     assert!(mounted.contains("SATS"));
-                    assert!(mounted.contains("Cube · Bitcoin Blake2b mainnet"));
+                    // The Cube line names no network (W6, S1).
+                    assert!(mounted.text.iter().any(|(text, _)| text == "Cube"));
+                    assert!(!mounted.contains("Bitcoin Blake2b mainnet"));
                     assert!(mounted.has_focus(row_focus_id(&id)));
                     assert_eq!(mounted.has_focus(Id::from(DETAIL_CLOSE_ID)), selected);
                     assert_eq!(

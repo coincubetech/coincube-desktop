@@ -11495,6 +11495,55 @@ pub(crate) mod tests {
         );
     }
 
+    /// W6 keeps S1: with the network gone from the Cube switcher and the
+    /// page subtitles, on every test network the tag is where a top-level
+    /// page names the network. No other line is the network's name or ends
+    /// in "· ‹network›" (the old switcher row and subtitle). A Vault's ID
+    /// row in its settings keeps its network, as the board draws it.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn on_a_test_network_only_the_tag_names_it() {
+        use crate::chain::ChainId;
+        use crate::home::restore_frame::rendered_labels;
+        let root = tempfile::tempdir().unwrap();
+        let (mut app, _) = {
+            let _guard = crate::app::session::test_guard();
+            crate::app::shell_tests::bitcoin_app(root.path())
+        };
+        for chain in ChainId::ALL {
+            let Some(tag) = crate::chain::test_network_name(chain) else {
+                continue;
+            };
+            app.cache.fiat_chain = chain;
+            app.cache.network = chain.bitcoin_network();
+            let network = view::nav::shell::network_label(chain);
+            for page in top_level_pages() {
+                app.panels.current = page.clone();
+                let labels = rendered_labels(app.view()).await;
+                assert!(
+                    labels.iter().any(|t| t == tag),
+                    "{:?} on {:?}: no tag in {:?}",
+                    page,
+                    chain,
+                    labels
+                );
+                let elsewhere: Vec<&String> = labels
+                    .iter()
+                    .filter(|t| {
+                        (t.as_str() == network || t.ends_with(&format!(" · {}", network)))
+                            && !t.contains(" ID ")
+                    })
+                    .collect();
+                assert!(
+                    elsewhere.is_empty(),
+                    "{:?} on {:?} names the network outside the tag: {:?}",
+                    page,
+                    chain,
+                    elsewhere
+                );
+            }
+        }
+    }
+
     /// The tag sits beside the wordmark, in the top bar, not in a strip
     /// across the page: it is laid out inside the bar's 64px and starts
     /// right of the brand.
@@ -11629,6 +11678,87 @@ pub(crate) mod tests {
                 "{}: the dialog does not dim the page",
                 name
             );
+        }
+    }
+
+    /// Opt-in look check for W6 against `P-Overview`, `P-Spark`, `P-Vault`,
+    /// `P-Activity` and `P-Settings`: the one-line switcher and the
+    /// network-free subtitles, in both themes, at both window sizes (so both
+    /// sidebar widths), with a short and a long Cube name, on mainnet and on
+    /// Testnet4. `W6_CAPTURE_DIR=<dir> cargo test -p coincube-gui --lib
+    /// w6_pages_capture -- --ignored`.
+    #[tokio::test(flavor = "multi_thread")]
+    #[ignore = "writes PNG frames"]
+    async fn w6_pages_capture() {
+        use crate::app::view::shared::landing::capture::render_pixels;
+        use menu::{CubeSettingsOption, CubeSubMenu, SparkSubMenu, VaultSubMenu};
+        let Some(directory) = std::env::var_os("W6_CAPTURE_DIR") else {
+            return;
+        };
+        let directory = std::path::PathBuf::from(directory);
+        std::fs::create_dir_all(&directory).unwrap();
+        let root = tempfile::tempdir().unwrap();
+        let (mut app, _) = {
+            let _guard = crate::app::session::test_guard();
+            crate::app::shell_tests::bitcoin_app(root.path())
+        };
+        let pages = [
+            ("overview", Menu::Cube(CubeSubMenu::Overview)),
+            ("activity", Menu::Cube(CubeSubMenu::Activity)),
+            (
+                "settings",
+                Menu::Cube(CubeSubMenu::Settings(CubeSettingsOption::General)),
+            ),
+            ("spark", Menu::Spark(SparkSubMenu::Overview)),
+            ("spark-receive", Menu::Spark(SparkSubMenu::Receive)),
+            ("vault", Menu::Vault(VaultSubMenu::Overview)),
+        ];
+        for (chain_name, chain) in [
+            ("mainnet", crate::chain::ChainId::Bitcoin),
+            ("testnet4", crate::chain::ChainId::Testnet4),
+        ] {
+            app.cache.fiat_chain = chain;
+            app.cache.network = chain.bitcoin_network();
+            for (name_tag, cube_name) in [
+                ("short", "Everyday"),
+                (
+                    "long",
+                    "A very long Cube name that keeps going to test wrapping behaviour",
+                ),
+            ] {
+                app.cache.cube_name = cube_name.to_owned();
+                for (page_name, page) in &pages {
+                    app.panels.current = page.clone();
+                    for (width, height) in [(1440u32, 900u32), (1024, 768)] {
+                        for (theme_name, theme, mode) in [
+                            (
+                                "dark",
+                                coincube_ui::theme::Theme::dark(),
+                                coincube_ui::theme::palette::ThemeMode::Dark,
+                            ),
+                            (
+                                "light",
+                                coincube_ui::theme::Theme::light(),
+                                coincube_ui::theme::palette::ThemeMode::Light,
+                            ),
+                        ] {
+                            app.cache.theme_mode = mode;
+                            let pixels = render_pixels(app.view(), (width, height), &theme, None);
+                            image::save_buffer(
+                                directory.join(format!(
+                                    "{}-{}-{}-{}x{}-{}.png",
+                                    page_name, chain_name, name_tag, width, height, theme_name
+                                )),
+                                &pixels.rgba,
+                                width,
+                                height,
+                                image::ColorType::Rgba8,
+                            )
+                            .unwrap();
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -18285,7 +18415,7 @@ mod settings_navigation_integration_tests {
             ui_theme::Theme::dark(),
         );
         assert!(routed.contains("Page body"));
-        assert!(routed.contains("Spark · Everyday · Bitcoin mainnet"));
+        assert!(routed.contains("Spark · Everyday"));
         assert!(routed.contains("Balances & conversion"));
         assert!(routed.contains("Lightning address"));
 
@@ -18297,7 +18427,7 @@ mod settings_navigation_integration_tests {
             ui_theme::Theme::dark(),
         );
         assert!(replaced.contains("Page body"));
-        assert!(!replaced.contains("Spark · Everyday · Bitcoin mainnet"));
+        assert!(!replaced.contains("Spark · Everyday"));
         assert!(!replaced.contains("Balances & conversion"));
         assert!(!replaced.contains("Lightning address"));
     }

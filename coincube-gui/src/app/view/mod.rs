@@ -147,11 +147,6 @@ pub fn cube_coin<'a>(cache: &Cache) -> Element<'a, Message> {
     .into()
 }
 
-/// "‹name› · ‹network›", the line under a page title.
-pub fn network_line(cache: &Cache, name: &str) -> String {
-    format!("{name} · {}", nav::shell::network_label(cache.chain()))
-}
-
 /// The Cube's name as the side panel shows it, or "Cube" while it has none.
 /// Names are saved without a length limit and may hold line breaks, and a
 /// pinned head doesn't scroll, so heads get the same one-line, 16-character
@@ -164,16 +159,16 @@ pub fn cube_display_name(cache: &Cache) -> String {
     }
 }
 
-/// A pinned page head: `title`, then the Cube's coin and "‹Cube› · ‹network›".
+/// A pinned page head: `title`, then the Cube's coin and its name. The line
+/// names no network: the coin says which chain, and a test network has the
+/// tag beside the wordmark (S1).
 /// Add the page's actions and its back target with the [`PageHead`] builders.
 pub fn page_head<'a>(
     cache: &Cache,
     title: impl iced::widget::text::IntoFragment<'a>,
 ) -> PageHead<'a, Message> {
-    coincube_ui::component::tenshu::page_head(title, Message::FocusAction).context(
-        cube_coin(cache),
-        network_line(cache, &cube_display_name(cache)),
-    )
+    coincube_ui::component::tenshu::page_head(title, Message::FocusAction)
+        .context(cube_coin(cache), cube_display_name(cache))
 }
 
 /// A wallet page's head: "Spark · ‹nickname›" or "Vault · ‹alias›" as the
@@ -187,7 +182,7 @@ pub fn wallet_page_head<'a>(
 }
 
 /// The head of a page inside a wallet (Send, Receive, its activity, a
-/// transaction): `title`, then the coin and "‹wallet› · ‹Cube› · ‹network›",
+/// transaction): `title`, then the coin and "‹wallet› · ‹Cube›",
 /// so the page still says which wallet it belongs to (the H-Send boards).
 pub fn wallet_sub_page_head<'a>(
     cache: &Cache,
@@ -200,7 +195,7 @@ pub fn wallet_sub_page_head<'a>(
         format!(
             "{} · {}",
             nav::shell::wallet_label(wallet, name),
-            network_line(cache, &cube_display_name(cache))
+            cube_display_name(cache)
         ),
     )
 }
@@ -1671,7 +1666,7 @@ mod page_head_tests {
         let mut tree = Tree::new(element.as_widget());
         let (node, before) = frame(&mut tree, &renderer, &mut element);
         let title = before.text(TITLE);
-        let line = before.text("Everyday · Bitcoin mainnet");
+        let line = before.text("Everyday");
         let first_row = before.text("Row 0");
         let (viewport, offset) = before.scroller_of(first_row);
         assert_eq!(offset, Vector::ZERO);
@@ -1703,11 +1698,7 @@ mod page_head_tests {
         let mut element = long_page(&menu, &cache);
         let (_, after) = frame(&mut tree, &renderer, &mut element);
         assert_eq!(after.text(TITLE), title, "the title does not move");
-        assert_eq!(
-            after.text("Everyday · Bitcoin mainnet"),
-            line,
-            "the Cube line does not move"
-        );
+        assert_eq!(after.text("Everyday"), line, "the Cube line does not move");
         let (_, offset) = after.scroller_of(after.text("Row 0"));
         assert_eq!(offset.y, scrolled, "the body moved by the reported offset");
         // Content draws at its layout position less the translation.
@@ -1748,38 +1739,38 @@ mod page_head_tests {
                 &named,
                 |cache| vault_page_head(cache, "Send"),
                 "Send",
-                "Vault · Family savings · Everyday · Bitcoin mainnet",
+                "Vault · Family savings · Everyday",
             ),
             (
                 &named,
                 |cache| spark_page_head(cache, "Receive"),
                 "Receive",
-                "Spark · Daily spending · Everyday · Bitcoin mainnet",
+                "Spark · Daily spending · Everyday",
             ),
             (
                 &unnamed,
                 |cache| vault_page_head(cache, "Send"),
                 "Send",
-                "Vault · Everyday · Bitcoin mainnet",
+                "Vault · Everyday",
             ),
             (
                 &unnamed,
                 |cache| spark_page_head(cache, "Receive"),
                 "Receive",
-                "Spark · Everyday · Bitcoin mainnet",
+                "Spark · Everyday",
             ),
             // A wallet's own page is titled with its name.
             (
                 &named,
                 |cache| wallet_page_head(cache, "Vault", cache.wallet_names.vault.as_deref()),
                 "Vault · Family savings",
-                "Everyday · Bitcoin mainnet",
+                "Everyday",
             ),
             (
                 &named,
                 |cache| wallet_page_head(cache, "Spark", cache.wallet_names.spark.as_deref()),
                 "Spark · Daily spending",
-                "Everyday · Bitcoin mainnet",
+                "Everyday",
             ),
         ];
         for (cache, head, title, line) in cases {
@@ -1817,22 +1808,22 @@ mod page_head_tests {
             (
                 &overview,
                 |menu, cache| dashboard_headed(menu, cache, page_head(cache, "Overview"), rows()),
-                "A very long Cube… · Bitcoin mainnet",
+                "A very long Cube…",
             ),
             (
                 &settings,
                 |menu, cache| dashboard(menu, cache, rows()),
-                "Cube · A very long Cube… · Bitcoin mainnet",
+                "Cube · A very long Cube…",
             ),
             (
                 &tools,
                 |menu, cache| dashboard(menu, cache, rows()),
-                "A very long Cube… · Bitcoin mainnet",
+                "A very long Cube…",
             ),
             (
                 &send,
                 |menu, cache| dashboard_headed(menu, cache, vault_page_head(cache, "Send"), rows()),
-                "Vault · A very long Cube… · Bitcoin mainnet",
+                "Vault · A very long Cube…",
             ),
         ];
         for (menu, page, line) in cases {

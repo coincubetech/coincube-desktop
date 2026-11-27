@@ -1819,8 +1819,9 @@ async fn region_dividers_are_the_quiet_rule_and_the_sidebar_has_no_inner_rules()
             let case = format!("{:?} {}x{}", mode, width, height);
 
             // Under the top bar: its column is the bar, then the rule, which
-            // paints over the bar's rail fill as a CSS border does.
-            let bar = &node.children()[0];
+            // paints over the bar's rail fill as a CSS border does. Both sit
+            // in the container a dialog's scrim leaves undimmed (S1).
+            let bar = &node.children()[0].children()[0].children()[0];
             let top_rule = bar.children()[1].bounds();
             assert_eq!(top_rule.height, 1.0, "{}", case);
             for x in [width / 2, width - 8] {
@@ -1906,4 +1907,128 @@ async fn region_dividers_are_the_quiet_rule_and_the_sidebar_has_no_inner_rules()
             }
         }
     }
+}
+
+/// W6, `.cubeidt.cid1`: the switcher is the ring mark and the Cube's name on
+/// one line, with no network under it, at both sidebar widths, in both
+/// themes, on mainnet and on a test network (whose tag names it, S1). A long
+/// name ends in an ellipsis before the chevron instead of wrapping, and the
+/// wider sidebar keeps more of it. Checked on the drawn pixels: nothing is
+/// drawn between the name and the chevron, or under the name's line.
+#[test]
+fn switcher_is_the_mark_and_name_on_one_line_at_both_widths() {
+    use crate::app::view::shared::landing::capture;
+    let long = "A very long Cube name that keeps going to test wrapping behaviour";
+    let mut kept = Vec::new();
+    for chain in [ChainId::Bitcoin, ChainId::Testnet4] {
+        for width in [FULL_WIDTH, COMPACT_WIDTH] {
+            for (mode, theme) in [
+                (
+                    coincube_ui::theme::palette::ThemeMode::Dark,
+                    theme::Theme::dark(),
+                ),
+                (
+                    coincube_ui::theme::palette::ThemeMode::Light,
+                    theme::Theme::light(),
+                ),
+            ] {
+                for cube_name in [long, "Everyday"] {
+                    let mut ctx = fixture_context();
+                    ctx.network = chain;
+                    ctx.theme_mode = mode;
+                    ctx.cube_name = cube_name;
+                    let view = || -> Element<'_, Message> {
+                        container(identity(&ctx)).width(Length::Fixed(width)).into()
+                    };
+                    let shown = capture::inspect_full_window(
+                        "w6-switcher",
+                        view(),
+                        (width as u32, 60),
+                        "dark",
+                        theme.clone(),
+                    );
+                    let case = format!("{:?} {} {:?} {:?}", chain, width, mode, cube_name);
+                    // One text: the name. No network label, no coin row.
+                    assert_eq!(shown.text.len(), 1, "{}: {:?}", case, shown.text);
+                    let (name, bounds) = shown.text[0].clone();
+                    let network = network_label(chain);
+                    assert!(!name.contains(network), "{}: {:?}", case, name);
+                    if cube_name == long {
+                        assert!(name.ends_with('…'), "{}: {:?}", case, name);
+                        assert!(
+                            long.starts_with(name.trim_end_matches('…')),
+                            "{}: {:?}",
+                            case,
+                            name
+                        );
+                        if mode == coincube_ui::theme::palette::ThemeMode::Dark {
+                            kept.push((width, name.chars().count()));
+                        }
+                    } else {
+                        assert_eq!(name, "Everyday", "{}", case);
+                    }
+                    // `.cubeidt.cid1 b`: one 15px line.
+                    assert!(bounds.height < 24.0, "{}: {:?}", case, bounds);
+
+                    let pixels = capture::render_pixels(view(), (width as u32, 60), &theme, None);
+                    let control = pixels.bounds(&iced::widget::Id::new(CUBE_SWITCHER_ID));
+                    // The chevron is the last 16px inside the 10px padding.
+                    let chevron = control.x + control.width - 10.0 - 16.0;
+                    assert!(
+                        bounds.x + bounds.width <= chevron - 9.0 + 0.5,
+                        "{}: the name {:?} runs into the chevron at {}",
+                        case,
+                        bounds,
+                        chevron
+                    );
+                    let rest = pixels.at(1, 1);
+                    let blank = |x: u32, y: u32| {
+                        coincube_ui::theme::tenshu::separation::delta_e(pixels.at(x, y), rest) < 1.0
+                    };
+                    let (top, bottom) = (
+                        control.y as u32 + 2,
+                        (control.y + control.height) as u32 - 2,
+                    );
+                    // The name is drawn…
+                    let name_drawn = (bounds.x as u32..(bounds.x + bounds.width) as u32).any(|x| {
+                        (bounds.y as u32..(bounds.y + bounds.height) as u32).any(|y| !blank(x, y))
+                    });
+                    assert!(name_drawn, "{}: no name drawn", case);
+                    // …nothing between its end and the chevron…
+                    for x in (bounds.x + bounds.width).ceil() as u32 + 1..chevron.floor() as u32 - 1
+                    {
+                        for y in top..bottom {
+                            assert!(
+                                blank(x, y),
+                                "{}: ink at ({}, {}) after the name",
+                                case,
+                                x,
+                                y
+                            );
+                        }
+                    }
+                    // …and no second line under it (the old network row).
+                    for x in bounds.x as u32..(bounds.x + bounds.width) as u32 {
+                        for y in (bounds.y + bounds.height).ceil() as u32 + 2..bottom {
+                            assert!(
+                                blank(x, y),
+                                "{}: ink at ({}, {}) under the name",
+                                case,
+                                x,
+                                y
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let at = |w: f32| {
+        kept.iter()
+            .filter(|(width, _)| *width == w)
+            .map(|(_, count)| *count)
+            .max()
+            .unwrap()
+    };
+    assert!(at(FULL_WIDTH) > at(COMPACT_WIDTH), "{:?}", kept);
 }

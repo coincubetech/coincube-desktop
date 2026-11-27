@@ -6,6 +6,7 @@ pub mod floating;
 mod horizontal_scroll;
 mod menu;
 pub mod modal;
+pub mod one_line;
 pub mod text_input;
 
 pub use horizontal_scroll::horizontal_scroll;
