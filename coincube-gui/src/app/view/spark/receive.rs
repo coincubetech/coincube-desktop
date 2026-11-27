@@ -161,7 +161,7 @@ impl<'a> SparkReceiveView<'a> {
                     ))
                     .padding(20)
                     .width(Length::Fill)
-                    .style(phase_box_style),
+                    .style(crate::app::view::spark::send::page_tile_fixed_style),
                 );
             } else {
                 form = append_bitcoin_receive_rail(
@@ -683,7 +683,7 @@ const RECEIVE_AS_USD_ID: &str = "spark-receive-as-us-dollar";
 /// note says it applies to every payment, not just this one.
 pub fn receiver_picker_menu<'a>(receive_usd: bool) -> Element<'a, Message> {
     use crate::app::view::shared::picker::{
-        dropdown_menu, route_coin, route_group, route_note, route_option,
+        dropdown_menu, dropdown_note, route_coin, route_group, route_option,
     };
     let option = |id: &'static str, usd: bool| {
         let (coin, title, hint) = if usd {
@@ -717,7 +717,7 @@ pub fn receiver_picker_menu<'a>(receive_usd: bool) -> Element<'a, Message> {
             .push(route_group(localized_copy("Into your Spark wallet"), None))
             .push(option(RECEIVE_AS_BITCOIN_ID, false))
             .push(option(RECEIVE_AS_USD_ID, true))
-            .push(route_note(localized_copy(
+            .push(dropdown_note(localized_copy(
                 "This is auto-convert, so it applies to every payment you receive. \
                  You can also change it in Wallet settings.",
             ))),
@@ -825,7 +825,7 @@ pub fn sender_picker_menu<'a>(
     network: Network,
 ) -> Element<'a, Message> {
     use crate::app::view::shared::picker::{
-        dropdown_menu, route_chip, route_chip_row, route_group, route_note, route_option,
+        dropdown_menu, dropdown_note, route_chip, route_chip_row, route_group, route_option,
     };
     let rail = |method: SparkReceiveMethod, hint: Option<String>| {
         route_option(
@@ -891,7 +891,7 @@ pub fn sender_picker_menu<'a>(
             ));
         }
     } else {
-        list = list.push(route_note(localized_copy(
+        list = list.push(dropdown_note(localized_copy(
             "Stablecoin deposits require Bitcoin mainnet.",
         )));
     }
@@ -963,7 +963,7 @@ fn phase_body<'a>(
         )
         .padding(20)
         .width(Length::Fill)
-        .style(phase_box_style)
+        .style(crate::app::view::spark::send::page_tile_fixed_style)
         .into(),
     }
 }
@@ -1166,28 +1166,14 @@ fn append_bitcoin_receive_rail<'a>(
     ))
 }
 
-/// A phase body that is a box of its own (the generated request, an error):
-/// the panel fill on the page, 12px corners, no outline (`.ngen`).
-fn phase_box_style(theme: &theme::Theme) -> container::Style {
-    container::Style {
-        background: Some(Background::Color(theme.colors.shell.panel)),
-        border: iced::Border {
-            radius: 12.0.into(),
-            ..Default::default()
-        },
-        ..Default::default()
-    }
-}
-
 fn receiver_route_tile<'a>(
     choosable: bool,
     receiver_open: bool,
     receive_usd: bool,
 ) -> Element<'a, Message> {
+    use super::PAGE_TILE_RADIUS;
     use crate::app::view::shared::picker::anchored_dropdown_min as anchored_dropdown;
-    use crate::app::view::spark::send::{
-        page_tile_button_style, page_tile_fixed_style, page_tile_open_style, PAGE_TILE_RADIUS,
-    };
+    use crate::app::view::spark::send::{page_tile_button_style, page_tile_fixed_style};
     // The button draws the tile when it is a choice, as on Send, so hover and
     // an open menu change its one border instead of adding a second.
     let you_receive_body = Container::new(super::route_tile_body(
@@ -1197,7 +1183,6 @@ fn receiver_route_tile<'a>(
             asset_network_logo("btc", "spark", super::ROUTE_TILE_LOGO)
         },
         "You receive",
-        None,
         if receive_usd {
             localized_copy("US Dollar").to_string()
         } else {
@@ -1217,11 +1202,7 @@ fn receiver_route_tile<'a>(
             .padding(0)
             .width(Length::Fill)
             .focus_radius(PAGE_TILE_RADIUS)
-            .style(if receiver_open {
-                page_tile_open_style
-            } else {
-                page_tile_button_style
-            })
+            .style(move |theme, status| page_tile_button_style(theme, status, receiver_open))
             .on_press(Message::SparkReceive(
                 SparkReceiveMessage::OpenReceiverPicker,
             )),
@@ -1240,17 +1221,15 @@ fn sender_route_tile<'a>(
     sender_open: bool,
     network: Network,
 ) -> Element<'a, Message> {
+    use super::PAGE_TILE_RADIUS;
     use crate::app::view::shared::picker::anchored_dropdown_min as anchored_dropdown;
-    use crate::app::view::spark::send::{
-        page_tile_button_style, page_tile_open_style, PAGE_TILE_RADIUS,
-    };
+    use crate::app::view::spark::send::page_tile_button_style;
     // THEY SEND reflects the current pick: a Bitcoin rail, or a cross-network
     // asset while the SideShift flow is active.
     let they_send_body = match cross {
         Some(option) => super::route_tile_body(
             cross_network_logo(&option, super::ROUTE_TILE_LOGO),
             "They send",
-            None,
             asset_display_name(option.coin).to_string(),
             // Robert, 2026-11-27: once a chip is picked the tile names the
             // coin and the network, "USDt on Tron".
@@ -1267,7 +1246,6 @@ fn sender_route_tile<'a>(
             super::route_tile_body(
                 asset_network_logo(asset, net_slug, super::ROUTE_TILE_LOGO),
                 "They send",
-                None,
                 name.to_string(),
                 localized_copy(place).to_string(),
                 Some(sender_open),
@@ -1283,11 +1261,7 @@ fn sender_route_tile<'a>(
         .padding(0)
         .width(Length::Fill)
         .focus_radius(PAGE_TILE_RADIUS)
-        .style(if sender_open {
-            page_tile_open_style
-        } else {
-            page_tile_button_style
-        })
+        .style(move |theme, status| page_tile_button_style(theme, status, sender_open))
         .on_press(Message::SparkReceive(SparkReceiveMessage::OpenSenderPicker)),
         sender_open.then(|| sender_picker_menu(method, cross, network)),
         Message::SparkReceive(SparkReceiveMessage::CloseSenderPicker),
@@ -1423,7 +1397,7 @@ fn generated_receive_body<'a>(
     )
     .padding(20)
     .width(Length::Fill)
-    .style(phase_box_style)
+    .style(crate::app::view::spark::send::page_tile_fixed_style)
     .into()
 }
 
@@ -1445,7 +1419,10 @@ mod notice_style_tests {
         ] {
             let shell = theme.colors.shell;
             for (what, style) in [
-                ("phase box", phase_box_style(&theme)),
+                (
+                    "phase box",
+                    crate::app::view::spark::send::page_tile_fixed_style(&theme),
+                ),
                 (
                     "sideshift box",
                     crate::app::view::spark::sideshift_receive::panel_box_style(&theme),
@@ -2458,6 +2435,78 @@ mod tests {
                     message,
                     Message::SparkReceive(SparkReceiveMessage::OpenSenderPicker)
                 )));
+            }
+        }
+    }
+
+    /// A tile keeps its 64px at rest and grows when its "**Asset** where"
+    /// line wraps (Spanish "Dólar estadounidense en Spark" on the narrowest
+    /// form), so no text paints past the tile.
+    #[test]
+    fn route_tiles_grow_to_hold_a_wrapped_line() {
+        use crate::app::view::shared::landing::capture;
+        use crate::app::view::shared::payment_columns::FORM_MIN;
+        use coincube_ui::locale::{render_in, Language};
+        let tiles = |language| {
+            capture::inspect(
+                "spark-receive-tiles-wrap",
+                Container::new(render_in(language, || {
+                    spark_receive_cards(
+                        SparkReceiveMethod::Bolt11,
+                        None,
+                        true,
+                        Network::Bitcoin,
+                        None,
+                    )
+                }))
+                .width(Length::Fixed(FORM_MIN))
+                .into(),
+                (1440, 900),
+                "dark",
+                theme::Theme::dark(),
+            )
+        };
+        let tile = |inspection: &capture::Inspection, id: &'static str| {
+            inspection
+                .focus
+                .iter()
+                .find(|(actual, _)| actual == &iced::advanced::widget::Id::new(id))
+                .map(|(_, bounds)| *bounds)
+                .expect("tile is focusable")
+        };
+        let english = tiles(Language::English);
+        for id in [SENDER_PICKER_ACTION_ID, RECEIVER_PICKER_ACTION_ID] {
+            assert_eq!(
+                tile(&english, id).height,
+                super::super::ROUTE_TILE_HEIGHT,
+                "{}",
+                id
+            );
+        }
+        let spanish = tiles(Language::Spanish);
+        let you_receive = tile(&spanish, RECEIVER_PICKER_ACTION_ID);
+        assert!(
+            you_receive.height > super::super::ROUTE_TILE_HEIGHT,
+            "the Spanish US Dollar line wraps at {}px: {:?}",
+            FORM_MIN,
+            you_receive
+        );
+        for id in [SENDER_PICKER_ACTION_ID, RECEIVER_PICKER_ACTION_ID] {
+            let bounds = tile(&spanish, id);
+            for (value, text) in spanish.text.iter().filter(|(_, text)| {
+                text.x >= bounds.x
+                    && text.x < bounds.x + bounds.width
+                    && text.y >= bounds.y
+                    && text.y < bounds.y + bounds.height
+            }) {
+                assert!(
+                    text.y + text.height <= bounds.y + bounds.height + 0.5,
+                    "{}: {:?} at {:?} paints past the tile {:?}",
+                    id,
+                    value,
+                    text,
+                    bounds
+                );
             }
         }
     }

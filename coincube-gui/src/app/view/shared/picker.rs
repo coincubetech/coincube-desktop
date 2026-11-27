@@ -652,11 +652,6 @@ pub fn route_chip_style(
     }
 }
 
-/// A note at the foot of a route list, under a rule (`.nfoot`).
-pub fn route_note<'a, M: 'a>(note: &str) -> Element<'a, M> {
-    dropdown_note(note)
-}
-
 #[cfg(test)]
 mod menu_style_tests {
     use super::*;

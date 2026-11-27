@@ -2037,23 +2037,16 @@ pub fn pay_from_picker_menu<'a>(
     balances: crate::app::view::spark::SparkBalances<'a>,
 ) -> Element<'a, Message> {
     use crate::app::view::shared::picker::{
-        dropdown_menu, route_coin, route_group, route_note, route_option,
+        dropdown_menu, dropdown_note, route_coin, route_group, route_option,
     };
     use coincube_spark_protocol::WalletAsset;
-    let (rows, _) = balances.rows();
-    let balance_of = |name: &str| {
-        rows.iter()
-            .find(|(row, _, _)| *row == name)
-            .map(|(_, figure, unit)| format!("{} {}", figure, unit))
-            .unwrap_or_else(|| "0".to_owned())
-    };
     // Each balance names its coin and shows its figure at the end (`.nr`);
     // US Dollar, when it can't pay, says why instead.
     let option = |asset: WalletAsset, id: &'static str, coin: &str| {
         let enabled = asset == WalletAsset::Bitcoin || usdb_unavailable.is_none();
         let (hint, figure) = match (asset, usdb_unavailable) {
             (WalletAsset::Usdb, Some(reason)) => (Some(localized_copy(reason).to_owned()), None),
-            _ => (None, Some(balance_of(pay_from_label(asset)))),
+            _ => (None, Some(balances.line(asset))),
         };
         route_option(
             id,
@@ -2075,7 +2068,7 @@ pub fn pay_from_picker_menu<'a>(
             // has its own note under the tiles.
             .push_maybe(
                 (current == WalletAsset::Bitcoin)
-                    .then(|| route_note(localized_copy(PAY_FROM_BITCOIN_NOTE))),
+                    .then(|| dropdown_note(localized_copy(PAY_FROM_BITCOIN_NOTE))),
             ),
     )
 }
@@ -2173,9 +2166,6 @@ pub(crate) fn receive_tile_button_style(
 // open the tile takes a 1px ink outline (`.ntile.on`). Swap and Transfer keep
 // the line-bordered tiles above.
 
-/// The route tile's corner (`.ntile { border-radius: 12px }`).
-pub(crate) const PAGE_TILE_RADIUS: f32 = 12.0;
-
 /// A route tile on the page: the panel fill, lightened on hover, with no
 /// outline unless `open`.
 fn page_tile_style(theme: &theme::Theme, hovered: bool, open: bool) -> (Background, iced::Border) {
@@ -2189,40 +2179,23 @@ fn page_tile_style(theme: &theme::Theme, hovered: bool, open: bool) -> (Backgrou
         iced::Border {
             color: if open { shell.ink } else { color::TRANSPARENT },
             width: if open { 1.0 } else { 0.0 },
-            radius: PAGE_TILE_RADIUS.into(),
+            radius: super::PAGE_TILE_RADIUS.into(),
         },
     )
 }
 
-/// A route tile that opens a menu, closed.
+/// A route tile that opens a menu: no outline closed; while its menu is
+/// open, one 1px ink outline marks the menu's owner.
 pub(crate) fn page_tile_button_style(
     theme: &theme::Theme,
     status: iced::widget::button::Status,
+    open: bool,
 ) -> iced::widget::button::Style {
     let hovered = matches!(
         status,
         iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed
     );
-    let (background, border) = page_tile_style(theme, hovered, false);
-    iced::widget::button::Style {
-        background: Some(background),
-        text_color: theme.colors.shell.ink,
-        border,
-        ..Default::default()
-    }
-}
-
-/// A route tile while its menu is open: the ink outline marks the menu's
-/// owner.
-pub(crate) fn page_tile_open_style(
-    theme: &theme::Theme,
-    status: iced::widget::button::Status,
-) -> iced::widget::button::Style {
-    let hovered = matches!(
-        status,
-        iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed
-    );
-    let (background, border) = page_tile_style(theme, hovered, true);
+    let (background, border) = page_tile_style(theme, hovered, open);
     iced::widget::button::Style {
         background: Some(background),
         text_color: theme.colors.shell.ink,
@@ -2305,7 +2278,6 @@ fn spark_send_cards<'a>(
     let you_send_body = super::route_tile_body(
         logo,
         "You send",
-        None,
         label.to_string(),
         localized_copy("in Spark").to_string(),
         choose.then_some(pay_from_open),
@@ -2313,14 +2285,10 @@ fn spark_send_cards<'a>(
     let you_send: Element<'a, Message> = if choose {
         anchored_dropdown(
             Action::new(PAY_FROM_ACTION_ID, you_send_body, Message::FocusAction)
-                .style(if pay_from_open {
-                    page_tile_open_style
-                } else {
-                    page_tile_button_style
-                })
+                .style(move |theme, status| page_tile_button_style(theme, status, pay_from_open))
                 .padding(0)
                 .width(Length::Fill)
-                .focus_radius(PAGE_TILE_RADIUS)
+                .focus_radius(super::PAGE_TILE_RADIUS)
                 .on_press(Message::SparkSend(SparkSendMessage::OpenPayFromPicker)),
             pay_from_open
                 .then(|| pay_from_picker_menu(pay_from, menus.usdb_unavailable, menus.balances)),
@@ -2341,7 +2309,6 @@ fn spark_send_cards<'a>(
             super::route_tile_body(
                 target_logo(target, super::ROUTE_TILE_LOGO),
                 "They receive",
-                None,
                 localized_copy(target.label()).to_string(),
                 detected
                     .filter(|_| target.is_stablecoin())
@@ -2351,14 +2318,10 @@ fn spark_send_cards<'a>(
             ),
             Message::FocusAction,
         )
-        .style(if receive_open {
-            page_tile_open_style
-        } else {
-            page_tile_button_style
-        })
+        .style(move |theme, status| page_tile_button_style(theme, status, receive_open))
         .padding(0)
         .width(Length::Fill)
-        .focus_radius(PAGE_TILE_RADIUS)
+        .focus_radius(super::PAGE_TILE_RADIUS)
         .on_press(Message::SparkSend(SparkSendMessage::OpenReceivePicker)),
         receive_open.then(|| send_target_picker_menu(target, menus.network)),
         Message::SparkSend(SparkSendMessage::CloseReceivePicker),
@@ -3795,6 +3758,70 @@ mod tests {
             from_usd.contains("Your Spark balances")
                 && !from_usd.contains("Bitcoin is used first."),
             "the Bitcoin-first note shows only while Bitcoin is selected"
+        );
+    }
+
+    /// Each Pay-from row shows its own balance: in Spanish too (the row's
+    /// label is translated, the balance lookup must not be), with a unit when
+    /// the balance is zero, and masked when amounts are hidden.
+    #[test]
+    fn each_pay_from_row_shows_its_balance_in_any_language() {
+        use crate::app::view::shared::landing::capture;
+        use coincube_spark_protocol::WalletAsset;
+        use coincube_ui::locale::{render_in, Language};
+        let usdb = coincube_spark_protocol::UsdbBalanceSnapshot {
+            token_identifier: "btkn1synthetic".into(),
+            balance: 12_400_000,
+            decimals: 6,
+            ticker: "USDB".into(),
+        };
+        let balances = |btc_sats, masked| crate::app::view::spark::SparkBalances {
+            btc_sats,
+            stable: Some(&usdb),
+            fiat_converter: None,
+            btc_usd_price: None,
+            bitcoin_unit: BitcoinDisplayUnit::Sats,
+            masked,
+        };
+        let menu = |btc_sats, masked| {
+            pay_from_picker_menu(WalletAsset::Bitcoin, None, balances(btc_sats, masked))
+        };
+        let inspect = |scenario: &str, menu| {
+            capture::inspect(scenario, menu, (1440, 900), "dark", theme::Theme::dark())
+        };
+        let figures = |list: &capture::Inspection| {
+            list.text
+                .iter()
+                .map(|(value, _)| value.clone())
+                .collect::<Vec<_>>()
+        };
+
+        let spanish = inspect(
+            "spark-send-pay-from-es",
+            render_in(Language::Spanish, || menu(35_000, false)),
+        );
+        assert!(spanish.contains("Dólar estadounidense"));
+        assert!(
+            spanish.contains("12.40 USDB") && spanish.contains("35,000 SATS"),
+            "{:?}",
+            figures(&spanish)
+        );
+
+        let no_bitcoin = inspect("spark-send-pay-from-no-btc", menu(0, false));
+        assert!(
+            no_bitcoin.contains("0 SATS") && no_bitcoin.contains("12.40 USDB"),
+            "{:?}",
+            figures(&no_bitcoin)
+        );
+
+        let masked = inspect("spark-send-pay-from-masked", menu(0, true));
+        let mask = coincube_ui::component::tenshu::MASK;
+        assert!(
+            masked.contains(&format!("{} SATS", mask))
+                && masked.contains(&format!("{} USDB", mask))
+                && !masked.contains("12.40"),
+            "{:?}",
+            figures(&masked)
         );
     }
 

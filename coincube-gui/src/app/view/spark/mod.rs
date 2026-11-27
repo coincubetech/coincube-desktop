@@ -26,22 +26,23 @@ pub use transactions::{SparkTransactionsStatus, SparkTransactionsView};
 
 /// The logo size on Send's and Receive's route tiles (`.ntile .nc`).
 pub(crate) const ROUTE_TILE_LOGO: f32 = 32.0;
-/// The type size of "**Asset** where" on Send's and Receive's route tiles
-/// (`.nval`): the asset at P1, one step under the older tiles' P1 + 2.
-pub(crate) const ROUTE_TILE_VALUE_SIZE: u32 = coincube_ui::component::text::P1_SIZE;
-/// The height of Send's and Receive's route tiles (`.ntile`).
+/// The height of Send's and Receive's route tiles (`.ntile`). A tile whose
+/// "**Asset** where" line wraps grows past it.
 pub(crate) const ROUTE_TILE_HEIGHT: f32 = 64.0;
+/// The tile's top and bottom padding.
+const ROUTE_TILE_PAD_Y: f32 = 8.0;
+/// The route tiles' corner (`.ntile { border-radius: 12px }`).
+pub(crate) const PAGE_TILE_RADIUS: f32 = 12.0;
 
 /// The inside of a Send or Receive route tile (P-Receive, P-Send `.ntile`):
 /// the asset logo at [`ROUTE_TILE_LOGO`] (its network badge composited in the
-/// lower-right corner), a small caption, "**Asset** where" at
-/// [`ROUTE_TILE_VALUE_SIZE`], and — on a tile that opens a picker — a
+/// lower-right corner), a small caption, "**Asset** where" at P1, and — on a
+/// tile that opens a picker — a
 /// chevron. The caller draws the tile's surface (a plain container, or the
 /// button that makes it tappable).
 pub(crate) fn route_tile_body<'a, M: 'a>(
     logo: coincube_ui::widget::Element<'a, M>,
     label: &'static str,
-    hint: Option<&'static str>,
     asset: String,
     place: String,
     // `Some(open)` for a tile that opens a menu: the chevron points up while
@@ -53,20 +54,17 @@ pub(crate) fn route_tile_body<'a, M: 'a>(
     use iced::{Alignment, Length};
 
     let caption = text_line(localized_copy(label).to_owned(), 13, false, false);
-    let mut caption = Row::new()
-        .spacing(8)
-        .align_y(Alignment::Center)
-        .push(caption);
-    if let Some(hint) = hint {
-        caption = caption
-            .push(iced::widget::Space::new().width(Length::Fill))
-            .push(text_line(localized_copy(hint).to_owned(), 13, false, false));
-    }
     let mut row = Row::new()
         .spacing(12)
         .align_y(Alignment::Center)
         .width(Length::Fill)
-        .push(logo)
+        // The logo's slot holds the tile at its height while the text fits
+        // on one line; a fixed tile height would let wrapped text paint past
+        // the tile.
+        .push(
+            Container::new(logo)
+                .center_y(Length::Fixed(ROUTE_TILE_HEIGHT - 2.0 * ROUTE_TILE_PAD_Y)),
+        )
         .push(
             Column::new()
                 .spacing(1)
@@ -76,9 +74,14 @@ pub(crate) fn route_tile_body<'a, M: 'a>(
                     Row::new()
                         .spacing(5)
                         .align_y(Alignment::End)
-                        .push(text_line(asset, ROUTE_TILE_VALUE_SIZE, true, true))
+                        .push(text_line(
+                            asset,
+                            coincube_ui::component::text::P1_SIZE,
+                            true,
+                            true,
+                        ))
                         .push(
-                            text_line(place, ROUTE_TILE_VALUE_SIZE, false, false)
+                            text_line(place, coincube_ui::component::text::P1_SIZE, false, false)
                                 .wrapping(iced::widget::text::Wrapping::WordOrGlyph),
                         )
                         .wrap()
@@ -98,14 +101,12 @@ pub(crate) fn route_tile_body<'a, M: 'a>(
     }
     Container::new(row)
         .padding(iced::Padding {
-            top: 8.0,
+            top: ROUTE_TILE_PAD_Y,
             right: 16.0,
-            bottom: 8.0,
+            bottom: ROUTE_TILE_PAD_Y,
             left: 14.0,
         })
         .width(Length::Fill)
-        .height(Length::Fixed(ROUTE_TILE_HEIGHT))
-        .center_y(Length::Fixed(ROUTE_TILE_HEIGHT))
         .into()
 }
 
@@ -271,9 +272,7 @@ impl<'a> SparkBalances<'a> {
     /// valued: without a fiat price, or with USDB but no BTC/USD quote, there
     /// is none.
     pub fn rows(&self) -> (Vec<(&'static str, String, String)>, Option<String>) {
-        use crate::app::breez_spark::assets::{
-            format_token_display_u128, stable_token_as_sats_u128,
-        };
+        use crate::app::breez_spark::assets::stable_token_as_sats_u128;
         use coincube_ui::component::amount::DisplayAmount;
         let usdb_units = self.stable.map_or(0, |sb| sb.balance);
         let mask = |figure: String| {
@@ -285,23 +284,13 @@ impl<'a> SparkBalances<'a> {
         };
         let rows = overview::spark_assets(self.btc_sats, usdb_units)
             .into_iter()
-            .map(|asset| match asset {
-                overview::SparkAsset::Bitcoin => (
-                    "Bitcoin",
-                    mask(
-                        coincube_core::miniscript::bitcoin::Amount::from_sat(self.btc_sats)
-                            .to_formatted_string_with_unit(self.bitcoin_unit),
-                    ),
-                    self.bitcoin_unit.label().to_owned(),
-                ),
-                overview::SparkAsset::UsDollar => (
-                    "US Dollar",
-                    mask(format_token_display_u128(
-                        usdb_units,
-                        self.stable.map_or(0, |sb| sb.decimals),
-                    )),
-                    "USDB".to_owned(),
-                ),
+            .map(|asset| {
+                let (figure, unit) = self.figure(asset);
+                let name = match asset {
+                    overview::SparkAsset::Bitcoin => "Bitcoin",
+                    overview::SparkAsset::UsDollar => "US Dollar",
+                };
+                (name, figure, unit)
             })
             .collect();
         let price = self.btc_usd_price.filter(|p| *p > 0.0 && p.is_finite());
@@ -322,6 +311,42 @@ impl<'a> SparkBalances<'a> {
                 ))
             });
         (rows, total)
+    }
+
+    /// One balance as (figure, unit), masked when amounts are hidden.
+    fn figure(&self, asset: overview::SparkAsset) -> (String, String) {
+        use crate::app::breez_spark::assets::format_token_display_u128;
+        use coincube_ui::component::amount::DisplayAmount;
+        let (figure, unit) = match asset {
+            overview::SparkAsset::Bitcoin => (
+                coincube_core::miniscript::bitcoin::Amount::from_sat(self.btc_sats)
+                    .to_formatted_string_with_unit(self.bitcoin_unit),
+                self.bitcoin_unit.label().to_owned(),
+            ),
+            overview::SparkAsset::UsDollar => (
+                format_token_display_u128(
+                    self.stable.map_or(0, |sb| sb.balance),
+                    self.stable.map_or(0, |sb| sb.decimals),
+                ),
+                "USDB".to_owned(),
+            ),
+        };
+        if self.masked {
+            (coincube_ui::component::tenshu::MASK.to_owned(), unit)
+        } else {
+            (figure, unit)
+        }
+    }
+
+    /// `asset`'s balance as "figure unit". Unlike [`Self::rows`], which
+    /// leaves out a balance the wallet doesn't hold, this always has a figure,
+    /// so a row that names the asset (Send's Pay-from list) can show "0 SATS".
+    pub fn line(&self, asset: coincube_spark_protocol::WalletAsset) -> String {
+        let (figure, unit) = self.figure(match asset {
+            coincube_spark_protocol::WalletAsset::Bitcoin => overview::SparkAsset::Bitcoin,
+            coincube_spark_protocol::WalletAsset::Usdb => overview::SparkAsset::UsDollar,
+        });
+        format!("{} {}", figure, unit)
     }
 
     /// "Available in Spark", the balances and their total.
