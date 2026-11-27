@@ -6,7 +6,7 @@ Bitcoin Signet, check out [this guide](TRY.md) instead.
 ### Installing the software
 
 The recommended installation method for regular users is to download an executable software release
-from the [Github release page](https://github.com/coincubetech/coincube/releases). If you prefer to
+from the [Github release page](https://github.com/coincubetech/coincube-desktop/releases). If you prefer to
 build the project from source, see [`BUILD.md`](BUILD.md) instead.
 
 Release artifacts are named `coincube-desktop-<version>-<target>.<ext>`, where `<target>` is the Rust target
