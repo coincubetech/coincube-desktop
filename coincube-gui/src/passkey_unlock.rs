@@ -455,7 +455,8 @@ impl PasskeyUnlock {
         matches!(self.phase, Phase::Opening)
     }
 
-    /// The quote this screen's opening view shows.
+    /// The quote that seeds the Launcher opening face's quote cycle once this
+    /// unlock succeeds. This screen's own loading view shows the Cube instead.
     pub(crate) fn loading_quote(&self) -> &Quote {
         &self.loading_quote
     }
