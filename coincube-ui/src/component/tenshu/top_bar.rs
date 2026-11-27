@@ -165,9 +165,9 @@ fn mark<'a, M: 'a>(
 }
 
 /// The line Cube alone, `side` square, in the shell's ink at `opacity`, for
-/// a large still Cube. The Cube loader no longer shows one (Robert,
-/// 2026-11-27); the passkey Opening uses the turning Cube instead. Its line
-/// lightens as it grows, so it never reads heavier than the bar's 20 px Cube.
+/// a large still Cube. The Cube loader and every loading wait turn the Cube
+/// instead (`turning_cube`, Robert, 2026-11-27). Its line lightens as it
+/// grows, so it never reads heavier than the bar's 20 px Cube.
 pub fn display_cube<'a, M: 'a>(side: f32, opacity: f32) -> Element<'a, M> {
     // SVG tint alpha is ignored by Iced's renderers; fade the widget itself.
     svg(svg::Handle::from_memory(
