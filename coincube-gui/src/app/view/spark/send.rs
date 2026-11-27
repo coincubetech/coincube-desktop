@@ -421,73 +421,60 @@ impl<'a> SparkSendView<'a> {
             (None, Some(body))
         };
 
-        let card = if is_review(self.phase) {
+        // A prepared quote replaces the form on the same panel surface (P-Send
+        // Review); the form itself has no card around it (P-Send): the tiles
+        // are the page's only fills, and the fields keep their outlines.
+        let card: Element<'a, Message> = if is_review(self.phase) {
             Container::new(footer.unwrap_or_else(|| Space::new().into()))
+                .width(Length::Fill)
+                .style(payment_card_style)
+                .into()
         } else {
-            Container::new(
-                Column::new()
-                    .push(
-                        Container::new(
+            Column::new()
+                .spacing(24)
+                .width(Length::Fill)
+                // Bitcoin rail, US Dollar or stablecoin is all picked from
+                // the THEY RECEIVE tile.
+                .push(spark_send_cards(
+                    self.receive_target,
+                    self.detected,
+                    self.pay_from,
+                    SendMenus {
+                        open: self.open_menu,
+                        usdb_unavailable: self.usdb_unavailable,
+                        balances: self.balances,
+                        network: self.network,
+                    },
+                ))
+                .push(
+                    Column::new()
+                        .spacing(10)
+                        .push(p2_medium(localized_copy("Destination")))
+                        .push(destination)
+                        .push(Column::new().push_maybe(self.detected.map(|detected| {
+                            detected_destination(detected, self.receive_target.label())
+                        }))),
+                )
+                .push(
+                    Column::new()
+                        .spacing(10)
+                        .push(
                             Row::new()
                                 .spacing(12)
                                 .align_y(Alignment::Center)
-                                // Bitcoin rail, US Dollar or stablecoin is all
-                                // picked from the THEY RECEIVE tile.
-                                .push(
-                                    h4_bold(localized_copy("Payment details")).width(Length::Fill),
+                                .push(p2_medium(amount_label).width(Length::Fill))
+                                .push_maybe(
+                                    self.route_minimum_line()
+                                        .map(|line| p2_regular(line).style(theme::text::secondary)),
                                 ),
                         )
-                        .padding([16, 24])
-                        .width(Length::Fill),
-                    )
-                    .push(iced::widget::rule::horizontal(1))
-                    .push(card_section(spark_send_cards(
-                        self.receive_target,
-                        self.detected,
-                        self.pay_from,
-                        SendMenus {
-                            open: self.open_menu,
-                            usdb_unavailable: self.usdb_unavailable,
-                            balances: self.balances,
-                            network: self.network,
-                        },
-                    )))
-                    .push(iced::widget::rule::horizontal(1))
-                    .push(card_section(
-                        Column::new()
-                            .spacing(10)
-                            .push(p1_bold(localized_copy("Destination")))
-                            .push(destination)
-                            .push(Column::new().push_maybe(self.detected.map(|detected| {
-                                detected_destination(detected, self.receive_target.label())
-                            }))),
-                    ))
-                    .push(iced::widget::rule::horizontal(1))
-                    .push(card_section(
-                        Column::new()
-                            .spacing(10)
-                            .push(
-                                Row::new()
-                                    .spacing(12)
-                                    .align_y(Alignment::Center)
-                                    .push(p1_bold(amount_label).width(Length::Fill))
-                                    .push_maybe(self.route_minimum_line().map(|line| {
-                                        p2_regular(line).style(theme::text::secondary)
-                                    })),
-                            )
-                            .push(amount)
-                            .push(amount_notes)
-                            .push(available),
-                    ))
-                    .push(Column::new().push_maybe(footer.map(|footer| {
-                        Column::new()
-                            .push(iced::widget::rule::horizontal(1))
-                            .push(card_section(footer))
-                    }))),
-            )
-        }
-        .width(Length::Fill)
-        .style(payment_card_style);
+                        .push(amount)
+                        .push(amount_notes)
+                        .push(available),
+                )
+                .push(Column::new().push_maybe(footer))
+                .into()
+        };
 
         let content = Column::new()
             .push(card)
@@ -2050,7 +2037,7 @@ pub fn pay_from_picker_menu<'a>(
     balances: crate::app::view::spark::SparkBalances<'a>,
 ) -> Element<'a, Message> {
     use crate::app::view::shared::picker::{
-        dropdown_heading, dropdown_menu, dropdown_note, dropdown_option, DROPDOWN_LOGO,
+        dropdown_menu, route_coin, route_group, route_note, route_option,
     };
     use coincube_spark_protocol::WalletAsset;
     let (rows, _) = balances.rows();
@@ -2060,18 +2047,20 @@ pub fn pay_from_picker_menu<'a>(
             .map(|(_, figure, unit)| format!("{} {}", figure, unit))
             .unwrap_or_else(|| "0".to_owned())
     };
-    let option = |asset: WalletAsset, id: &'static str, coin: &str, chip: &str| {
+    // Each balance names its coin and shows its figure at the end (`.nr`);
+    // US Dollar, when it can't pay, says why instead.
+    let option = |asset: WalletAsset, id: &'static str, coin: &str| {
         let enabled = asset == WalletAsset::Bitcoin || usdb_unavailable.is_none();
-        let line = match (asset, usdb_unavailable) {
-            (WalletAsset::Usdb, Some(reason)) => localized_copy(reason).to_owned(),
-            _ => balance_of(pay_from_label(asset)),
+        let (hint, figure) = match (asset, usdb_unavailable) {
+            (WalletAsset::Usdb, Some(reason)) => (Some(localized_copy(reason).to_owned()), None),
+            _ => (None, Some(balance_of(pay_from_label(asset)))),
         };
-        dropdown_option(
+        route_option(
             id,
-            asset_network_logo(coin, "spark", DROPDOWN_LOGO),
+            route_coin(coin),
             pay_from_label(asset),
-            chip,
-            Some(line),
+            hint,
+            figure,
             asset == current,
             enabled.then_some(Message::SparkSend(SparkSendMessage::SelectPayFrom(asset))),
             Message::FocusAction,
@@ -2079,18 +2068,14 @@ pub fn pay_from_picker_menu<'a>(
     };
     dropdown_menu(
         Column::new()
-            .push(dropdown_heading(localized_copy("Your Spark balances")))
-            .push(option(
-                WalletAsset::Bitcoin,
-                PAY_FROM_BITCOIN_ID,
-                "btc",
-                "SPARK",
-            ))
-            .push(option(WalletAsset::Usdb, PAY_FROM_USDB_ID, "usdb", "USDB"))
+            .push(route_group(localized_copy("Your Spark balances"), None))
+            .push(option(WalletAsset::Bitcoin, PAY_FROM_BITCOIN_ID, "btc"))
+            .push(option(WalletAsset::Usdb, PAY_FROM_USDB_ID, "usdb"))
             // How a Bitcoin payment falls back to USDB; paying from US Dollar
             // has its own note under the tiles.
             .push_maybe(
-                (current == WalletAsset::Bitcoin).then(|| dropdown_note(PAY_FROM_BITCOIN_NOTE)),
+                (current == WalletAsset::Bitcoin)
+                    .then(|| route_note(localized_copy(PAY_FROM_BITCOIN_NOTE))),
             ),
     )
 }
@@ -2181,6 +2166,81 @@ pub(crate) fn receive_tile_button_style(
     }
 }
 
+// ── Send's and Receive's route tiles on the page (P-Send, P-Receive) ──────
+//
+// There is no card around the form: the tiles sit on the page as the panel
+// fill with no outline (`.ntile`). Hover lightens the fill; while its menu is
+// open the tile takes a 1px ink outline (`.ntile.on`). Swap and Transfer keep
+// the line-bordered tiles above.
+
+/// The route tile's corner (`.ntile { border-radius: 12px }`).
+pub(crate) const PAGE_TILE_RADIUS: f32 = 12.0;
+
+/// A route tile on the page: the panel fill, lightened on hover, with no
+/// outline unless `open`.
+fn page_tile_style(theme: &theme::Theme, hovered: bool, open: bool) -> (Background, iced::Border) {
+    let shell = &theme.colors.shell;
+    (
+        Background::Color(if hovered {
+            coincube_ui::theme::tenshu::over(shell.panel, shell.hover)
+        } else {
+            shell.panel
+        }),
+        iced::Border {
+            color: if open { shell.ink } else { color::TRANSPARENT },
+            width: if open { 1.0 } else { 0.0 },
+            radius: PAGE_TILE_RADIUS.into(),
+        },
+    )
+}
+
+/// A route tile that opens a menu, closed.
+pub(crate) fn page_tile_button_style(
+    theme: &theme::Theme,
+    status: iced::widget::button::Status,
+) -> iced::widget::button::Style {
+    let hovered = matches!(
+        status,
+        iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed
+    );
+    let (background, border) = page_tile_style(theme, hovered, false);
+    iced::widget::button::Style {
+        background: Some(background),
+        text_color: theme.colors.shell.ink,
+        border,
+        ..Default::default()
+    }
+}
+
+/// A route tile while its menu is open: the ink outline marks the menu's
+/// owner.
+pub(crate) fn page_tile_open_style(
+    theme: &theme::Theme,
+    status: iced::widget::button::Status,
+) -> iced::widget::button::Style {
+    let hovered = matches!(
+        status,
+        iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed
+    );
+    let (background, border) = page_tile_style(theme, hovered, true);
+    iced::widget::button::Style {
+        background: Some(background),
+        text_color: theme.colors.shell.ink,
+        border,
+        ..Default::default()
+    }
+}
+
+/// A route tile that is not a choice (`.ntile.fixed`): the panel fill only.
+pub(crate) fn page_tile_fixed_style(theme: &theme::Theme) -> container::Style {
+    let (background, border) = page_tile_style(theme, false, false);
+    container::Style {
+        background: Some(background),
+        border,
+        ..Default::default()
+    }
+}
+
 /// The card's footer while composing: one status line and Prepare. `None`
 /// renders Prepare without a press — Tab skips it and no key or pointer can
 /// activate it — rather than hiding it, so the footer keeps its shape.
@@ -2189,19 +2249,18 @@ fn compose_footer<'a>(status: &'static str, prepare: Option<Message>) -> Element
         .spacing(16)
         .align_y(Alignment::Center)
         .push(
+            ActionButton::new(
+                PREPARE_ACTION_ID,
+                localized_copy("Prepare"),
+                ActionKind::Primary,
+                Message::FocusAction,
+            )
+            .on_press_maybe(prepare),
+        )
+        .push(
             p2_regular(status)
                 .style(theme::text::secondary)
                 .width(Length::Fill),
-        )
-        .push(
-            Action::new(
-                PREPARE_ACTION_ID,
-                text(localized_copy("Prepare")).size(P1_SIZE).bold(),
-                Message::FocusAction,
-            )
-            .style(theme::button::primary)
-            .padding([10, 24])
-            .on_press_maybe(prepare),
         )
         .into()
 }
@@ -2235,10 +2294,13 @@ fn spark_send_cards<'a>(
     let pay_from_open = choose && menus.open == Some(SendMenu::PayFrom);
     let (logo, label): (Element<'a, Message>, &'static str) = match pay_from {
         coincube_spark_protocol::WalletAsset::Usdb => (
-            asset_network_logo("usdb", "spark", 36.0),
+            asset_network_logo("usdb", "spark", super::ROUTE_TILE_LOGO),
             localized_copy("US Dollar"),
         ),
-        _ => (asset_network_logo("btc", "spark", 36.0), "Bitcoin"),
+        _ => (
+            asset_network_logo("btc", "spark", super::ROUTE_TILE_LOGO),
+            "Bitcoin",
+        ),
     };
     let you_send_body = super::route_tile_body(
         logo,
@@ -2252,13 +2314,13 @@ fn spark_send_cards<'a>(
         anchored_dropdown(
             Action::new(PAY_FROM_ACTION_ID, you_send_body, Message::FocusAction)
                 .style(if pay_from_open {
-                    open_tile_button_style
+                    page_tile_open_style
                 } else {
-                    receive_tile_button_style
+                    page_tile_button_style
                 })
                 .padding(0)
                 .width(Length::Fill)
-                .focus_radius(8.0)
+                .focus_radius(PAGE_TILE_RADIUS)
                 .on_press(Message::SparkSend(SparkSendMessage::OpenPayFromPicker)),
             pay_from_open
                 .then(|| pay_from_picker_menu(pay_from, menus.usdb_unavailable, menus.balances)),
@@ -2267,7 +2329,7 @@ fn spark_send_cards<'a>(
     } else {
         Container::new(you_send_body)
             .width(Length::Fill)
-            .style(fixed_tile_style)
+            .style(page_tile_fixed_style)
             .into()
     };
 
@@ -2276,7 +2338,7 @@ fn spark_send_cards<'a>(
         Action::new(
             RECEIVE_TARGET_ACTION_ID,
             super::route_tile_body(
-                target_logo(target, 36.0),
+                target_logo(target, super::ROUTE_TILE_LOGO),
                 "They receive",
                 None,
                 localized_copy(target.label()).to_string(),
@@ -2289,13 +2351,13 @@ fn spark_send_cards<'a>(
             Message::FocusAction,
         )
         .style(if receive_open {
-            open_tile_button_style
+            page_tile_open_style
         } else {
-            receive_tile_button_style
+            page_tile_button_style
         })
         .padding(0)
         .width(Length::Fill)
-        .focus_radius(8.0)
+        .focus_radius(PAGE_TILE_RADIUS)
         .on_press(Message::SparkSend(SparkSendMessage::OpenReceivePicker)),
         receive_open.then(|| send_target_picker_menu(target, menus.network)),
         Message::SparkSend(SparkSendMessage::CloseReceivePicker),
@@ -2345,22 +2407,48 @@ pub(crate) fn open_tile_button_style(
     }
 }
 
-/// The "THEY RECEIVE" menu: bitcoin rails, then (mainnet only) US Dollar over
-/// Spark and the cross-chain stablecoins. Selection is styling only; every
-/// offered rail stays pressable.
+/// A send target's row name in the THEY RECEIVE menu: the method for
+/// bitcoin, as `MV-Send-Proposed` names them, then the coin.
+pub(crate) fn target_row_title(target: SparkSendTarget) -> &'static str {
+    match target {
+        SparkSendTarget::Lightning => "Lightning",
+        SparkSendTarget::OnChain => "On-chain",
+        SparkSendTarget::Spark => "Spark",
+        SparkSendTarget::SparkUsd => "USDB on Spark",
+        SparkSendTarget::Usdt => "USDt",
+        SparkSendTarget::Usdc => "USDC",
+    }
+}
+
+/// A send target's row icon: the method's glyph for bitcoin, the coin
+/// otherwise.
+fn target_row_icon<'a>(target: SparkSendTarget) -> Element<'a, Message> {
+    use crate::app::view::shared::picker::{route_coin, route_glyph};
+    match target {
+        SparkSendTarget::Lightning => route_glyph(icon::lightning_outline_icon()),
+        SparkSendTarget::OnChain => route_glyph(icon::link_icon()),
+        SparkSendTarget::Spark => route_glyph(icon::spark_icon()),
+        SparkSendTarget::SparkUsd => route_coin("usdb"),
+        SparkSendTarget::Usdt => route_coin("usdt"),
+        SparkSendTarget::Usdc => route_coin("usdc"),
+    }
+}
+
+/// The "THEY RECEIVE" menu (`MV-Send-Proposed`): the bitcoin methods, then
+/// (mainnet only) USDB on Spark and the cross-chain stablecoins, one row per
+/// coin; the network is worked out from the address. The selected row has
+/// the neutral fill and a tick; every offered row stays pressable.
 pub fn send_target_picker_menu<'a>(
     current: SparkSendTarget,
     network: Network,
 ) -> Element<'a, Message> {
-    use crate::app::view::shared::picker::{
-        dropdown_heading, dropdown_menu, dropdown_option, DROPDOWN_LOGO,
-    };
+    use crate::app::view::shared::picker::{dropdown_menu, route_group, route_option};
     let row = |target: SparkSendTarget| {
-        dropdown_option(
+        route_option(
             target_action_id(target),
-            target_logo(target, DROPDOWN_LOGO),
-            localized_copy(target.label()),
-            localized_copy(target.badge()),
+            target_row_icon(target),
+            localized_copy(target_row_title(target)),
+            None,
             None,
             current == target,
             Some(Message::SparkSend(SparkSendMessage::SetReceiveTarget(
@@ -2370,7 +2458,7 @@ pub fn send_target_picker_menu<'a>(
         )
     };
 
-    let mut list = Column::new().push(dropdown_heading("Bitcoin"));
+    let mut list = Column::new().push(route_group("Bitcoin", None));
     for target in [
         SparkSendTarget::Lightning,
         SparkSendTarget::OnChain,
@@ -2382,14 +2470,17 @@ pub fn send_target_picker_menu<'a>(
     // USDB is a mainnet token, so US Dollar over Spark is offered there only.
     if network == Network::Bitcoin {
         list = list
-            .push(dropdown_heading(localized_copy("US Dollar")))
+            .push(route_group(localized_copy("US Dollar"), None))
             .push(row(SparkSendTarget::SparkUsd));
     }
 
     // Cross-chain stablecoins are mainnet-only (providers/chains have no test
     // deployment), so they only appear there.
     if supported_on(network) {
-        list = list.push(dropdown_heading(localized_copy("Stablecoin (cross-chain)")));
+        list = list.push(route_group(
+            localized_copy("Stablecoins"),
+            Some(localized_copy("Cross-chain")),
+        ));
         for target in [SparkSendTarget::Usdt, SparkSendTarget::Usdc] {
             list = list.push(row(target));
         }
@@ -2553,7 +2644,6 @@ mod tests {
         for expected in [
             "Back to Spark",
             "Send",
-            "Payment details",
             "Available in Spark",
             "You send",
             "They receive",
@@ -3567,6 +3657,57 @@ mod tests {
         assert!(harness.probe().bounds(PAY_FROM_ACTION_ID).is_none());
     }
 
+    /// MV-Send-Proposed: the Bitcoin group names the method in each row
+    /// (Lightning, On-chain, Spark) and says "Bitcoin" once, as its heading;
+    /// US Dollar reads "USDB on Spark"; the stablecoins are one row per coin,
+    /// under "Stablecoins · Cross-chain". No row carries an upper-case tag.
+    #[test]
+    fn the_they_receive_list_names_each_method() {
+        use crate::app::view::shared::landing::capture;
+        let list = capture::inspect(
+            "spark-send-they-receive-list",
+            send_target_picker_menu(SparkSendTarget::Lightning, Network::Bitcoin),
+            (1440, 900),
+            "dark",
+            theme::Theme::dark(),
+        );
+        let mut last_y = f32::MIN;
+        for label in [
+            "Bitcoin",
+            "Lightning",
+            "On-chain",
+            "Spark",
+            "US Dollar",
+            "USDB on Spark",
+            "Stablecoins",
+            "USDt",
+            "USDC",
+        ] {
+            let found: Vec<_> = list
+                .text
+                .iter()
+                .filter(|(value, _)| value == label)
+                .collect();
+            assert_eq!(
+                found.len(),
+                1,
+                "{} once in the list: {:?}",
+                label,
+                list.text
+            );
+            assert!(found[0].1.y > last_y, "{} out of order", label);
+            last_y = found[0].1.y;
+        }
+        assert!(list.contains("Cross-chain"));
+        for tag in ["LIGHTNING", "ON-CHAIN", "SPARK", "CROSS-CHAIN", "BITCOIN"] {
+            assert!(
+                !list.text.iter().any(|(value, _)| value.contains(tag)),
+                "an upper-case tag {} is left in the list",
+                tag
+            );
+        }
+    }
+
     #[test]
     fn the_pay_from_picker_offers_us_dollar_only_when_it_covers() {
         use crate::app::view::shared::landing::capture;
@@ -3596,7 +3737,7 @@ mod tests {
             "dark",
             theme::Theme::dark(),
         );
-        assert!(short.contains("YOUR SPARK BALANCES") && short.contains("Bitcoin is used first."));
+        assert!(short.contains("Your Spark balances") && short.contains("Bitcoin is used first."));
         assert!(short.contains("Your USDB doesn't cover this amount."));
         assert!(!short.has_focus(iced::advanced::widget::Id::new(PAY_FROM_USDB_ID)));
         let picked = capture::activate(
@@ -3625,7 +3766,7 @@ mod tests {
             theme::Theme::dark(),
         );
         assert!(
-            from_usd.contains("YOUR SPARK BALANCES")
+            from_usd.contains("Your Spark balances")
                 && !from_usd.contains("Bitcoin is used first."),
             "the Bitcoin-first note shows only while Bitcoin is selected"
         );
@@ -4222,7 +4363,7 @@ mod tests {
                 harness.focus(target_action_id(focused));
                 let probe = harness.probe();
                 assert_eq!(probe.focused(), vec![Id::new(target_action_id(focused))]);
-                assert!(probe.contains("BITCOIN"));
+                assert!(probe.contains("Bitcoin") && probe.contains("Lightning"));
                 harness.assert_no_horizontal_overflow(scenario);
                 // The menu is opaque over the form under the tiles, so the
                 // focused row reads on its own surface.
@@ -4361,7 +4502,7 @@ mod tests {
                 absent: &[
                     "Get a new quote",
                     "Bolt11Invoice",
-                    "Payment details",
+                    "Amount (sats)",
                     "Cancel",
                 ],
             },
@@ -4375,7 +4516,7 @@ mod tests {
                 absent: &[
                     "Confirm and send",
                     "Total you send",
-                    "Payment details",
+                    "Amount (sats)",
                     "After this payment",
                 ],
             },
@@ -4399,7 +4540,7 @@ mod tests {
                     "Source Bitcoin network",
                     "Recipient checks",
                     "The recipient uses",
-                    "Payment details",
+                    "Amount (sats)",
                 ],
             },
             Case {
@@ -4489,9 +4630,9 @@ mod tests {
                     "{}: compose footer leaked into a later phase",
                     label
                 );
-                // A prepared quote is Review, which replaces Payment details.
+                // A prepared quote is Review, which replaces the form.
                 assert_eq!(
-                    probe.contains("Payment details"),
+                    probe.contains("Amount (sats)"),
                     !is_review(&case.fixture.phase),
                     "{}",
                     label
@@ -4516,7 +4657,7 @@ mod tests {
         let mut harness = Harness::new(screen(&unavailable, &menu, &cache, false), WIDE);
         let probe = harness.probe();
         assert!(probe.contains("Spark is not available for this cube."));
-        assert!(!probe.contains("Payment details"));
+        assert!(!probe.contains("Amount (sats)"));
         assert!(probe.bounds(PREPARE_ACTION_ID).is_none());
     }
 
@@ -4620,6 +4761,234 @@ mod tests {
                 let mut harness = Harness::new(screen(&fixture, &menu, &cache, false), WIDE);
                 harness.assert_no_horizontal_overflow(scenario);
                 harness.capture(scenario, &theme, appearance(mode));
+            }
+        }
+    }
+
+    // ── W5: Receive and Send with each route list open, as drawn ───────────
+
+    /// Receive's panel exactly as `SparkReceive::view` composes it, on the
+    /// real dashboard, with `open` (if any) open under its tile.
+    fn receive_screen<'a>(
+        cache: &'a Cache,
+        menu: &'a Menu,
+        quote: &'a Quote,
+        method: crate::app::state::spark::receive::SparkReceiveMethod,
+        cross: Option<crate::services::sideshift::DepositOption>,
+        open: Option<crate::app::view::spark::receive::ReceiveMenu>,
+    ) -> Element<'a, Message> {
+        use crate::app::state::spark::receive::SparkReceivePhase;
+        static NO_DEPOSITS: Vec<coincube_spark_protocol::DepositInfo> = Vec::new();
+        let idle: &'static SparkReceivePhase = Box::leak(Box::new(SparkReceivePhase::Idle));
+        let empty_claims: &'static std::collections::HashSet<(String, u32)> =
+            Box::leak(Box::default());
+        let empty_notices: &'static std::collections::HashMap<(String, u32), String> =
+            Box::leak(Box::default());
+        let empty_confs: &'static std::collections::HashMap<(String, u32), u32> =
+            Box::leak(Box::default());
+        crate::app::view::dashboard_payment(
+            menu,
+            cache,
+            Some(crate::app::view::spark::sub_page_head(cache, "Receive")),
+            crate::app::view::spark::SparkReceiveView {
+                backend_available: true,
+                method,
+                amount_input: "",
+                description_input: "",
+                phase: idle,
+                qr_data: None,
+                connect_signed_in: true,
+                lightning_address: None,
+                lightning_address_qr: None,
+                pending_deposits: &NO_DEPOSITS,
+                claiming: empty_claims,
+                claim_error: None,
+                claim_notices: empty_notices,
+                pending_deposit_confirmations: empty_confs,
+                network: cache.network,
+                cube_name: "Everyday",
+                received_amount_display: "",
+                received_payment_id: None,
+                received_quote: quote,
+                recent_transactions: &[],
+                balance_sats: SYNTHETIC_BALANCE_SATS,
+                balances: crate::app::view::spark::SparkBalances {
+                    btc_sats: SYNTHETIC_BITCOIN_SATS,
+                    stable: None,
+                    fiat_converter: None,
+                    btc_usd_price: None,
+                    bitcoin_unit: BitcoinDisplayUnit::Sats,
+                    masked: false,
+                },
+                bitcoin_unit: BitcoinDisplayUnit::Sats,
+                show_direction_badges: false,
+                mask_amounts: false,
+                sideshift_body: None,
+                cross_network_selected: cross,
+                parked_conversion: None,
+                open_menu: open,
+                swap_deposit: None,
+                receive_usd: false,
+                lightning_address_setup: &crate::app::cache::LightningAddressSetup::Idle,
+            }
+            .render(),
+        )
+    }
+
+    /// Receive and Send with each route list open, in both themes at
+    /// 1440×900 and 1024×768, on the real dashboard and the software
+    /// renderer. Each list must be drawn over the form (its rows read on the
+    /// menu surface) and fit the window. Set `W5_CAPTURE_DIR` to save the
+    /// frames for comparison with `P-Receive`, `P-Send` and the
+    /// `MV-*-Proposed` boards.
+    #[test]
+    fn route_lists_open_on_receive_and_send_in_both_themes() {
+        use crate::app::state::spark::receive::SparkReceiveMethod;
+        use crate::app::view::spark::receive::ReceiveMenu;
+        let directory = std::env::var("W5_CAPTURE_DIR").ok();
+        let quote = Quote {
+            id: String::new(),
+            text: String::new(),
+            author: String::new(),
+            source: String::new(),
+            category: String::new(),
+            length: String::new(),
+            contexts: Vec::new(),
+        };
+        let tron = crate::services::sideshift::deposit_options()
+            .iter()
+            .copied()
+            .find(|o| o.key() == "usdt:tron")
+            .expect("USDt on Tron");
+        for mode in themes() {
+            for outer in [WIDE, COMPACT] {
+                let mut frames: Vec<(String, Vec<u8>, Size)> = Vec::new();
+                let cache = Cache {
+                    network: Network::Bitcoin,
+                    theme_mode: mode,
+                    ..Default::default()
+                };
+                let theme = match mode {
+                    ThemeMode::Dark => theme::Theme::dark(),
+                    ThemeMode::Light => theme::Theme::light(),
+                };
+                let receive_menu = Menu::Spark(SparkSubMenu::Receive);
+                for (scenario, method, cross, open, row) in [
+                    ("receive", SparkReceiveMethod::Bolt11, None, None, None),
+                    (
+                        "receive-they-send",
+                        SparkReceiveMethod::Bolt11,
+                        None,
+                        Some(ReceiveMenu::TheySend),
+                        Some("spark-receive-method-lightning"),
+                    ),
+                    (
+                        "receive-they-send-tron",
+                        SparkReceiveMethod::Bolt11,
+                        Some(tron),
+                        Some(ReceiveMenu::TheySend),
+                        Some("spark-receive-method-lightning"),
+                    ),
+                    (
+                        "receive-you-receive",
+                        SparkReceiveMethod::Bolt11,
+                        None,
+                        Some(ReceiveMenu::YouReceive),
+                        Some("spark-receive-as-bitcoin"),
+                    ),
+                ] {
+                    let mut harness = Harness::new(
+                        receive_screen(&cache, &receive_menu, &quote, method, cross, open),
+                        outer,
+                    );
+                    harness.assert_no_horizontal_overflow(scenario);
+                    let probe = harness.probe();
+                    let pixels = harness.render_pixels(scenario, &theme, true);
+                    if let Some(row) = row {
+                        let bounds = probe.bounds(row).expect("an open list row");
+                        assert!(
+                            rendered_luma_range(&pixels, harness.size, bounds) >= 40,
+                            "{} {}: {} must read on the menu surface",
+                            scenario,
+                            appearance(mode),
+                            row
+                        );
+                    }
+                    frames.push((scenario.to_owned(), pixels, harness.size));
+                }
+                let send_menu = spark_send_menu();
+                for (scenario, open, row) in [
+                    ("send", None, None),
+                    (
+                        "send-they-receive",
+                        Some(SendMenu::TheyReceive),
+                        Some(target_action_id(SparkSendTarget::Lightning)),
+                    ),
+                    (
+                        "send-you-send",
+                        Some(SendMenu::PayFrom),
+                        Some(PAY_FROM_BITCOIN_ID),
+                    ),
+                ] {
+                    let mut fixture = Fixture::new(SparkSendPhase::Idle).themed(mode);
+                    fixture.usdb_unavailable = None;
+                    fixture.stable = Some(coincube_spark_protocol::UsdbBalanceSnapshot {
+                        token_identifier: "btkn1synthetic".into(),
+                        balance: 50_000_000,
+                        decimals: 6,
+                        ticker: "USDB".into(),
+                    });
+                    let cache = fixture.cache();
+                    let element = crate::app::view::dashboard_payment(
+                        &send_menu,
+                        &cache,
+                        Some(crate::app::view::spark::sub_page_head(&cache, "Send").rule(
+                            coincube_ui::component::tenshu::steps(
+                                &crate::app::view::spark::SEND_STEPS,
+                                0,
+                            ),
+                        )),
+                        {
+                            let mut view = fixture.view();
+                            view.open_menu = open;
+                            view.render()
+                        },
+                    );
+                    let mut harness = Harness::new(element, outer);
+                    harness.assert_no_horizontal_overflow(scenario);
+                    let probe = harness.probe();
+                    let pixels = harness.render_pixels(scenario, &theme, true);
+                    if let Some(row) = row {
+                        let bounds = probe.bounds(row).expect("an open list row");
+                        assert!(
+                            rendered_luma_range(&pixels, harness.size, bounds) >= 40,
+                            "{} {}: {} must read on the menu surface",
+                            scenario,
+                            appearance(mode),
+                            row
+                        );
+                    }
+                    frames.push((scenario.to_owned(), pixels, harness.size));
+                }
+                if let Some(directory) = directory.as_deref() {
+                    std::fs::create_dir_all(directory).expect("create the capture directory");
+                    for (scenario, pixels, size) in frames {
+                        image::save_buffer(
+                            std::path::Path::new(directory).join(format!(
+                                "w5-{}-{}-{}x{}.png",
+                                scenario,
+                                appearance(mode),
+                                outer.0,
+                                outer.1
+                            )),
+                            &pixels,
+                            size.width as u32,
+                            size.height as u32,
+                            image::ColorType::Rgba8,
+                        )
+                        .expect("save the W5 capture");
+                    }
+                }
             }
         }
     }

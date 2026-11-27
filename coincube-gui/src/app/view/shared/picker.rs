@@ -149,8 +149,8 @@ where
     }
 }
 
-/// The menu's surface: the route tile's background and line, 8px corners and a
-/// shadow to lift it off the form. `content` scrolls when the window caps the
+/// The menu's surface: the route tile's panel fill and a rule line, 12px
+/// corners and a shadow to lift it off the page. `content` scrolls when the window caps the
 /// menu's height.
 pub fn dropdown_menu<'a, M>(content: UiColumn<'a, M>) -> Element<'a, M>
 where
@@ -180,22 +180,23 @@ where
     .into()
 }
 
-/// A dropdown's floating list. It shares the fill of the route tiles it
-/// opens over and is as wide as them, so it keeps its line border beside the
-/// shadow (R4: a shadow alone does not separate same-fill boxes).
+/// A dropdown's floating list (`.nmenu`): the panel fill, 12px corners, a
+/// 1px rule line and a shadow. The route tiles it opens under share the panel
+/// fill, so it keeps the line beside the shadow (R4: a shadow alone does not
+/// separate same-fill boxes).
 pub fn dropdown_menu_style(theme: &theme::Theme) -> container::Style {
     let shell = &theme.colors.shell;
     container::Style {
-        background: Some(Background::Color(shell.background)),
+        background: Some(Background::Color(shell.panel)),
         border: iced::Border {
-            color: shell.line,
+            color: shell.rule,
             width: 1.0,
-            radius: 8.0.into(),
+            radius: 12.0.into(),
         },
         shadow: iced::Shadow {
             color: shell.shadow,
-            offset: iced::Vector::new(0.0, 12.0),
-            blur_radius: 32.0,
+            offset: iced::Vector::new(0.0, 16.0),
+            blur_radius: 40.0,
         },
         ..Default::default()
     }
@@ -310,14 +311,7 @@ where
         .align_y(Alignment::Center)
         .push(logo)
         .push(lines)
-        .push(
-            UiContainer::new(if selected {
-                Element::from(icon::check2_icon().size(16).color(color::ORANGE))
-            } else {
-                Space::new().into()
-            })
-            .width(Length::Fixed(18.0)),
-        );
+        .push(selected_tick(selected));
     coincube_ui::widget::action::Action::new(
         id.into(),
         UiContainer::new(row)
@@ -339,11 +333,12 @@ fn dropdown_option_style(
     status: iced_button::Status,
     selected: bool,
 ) -> iced_button::Style {
-    let shell = &theme.colors.shell;
     let background = match (selected, status) {
         (_, iced_button::Status::Disabled) => color::TRANSPARENT,
-        (true, _) => shell.selected,
-        (false, iced_button::Status::Hovered | iced_button::Status::Pressed) => shell.hover,
+        (true, _) => selected_row_fill(theme),
+        (false, iced_button::Status::Hovered | iced_button::Status::Pressed) => {
+            theme.colors.shell.hover
+        }
         (false, _) => color::TRANSPARENT,
     };
     iced_button::Style {
@@ -356,22 +351,304 @@ fn dropdown_option_style(
     }
 }
 
+/// The selected row's fill: ink at 7% (`.nrow.sel`), neutral rather than the
+/// accent-tinted `selected`, so a menu never reads as orange.
+pub fn selected_row_fill(theme: &theme::Theme) -> iced::Color {
+    let ink = theme.colors.shell.ink;
+    iced::Color { a: 0.07, ..ink }
+}
+
+/// The selected row's tick, in ink. An unselected row keeps the same room so
+/// the rows' text lines up.
+fn selected_tick<'a, M: 'a>(selected: bool) -> Element<'a, M> {
+    UiContainer::new(if selected {
+        Element::from(icon::check2_icon().size(16).style(|theme: &theme::Theme| {
+            iced::widget::text::Style {
+                color: Some(theme.colors.shell.ink),
+            }
+        }))
+    } else {
+        Space::new().into()
+    })
+    .width(Length::Fixed(18.0))
+    .into()
+}
+
+// ── Route lists (P-Receive, P-Send, MV-*-Proposed) ─────────────────────────
+//
+// Send's and Receive's route menus lead with what differs: a group heading in
+// sentence case, then one row per method or coin with a small glyph or coin,
+// its name, an optional hint, and a tick on the selected row. Stablecoins on
+// Receive are one row per coin with its networks as chips.
+
+/// The glyph or coin size in a route list row (`.ni2`).
+pub const ROUTE_ICON: f32 = 20.0;
+
+/// A route list's group heading (`.ngh`): "Bitcoin", or "Stablecoins" with a
+/// `note` after a middle dot ("· Swapped to bitcoin by SideShift").
+pub fn route_group<'a, M: 'a>(label: &str, note: Option<&str>) -> Element<'a, M> {
+    let muted = |theme: &theme::Theme| iced::widget::text::Style {
+        color: Some(theme.colors.shell.muted),
+    };
+    let mut row = UiRow::new().spacing(8).align_y(Alignment::Center).push(
+        iced::widget::text(label.to_string())
+            .font(coincube_ui::font::MEDIUM)
+            .size(13)
+            .style(muted),
+    );
+    if let Some(note) = note {
+        row = row.push(
+            iced::widget::text(format!("· {}", note))
+                .size(13)
+                .style(muted),
+        );
+    }
+    UiContainer::new(row)
+        .padding(iced::Padding {
+            top: 8.0,
+            bottom: 2.0,
+            left: 10.0,
+            right: 10.0,
+        })
+        .into()
+}
+
+/// A method glyph for a route list row, in the muted ink (`.ni2` svg).
+pub fn route_glyph<'a, M: 'a>(glyph: coincube_ui::widget::Text<'a>) -> Element<'a, M> {
+    UiContainer::new(
+        glyph
+            .size(16)
+            .style(|theme: &theme::Theme| iced::widget::text::Style {
+                color: Some(theme.colors.shell.muted),
+            }),
+    )
+    .width(Length::Fixed(ROUTE_ICON))
+    .height(Length::Fixed(ROUTE_ICON))
+    .center_x(Length::Fixed(ROUTE_ICON))
+    .center_y(Length::Fixed(ROUTE_ICON))
+    .into()
+}
+
+/// A coin for a route list row, at the row's icon size.
+pub fn route_coin<'a, M: 'a>(asset: &str) -> Element<'a, M> {
+    coincube_ui::image::asset_logo(asset)
+        .width(Length::Fixed(ROUTE_ICON))
+        .height(Length::Fixed(ROUTE_ICON))
+        .into()
+}
+
+/// One row of a route list (`.nrow`): icon, name, an optional muted hint
+/// after it, an optional right-aligned figure (a balance), and the tick when
+/// selected. `on_press: None` shows it disabled and leaves the Tab order.
+#[allow(clippy::too_many_arguments)]
+pub fn route_option<'a, M>(
+    id: impl Into<iced::advanced::widget::Id>,
+    icon: Element<'a, M>,
+    title: &str,
+    hint: Option<String>,
+    figure: Option<String>,
+    selected: bool,
+    on_press: Option<M>,
+    focus_intent: impl FnOnce(iced::advanced::widget::Id) -> M,
+) -> Element<'a, M>
+where
+    M: Clone + 'static,
+{
+    let enabled = on_press.is_some();
+    let ink = move |theme: &theme::Theme| iced::widget::text::Style {
+        color: Some(if enabled {
+            theme.colors.shell.ink
+        } else {
+            theme.colors.shell.muted
+        }),
+    };
+    let muted = |theme: &theme::Theme| iced::widget::text::Style {
+        color: Some(theme.colors.shell.muted),
+    };
+    // The hint follows the name on its line; when the menu is too narrow for
+    // both, the whole hint moves under the name rather than breaking beside it.
+    let words = UiRow::new()
+        .spacing(10)
+        .align_y(Alignment::Center)
+        .push(
+            iced::widget::text(title.to_string())
+                .font(coincube_ui::font::MEDIUM)
+                .size(P2_SIZE)
+                .style(ink),
+        )
+        .push_maybe(hint.map(|hint| iced::widget::text(hint).size(13).style(muted)));
+    let row = UiRow::new()
+        .spacing(10)
+        .align_y(Alignment::Center)
+        .push(icon)
+        .push(UiContainer::new(words.wrap().vertical_spacing(2)).width(Length::Fill))
+        .push_maybe(figure.map(|figure| iced::widget::text(figure).size(13).style(muted)))
+        .push(selected_tick(selected));
+    coincube_ui::widget::action::Action::new(
+        id.into(),
+        UiContainer::new(row)
+            .padding([6, 10])
+            .width(Length::Fill)
+            .height(Length::Shrink)
+            .center_y(Length::Shrink),
+        focus_intent,
+    )
+    .padding(0)
+    .width(Length::Fill)
+    .focus_radius(8.0)
+    .style(move |theme: &theme::Theme, status| route_option_style(theme, status, selected))
+    .on_press_maybe(on_press)
+    .into()
+}
+
+/// A route list row: no fill at rest, a light ink fill on hover, and the
+/// neutral selected fill while selected. Never an accent.
+pub fn route_option_style(
+    theme: &theme::Theme,
+    status: iced_button::Status,
+    selected: bool,
+) -> iced_button::Style {
+    let background = match (selected, status) {
+        (_, iced_button::Status::Disabled) => color::TRANSPARENT,
+        (true, _) => selected_row_fill(theme),
+        (false, iced_button::Status::Hovered | iced_button::Status::Pressed) => {
+            theme.colors.shell.hover
+        }
+        (false, _) => color::TRANSPARENT,
+    };
+    iced_button::Style {
+        background: Some(Background::Color(background)),
+        text_color: theme.colors.shell.ink,
+        border: iced::Border {
+            radius: 8.0.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+/// A coin's row with its networks as chips (`.nrow.chips`): the row itself
+/// is not a button; each chip is. The chips sit at the row's end and wrap
+/// under each other when the menu is narrow.
+pub fn route_chip_row<'a, M: 'a>(
+    icon: Element<'a, M>,
+    title: &str,
+    chips: Vec<Element<'a, M>>,
+) -> Element<'a, M> {
+    let mut row = UiRow::new().spacing(5);
+    for chip in chips {
+        row = row.push(chip);
+    }
+    UiContainer::new(
+        UiRow::new()
+            .spacing(10)
+            .align_y(Alignment::Center)
+            .push(icon)
+            .push(
+                iced::widget::text(title.to_string())
+                    .font(coincube_ui::font::MEDIUM)
+                    .size(P2_SIZE)
+                    .style(|theme: &theme::Theme| iced::widget::text::Style {
+                        color: Some(theme.colors.shell.ink),
+                    }),
+            )
+            .push(
+                UiContainer::new(
+                    row.wrap()
+                        .vertical_spacing(5)
+                        .align_x(iced::alignment::Horizontal::Right),
+                )
+                .width(Length::Fill)
+                .align_x(iced::alignment::Horizontal::Right),
+            ),
+    )
+    .padding([6, 10])
+    .width(Length::Fill)
+    .into()
+}
+
+/// A network chip in a coin's row (`.nch`). It is a content button, so it is
+/// outlined in ink (the button rule) and reads as clickable; hover adds the
+/// light fill. The picked chip is filled ink with the page colour for text.
+pub fn route_chip<'a, M>(
+    id: impl Into<iced::advanced::widget::Id>,
+    label: &str,
+    selected: bool,
+    on_press: M,
+    focus_intent: impl FnOnce(iced::advanced::widget::Id) -> M,
+) -> Element<'a, M>
+where
+    M: Clone + 'static,
+{
+    coincube_ui::widget::action::Action::new(
+        id.into(),
+        UiContainer::new(iced::widget::text(label.to_string()).size(13))
+            .height(Length::Fixed(26.0))
+            .center_y(Length::Fixed(26.0)),
+        focus_intent,
+    )
+    .padding([0, 8])
+    .focus_radius(8.0)
+    .style(move |theme: &theme::Theme, status| route_chip_style(theme, status, selected))
+    .on_press(on_press)
+    .into()
+}
+
+/// The chip's look: 1px ink outline, radius 8, ink text; hover adds the
+/// light fill; the picked chip is filled ink.
+pub fn route_chip_style(
+    theme: &theme::Theme,
+    status: iced_button::Status,
+    selected: bool,
+) -> iced_button::Style {
+    let shell = &theme.colors.shell;
+    let background = if selected {
+        Some(Background::Color(shell.ink))
+    } else if matches!(
+        status,
+        iced_button::Status::Hovered | iced_button::Status::Pressed
+    ) {
+        Some(Background::Color(shell.hover))
+    } else {
+        None
+    };
+    iced_button::Style {
+        background,
+        text_color: if selected {
+            shell.background
+        } else {
+            shell.ink
+        },
+        border: iced::Border {
+            color: shell.ink,
+            width: 1.0,
+            radius: 8.0.into(),
+        },
+        ..Default::default()
+    }
+}
+
+/// A note at the foot of a route list, under a rule (`.nfoot`).
+pub fn route_note<'a, M: 'a>(note: &str) -> Element<'a, M> {
+    dropdown_note(note)
+}
+
 #[cfg(test)]
 mod menu_style_tests {
     use super::*;
 
-    /// R4: the dropdown shares the route tiles' fill, so it keeps its line
-    /// as well as its shadow.
+    /// R4: the dropdown shares the route tiles' panel fill, so it keeps its
+    /// line as well as its shadow.
     #[test]
     fn the_dropdown_keeps_its_border_over_same_fill_tiles() {
         for theme in [theme::Theme::dark(), theme::Theme::light()] {
             let style = dropdown_menu_style(&theme);
             assert_eq!(
                 style.background,
-                Some(Background::Color(theme.colors.shell.background))
+                Some(Background::Color(theme.colors.shell.panel))
             );
             assert_eq!(style.border.width, 1.0);
-            assert_eq!(style.border.color, theme.colors.shell.line);
+            assert_eq!(style.border.color, theme.colors.shell.rule);
             assert!(style.shadow.color.a > 0.0 && style.shadow.blur_radius > 0.0);
         }
     }

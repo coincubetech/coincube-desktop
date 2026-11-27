@@ -24,11 +24,20 @@ pub use settings::{SparkSettingsStatus, SparkSettingsView};
 pub use sideshift_receive::spark_sideshift_receive_view;
 pub use transactions::{SparkTransactionsStatus, SparkTransactionsView};
 
-/// The inside of a slim route tile, shared by Send and Receive: the asset
-/// logo (its network badge composited in the lower-right corner), a small
-/// sentence-case label with an optional right-aligned hint, "**Asset** where",
-/// and — on a tile that opens a picker — a chevron. The caller draws the
-/// tile's surface (a plain container, or the button that makes it tappable).
+/// The logo size on Send's and Receive's route tiles (`.ntile .nc`).
+pub(crate) const ROUTE_TILE_LOGO: f32 = 32.0;
+/// The type size of "**Asset** where" on Send's and Receive's route tiles
+/// (`.nval`): the asset at P1, one step under the older tiles' P1 + 2.
+pub(crate) const ROUTE_TILE_VALUE_SIZE: u32 = coincube_ui::component::text::P1_SIZE;
+/// The height of Send's and Receive's route tiles (`.ntile`).
+pub(crate) const ROUTE_TILE_HEIGHT: f32 = 64.0;
+
+/// The inside of a Send or Receive route tile (P-Receive, P-Send `.ntile`):
+/// the asset logo at [`ROUTE_TILE_LOGO`] (its network badge composited in the
+/// lower-right corner), a small caption, "**Asset** where" at
+/// [`ROUTE_TILE_VALUE_SIZE`], and — on a tile that opens a picker — a
+/// chevron. The caller draws the tile's surface (a plain container, or the
+/// button that makes it tappable).
 pub(crate) fn route_tile_body<'a, M: 'a>(
     logo: coincube_ui::widget::Element<'a, M>,
     label: &'static str,
@@ -39,11 +48,92 @@ pub(crate) fn route_tile_body<'a, M: 'a>(
     // its menu is open.
     chevron: Option<bool>,
 ) -> coincube_ui::widget::Element<'a, M> {
-    route_tile_body_with_detail(logo, label, hint, asset, place, None, chevron)
+    use coincube_ui::theme;
+    use coincube_ui::widget::{Column, Container, Row};
+    use iced::{Alignment, Length};
+
+    let caption = text_line(localized_copy(label).to_owned(), 13, false, false);
+    let mut caption = Row::new()
+        .spacing(8)
+        .align_y(Alignment::Center)
+        .push(caption);
+    if let Some(hint) = hint {
+        caption = caption
+            .push(iced::widget::Space::new().width(Length::Fill))
+            .push(text_line(localized_copy(hint).to_owned(), 13, false, false));
+    }
+    let mut row = Row::new()
+        .spacing(12)
+        .align_y(Alignment::Center)
+        .width(Length::Fill)
+        .push(logo)
+        .push(
+            Column::new()
+                .spacing(1)
+                .width(Length::Fill)
+                .push(caption)
+                .push(
+                    Row::new()
+                        .spacing(5)
+                        .align_y(Alignment::End)
+                        .push(text_line(asset, ROUTE_TILE_VALUE_SIZE, true, true))
+                        .push(
+                            text_line(place, ROUTE_TILE_VALUE_SIZE, false, false)
+                                .wrapping(iced::widget::text::Wrapping::WordOrGlyph),
+                        )
+                        .wrap()
+                        .vertical_spacing(0),
+                ),
+        );
+    if let Some(open) = chevron {
+        row = row.push(
+            if open {
+                coincube_ui::icon::up_icon()
+            } else {
+                coincube_ui::icon::down_icon()
+            }
+            .size(16)
+            .style(theme::text::secondary),
+        );
+    }
+    Container::new(row)
+        .padding(iced::Padding {
+            top: 8.0,
+            right: 16.0,
+            bottom: 8.0,
+            left: 14.0,
+        })
+        .width(Length::Fill)
+        .height(Length::Fixed(ROUTE_TILE_HEIGHT))
+        .center_y(Length::Fixed(ROUTE_TILE_HEIGHT))
+        .into()
 }
 
-/// [`route_tile_body`] with a `detail` line under the asset, such as Swap's
-/// "Available 34,034 SATS".
+/// One line of a route tile: ink and semibold for the asset, muted otherwise.
+fn text_line<'a>(
+    value: String,
+    size: u32,
+    strong: bool,
+    ink: bool,
+) -> iced::widget::Text<'a, coincube_ui::theme::Theme> {
+    let line = iced::widget::text(value)
+        .shaping(iced::advanced::text::Shaping::Advanced)
+        .size(size)
+        .font(if strong {
+            coincube_ui::font::SEMIBOLD
+        } else {
+            coincube_ui::font::REGULAR
+        });
+    if ink {
+        line.style(coincube_ui::theme::text::primary)
+    } else {
+        line.style(coincube_ui::theme::text::secondary)
+    }
+}
+
+/// A taller route tile with a `detail` line under the asset, such as Swap's
+/// "Available 34,034 SATS" or Transfer's balances. Swap and Transfer keep
+/// this one; Send and Receive use [`route_tile_body`].
 pub(crate) fn route_tile_body_with_detail<'a, M: 'a>(
     logo: coincube_ui::widget::Element<'a, M>,
     label: &'static str,

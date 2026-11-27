@@ -3120,6 +3120,68 @@ mod tests {
         }
     }
 
+    /// Robert, 2026-11-27: picking a network chip in THEY SEND picks that
+    /// SideShift deposit option, and the tile then names the coin and the
+    /// network. The chip is pressed on its visible label, as a user would.
+    #[test]
+    fn picking_the_tron_chip_makes_the_they_send_tile_read_usdt_on_tron() {
+        use crate::app::view::shared::landing::capture;
+        let mut panel = backed_panel();
+        let cache = mainnet();
+        let menu = Menu::Spark(crate::app::menu::SparkSubMenu::Receive);
+        // The open list floats over the page as an overlay, so it is pressed
+        // as the panel draws it: "Tron" is a chip label in the USDt row (the
+        // old list had a "USDt" row with a "TRON" tag instead).
+        let messages = capture::click_text(
+            crate::app::view::spark::receive::sender_picker_menu(panel.method, None, cache.network),
+            "Tron",
+            0,
+            (1440, 900),
+        );
+        let picked = messages
+            .into_iter()
+            .find_map(|message| match message {
+                ViewMessage::SparkReceive(
+                    msg @ SparkReceiveMessage::SelectSenderCrossNetwork(_),
+                ) => Some(msg),
+                _ => None,
+            })
+            .expect("the Tron chip picks a deposit option");
+        update_with_cache(&mut panel, &cache, picked);
+        assert_eq!(
+            panel
+                .sideshift_flow
+                .as_ref()
+                .map(|flow| flow.selected().key()),
+            Some("usdt:tron".to_owned())
+        );
+        let screen = capture::inspect(
+            "spark-receive-usdt-on-tron",
+            State::view(&panel, &menu, &cache),
+            (1440, 900),
+            "dark",
+            coincube_ui::theme::Theme::dark(),
+        );
+        let they_send = screen
+            .text
+            .iter()
+            .find(|(value, _)| value == "They send")
+            .map(|(_, bounds)| *bounds)
+            .expect("the THEY SEND tile");
+        let on_tile = |needle: &str| {
+            screen.text.iter().any(|(value, bounds)| {
+                value == needle
+                    && (bounds.y - they_send.y).abs() < 40.0
+                    && bounds.x < they_send.x + 300.0
+            })
+        };
+        assert!(
+            on_tile("USDt") && on_tile("on Tron"),
+            "the tile reads USDt on Tron: {:?}",
+            screen.text
+        );
+    }
+
     fn restore(panel: &mut SparkReceive, record: crate::app::settings::PendingSparkShift) {
         let _task = State::update(
             panel,
