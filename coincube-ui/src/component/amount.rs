@@ -139,6 +139,37 @@ pub fn amount_with_size_colors_and_unit<'a, T: 'a>(
     )
 }
 
+/// A headline bitcoin amount on a Tenshu balance tier: the figure at `size`
+/// and `line_height` in `weight`, the leading zeros and the unit muted, so it
+/// takes the same line box as the same tier's fiat figure. The figure names
+/// no colour of its own; the caller sets it (ink, on the balance boards).
+pub fn amount_figure<'a, T: 'a>(
+    a: &Amount,
+    size: f32,
+    line_height: f32,
+    weight: iced::Font,
+    unit: BitcoinDisplayUnit,
+) -> Row<'a, T> {
+    let line = iced::widget::text::LineHeight::Relative(line_height);
+    let (before, after) = split_figure(a.to_formatted_string_with_unit(unit), unit);
+    let spacing = if size > P1_SIZE as f32 { 10 } else { 5 };
+    iced::widget::row![
+        iced::widget::row![
+            text(before)
+                .size(size)
+                .line_height(line)
+                .color(color::GREY_3),
+            text(after).size(size).line_height(line).font(weight),
+        ],
+        text(unit.label())
+            .size(size)
+            .line_height(line)
+            .color(color::GREY_3),
+    ]
+    .spacing(spacing)
+    .align_y(iced::Alignment::Center)
+}
+
 pub fn unconfirmed_amount_with_size_and_unit<'a, T: 'a>(
     a: &Amount,
     size: u32,
@@ -222,6 +253,17 @@ fn split_at_first_non_zero(s: String) -> Option<(String, String)> {
     None
 }
 
+// The muted leading zeros and the figure from its first non-zero digit.
+fn split_figure(amount: String, unit: BitcoinDisplayUnit) -> (String, String) {
+    match split_at_first_non_zero(amount) {
+        Some((b, a)) => (b, a),
+        None => match unit {
+            BitcoinDisplayUnit::BTC => (String::from("0.00 000 000"), String::from("")),
+            BitcoinDisplayUnit::Sats => (String::from("0"), String::from("")),
+        },
+    }
+}
+
 // Build the rendering elements for displaying a Bitcoin amount.
 // The text should be bolded beginning where the BTC amount is non-zero.
 fn render_amount<'a, T: 'a>(
@@ -234,13 +276,7 @@ fn render_amount<'a, T: 'a>(
     let spacing = if size > P1_SIZE { 10 } else { 5 };
     let unit_text = unit.label();
 
-    let (before, after) = match split_at_first_non_zero(amount.clone()) {
-        Some((b, a)) => (b, a),
-        None => match unit {
-            BitcoinDisplayUnit::BTC => (String::from("0.00 000 000"), String::from("")),
-            BitcoinDisplayUnit::Sats => (String::from("0"), String::from("")),
-        },
-    };
+    let (before, after) = split_figure(amount, unit);
 
     let mut child_after = text(after).size(size).bold();
     if let Some(color_after) = color_after {

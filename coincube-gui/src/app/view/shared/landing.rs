@@ -118,6 +118,9 @@ pub struct AmountCell {
     /// Nonmonetary status only. A masked cell discards this so callers cannot
     /// accidentally retain an amount-bearing tooltip or accessibility label.
     pub explanation: Option<String>,
+    /// The primary is a status word ("Unavailable"), not a figure: drawn at
+    /// a quieter size than an amount would be.
+    pub status: bool,
 }
 
 impl AmountCell {
@@ -126,6 +129,7 @@ impl AmountCell {
             primary: primary.into(),
             secondary,
             explanation: None,
+            status: false,
         }
     }
 
@@ -134,14 +138,16 @@ impl AmountCell {
             primary: "—".into(),
             secondary: None,
             explanation: Some(explanation.into()),
+            status: false,
         }
     }
 
     pub fn unavailable(explanation: impl Into<String>) -> Self {
         Self {
-            primary: "Unavailable".into(),
+            primary: coincube_ui::locale::copy("Unavailable").to_owned(),
             secondary: None,
             explanation: Some(explanation.into()),
+            status: true,
         }
     }
 
@@ -150,6 +156,7 @@ impl AmountCell {
             primary: "••••••".into(),
             secondary: None,
             explanation: None,
+            status: false,
         }
     }
 
@@ -176,6 +183,11 @@ pub enum AmountTier {
 
 pub fn amount_cell<'a, M: 'a>(cell: AmountCell, tier: AmountTier) -> Element<'a, M> {
     let primary = match tier {
+        // A status word in the amount's place reads as a heading, not a
+        // figure: 20px semibold muted rather than 46 or 26.
+        AmountTier::Total | AmountTier::Card if cell.status => {
+            coincube_ui::component::tenshu::heading(cell.primary).style(theme::tenshu::text::muted)
+        }
         AmountTier::Total | AmountTier::Card => {
             let tier = if matches!(tier, AmountTier::Total) {
                 BalanceTier::Hero

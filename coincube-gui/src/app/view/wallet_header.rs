@@ -19,7 +19,7 @@ use coincube_ui::{
     color,
     component::{
         amount::{
-            amount_with_size_and_unit, amount_with_size_colors_and_unit,
+            amount_figure, amount_with_size_and_unit, amount_with_size_colors_and_unit,
             unconfirmed_amount_with_size_and_unit, BitcoinDisplayUnit, DisplayAmount,
         },
         spinner,
@@ -293,8 +293,6 @@ fn balance_rows<'a, M: Clone + 'static>(
     display_mode: DisplayMode,
 ) -> (Element<'a, M>, Element<'a, M>) {
     let tier = variant.tier();
-    // Tenshu sizes are whole pixels; the legacy amount row takes a `u32`.
-    let primary_size = tier.figure_size() as u32;
     let secondary_size = P1_SIZE;
 
     // Build fiat / bitcoin sub-elements once each, then assemble in the
@@ -306,7 +304,16 @@ fn balance_rows<'a, M: Clone + 'static>(
     } else if amount_unknown {
         primary_text(UNKNOWN_AMOUNT, tier).into()
     } else {
-        amount_with_size_and_unit::<M>(&sats, primary_size, bitcoin_unit).into()
+        // The tier's line box and weight, as the fiat figure and the mask,
+        // so flipping units never changes the header's height.
+        amount_figure::<M>(
+            &sats,
+            tier.figure_size(),
+            tier.figure_line_height(),
+            font::SEMIBOLD,
+            bitcoin_unit,
+        )
+        .into()
     };
     let bitcoin_secondary: Element<'a, M> = if balance_masked {
         text("********")

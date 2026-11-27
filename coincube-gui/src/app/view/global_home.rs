@@ -123,7 +123,7 @@ fn pending_deposit_amount(
 
 /// The dots that stand in for an amount while it loads, at the size of the
 /// amount they stand in for.
-fn hero_placeholder(content: &str, tier: BalanceTier) -> coincube_ui::widget::Text<'_> {
+fn amount_placeholder(content: &str, tier: BalanceTier) -> coincube_ui::widget::Text<'_> {
     text(content)
         .size(tier.figure_size())
         .line_height(iced::widget::text::LineHeight::Relative(
@@ -139,7 +139,7 @@ fn wallet_loading_header<'a>(loading_status: Option<String>) -> Element<'a, Mess
             "...",
             false,
             Duration::from_millis(400),
-            |content| hero_placeholder(content, BalanceTier::Card),
+            |content| amount_placeholder(content, BalanceTier::Card),
         ))
         .push(match loading_status {
             Some(status) => Element::from(text(status).size(P1_SIZE).style(theme::text::secondary)),
@@ -3028,7 +3028,7 @@ fn spark_card_header<'a>(
                 "...",
                 false,
                 Duration::from_millis(400),
-                |content| hero_placeholder(content, BalanceTier::Card),
+                |content| amount_placeholder(content, BalanceTier::Card),
             ))
             .push(spinner::typing_text_carousel(
                 "...",
@@ -3206,7 +3206,7 @@ fn overview_total<'a>(
                 "...",
                 false,
                 Duration::from_millis(400),
-                |content| hero_placeholder(content, BalanceTier::Hero),
+                |content| amount_placeholder(content, BalanceTier::Hero),
             ))
             .push(spinner::typing_text_carousel(
                 "...",
@@ -5477,6 +5477,77 @@ mod tests {
         }
     }
 
+    /// Flipping between dollars and sats never changes the height of the
+    /// total or a card amount, so nothing below them moves: the flip
+    /// controls keep their size and "Wallets" and each card's BTC row keep
+    /// their places, in both themes at both sizes.
+    #[test]
+    fn flipping_units_keeps_the_amount_heights() {
+        let fixture = ViewFixture::new();
+        let controls = [
+            landing_control_id("test-cube", "Hub", "total-flip-balance"),
+            landing_control_id("test-cube", "Spark", "flip-balance"),
+            landing_control_id("test-cube", "Vault", "flip-balance"),
+        ];
+        for (appearance, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            for outer in [(1024, 768), (1440, 900)] {
+                let inspect = |display_mode: DisplayMode| {
+                    let mut config = fixture.config(0, None, None);
+                    config.display_mode = display_mode;
+                    capture::inspect(
+                        "overview-flip-heights",
+                        overview(config),
+                        outer,
+                        appearance,
+                        theme,
+                    )
+                };
+                let (fiat, sats) = (
+                    inspect(DisplayMode::FiatNative),
+                    inspect(DisplayMode::BitcoinNative),
+                );
+                let scenario = format!("{} {:?}", appearance, outer);
+                let bounds = |mounted: &capture::Inspection, id: &iced::advanced::widget::Id| {
+                    mounted
+                        .focus
+                        .iter()
+                        .find_map(|(actual, bounds)| (actual == id).then_some(*bounds))
+                        .unwrap_or_else(|| panic!("{}: {:?}", scenario, id))
+                };
+                for id in &controls {
+                    assert!(
+                        (bounds(&fiat, id).height - bounds(&sats, id).height).abs() < 0.01,
+                        "{}: {:?} is {} tall in dollars and {} in sats",
+                        scenario,
+                        id,
+                        bounds(&fiat, id).height,
+                        bounds(&sats, id).height
+                    );
+                }
+                let ys = |mounted: &capture::Inspection, needle: &str| -> Vec<f32> {
+                    mounted
+                        .text
+                        .iter()
+                        .filter(|(text, _)| text == needle)
+                        .map(|(_, bounds)| bounds.y)
+                        .collect()
+                };
+                for needle in ["Wallets", "BTC"] {
+                    assert_eq!(
+                        ys(&fiat, needle),
+                        ys(&sats, needle),
+                        "{}: {} stays",
+                        scenario,
+                        needle
+                    );
+                }
+            }
+        }
+    }
+
     /// The largest amounts the Overview can show still sit on one line inside
     /// their card at the 1024×768 minimum window, the study's warning case:
     /// the whole bitcoin supply on each wallet, as dollars and as sats, shown
@@ -5527,7 +5598,7 @@ mod tests {
                     assert!(!totals.is_empty(), "{}: the total is drawn", scenario);
                     for (text, bounds) in totals {
                         assert!(
-                            bounds.height <= 46.0 * 1.3 + 0.01
+                            (bounds.height - 46.0 * 1.15).abs() < 0.01
                                 && bounds.x + bounds.width <= pane + 0.5,
                             "{}: the total {:?} is one line inside the pane: {:?}",
                             scenario,
@@ -5549,10 +5620,10 @@ mod tests {
                         lines
                     );
                     for (text, bounds) in lines {
-                        // 1.2 for the figure, 1.3 (Iced's default) for the
-                        // sats row; a wrapped line would be twice that.
+                        // One 26px line at 1.2; a wrapped line would be twice
+                        // that.
                         assert!(
-                            bounds.height <= 26.0 * 1.3 + 0.01,
+                            (bounds.height - 26.0 * 1.2).abs() < 0.01,
                             "{}: {:?} is on one 26px line: {:?}",
                             scenario,
                             text,

@@ -1068,9 +1068,9 @@ mod capture_tests {
     /// The Vault page on the type scale (`MV-Type-Scale`, "Desktop
     /// proposed"; `P-Overview`): "Total balance" is the board's 13px label
     /// (`.kbal`, an 18.85px line at 1.45)
-    /// and the main amount is 46px, like the Overview's total: the sats row
-    /// at Iced's 1.3, the fiat figure and the mask at `.big`'s 1.15. Before,
-    /// the title was 20px bold and the amount 29px.
+    /// and the main amount is 46px, like the Overview's total: sats, dollars
+    /// and the mask all on `.big`'s 1.15 line. Before, the title was 20px
+    /// bold and the amount 29px.
     #[test]
     fn vault_main_amount_is_46px_under_a_13px_label() {
         let balance = bitcoin::Amount::from_sat(250_000);
@@ -1104,7 +1104,7 @@ mod capture_tests {
             for outer in [(1024, 768), (1440, 900)] {
                 // (display mode, masked, the main amount's text, its height)
                 for (mode, masked, figure, height) in [
-                    (DisplayMode::BitcoinNative, false, "250,000", 46.0 * 1.3),
+                    (DisplayMode::BitcoinNative, false, "250,000", 46.0 * 1.15),
                     (DisplayMode::FiatNative, false, "125.00", 46.0 * 1.15),
                     (DisplayMode::BitcoinNative, true, "********", 46.0 * 1.15),
                 ] {
