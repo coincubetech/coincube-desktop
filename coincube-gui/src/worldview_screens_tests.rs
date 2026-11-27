@@ -19,6 +19,12 @@ use crate::chain::ChainId;
 use crate::home::launcher_presenter::{opening_body, project_opening};
 use crate::home::restore_frame::done_mark;
 
+/// Deliberately tall: iced's `Column` skips drawing children outside the
+/// viewport, so a picture below a 1024×768 window's fold would go uncounted.
+/// At 3000 px high (the window less the 100 px the helper keeps for chrome)
+/// each whole screen is drawn, so `draws_no_image` covers all of it.
+const TALL: (u32, u32) = (1024, 3100);
+
 fn fixture_quote(id: &str) -> Quote {
     Quote {
         id: id.into(),
@@ -123,7 +129,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                         }
                         .render()
                     }),
-                    (1024, 768),
+                    TALL,
                     appearance,
                     theme,
                 );
@@ -156,7 +162,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                                     .into()
                             })
                         }),
-                        (1024, 768),
+                        TALL,
                         appearance,
                         theme,
                     );
@@ -171,7 +177,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 let restored = capture::inspect_rendered_full_window(
                     &scenario("restored"),
                     done_mark::<()>(),
-                    (1024, 768),
+                    TALL,
                     appearance,
                     theme,
                 );
@@ -182,7 +188,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 let flow = capture::inspect_rendered_full_window(
                     &scenario("recovery-kit"),
                     flow_intro::<()>("Protect your Cube", "Set up a Recovery Kit.").into(),
-                    (1024, 768),
+                    TALL,
                     appearance,
                     theme,
                 );
@@ -211,6 +217,35 @@ fn the_image_probe_counts_a_drawn_picture() {
     );
     assert_eq!(drawn.images, Some(1));
     assert!(!drawn.draws_no_image());
+
+    // Below a 768 px window's fold the picture is skipped, which is why the
+    // screens above are drawn `TALL`; there it is counted.
+    let below_fold = || -> coincube_ui::widget::Element<'static, ()> {
+        coincube_ui::widget::Column::new()
+            .push(iced::widget::Space::new().height(iced::Length::Fixed(2000.0)))
+            .push(
+                iced::widget::image(iced::widget::image::Handle::from_rgba(2, 2, vec![255; 16]))
+                    .width(iced::Length::Fixed(40.0))
+                    .height(iced::Length::Fixed(40.0)),
+            )
+            .into()
+    };
+    let short = capture::inspect_rendered_full_window(
+        "image-probe-short",
+        below_fold(),
+        (1024, 768),
+        "dark",
+        Theme::dark(),
+    );
+    assert_eq!(short.images, Some(0));
+    let tall = capture::inspect_rendered_full_window(
+        "image-probe-tall",
+        below_fold(),
+        TALL,
+        "dark",
+        Theme::dark(),
+    );
+    assert_eq!(tall.images, Some(1));
 }
 
 #[test]
