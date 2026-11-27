@@ -200,7 +200,7 @@ pub fn top_bar_with_privacy<'a>(
     privacy: Option<BalancePrivacyChrome>,
 ) -> Element<'a, Message> {
     let connect = connect_control(ctx);
-    let top: Element<'a, Message> = bar::top_bar(
+    let mut top = bar::top_bar(
         bar::brand_action(
             LAUNCHER_RETURN_ID,
             Message::FocusAction,
@@ -211,17 +211,23 @@ pub fn top_bar_with_privacy<'a>(
             Message::FocusAction,
             Message::OpenAppPreferences,
         ),
-    )
-    .eye(privacy.map(|chrome| {
-        balance_privacy_eye(
-            BALANCE_PRIVACY_ID,
-            chrome,
-            Message::FocusAction,
-            Message::ChangeDevicePreference,
-        )
-    }))
-    .chip(connect)
-    .into();
+    );
+    // The test-network tag beside the wordmark (S1). The bar is pinned
+    // above the page, so the tag can't be scrolled away.
+    if let Some(tag) = crate::chain::test_network_tag(ctx.network) {
+        top = top.lead(tag);
+    }
+    let top: Element<'a, Message> = top
+        .eye(privacy.map(|chrome| {
+            balance_privacy_eye(
+                BALANCE_PRIVACY_ID,
+                chrome,
+                Message::FocusAction,
+                Message::ChangeDevicePreference,
+            )
+        }))
+        .chip(connect)
+        .into();
     // The quiet rule under the bar, as on the Launcher.
     let mut bar = column![top, bar::rule()];
     // The panel hangs from the control's trailing edge, clear of App

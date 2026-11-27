@@ -48,7 +48,7 @@ use tokio::runtime::Handle;
 use tracing::{error, info, warn};
 
 pub use coincube_core::miniscript::bitcoin;
-use coincube_ui::{component::network_banner, theme::notification::ToastTone, widget::Element};
+use coincube_ui::{theme::notification::ToastTone, widget::Element};
 pub use coincubed::{
     commands::CoinStatus,
     config::{BitcoindRpcAuth, Config as DaemonConfig},
@@ -10575,12 +10575,9 @@ impl App {
     }
 
     pub fn view(&self) -> Element<'_, Message> {
+        // A test network is named by the tag in the top bar, or in the
+        // brand bar of a full-window journey (S1), not by a strip here.
         let view = self.active_panel_view();
-        let view: Element<'_, view::Message> = if self.cache.network != bitcoin::Network::Bitcoin {
-            iced::widget::column![network_banner(self.cache.network), view].into()
-        } else {
-            view
-        };
         let view = if matches!(
             self.panels.current,
             Menu::Cube(menu::CubeSubMenu::Settings(
@@ -11425,6 +11422,149 @@ pub(crate) mod tests {
             "{:?}",
             shown
         );
+    }
+
+    /// Every top-level Cube page a user can open from the sidebar.
+    fn top_level_pages() -> Vec<Menu> {
+        use menu::{
+            CubeSettingsOption, CubeSubMenu, MarketplaceSubMenu, SparkSubMenu, VaultSubMenu,
+        };
+        vec![
+            Menu::Cube(CubeSubMenu::Overview),
+            Menu::Cube(CubeSubMenu::Activity),
+            Menu::Cube(CubeSubMenu::Settings(CubeSettingsOption::Recovery)),
+            Menu::Spark(SparkSubMenu::Overview),
+            Menu::Spark(SparkSubMenu::Send),
+            Menu::Spark(SparkSubMenu::Receive),
+            Menu::Spark(SparkSubMenu::Transactions(None)),
+            Menu::Spark(SparkSubMenu::Settings(None)),
+            Menu::Vault(VaultSubMenu::Overview),
+            Menu::Vault(VaultSubMenu::Send),
+            Menu::Vault(VaultSubMenu::Receive),
+            Menu::Vault(VaultSubMenu::Coins(None)),
+            Menu::Vault(VaultSubMenu::Transactions(None)),
+            Menu::Vault(VaultSubMenu::PSBTs(None)),
+            Menu::Vault(VaultSubMenu::Recovery),
+            Menu::Vault(VaultSubMenu::Settings(None)),
+            Menu::Marketplace(MarketplaceSubMenu::BuySell),
+        ]
+    }
+
+    /// S1, S2: on every test network each top-level Cube page shows the
+    /// test-network tag, naming the network in words, in the pinned top bar
+    /// above the page's own scroll; mainnet pages show none. Every chain
+    /// renders without a panic.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn every_top_level_page_names_a_test_network_and_mainnet_has_no_tag() {
+        use crate::chain::ChainId;
+        use crate::home::restore_frame::rendered_labels;
+        let root = tempfile::tempdir().unwrap();
+        let (mut app, _) = {
+            let _guard = crate::app::session::test_guard();
+            crate::app::shell_tests::bitcoin_app(root.path())
+        };
+        for chain in ChainId::ALL {
+            app.cache.fiat_chain = chain;
+            app.cache.network = chain.bitcoin_network();
+            for page in top_level_pages() {
+                app.panels.current = page.clone();
+                let labels = rendered_labels(app.view()).await;
+                let tagged = labels.iter().any(|t| t == "Test coins, no value");
+                match crate::chain::test_network_name(chain) {
+                    Some(name) => {
+                        assert!(
+                            tagged && labels.iter().any(|t| t == name),
+                            "{:?} on {:?} has no test-network tag: {:?}",
+                            page,
+                            chain,
+                            labels
+                        );
+                    }
+                    None => assert!(!tagged, "{:?} on {:?} is tagged as a test", page, chain),
+                }
+            }
+        }
+        // Only the two mainnets go untagged.
+        assert_eq!(
+            ChainId::ALL
+                .iter()
+                .filter(|c| crate::chain::test_network_name(**c).is_none())
+                .copied()
+                .collect::<Vec<_>>(),
+            vec![ChainId::Bitcoin, ChainId::BitcoinBlake2b]
+        );
+    }
+
+    /// The tag sits beside the wordmark, in the top bar, not in a strip
+    /// across the page: it is laid out inside the bar's 64px and starts
+    /// right of the brand.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn the_tag_sits_in_the_top_bar_beside_the_wordmark() {
+        use crate::app::view::shared::landing::capture;
+        let root = tempfile::tempdir().unwrap();
+        let (mut app, _) = {
+            let _guard = crate::app::session::test_guard();
+            crate::app::shell_tests::bitcoin_app(root.path())
+        };
+        app.cache.fiat_chain = crate::chain::ChainId::Testnet4;
+        app.cache.network = bitcoin::Network::Testnet4;
+        app.panels.current = Menu::Cube(menu::CubeSubMenu::Overview);
+        let shown = capture::inspect_full_window(
+            "testnet4-overview",
+            app.view(),
+            (1440, 900),
+            "dark",
+            coincube_ui::theme::Theme::dark(),
+        );
+        let (_, tag) = shown
+            .text
+            .iter()
+            .find(|(t, _)| t == "TESTNET4")
+            .expect("the tag names Testnet4");
+        assert!(
+            tag.y >= 0.0 && tag.y + tag.height <= view::nav::shell::TOP_BAR_HEIGHT,
+            "{:?}",
+            tag
+        );
+        assert!(tag.x > 100.0 && tag.x < 260.0, "{:?}", tag);
+    }
+
+    /// Opt-in look check against `P-Overview` and `D4-Notices`: Overview on
+    /// Testnet4 in both themes, with the backup reminder showing.
+    /// `W3_CAPTURE_DIR=<dir> cargo test -p coincube-gui --lib
+    /// w3_overview_capture -- --ignored`.
+    #[tokio::test(flavor = "multi_thread")]
+    #[ignore = "writes PNG frames"]
+    async fn w3_overview_capture() {
+        use crate::app::view::shared::landing::capture::render_pixels;
+        let Some(directory) = std::env::var_os("W3_CAPTURE_DIR") else {
+            return;
+        };
+        let directory = std::path::PathBuf::from(directory);
+        std::fs::create_dir_all(&directory).unwrap();
+        let root = tempfile::tempdir().unwrap();
+        let (mut app, _) = {
+            let _guard = crate::app::session::test_guard();
+            crate::app::shell_tests::bitcoin_app(root.path())
+        };
+        app.cache.fiat_chain = crate::chain::ChainId::Testnet4;
+        app.cache.network = bitcoin::Network::Testnet4;
+        app.cache.current_cube_backed_up = false;
+        app.panels.current = Menu::Cube(menu::CubeSubMenu::Overview);
+        for (name, theme) in [
+            ("dark", coincube_ui::theme::Theme::dark()),
+            ("light", coincube_ui::theme::Theme::light()),
+        ] {
+            let pixels = render_pixels(app.view(), (1440, 900), &theme, None);
+            image::save_buffer(
+                directory.join(format!("overview-testnet4-{}.png", name)),
+                &pixels.rgba,
+                1440,
+                900,
+                image::ColorType::Rgba8,
+            )
+            .unwrap();
+        }
     }
 
     /// An open Import or restore takes the whole window: none of the Cube's

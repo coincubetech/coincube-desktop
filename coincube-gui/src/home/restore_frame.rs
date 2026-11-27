@@ -294,21 +294,36 @@ pub(crate) fn nav_action<'a, M: Clone + 'a>(
         .into()
 }
 
-/// The wizard sheet over a plain backdrop, for screens with no Launcher
-/// behind them (the installer's restores, an open Cube's import): the same
-/// dimmed modal presentation, under a bar with the brand.
-pub(crate) fn standalone<'a, M: 'a>(sheet: Element<'a, M>) -> Element<'a, M> {
+/// The 64px bar with the brand, and on a test network the test-network tag
+/// beside the wordmark (S1), for screens drawn without the Cube's top bar.
+pub(crate) fn brand_bar<'a, M: 'a>(chain: ChainId) -> Element<'a, M> {
     let bar = Container::new(
         Row::new()
             .spacing(8)
             .align_y(Alignment::Center)
             .push(coincube_ui::icon::cube_outline_icon())
-            .push(coincube_ui::image::coincube_wordmark(15.0)),
+            .push(coincube_ui::image::coincube_wordmark(15.0))
+            .push_maybe(
+                crate::chain::test_network_tag(chain)
+                    .map(|tag| Container::new(tag).padding(iced::Padding::ZERO.left(8))),
+            ),
     )
     .center_y(Length::Fixed(64.0))
     .padding([0, 24])
     .width(Length::Fill)
-    .style(theme::container::shell_rail);
+    .style(theme::container::shell_sidebar);
+    // The quiet rule under the bar, as under the Cube's and the Launcher's.
+    Column::new()
+        .push(bar)
+        .push(coincube_ui::component::tenshu::top_bar::rule())
+        .into()
+}
+
+/// The wizard sheet over a plain backdrop, for screens with no Launcher
+/// behind them (the installer's restores, an open Cube's import): the same
+/// dimmed modal presentation, under a bar with the brand.
+pub(crate) fn standalone<'a, M: 'a>(chain: ChainId, sheet: Element<'a, M>) -> Element<'a, M> {
+    let bar = brand_bar(chain);
     let backdrop = Container::new(
         Column::new()
             .width(Length::Fill)

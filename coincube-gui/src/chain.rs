@@ -291,6 +291,26 @@ pub(crate) fn canonical_network_name(chain: ChainId) -> &'static str {
     }
 }
 
+/// The name the test-network tag shows for `chain`, or `None` where coins
+/// have value (Bitcoin and Bitcoin Blake2b mainnet). Every other chain is a
+/// test network and is named, so a user always knows (Phase 2 S1, S2).
+pub(crate) fn test_network_name(chain: ChainId) -> Option<&'static str> {
+    match chain {
+        ChainId::Bitcoin | ChainId::BitcoinBlake2b => None,
+        ChainId::Testnet | ChainId::Testnet4 | ChainId::Signet | ChainId::Regtest => {
+            coincube_ui::component::test_network_name(chain.bitcoin_network())
+        }
+        ChainId::BitcoinBlake2bTestnet4 => Some("BTCB2 TESTNET4"),
+    }
+}
+
+/// The test-network tag for `chain`, or nothing on a mainnet.
+pub(crate) fn test_network_tag<'a, M: 'a>(
+    chain: ChainId,
+) -> Option<coincube_ui::widget::Element<'a, M>> {
+    test_network_name(chain).map(coincube_ui::component::test_network_tag)
+}
+
 /// Optional flavor for passive chain labels. The result is display copy only.
 pub(crate) fn worldview_chain_label(
     chain: ChainId,
