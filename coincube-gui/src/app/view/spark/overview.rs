@@ -1121,7 +1121,12 @@ mod tests {
         assert_eq!(panel.width, 380.0, "the popover keeps its own width");
         assert!(panel.height < size.height / 1.2, "not a whole-page scrim");
         assert!(panel.y > button.y + button.height, "hangs below the button");
-        assert!(panel.y < button.y + button.height + 40.0, "close under it");
+        assert!(
+            panel.y < button.y + button.height + 40.0,
+            "close under it {:?} {:?}",
+            panel,
+            button
+        );
         assert!(
             (panel.x + panel.width) > button.x + button.width
                 && (panel.x + panel.width) <= size.width,
@@ -1550,6 +1555,81 @@ mod tests {
                     theme,
                 );
                 assert!(unavailable.contains("not configured"));
+            }
+        }
+    }
+
+    /// The tallest line drawn for `needle`, failing if it is missing.
+    fn tallest(mounted: &capture::Inspection, needle: &str, scenario: &str) -> f32 {
+        mounted
+            .text
+            .iter()
+            .filter(|(text, _)| text == needle)
+            .map(|(_, bounds)| bounds.height)
+            .fold(None, |tallest: Option<f32>, height| {
+                Some(tallest.map_or(height, |t| t.max(height)))
+            })
+            .unwrap_or_else(|| panic!("{}: {:?} is drawn", scenario, needle))
+    }
+
+    /// The Spark page on the type scale (`MV-Type-Scale`, "Desktop
+    /// proposed"): "Total balance" is a 20px section title (29px at 1.45)
+    /// and the main amount is 46px, like the Overview's total, shown (the
+    /// sats row at Iced's 1.3) and hidden (the mask at `.big`'s 1.15).
+    /// Before, the title was 20px bold and the amount 29px.
+    #[test]
+    fn spark_main_amount_is_46px_under_a_20px_section_title() {
+        let snapshot = SparkBalanceSnapshot {
+            balance_sats: 125_000,
+            usdb_balance: None,
+        };
+        for (appearance, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            for outer in [(1024, 768), (1440, 900)] {
+                let scenario = format!("spark {} {:?}", appearance, outer);
+                let shown = capture::inspect(
+                    "spark-type-scale",
+                    synthetic_overview(SparkStatus::Connected(snapshot.clone()), &[], None, None),
+                    outer,
+                    appearance,
+                    theme,
+                );
+                let title = tallest(&shown, "Total balance", &scenario);
+                assert!((title - 29.0).abs() < 0.01, "{}: title {}", scenario, title);
+                let amount = tallest(&shown, "125,000", &scenario);
+                assert!(
+                    (amount - 46.0 * 1.3).abs() < 0.01,
+                    "{}: main amount {}",
+                    scenario,
+                    amount
+                );
+
+                let hidden = capture::inspect(
+                    "spark-type-scale-hidden",
+                    SparkOverviewView {
+                        mask_amounts: true,
+                        ..synthetic_view(
+                            SparkStatus::Connected(snapshot.clone()),
+                            &[],
+                            None,
+                            None,
+                            SparkLightningAddress::Unknown,
+                        )
+                    }
+                    .render(),
+                    outer,
+                    appearance,
+                    theme,
+                );
+                let mask = tallest(&hidden, "••••••", &scenario);
+                assert!(
+                    (mask - 46.0 * 1.15).abs() < 0.01,
+                    "{}: hidden main amount {}",
+                    scenario,
+                    mask
+                );
             }
         }
     }

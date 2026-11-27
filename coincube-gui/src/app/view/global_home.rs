@@ -5302,6 +5302,196 @@ mod tests {
         }
     }
 
+    /// The height of the one line `needle` is drawn on, failing if it is
+    /// missing.
+    fn line_height_of(shown: &capture::Inspection, needle: &str, scenario: &str) -> f32 {
+        shown
+            .text
+            .iter()
+            .find_map(|(text, bounds)| (text == needle).then_some(bounds.height))
+            .unwrap_or_else(|| panic!("{}: {:?} is drawn", scenario, needle))
+    }
+
+    fn assert_height(actual: f32, expected: f32, what: &str, scenario: &str) {
+        assert!(
+            (actual - expected).abs() < 0.01,
+            "{}: {} is {}px tall, want {}",
+            scenario,
+            what,
+            actual,
+            expected
+        );
+    }
+
+    /// The Overview on the type scale (`MV-Type-Scale`, "Desktop proposed";
+    /// `P-Overview`): "Total balance" and "Wallets" are 20px section titles
+    /// (29px lines at 1.45), the total is a 46px figure (`.big`, line 1.15)
+    /// and each wallet card's amount is 26px (`.amt`, line 1.2), shown and
+    /// hidden, in both themes at both sizes. Before, the titles were 24px,
+    /// the total 40px and the cards 29px.
+    #[test]
+    fn overview_amounts_and_section_titles_take_the_type_scale() {
+        let hero = 46.0 * 1.15;
+        let card = 26.0 * 1.2;
+        let section = 20.0 * coincube_ui::theme::tenshu::type_size::LINE_HEIGHT;
+        let fixture = ViewFixture::new();
+        for (appearance, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            for outer in [(1024, 768), (1440, 900)] {
+                let scenario = format!("overview {} {:?}", appearance, outer);
+                let shown = capture::inspect(
+                    "overview-type-scale",
+                    overview(fixture.config(0, None, None)),
+                    outer,
+                    appearance,
+                    theme,
+                );
+                for title in ["Total balance", "Wallets"] {
+                    assert_height(
+                        line_height_of(&shown, title, &scenario),
+                        section,
+                        title,
+                        &scenario,
+                    );
+                }
+                // $312.50 in total, $125.00 on Spark and $187.50 on the Vault.
+                assert_height(
+                    line_height_of(&shown, "312.50", &scenario),
+                    hero,
+                    "the total",
+                    &scenario,
+                );
+                for amount in ["125.00", "187.50"] {
+                    assert_height(
+                        line_height_of(&shown, amount, &scenario),
+                        card,
+                        amount,
+                        &scenario,
+                    );
+                }
+
+                let mut hidden = fixture.config(0, None, None);
+                hidden.balance_masked = true;
+                let hidden = capture::inspect(
+                    "overview-type-scale-hidden",
+                    overview(hidden),
+                    outer,
+                    appearance,
+                    theme,
+                );
+                let mut masks: Vec<f32> = hidden
+                    .text
+                    .iter()
+                    .filter(|(text, _)| text == "********")
+                    .map(|(_, bounds)| bounds.height)
+                    .filter(|height| *height > 25.0)
+                    .collect();
+                masks.sort_by(f32::total_cmp);
+                assert_eq!(masks.len(), 3, "{}: the total and two card masks", scenario);
+                assert_height(masks[0], card, "a card mask", &scenario);
+                assert_height(masks[1], card, "a card mask", &scenario);
+                assert_height(masks[2], hero, "the total mask", &scenario);
+            }
+        }
+    }
+
+    /// The largest amounts the Overview can show still sit on one line inside
+    /// their card at the 1024×768 minimum window, the study's warning case:
+    /// the whole bitcoin supply on each wallet, as dollars and as sats, shown
+    /// and hidden.
+    #[test]
+    fn overview_long_amounts_stay_on_one_line_at_1024() {
+        let fixture = ViewFixture::new();
+        // The dashboard's 8/10 pane at 1024 is 652px; the cards stack and
+        // keep 20px of padding.
+        let card_right = (((1024.0_f32 - 208.0) * 0.8).floor()) - 20.0;
+        let supply = Amount::from_sat(2_099_999_997_690_000);
+        for display_mode in [DisplayMode::FiatNative, DisplayMode::BitcoinNative] {
+            for masked in [false, true] {
+                for (appearance, theme) in [
+                    ("dark", theme::Theme::dark()),
+                    ("light", theme::Theme::light()),
+                ] {
+                    let scenario = format!("{:?} masked={} {}", display_mode, masked, appearance);
+                    let mut config = fixture.config(0, None, None);
+                    config.spark_balance = supply;
+                    config.spark_btc_balance = supply;
+                    config.vault_balance = supply;
+                    config.display_mode = display_mode;
+                    config.balance_masked = masked;
+                    let shown = capture::inspect(
+                        "overview-long-amounts",
+                        overview(config),
+                        (1024, 768),
+                        appearance,
+                        theme,
+                    );
+                    // Every amount line in a card (26px and up, below the
+                    // total): one line, inside the card.
+                    let wallets_y = shown
+                        .text
+                        .iter()
+                        .find_map(|(text, bounds)| (text == "Wallets").then_some(bounds.y))
+                        .expect("Wallets");
+                    // The total above them: one 46px line inside the pane.
+                    let pane = card_right + 20.0;
+                    let totals: Vec<_> = shown
+                        .text
+                        .iter()
+                        .filter(|(text, bounds)| {
+                            !text.is_empty() && bounds.y < wallets_y && bounds.height > 40.0
+                        })
+                        .collect();
+                    assert!(!totals.is_empty(), "{}: the total is drawn", scenario);
+                    for (text, bounds) in totals {
+                        assert!(
+                            bounds.height <= 46.0 * 1.3 + 0.01
+                                && bounds.x + bounds.width <= pane + 0.5,
+                            "{}: the total {:?} is one line inside the pane: {:?}",
+                            scenario,
+                            text,
+                            bounds
+                        );
+                    }
+                    let lines: Vec<_> = shown
+                        .text
+                        .iter()
+                        .filter(|(text, bounds)| {
+                            !text.is_empty() && bounds.y > wallets_y && bounds.height > 30.0
+                        })
+                        .collect();
+                    assert!(
+                        lines.len() >= 2,
+                        "{}: card amounts drawn {:?}",
+                        scenario,
+                        lines
+                    );
+                    for (text, bounds) in lines {
+                        // 1.2 for the figure, 1.3 (Iced's default) for the
+                        // sats row; a wrapped line would be twice that.
+                        assert!(
+                            bounds.height <= 26.0 * 1.3 + 0.01,
+                            "{}: {:?} is on one 26px line: {:?}",
+                            scenario,
+                            text,
+                            bounds
+                        );
+                        assert!(
+                            bounds.x + bounds.width <= card_right + 0.5,
+                            "{}: {:?} ends inside its card at {}: {:?}",
+                            scenario,
+                            text,
+                            card_right,
+                            bounds
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     const WORLDVIEWS: [(coincube_ui::theme::WorldviewMode, &str); 3] = [
         (coincube_ui::theme::WorldviewMode::Samurai, "samurai"),
         (coincube_ui::theme::WorldviewMode::Suitcoiner, "suitcoiner"),

@@ -1065,6 +1065,95 @@ mod capture_tests {
         }
     }
 
+    /// The Vault page on the type scale (`MV-Type-Scale`, "Desktop
+    /// proposed"): "Total balance" is a 20px section title (29px at 1.45)
+    /// and the main amount is 46px, like the Overview's total: the sats row
+    /// at Iced's 1.3, the fiat figure and the mask at `.big`'s 1.15. Before,
+    /// the title was 20px bold and the amount 29px.
+    #[test]
+    fn vault_main_amount_is_46px_under_a_20px_section_title() {
+        let balance = bitcoin::Amount::from_sat(250_000);
+        let zero = bitcoin::Amount::ZERO;
+        let converter = || {
+            FiatAmountConverter::new(
+                50_000.0,
+                Some(1_722_000_000),
+                crate::app::cache::FiatPriceRequest::new(
+                    crate::services::fiat::PriceSource::Coincube,
+                    crate::services::fiat::Currency::USD,
+                ),
+            )
+            .ok()
+        };
+        let tallest = |mounted: &capture::Inspection, needle: &str, scenario: &str| -> f32 {
+            mounted
+                .text
+                .iter()
+                .filter(|(text, _)| text == needle)
+                .map(|(_, bounds)| bounds.height)
+                .fold(None, |tallest: Option<f32>, height| {
+                    Some(tallest.map_or(height, |t| t.max(height)))
+                })
+                .unwrap_or_else(|| panic!("{}: {:?} is drawn", scenario, needle))
+        };
+        for (appearance, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            for outer in [(1024, 768), (1440, 900)] {
+                // (display mode, masked, the main amount's text, its height)
+                for (mode, masked, figure, height) in [
+                    (DisplayMode::BitcoinNative, false, "250,000", 46.0 * 1.3),
+                    (DisplayMode::FiatNative, false, "125.00", 46.0 * 1.15),
+                    (DisplayMode::BitcoinNative, true, "********", 46.0 * 1.15),
+                ] {
+                    let scenario = format!(
+                        "vault {} {:?} {:?} masked={}",
+                        appearance, outer, mode, masked
+                    );
+                    let mounted = capture::inspect(
+                        "vault-type-scale",
+                        vault_overview_view(
+                            &balance,
+                            &zero,
+                            &None,
+                            converter(),
+                            &[],
+                            None,
+                            "synthetic-cube",
+                            crate::chain::ChainId::Bitcoin,
+                            &SyncStatus::Synced,
+                            false,
+                            false,
+                            BitcoinDisplayUnit::Sats,
+                            None,
+                            None,
+                            true,
+                            mode,
+                            masked,
+                            0,
+                            None,
+                        ),
+                        outer,
+                        appearance,
+                        theme,
+                    );
+                    let title = tallest(&mounted, "Total balance", &scenario);
+                    assert!((title - 29.0).abs() < 0.01, "{}: title {}", scenario, title);
+                    let amount = tallest(&mounted, figure, &scenario);
+                    assert!(
+                        (amount - height).abs() < 0.01,
+                        "{}: main amount {} is {}, want {}",
+                        scenario,
+                        figure,
+                        amount,
+                        height
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn hidden_overview_redacts_balance() {
         let balance = bitcoin::Amount::from_sat(12_345_678);
