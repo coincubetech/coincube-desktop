@@ -326,9 +326,6 @@ fn worldview_panel_style(theme: &theme::Theme) -> container::Style {
 pub enum Action {
     Close,
     RetryLoad,
-    RefreshWorldview,
-    PublishWorldview,
-    RevokeWorldview,
     OpenLogs,
     CopySupportSummary,
     RepairRegistration,
@@ -411,75 +408,6 @@ const APP_NOTICE: &str = include_str!("../../../../NOTICE");
 const THIRD_PARTY_LICENCES: &str = include_str!("../../../assets/THIRD_PARTY_LICENSES.txt");
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct WorldviewSharing {
-    pub status: &'static str,
-    /// The shared Worldview's name, shown as "Shared with Mobile · {mode}".
-    pub shared_selection: Option<&'static str>,
-    pub can_refresh: bool,
-    pub can_publish: bool,
-    pub can_revoke: bool,
-}
-
-fn worldview_sharing_row<'a>(sharing: &WorldviewSharing) -> Element<'a, Message> {
-    let actions = [
-        (
-            "refresh",
-            localized_copy("Refresh"),
-            Action::RefreshWorldview,
-            sharing.can_refresh,
-        ),
-        (
-            "publish",
-            localized_copy("Share saved selection"),
-            Action::PublishWorldview,
-            sharing.can_publish,
-        ),
-        (
-            "revoke",
-            localized_copy("Stop sharing"),
-            Action::RevokeWorldview,
-            sharing.can_revoke,
-        ),
-    ];
-    let controls = IntoIterator::into_iter(actions).fold(
-        Row::new().spacing(8),
-        |row, (id, label, action, enabled)| {
-            row.push(
-                ActionButton::new(
-                    format!("tenshu.preferences.worldview-sharing.{id}"),
-                    label,
-                    ActionKind::Secondary,
-                    Message::FocusAction,
-                )
-                .compact()
-                .on_press_maybe(enabled.then_some(Message::Action(action))),
-            )
-        },
-    );
-    let status = if let Some(mode) = sharing.shared_selection {
-        format!("{} · {mode}", sharing.status)
-    } else {
-        sharing.status.to_owned()
-    };
-    let content = Column::new()
-        .spacing(8)
-        .push(tenshu_text::label(localized_copy("Share with Mobile")))
-        .push(
-            tenshu_text::body(localized_copy("Once sharing is enabled, saved Worldview changes automatically update COINCUBE Mobile on your Connect account."))
-                .size(13)
-                .style(theme::tenshu::text::muted),
-        )
-        .push(tenshu_text::caption(status).style(theme::tenshu::text::muted))
-        .push(controls)
-        .width(Length::Fill);
-    Column::new()
-        .push(container(content).padding([14, 0]))
-        .push(horizontal_rule())
-        .width(Length::Fill)
-        .into()
-}
-
-#[derive(Debug, Default, Clone, Copy)]
 pub struct ViewModel<'a> {
     /// None means no accepted load yet. Controls stay inert and balances must
     /// remain suppressed by the GUI until an accepted snapshot is available.
@@ -503,7 +431,6 @@ pub struct ViewModel<'a> {
     pub load_error: Option<&'a str>,
     pub save_error: Option<&'a str>,
     pub worldview_changed: Option<WorldviewMode>,
-    pub worldview_sharing: WorldviewSharing,
     pub diagnostics: Diagnostics<'a>,
     pub about: About<'a>,
     /// The largest zoom this window's screen holds; None until it is known.
@@ -814,7 +741,6 @@ fn appearance_rows<'a>(
     );
     rows.push(language_row(saved.language, enabled));
     rows.push(worldview_row(saved, enabled));
-    rows.push(worldview_sharing_row(&model.worldview_sharing));
     let max_zoom = model.max_zoom.unwrap_or(Zoom::LARGEST);
     let (zoom_selected, zoom_note) = zoom_choice(saved.zoom, max_zoom);
     rows.push(
@@ -2721,91 +2647,6 @@ mod tests {
             let (focused, messages) = activate(model, section, id, keyboard::key::Named::Space);
             assert!(focused, "{}", id);
             assert_eq!(messages, vec![expected]);
-        }
-    }
-    #[test]
-    fn worldview_sharing_actions_follow_the_publisher_state_and_keyboard() {
-        let model = ViewModel {
-            saved: Some(DevicePreferences::default()),
-            worldview_sharing: WorldviewSharing {
-                status: "Shared with Mobile",
-                shared_selection: Some("Luke"),
-                can_refresh: true,
-                can_publish: true,
-                can_revoke: true,
-            },
-            ..Default::default()
-        };
-        for (id, expected) in [
-            (
-                "tenshu.preferences.worldview-sharing.refresh",
-                Action::RefreshWorldview,
-            ),
-            (
-                "tenshu.preferences.worldview-sharing.publish",
-                Action::PublishWorldview,
-            ),
-            (
-                "tenshu.preferences.worldview-sharing.revoke",
-                Action::RevokeWorldview,
-            ),
-        ] {
-            let (focused, messages) =
-                activate(model, Section::Appearance, id, keyboard::key::Named::Enter);
-            assert!(focused);
-            assert_eq!(messages, vec![Message::Action(expected)]);
-            let disabled = ViewModel {
-                worldview_sharing: WorldviewSharing::default(),
-                ..model
-            };
-            let (_, messages) = activate(
-                disabled,
-                Section::Appearance,
-                id,
-                keyboard::key::Named::Enter,
-            );
-            assert!(messages.is_empty());
-        }
-    }
-    #[test]
-    fn worldview_sharing_row_fits_english_and_spanish_in_both_themes() {
-        use crate::app::view::shared::landing::capture;
-        for language in [Language::English, Language::Spanish] {
-            for (appearance, theme) in [
-                ("dark", theme::Theme::dark()),
-                ("light", theme::Theme::light()),
-            ] {
-                coincube_ui::locale::render_in(language, || {
-                    let sharing = WorldviewSharing {
-                        status: localized_copy("Shared with Mobile"),
-                        shared_selection: Some("Suitcoiner"),
-                        can_refresh: true,
-                        can_publish: true,
-                        can_revoke: true,
-                    };
-                    let shown = capture::inspect_filled(
-                        &format!("worldview-sharing-{language:?}"),
-                        worldview_sharing_row(&sharing),
-                        (700, 220),
-                        appearance,
-                        theme,
-                        (700, 220),
-                    );
-                    assert!(shown.contains(localized_copy("Share saved selection")));
-                    assert!(shown.contains(&format!(
-                        "{} · Suitcoiner",
-                        localized_copy("Shared with Mobile")
-                    )));
-                    assert!(shown.contains(localized_copy(
-                        "Once sharing is enabled, saved Worldview changes automatically update COINCUBE Mobile on your Connect account."
-                    )));
-                    assert!(!shown.contains("Gilded Wall Street"));
-                    assert!(!shown.text.iter().any(|(text, _)| {
-                        let text = text.to_lowercase();
-                        text.contains("artwork") || text.contains("ilustraciones")
-                    }));
-                });
-            }
         }
     }
 }
