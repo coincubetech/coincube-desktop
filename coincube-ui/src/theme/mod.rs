@@ -35,25 +35,6 @@ pub enum WorldviewMode {
     Samurai,
 }
 
-/// Decorative artwork choice within one worldview.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ArtworkStyle {
-    Scene,
-    #[default]
-    #[serde(other)]
-    Existing,
-}
-
-impl ArtworkStyle {
-    pub const fn default_for(worldview: WorldviewMode) -> Self {
-        match worldview {
-            WorldviewMode::Samurai => Self::Existing,
-            WorldviewMode::Suitcoiner | WorldviewMode::Luke => Self::Scene,
-        }
-    }
-}
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Theme {
     pub colors: palette::Palette,

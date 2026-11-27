@@ -413,7 +413,8 @@ const THIRD_PARTY_LICENCES: &str = include_str!("../../../assets/THIRD_PARTY_LIC
 #[derive(Debug, Default, Clone, Copy)]
 pub struct WorldviewSharing {
     pub status: &'static str,
-    pub shared_selection: Option<(&'static str, &'static str)>,
+    /// The shared Worldview's name, shown as "Shared with Mobile · {mode}".
+    pub shared_selection: Option<&'static str>,
     pub can_refresh: bool,
     pub can_publish: bool,
     pub can_revoke: bool,
@@ -455,8 +456,8 @@ fn worldview_sharing_row<'a>(sharing: &WorldviewSharing) -> Element<'a, Message>
             )
         },
     );
-    let status = if let Some((mode, art)) = sharing.shared_selection {
-        format!("{} · {mode} · {art}", sharing.status)
+    let status = if let Some(mode) = sharing.shared_selection {
+        format!("{} · {mode}", sharing.status)
     } else {
         sharing.status.to_owned()
     };
@@ -464,7 +465,7 @@ fn worldview_sharing_row<'a>(sharing: &WorldviewSharing) -> Element<'a, Message>
         .spacing(8)
         .push(tenshu_text::label(localized_copy("Share with Mobile")))
         .push(
-            tenshu_text::body(localized_copy("Once sharing is enabled, saved Worldview and artwork changes automatically update COINCUBE Mobile on your Connect account."))
+            tenshu_text::body(localized_copy("Once sharing is enabled, saved Worldview changes automatically update COINCUBE Mobile on your Connect account."))
                 .size(13)
                 .style(theme::tenshu::text::muted),
         )
@@ -2708,7 +2709,7 @@ mod tests {
             saved: Some(DevicePreferences::default()),
             worldview_sharing: WorldviewSharing {
                 status: "Shared with Mobile",
-                shared_selection: Some(("Luke", "The Stone Crossing")),
+                shared_selection: Some("Luke"),
                 can_refresh: true,
                 can_publish: true,
                 can_revoke: true,
@@ -2757,7 +2758,7 @@ mod tests {
                 coincube_ui::locale::render_in(language, || {
                     let sharing = WorldviewSharing {
                         status: localized_copy("Shared with Mobile"),
-                        shared_selection: Some(("Suitcoiner", "Gilded Wall Street")),
+                        shared_selection: Some("Suitcoiner"),
                         can_refresh: true,
                         can_publish: true,
                         can_revoke: true,
@@ -2771,7 +2772,18 @@ mod tests {
                         (700, 220),
                     );
                     assert!(shown.contains(localized_copy("Share saved selection")));
-                    assert!(shown.contains("Gilded Wall Street"));
+                    assert!(shown.contains(&format!(
+                        "{} · Suitcoiner",
+                        localized_copy("Shared with Mobile")
+                    )));
+                    assert!(shown.contains(localized_copy(
+                        "Once sharing is enabled, saved Worldview changes automatically update COINCUBE Mobile on your Connect account."
+                    )));
+                    assert!(!shown.contains("Gilded Wall Street"));
+                    assert!(!shown.text.iter().any(|(text, _)| {
+                        let text = text.to_lowercase();
+                        text.contains("artwork") || text.contains("ilustraciones")
+                    }));
                 });
             }
         }
