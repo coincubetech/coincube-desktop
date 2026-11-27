@@ -1745,7 +1745,8 @@ pub fn start_internal_bitcoind<'a>(
                 )),
             );
         if show_advanced {
-            col = col.push(card::simple(node_resources_controls(
+            // Drawn on the page and inside the panel-filled restore sheet: keeps its outline (R4).
+            col = col.push(card::outlined(node_resources_controls(
                 prune,
                 max_mempool,
                 |v| Message::InternalBitcoind(message::InternalBitcoindMsg::PruneEdited(v)),
