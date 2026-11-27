@@ -25,7 +25,7 @@ pub fn tooltip_custom<'a, T: 'a>(
     let tip = Container::new(iced::widget::text(help).size(14))
         .max_width(TOOLTIP_MAX_WIDTH)
         .padding([6, 10])
-        .style(theme::card::simple);
+        .style(theme::card::tooltip);
 
     Container::new(iced::widget::tooltip::Tooltip::new(content, tip, position))
 }

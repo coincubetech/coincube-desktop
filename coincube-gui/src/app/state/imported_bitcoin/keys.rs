@@ -858,7 +858,8 @@ pub(super) fn step<'a>(
                 )
                 .padding(14)
                 .width(Length::Fill)
-                .style(theme::card::border),
+                // Inside the panel-filled restore sheet: background fill (R4).
+                .style(theme::card::inset),
             );
         } else if has_unmatched(keys, devices) {
             content = content.push(unmatched_devices(keys, devices));

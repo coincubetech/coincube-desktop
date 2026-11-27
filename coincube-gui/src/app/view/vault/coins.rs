@@ -51,7 +51,7 @@ pub fn chain_badge<'a, T: 'a>(status: ChainStatus, here: ChainId) -> Container<'
             .style(theme::pill::simple),
         Container::new(p1_regular(status.explanation(here)))
             .padding(10)
-            .style(theme::card::simple),
+            .style(theme::card::tooltip),
         iced::widget::tooltip::Position::Top,
     ))
 }
@@ -121,7 +121,7 @@ fn coin_copy<'a>(
             kind.to_lowercase()
         )))
         .padding(8)
-        .style(theme::card::simple),
+        .style(theme::card::tooltip),
         iced::widget::tooltip::Position::Top,
     )
     .into()

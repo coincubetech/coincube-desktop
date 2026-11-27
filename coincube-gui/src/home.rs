@@ -6141,7 +6141,8 @@ impl Home {
                     .push(
                         self.error
                             .as_ref()
-                            .map(|e| card::simple(text(coincube_ui::locale::notice(e.clone())))),
+                            // Inside the panel-filled journey sheet: background fill (R4).
+                            .map(|e| card::inset(text(coincube_ui::locale::notice(e.clone())))),
                     )
                     .push(creation_backup_view(
                         step,
@@ -6665,7 +6666,8 @@ impl Home {
                 )
                 .padding(12)
                 .width(Length::Fill)
-                .style(theme::card::simple),
+                // Inside the panel-filled journey sheet: background fill (R4).
+                .style(theme::card::inset),
             );
         }
         content.into()
@@ -7632,7 +7634,8 @@ fn create_cube_form<'a>(
     // left because it is the default.
     if feature_flags::PASSKEY_CREATION_AVAILABLE && !importing_bitcoin {
         column = column.push(
-            card::simple(
+            // Drawn on the page and inside the panel-filled journey sheet: keeps its outline (R4).
+            card::outlined(
                 Row::new()
                     .spacing(20)
                     .align_y(Alignment::Center)
