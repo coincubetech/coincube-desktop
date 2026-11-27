@@ -788,8 +788,11 @@ impl Home {
         // be one the filter shows: one network becomes current, and
         // Live or Test move off a network they hide.
         let target = self.filter_target(filter);
+        // Choosing the filter already stored keeps the page.
+        if self.catalog.filter != filter {
+            self.catalog.page = 0;
+        }
         self.catalog.filter = filter;
-        self.catalog.page = 0;
         // A selection the filter hides falls back to browsing.
         if self
             .catalog
@@ -5486,10 +5489,13 @@ mod tests {
                     ChainId::Testnet4
                 )))
             ));
-            // The network already filtered to closes the menu.
+            // The network already filtered to is applied again, which closes
+            // the menu with focus on the Network button.
             assert!(matches!(
                 activate_chrome(&home, network_option_id(ChainId::Bitcoin), press),
-                ViewMessage::Catalog(CatalogMessage::NetworkMenu(false))
+                ViewMessage::Catalog(CatalogMessage::Filter(NetworkFilter::Network(
+                    ChainId::Bitcoin
+                )))
             ));
         }
         let _ = home.update(Message::View(ViewMessage::SelectNetwork(ChainId::Testnet4)));
@@ -5766,12 +5772,107 @@ mod tests {
         assert_eq!(home.catalog.filter, NetworkFilter::All);
         assert!(!home.catalog.network_menu, "a choice closes the menu");
         assert_eq!(names(&home).len(), 5);
-        // All networks, already chosen, only closes the menu.
+    }
+
+    /// Re-choosing the ticked row by keyboard closes the menu and puts focus
+    /// back on the Network button, as a new choice does, and keeps the page.
+    #[test]
+    fn choosing_the_ticked_row_again_returns_focus_to_the_network_button() {
+        let mut home = all_networks();
+        home.catalog.page = 1;
         catalog(&mut home, CatalogMessage::NetworkMenu(true));
-        assert!(matches!(
-            activate_chrome(&home, filter_id("all"), Press::Pointer),
-            ViewMessage::Catalog(CatalogMessage::NetworkMenu(false))
-        ));
+        let message = activate_chrome(&home, filter_id("all"), Press::Enter);
+        assert!(
+            matches!(
+                message,
+                ViewMessage::Catalog(CatalogMessage::Filter(NetworkFilter::All))
+            ),
+            "{:?}",
+            message
+        );
+        let task = home.update_catalog(CatalogMessage::Filter(NetworkFilter::All));
+        assert!(task.units() > 0, "focus returns to the Network button");
+        assert!(!home.catalog.network_menu);
+        assert_eq!(home.catalog.page, 1, "the same choice keeps the page");
+    }
+
+    /// Developer mode off hides a stored Live or Test filter behind All
+    /// networks. Choosing All networks then really stores All, so the old
+    /// filter does not come back with Developer mode.
+    #[test]
+    fn all_networks_replaces_a_hidden_stored_filter() {
+        let mut home = all_networks();
+        catalog(&mut home, CatalogMessage::Filter(NetworkFilter::Live));
+        home.developer_mode = false;
+        home.refresh_displayed_networks();
+        assert_eq!(home.effective_filter(), NetworkFilter::All);
+        catalog(&mut home, CatalogMessage::NetworkMenu(true));
+        let message = activate_chrome(&home, filter_id("all"), Press::Pointer);
+        assert!(
+            matches!(
+                message,
+                ViewMessage::Catalog(CatalogMessage::Filter(NetworkFilter::All))
+            ),
+            "{:?}",
+            message
+        );
+        catalog(&mut home, CatalogMessage::Filter(NetworkFilter::All));
+        assert_eq!(home.catalog.filter, NetworkFilter::All);
+        home.developer_mode = true;
+        home.refresh_displayed_networks();
+        assert_eq!(home.effective_filter(), NetworkFilter::All);
+    }
+
+    #[test]
+    fn mainnet_names_are_spanish_in_the_bar_menu_and_no_match() {
+        use coincube_ui::locale::{render_in, Language};
+        let mut home = all_networks();
+        home.displayed_networks.push(ChainId::BitcoinBlake2b);
+        catalog(
+            &mut home,
+            CatalogMessage::Filter(NetworkFilter::Network(ChainId::Bitcoin)),
+        );
+        catalog(&mut home, CatalogMessage::NetworkMenu(true));
+        let tree = render_in(Language::Spanish, || {
+            home_tree("spanish-mainnet", &home, WIDE, "dark", theme::Theme::dark())
+        });
+        assert!(
+            tree.bar_text().contains(&"Red principal de Bitcoin"),
+            "{:?}",
+            tree.bar_text()
+        );
+        assert!(tree.contains("Red principal de Bitcoin Blake2b"));
+        assert!(!tree.contains("mainnet"), "{:?}", tree.text);
+        // Proper names stay.
+        assert!(tree.contains("Testnet4"));
+        assert!(tree.contains("Signet"));
+        assert!(tree.contains("Regtest"));
+
+        home.catalog.network_menu = false;
+        home.catalog.filter = NetworkFilter::Network(ChainId::BitcoinBlake2b);
+        let tree = render_in(Language::Spanish, || {
+            home_tree(
+                "spanish-mainnet-none",
+                &home,
+                WIDE,
+                "dark",
+                theme::Theme::dark(),
+            )
+        });
+        assert!(
+            tree.contains("No hay Cubes en Red principal de Bitcoin Blake2b"),
+            "{:?}",
+            tree.text
+        );
+        // English is unchanged.
+        let tree = home_tree(
+            "english-mainnet-none",
+            &home,
+            WIDE,
+            "dark",
+            theme::Theme::dark(),
+        );
+        assert!(tree.contains("No Cubes on Bitcoin Blake2b mainnet"));
     }
 
     #[test]
@@ -6202,7 +6303,11 @@ mod tests {
         assert!(!home.catalog.network_menu);
         home.catalog.network_menu = false;
         let task = home.update_catalog(CatalogMessage::Filter(NetworkFilter::All));
-        assert_eq!(task.units(), 0, "a chip click keeps its own focus");
+        assert_eq!(
+            task.units(),
+            0,
+            "a choice made outside the menu, such as Show all networks, keeps its own focus"
+        );
     }
 
     #[test]
