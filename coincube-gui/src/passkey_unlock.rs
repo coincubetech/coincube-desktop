@@ -37,12 +37,12 @@
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::locale::{copy as localized_copy, notice as localized_notice};
 use iced::widget::Space;
-use iced::{Alignment, Length, Task};
+use iced::{Length, Task};
 
 use coincube_ui::{
     component::{
         quote_display::{self, Quote},
-        text::{p1_regular, text},
+        text::p1_regular,
     },
     theme,
     widget::{action::Action, Column, Container, Element},
@@ -91,6 +91,9 @@ pub struct PasskeyUnlock {
     #[cfg(target_os = "macos")]
     ceremony: Option<crate::services::passkey::macos::NativePasskeyCeremony>,
     loading_quote: Quote,
+    /// Holds the turning Cube still on the logo pose. Set by the tab from the
+    /// saved motion preference and the system's.
+    reduce_motion: bool,
 }
 
 /// Whether a seed the assertion just derived may open this Cube.
@@ -178,7 +181,13 @@ impl PasskeyUnlock {
             #[cfg(target_os = "macos")]
             ceremony: None,
             loading_quote: quote_display::random_quote("loading"),
+            reduce_motion: false,
         }
+    }
+
+    /// Whether the turning Cube holds still (the motion preference).
+    pub(crate) fn set_reduce_motion(&mut self, reduced: bool) {
+        self.reduce_motion = reduced;
     }
 
     pub fn cube(&self) -> &CubeSettings {
@@ -474,24 +483,16 @@ impl PasskeyUnlock {
         floor: Option<&'a crate::home::LauncherSceneContext>,
     ) -> Element<'a, Message> {
         if matches!(self.phase, Phase::Opening) {
-            // Same full-screen loading treatment the PIN path uses once its
-            // seed is in hand, so the two unlock paths look identical from the
-            // moment they succeed.
-            return Container::new(
-                Column::new()
-                    .width(Length::Fill)
-                    .spacing(20)
-                    .align_x(Alignment::Center)
-                    .push(Space::new().height(Length::Fill))
-                    // The line Cube, not a quote: only the Cube loader (the
-                    // Launcher's opening face and the full-page loader)
-                    // shows one (Robert, 2026-11-27). `loading_quote` still
-                    // seeds the opening face's quote cycle.
-                    .push(coincube_ui::component::tenshu::top_bar::cube_mark(128.0))
-                    .push(crate::loading::loading_indicator(None))
-                    .push(text(CopyText::LoadingYourCube.get()).style(theme::text::secondary))
-                    .push(Space::new().height(Length::Fill)),
-            )
+            // The turning line Cube alone: no quote, no dots, no words
+            // (Robert, 2026-11-27). Only the Cube loader (the Launcher's
+            // opening face and the full-page loader) shows a quote;
+            // `loading_quote` still seeds the opening face's quote cycle.
+            return Container::new(coincube_ui::component::tenshu::turning_cube::turning_cube(
+                128.0,
+                self.reduce_motion,
+            ))
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
             .width(Length::Fill)
             .height(Length::Fill)
             .padding(50)
@@ -618,11 +619,10 @@ mod tests {
         assert!(shown.contains("Se canceló la comprobación con Touch ID"));
     }
 
-    /// "Loading your Cube" shows the line Cube, not a quote: only the Cube
-    /// loader (the opening face and the full-page loader) shows one
-    /// (Robert, 2026-11-27).
+    /// The passkey loading view is the turning line Cube alone: no quote,
+    /// no dots and no words (Robert, 2026-11-27).
     #[test]
-    fn opening_shows_no_quote() {
+    fn opening_shows_only_the_turning_cube() {
         use crate::app::view::shared::landing::capture;
 
         let mut passkey = screen();
@@ -637,11 +637,11 @@ mod tests {
             "dark",
             theme::Theme::dark(),
         );
-        assert!(shown.contains(CopyText::LoadingYourCube.get()));
         assert!(
             !shown.contains(&quote),
             "the passkey loading view must not show a quote"
         );
+        assert!(!shown.contains("Loading"), "no status line under the Cube");
     }
 
     /// Losing the session between a successful assertion and the wallet load

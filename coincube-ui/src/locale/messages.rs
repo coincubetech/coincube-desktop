@@ -83,7 +83,6 @@ catalog! {
     Launcher => ("Launcher", "Inicio"),
     Light => ("Light", "Claro"),
     LightningNetwork => ("Lightning on {network}", "Lightning en {network}"),
-    LoadingYourCube => ("Loading your Cube...", "Cargando tu Cube…"),
     LoadingYourSparkWallet => ("Loading your Spark wallet...", "Cargando tu cartera Spark…"),
     Network => ("Network", "Red"),
     KitPhoneKeyAbsent => ("No phone key yet. Create a recovery key in COINCUBE Mobile — signed in to this same Connect account — to enable phone recovery. You'll need this phone (or its recovery phrase) to restore.", "Aún no hay una clave de teléfono. Inicia sesión en esta misma cuenta de Connect en COINCUBE Mobile y crea una clave de recuperación para activar este método. Para restaurar, necesitarás este teléfono o su frase de recuperación."),

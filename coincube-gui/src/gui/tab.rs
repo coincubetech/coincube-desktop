@@ -5710,9 +5710,14 @@ impl Tab {
             _ => None,
         };
         if let (None, Some((quote, root))) = (self.opening.as_ref(), verified) {
+            let reduced = home::motion_reduced(&root, self.system_reduces_motion);
+            // The passkey screen's own loading view (shown when no opening
+            // runs) turns a Cube; it follows the same motion preference.
+            if let State::PasskeyUnlock(passkey) = &mut self.state {
+                passkey.set_reduce_motion(reduced);
+            }
             if let Some(Some(stage)) = self.opening_stage() {
                 self.opening_cancelled = false;
-                let reduced = home::motion_reduced(&root, self.system_reduces_motion);
                 self.opening = Some(CubeOpening {
                     scene: home::launcher_opening::Opening::new(
                         self.unlock_floor.take(),
