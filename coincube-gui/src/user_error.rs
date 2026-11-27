@@ -194,18 +194,42 @@ impl UserError {
         self.retryable.then_some(("Try again", message))
     }
 
-    /// One line for the toast overlay, which has room for a single text run.
+    /// The toast copy: "{title} — {guidance} (Ref: {reference})".
     ///
-    /// The card gets three separate fields; a toast cannot, so this is the one
-    /// place the three are joined. The reference stays in: a toast is often the
-    /// *only* thing a user sees for a transient failure, and without the code
-    /// there is nothing for support to correlate.
+    /// This one string is what `ShowError` carries, what `locale::notice`
+    /// translates and what inline error rows show. The toast overlay splits
+    /// it back into a title and a detail line with [`split_toast`] after
+    /// translating it, so no caller has to change. The reference stays in: a
+    /// toast is often the *only* thing a user sees for a transient failure,
+    /// and without the code there is nothing for support to correlate.
     pub fn toast(&self) -> String {
         format!(
             "{} — {} (Ref: {})",
             self.title, self.guidance, self.reference
         )
     }
+}
+
+/// Splits a toast line into its title and detail (Desktop V3 W4).
+///
+/// A line shaped like [`UserError::toast`], in English ("(Ref: …)") or as
+/// `locale::notice` renders it in Spanish ("(Ref.: …)"), gives the title,
+/// then the guidance with the reference as the detail; the reference is
+/// never dropped (invariant S7). Any other line, including a plain message
+/// that happens to hold a dash, stays one line with no detail.
+pub fn split_toast(line: &str) -> (&str, Option<&str>) {
+    let referenced = [" (Ref: ", " (Ref.: "].iter().any(|marker| {
+        line.rsplit_once(marker)
+            .is_some_and(|(_, code)| code.len() > 1 && code.ends_with(')'))
+    });
+    if referenced {
+        if let Some((title, detail)) = line.split_once(" — ") {
+            if !title.is_empty() && !title.contains(" (Ref") && !detail.is_empty() {
+                return (title, Some(detail));
+            }
+        }
+    }
+    (line, None)
 }
 
 /// Convert a Vault/daemon [`Error`] for display, logging its technical detail
@@ -950,6 +974,36 @@ mod tests {
     fn the_toast_line_keeps_the_reference() {
         let u = UserError::new("Title", "Do this.", CC_NET_TIMEOUT, true);
         assert_eq!(u.toast(), "Title — Do this. (Ref: CC-NET-TIMEOUT)");
+    }
+
+    /// The toast shows the title on its own line and the guidance with the
+    /// reference below it; splitting never drops the reference (S7).
+    #[test]
+    fn a_split_toast_keeps_the_reference_in_its_detail() {
+        let u = UserError::new("Title", "Do this — then that.", CC_NET_TIMEOUT, true);
+        let line = u.toast();
+        let (title, detail) = split_toast(&line);
+        assert_eq!(title, "Title");
+        assert_eq!(detail, Some("Do this — then that. (Ref: CC-NET-TIMEOUT)"));
+
+        let spanish = "Título — Haz esto. (Ref.: CC-NET-TIMEOUT)";
+        assert_eq!(
+            split_toast(spanish),
+            ("Título", Some("Haz esto. (Ref.: CC-NET-TIMEOUT)"))
+        );
+    }
+
+    /// Plain messages keep one line, even with a dash in them.
+    #[test]
+    fn a_plain_toast_stays_one_line() {
+        for line in [
+            "Address copied",
+            "Saved — your Cube is up to date",
+            "Note (Ref: ",
+            "",
+        ] {
+            assert_eq!(split_toast(line), (line, None), "{:?}", line);
+        }
     }
 
     /// `report` is the state layer's entry point: it must hand back the toast
