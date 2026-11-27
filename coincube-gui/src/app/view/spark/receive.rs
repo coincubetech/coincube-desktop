@@ -7,7 +7,6 @@ use std::collections::{HashMap, HashSet};
 
 use coincube_core::miniscript::bitcoin::Network;
 use coincube_ui::{
-    color,
     component::{amount::BitcoinDisplayUnit, button, text::*},
     image::{asset_network_logo, network_logo, usdt_network_logo},
     theme,
@@ -201,7 +200,7 @@ impl<'a> SparkReceiveView<'a> {
         let mut main = Column::new().spacing(20).width(Length::Fill).push(
             Container::new(form)
                 .width(Length::Fill)
-                .style(payment_card_style),
+                .style(super::send::payment_card_style),
         );
 
         // ── Phase 4f: pending on-chain deposits card ──────────────────
@@ -458,19 +457,6 @@ fn lightning_address_body<'a>(
     ready
 }
 
-fn payment_card_style(theme: &theme::Theme) -> container::Style {
-    let shell = &theme.colors.shell;
-    container::Style {
-        background: Some(Background::Color(shell.panel)),
-        border: iced::Border {
-            color: shell.line,
-            width: 1.0,
-            radius: 16.0.into(),
-        },
-        ..Default::default()
-    }
-}
-
 #[allow(clippy::too_many_arguments)]
 fn pending_deposits_card<'a>(
     deposits: &'a [DepositInfo],
@@ -622,7 +608,7 @@ fn deposit_row<'a>(
             .push(action),
     )
     .padding(10)
-    .style(theme::card::simple)
+    .style(inset_card_style)
     .into()
 }
 
@@ -648,26 +634,6 @@ fn rail_display(method: SparkReceiveMethod) -> (&'static str, &'static str) {
         SparkReceiveMethod::LightningAddress => ("lightning", "on Lightning"),
         SparkReceiveMethod::OnchainBitcoin => ("bitcoin", "on-chain"),
         SparkReceiveMethod::Spark | SparkReceiveMethod::UsdbSpark => ("spark", "on Spark"),
-    }
-}
-
-/// Hover-highlight style shared by the tappable selector cards.
-fn card_button_style(
-    _: &theme::Theme,
-    status: iced::widget::button::Status,
-) -> iced::widget::button::Style {
-    iced::widget::button::Style {
-        background: Some(Background::Color(color::TRANSPARENT)),
-        border: iced::Border {
-            color: if matches!(status, iced::widget::button::Status::Hovered) {
-                color::ORANGE
-            } else {
-                color::TRANSPARENT
-            },
-            width: 1.0,
-            radius: 8.0.into(),
-        },
-        ..Default::default()
     }
 }
 
@@ -788,28 +754,6 @@ fn rail_picker_label(method: SparkReceiveMethod) -> (&'static str, &'static str)
         SparkReceiveMethod::LightningAddress => ("lightning", "Lightning address"),
         SparkReceiveMethod::Spark | SparkReceiveMethod::UsdbSpark => ("spark", "Spark address"),
         SparkReceiveMethod::OnchainBitcoin => ("bitcoin", "On-chain address"),
-    }
-}
-
-/// A route tile whose menu is open: the accent line marks the menu's owner.
-fn open_route_card_style(theme: &theme::Theme) -> container::Style {
-    let mut style = route_card_style(theme);
-    style.border.color = theme.colors.shell.accent;
-    style
-}
-
-fn route_card_style(theme: &theme::Theme) -> container::Style {
-    let shell = &theme.colors.shell;
-    container::Style {
-        background: Some(Background::Color(shell.background)),
-        border: iced::Border {
-            color: shell.line,
-            width: 1.0,
-            // The THEY SEND tile is a button, so the pair takes the square
-            // 8px corner (canvas v122), matching its hover outline.
-            radius: 8.0.into(),
-        },
-        ..Default::default()
     }
 }
 
@@ -953,7 +897,7 @@ fn phase_body<'a>(
             ),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into(),
 
         SparkReceivePhase::Generating => Container::new(
@@ -962,7 +906,7 @@ fn phase_body<'a>(
                 .push(p1_regular(localized_copy("Creating your invoice…"))),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into(),
 
         SparkReceivePhase::Generated(ok) => {
@@ -987,7 +931,7 @@ fn phase_body<'a>(
                 ),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into(),
     }
 }
@@ -1010,12 +954,70 @@ fn kv_row<'a>(label: &'a str, value: String) -> Element<'a, Message> {
 
 /// The way back to a cross-network conversion that isn't on screen: it keeps
 /// running while the user is elsewhere, and its page (Shift ID, refund
-/// address, progress) is one click away. Shown on Spark's Receive when the
-/// conversion is set aside for another rail, and on Spark's Overview.
+/// address, progress) is one click away. This one is shown inside Receive's
+/// panel card, when the conversion is set aside for another rail, so it takes
+/// the page background. The Spark page uses [`conversion_notice_on_page`].
 pub(crate) fn conversion_notice<'a>(
     option: DepositOption,
     arrived: bool,
     on_view: Message,
+) -> Element<'a, Message> {
+    conversion_notice_on(option, arrived, on_view, conversion_notice_style)
+}
+
+/// On the Spark page the notice sits on the page background, so it takes the
+/// panel fill: fill only, no outline (V4).
+pub(crate) fn conversion_notice_on_page<'a>(
+    option: DepositOption,
+    arrived: bool,
+    on_view: Message,
+) -> Element<'a, Message> {
+    conversion_notice_on(option, arrived, on_view, conversion_notice_page_style)
+}
+
+/// A box set inside a panel card: the Receive form's phase bodies and
+/// method forms, and each row of the pending-deposits card. It takes the page
+/// background with no outline, so it reads against the panel card around it
+/// (R4) once cards are fill only. Matches V5's `theme::card::inset`.
+fn inset_card_style(theme: &theme::Theme) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(theme.colors.shell.background)),
+        text_color: Some(theme.colors.shell.ink),
+        border: iced::Border {
+            radius: 16.0.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+/// The Spark page's recent activity. A cross-network receive still running
+/// (or arrived and not yet closed) isn't a payment yet, so Activity can't
+/// list it: the notice says so above it, with the way back to its page. It
+/// sits on the page background, so it is the on-page notice.
+pub(crate) fn spark_page_recent<'a>(
+    conversion: Option<(DepositOption, bool)>,
+    recent: Element<'a, Message>,
+) -> Element<'a, Message> {
+    match conversion {
+        Some((option, arrived)) => Column::new()
+            .spacing(16)
+            .push(conversion_notice_on_page(
+                option,
+                arrived,
+                Message::SparkOverview(crate::app::view::SparkOverviewMessage::ViewConversion),
+            ))
+            .push(recent)
+            .into(),
+        None => recent,
+    }
+}
+
+fn conversion_notice_on<'a>(
+    option: DepositOption,
+    arrived: bool,
+    on_view: Message,
+    style: fn(&theme::Theme) -> container::Style,
 ) -> Element<'a, Message> {
     let copy = if arrived {
         localized_format!(
@@ -1042,20 +1044,28 @@ pub(crate) fn conversion_notice<'a>(
     )
     .padding([10, 12])
     .width(Length::Fill)
-    .style(conversion_notice_style)
+    .style(style)
     .into()
 }
 
+/// A neutral notice strip inside the panel card: the page background, fill
+/// only (V4).
 fn conversion_notice_style(theme: &theme::Theme) -> container::Style {
-    let shell = &theme.colors.shell;
     container::Style {
-        background: Some(Background::Color(shell.background)),
+        background: Some(Background::Color(theme.colors.shell.background)),
         border: iced::Border {
-            color: shell.line,
-            width: 1.0,
             radius: 10.0.into(),
+            ..Default::default()
         },
         ..Default::default()
+    }
+}
+
+/// The same strip on the page background: the panel fill, fill only.
+fn conversion_notice_page_style(theme: &theme::Theme) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(theme.colors.shell.panel)),
+        ..conversion_notice_style(theme)
     }
 }
 
@@ -1135,7 +1145,7 @@ fn append_bitcoin_receive_rail<'a>(
                 .push(description),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into()
     } else if method == SparkReceiveMethod::OnchainBitcoin {
         // On-chain: nothing to configure. Explain the deposit
@@ -1151,7 +1161,7 @@ fn append_bitcoin_receive_rail<'a>(
                 ))),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into()
     } else {
         // Spark: static, reusable, identity-bound address. No
@@ -1165,7 +1175,7 @@ fn append_bitcoin_receive_rail<'a>(
                 ))),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into()
     };
     // Spark and on-chain addresses need no input: their generated
@@ -1195,7 +1205,12 @@ fn receiver_route_tile<'a>(
     receiver_open: bool,
     receive_usd: bool,
 ) -> Element<'a, Message> {
-    use crate::app::view::shared::picker::{anchored_dropdown, open_tile_style};
+    use crate::app::view::shared::picker::anchored_dropdown;
+    use crate::app::view::spark::send::{
+        fixed_tile_style, open_tile_button_style, receive_tile_button_style,
+    };
+    // The button draws the tile when it is a choice, as on Send, so hover and
+    // an open menu change its one border instead of adding a second.
     let you_receive_body = Container::new(super::route_tile_body(
         if receive_usd {
             asset_network_logo("usdb", "spark", 36.0)
@@ -1212,12 +1227,7 @@ fn receiver_route_tile<'a>(
         localized_copy("in Spark").to_string(),
         choosable.then_some(receiver_open),
     ))
-    .width(Length::Fill)
-    .style(if receiver_open {
-        open_route_card_style
-    } else {
-        route_card_style
-    });
+    .width(Length::Fill);
     if choosable {
         anchored_dropdown(
             coincube_ui::widget::action::Action::new(
@@ -1229,9 +1239,9 @@ fn receiver_route_tile<'a>(
             .width(Length::Fill)
             .focus_radius(8.0)
             .style(if receiver_open {
-                open_tile_style
+                open_tile_button_style
             } else {
-                card_button_style
+                receive_tile_button_style
             })
             .on_press(Message::SparkReceive(
                 SparkReceiveMessage::OpenReceiverPicker,
@@ -1240,7 +1250,7 @@ fn receiver_route_tile<'a>(
             Message::SparkReceive(SparkReceiveMessage::CloseReceiverPicker),
         )
     } else {
-        you_receive_body.into()
+        you_receive_body.style(fixed_tile_style).into()
     }
 }
 
@@ -1250,7 +1260,8 @@ fn sender_route_tile<'a>(
     sender_open: bool,
     network: Network,
 ) -> Element<'a, Message> {
-    use crate::app::view::shared::picker::{anchored_dropdown, open_tile_style};
+    use crate::app::view::shared::picker::anchored_dropdown;
+    use crate::app::view::spark::send::{open_tile_button_style, receive_tile_button_style};
     // THEY SEND reflects the current pick: a Bitcoin rail, or a cross-network
     // asset while the SideShift flow is active.
     let they_send_body = match cross {
@@ -1282,22 +1293,16 @@ fn sender_route_tile<'a>(
     anchored_dropdown(
         coincube_ui::widget::action::Action::new(
             iced::advanced::widget::Id::new(SENDER_PICKER_ACTION_ID),
-            Container::new(they_send_body)
-                .width(Length::Fill)
-                .style(if sender_open {
-                    open_route_card_style
-                } else {
-                    route_card_style
-                }),
+            Container::new(they_send_body).width(Length::Fill),
             Message::FocusAction,
         )
         .padding(0)
         .width(Length::Fill)
         .focus_radius(8.0)
         .style(if sender_open {
-            open_tile_style
+            open_tile_button_style
         } else {
-            card_button_style
+            receive_tile_button_style
         })
         .on_press(Message::SparkReceive(SparkReceiveMessage::OpenSenderPicker)),
         sender_open.then(|| sender_picker_menu(method, cross, network)),
@@ -1432,8 +1437,129 @@ fn generated_receive_body<'a>(
             .push_maybe(follow_up),
     )
     .padding(16)
-    .style(theme::card::simple)
+    .style(inset_card_style)
     .into()
+}
+
+#[cfg(test)]
+mod notice_style_tests {
+    use super::*;
+    use coincube_ui::theme::tenshu::separation::{delta_e, JUST_NOTICEABLE_DELTA_E};
+
+    /// Boxes inside Receive's panel card (and the pending-deposits card) take
+    /// the page background, visibly apart from the panel, with no outline.
+    #[test]
+    fn nested_boxes_take_the_background_fill() {
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let shell = theme.colors.shell;
+            let inset = inset_card_style(&theme);
+            assert_eq!(inset.border.width, 0.0, "{}", name);
+            assert_eq!(
+                inset.background,
+                Some(Background::Color(shell.background)),
+                "{}",
+                name
+            );
+            assert!(
+                delta_e(shell.background, shell.panel) >= JUST_NOTICEABLE_DELTA_E,
+                "{}",
+                name
+            );
+        }
+    }
+
+    /// Screen level: the Spark page's recent section draws the conversion
+    /// notice with the panel fill on the page background, with no outline,
+    /// and leaves Activity alone when there is no conversion.
+    #[test]
+    fn the_spark_page_uses_the_on_page_conversion_notice() {
+        use crate::app::view::shared::landing::capture;
+        let option = deposit_options()[0];
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let shell = theme.colors.shell;
+            let pixels = capture::render_pixels(
+                Container::new(spark_page_recent(
+                    Some((option, false)),
+                    Space::new().height(Length::Fixed(40.0)).into(),
+                ))
+                .padding(20)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .style(theme::tenshu::surface::page)
+                .into(),
+                (600, 160),
+                &theme,
+                None,
+            );
+            // Inside the notice, left of its text, and the page outside it.
+            let (notice, page_fill) = (pixels.at(23, 40), pixels.at(5, 40));
+            assert!(
+                delta_e(notice, shell.panel) < 1.0,
+                "{}: the notice is not the panel fill: {:?}",
+                name,
+                notice
+            );
+            assert!(delta_e(page_fill, shell.background) < 1.0, "{}", name);
+            assert!(
+                delta_e(notice, page_fill) >= JUST_NOTICEABLE_DELTA_E,
+                "{}",
+                name
+            );
+            // No outline: the notice's left edge goes straight from page to panel.
+            let edge: Vec<_> = (17..=23).map(|x| pixels.at(x, 40)).collect();
+            assert!(
+                edge.iter().all(|pixel| {
+                    delta_e(*pixel, shell.background) < 1.0 || delta_e(*pixel, shell.panel) < 1.0
+                }),
+                "{}: an outline at the notice's edge: {:?}",
+                name,
+                edge
+            );
+        }
+        let without = capture::inspect(
+            "spark-page-recent-without-conversion",
+            spark_page_recent(None, text("Recent activity").into()),
+            (1440, 900),
+            "dark",
+            theme::Theme::dark(),
+        );
+        assert!(without.contains("Recent activity"));
+        assert!(!without.contains("conversion"));
+    }
+
+    /// The conversion notice is fill only. Inside Receive's card it takes the
+    /// page background; on the Spark page it takes the panel fill, so in
+    /// either place its fill differs from what is behind it.
+    #[test]
+    fn conversion_notice_is_fill_only_on_either_surface() {
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let shell = theme.colors.shell;
+            let in_card = conversion_notice_style(&theme);
+            let on_page = conversion_notice_page_style(&theme);
+            assert_eq!(in_card.border.width, 0.0, "{name}");
+            assert_eq!(on_page.border.width, 0.0, "{name}");
+            assert_eq!(
+                in_card.background,
+                Some(Background::Color(shell.background))
+            );
+            assert_eq!(on_page.background, Some(Background::Color(shell.panel)));
+            // Each reads against what is behind it: the card, or the page.
+            assert!(
+                delta_e(shell.background, shell.panel) >= JUST_NOTICEABLE_DELTA_E,
+                "{}",
+                name
+            );
+        }
+    }
 }
 
 #[cfg(test)]
@@ -1739,6 +1865,116 @@ mod tests {
 
     /// Each tile's menu opens under that tile, as wide as it, and only while
     /// it is the open one.
+    /// Screen-level check that Receive draws its route tiles with the shared
+    /// tile styles: one border at each tile's edge, line grey at rest and ink
+    /// when hovered or open (the old hard-coded ORANGE hover sat under a
+    /// second, line-grey border). Pixels come from the software renderer on
+    /// the card's panel fill.
+    #[test]
+    fn receive_route_tiles_draw_one_border_line_at_rest_ink_when_engaged() {
+        use coincube_ui::theme::tenshu::separation::{delta_e, JUST_NOTICEABLE_DELTA_E};
+        let render = |theme: &theme::Theme, open, pointer: Option<&'static str>| {
+            // Inset from the frame so the scan has card pixels outside each tile.
+            let cards = |open| {
+                Container::new(spark_receive_cards(
+                    SparkReceiveMethod::Bolt11,
+                    None,
+                    false,
+                    Network::Bitcoin,
+                    open,
+                ))
+                .padding(20)
+            };
+            let probe = capture::render_pixels(cards(None).into(), (900, 200), theme, None);
+            let pointer =
+                pointer.map(|id| probe.bounds(&iced::advanced::widget::Id::new(id)).center());
+            capture::render_pixels(cards(open).into(), (900, 200), theme, pointer)
+        };
+        // The pixels across a tile's left edge at its vertical middle.
+        let edge = |pixels: &capture::Pixels, id: &'static str| {
+            let bounds = pixels.bounds(&iced::advanced::widget::Id::new(id));
+            let (x, y) = (bounds.x.round() as u32, bounds.center_y().round() as u32);
+            ((x - 3)..=(x + 3))
+                .map(|x| pixels.at(x, y))
+                .collect::<Vec<_>>()
+        };
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let shell = theme.colors.shell;
+            for id in [SENDER_PICKER_ACTION_ID, RECEIVER_PICKER_ACTION_ID] {
+                let open_menu = if id == SENDER_PICKER_ACTION_ID {
+                    ReceiveMenu::TheySend
+                } else {
+                    ReceiveMenu::YouReceive
+                };
+                for (state, pixels, border) in [
+                    ("rest", render(&theme, None, None), shell.line),
+                    ("hovered", render(&theme, None, Some(id)), shell.ink),
+                    ("open", render(&theme, Some(open_menu), None), shell.ink),
+                ] {
+                    let row = edge(&pixels, id);
+                    // A 1px border at a fractional x is split over two pixels.
+                    // For each adjacent pair, recover the border colour as
+                    // p1 + p2 - (outside + inside) / 2 per channel, and take
+                    // the pair that comes closest to the expected border.
+                    let (outside, inside) = (row[0], row[row.len() - 1]);
+                    let nearest = row
+                        .windows(2)
+                        .map(|pair| {
+                            let channel = |p1: f32, p2: f32, o: f32, i: f32| {
+                                (p1 + p2 - (o + i) / 2.0).clamp(0.0, 1.0)
+                            };
+                            let estimate = iced::Color::from_rgb(
+                                channel(pair[0].r, pair[1].r, outside.r, inside.r),
+                                channel(pair[0].g, pair[1].g, outside.g, inside.g),
+                                channel(pair[0].b, pair[1].b, outside.b, inside.b),
+                            );
+                            delta_e(estimate, border)
+                        })
+                        .fold(f32::INFINITY, f32::min);
+                    assert!(
+                        nearest < 6.0,
+                        "{} {} {}: no {:?} border at the edge: {:?}",
+                        name,
+                        id,
+                        state,
+                        border,
+                        row
+                    );
+                    // One border: pixels that are neither the card outside nor
+                    // the tile inside span at most the 1px line and its
+                    // antialiased neighbour.
+                    let ring = row
+                        .iter()
+                        .filter(|pixel| {
+                            delta_e(**pixel, outside) > JUST_NOTICEABLE_DELTA_E
+                                && delta_e(**pixel, inside) > JUST_NOTICEABLE_DELTA_E
+                        })
+                        .count();
+                    assert!(
+                        ring <= 2,
+                        "{} {} {}: {} edge pixels: {:?}",
+                        name,
+                        id,
+                        state,
+                        ring,
+                        row
+                    );
+                    if state == "rest" {
+                        assert!(
+                            delta_e(inside, outside) >= JUST_NOTICEABLE_DELTA_E,
+                            "{} {}: the tile's fill does not read on the card",
+                            name,
+                            id
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn route_menus_open_under_their_own_tile() {
         let closed = capture::inspect(
@@ -2464,15 +2700,5 @@ mod tests {
         assert_eq!(asset_display_name("sol"), "Solana");
         assert_eq!(asset_display_name("trx"), "Tron");
         assert_eq!(asset_display_name("doge"), "doge");
-    }
-
-    #[test]
-    fn selector_card_border_only_highlights_on_hover() {
-        let theme = theme::Theme::default();
-        let active = card_button_style(&theme, iced::widget::button::Status::Active);
-        let hovered = card_button_style(&theme, iced::widget::button::Status::Hovered);
-
-        assert_eq!(active.border.color, color::TRANSPARENT);
-        assert_eq!(hovered.border.color, color::ORANGE);
     }
 }

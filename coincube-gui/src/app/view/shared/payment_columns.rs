@@ -62,15 +62,15 @@ pub fn rail_card<'a>(content: impl Into<Element<'a, Message>>) -> Element<'a, Me
         .into()
 }
 
+/// The rail's card: the panel fill with no outline (V4), like the form beside it.
 pub fn rail_card_style(theme: &theme::Theme) -> container::Style {
     let shell = &theme.colors.shell;
     container::Style {
         background: Some(Background::Color(shell.panel)),
         text_color: Some(shell.ink),
         border: iced::Border {
-            color: shell.line,
-            width: 1.0,
             radius: 16.0.into(),
+            ..Default::default()
         },
         ..Default::default()
     }

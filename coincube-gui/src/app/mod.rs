@@ -10510,23 +10510,7 @@ impl App {
                         view::activity::RecentScope::Wallet(view::activity::WalletFilter::Spark),
                         None,
                     );
-                    // A cross-network receive still running (or arrived and not
-                    // yet closed) isn't a payment yet, so Activity can't list it:
-                    // say so above it, with the way back to its page.
-                    match conversion {
-                        Some((option, arrived)) => iced::widget::Column::new()
-                            .spacing(16)
-                            .push(view::spark::receive::conversion_notice(
-                                option,
-                                arrived,
-                                view::Message::SparkOverview(
-                                    view::SparkOverviewMessage::ViewConversion,
-                                ),
-                            ))
-                            .push(recent)
-                            .into(),
-                        None => recent,
-                    }
+                    view::spark::receive::spark_page_recent(conversion, recent)
                 },
                 move || {
                     view::activity::wallet_activity_detail(

@@ -28,13 +28,13 @@ pub fn landing_control_id(cube: &str, wallet: &str, control: &str) -> Id {
 }
 
 /// Neutral wallet card used on the hub; the orange accent belongs to actions.
+/// A panel fill with no outline (V4): the fill against the page is the edge.
 pub fn landing_card_style(theme: &theme::Theme) -> container::Style {
     container::Style {
         background: Some(iced::Background::Color(theme.colors.shell.panel)),
         border: iced::Border {
-            color: theme.colors.shell.line,
-            width: 1.0,
             radius: 16.0.into(),
+            ..Default::default()
         },
         ..Default::default()
     }
@@ -538,6 +538,103 @@ pub(crate) mod capture {
         }
     }
 
+    /// Software-rendered RGBA pixels of `content` at `size`, with the pointer
+    /// at `pointer` (if any) so hover styles are drawn, plus the focusable
+    /// bounds a pixel check needs to find a control. No App or OS window.
+    pub struct Pixels {
+        pub rgba: Vec<u8>,
+        pub width: u32,
+        pub focus: Vec<(Id, Rectangle)>,
+    }
+
+    impl Pixels {
+        pub fn bounds(&self, id: &Id) -> Rectangle {
+            self.focus
+                .iter()
+                .find_map(|(actual, bounds)| (actual == id).then_some(*bounds))
+                .unwrap_or_else(|| panic!("no focusable {:?}", id))
+        }
+
+        pub fn at(&self, x: u32, y: u32) -> iced::Color {
+            let i = (y * self.width + x) as usize * 4;
+            iced::Color::from_rgb8(self.rgba[i], self.rgba[i + 1], self.rgba[i + 2])
+        }
+    }
+
+    pub fn render_pixels<M: 'static>(
+        content: Element<'_, M>,
+        (width, height): (u32, u32),
+        theme: &theme::Theme,
+        pointer: Option<iced::Point>,
+    ) -> Pixels {
+        for bytes in font::load() {
+            iced::advanced::graphics::text::font_system()
+                .write()
+                .unwrap()
+                .load_font(bytes);
+        }
+        let size = Size::new(width as f32, height as f32);
+        let mut renderer = iced::futures::executor::block_on(<iced::Renderer as Headless>::new(
+            font::REGULAR,
+            iced::Pixels(16.0),
+            Some("tiny-skia"),
+        ))
+        .expect("software renderer");
+        let mut element = content;
+        let mut tree = Tree::new(element.as_widget());
+        let node = element.as_widget_mut().layout(
+            &mut tree,
+            &renderer,
+            &layout::Limits::new(Size::ZERO, size),
+        );
+        let mut probe = TextProbe::default();
+        element
+            .as_widget_mut()
+            .operate(&mut tree, Layout::new(&node), &renderer, &mut probe);
+        let cursor = pointer.map_or(mouse::Cursor::Unavailable, mouse::Cursor::Available);
+        let viewport = Rectangle::with_size(size);
+        if let Some(point) = pointer {
+            element.as_widget_mut().update(
+                &mut tree,
+                &Event::Mouse(mouse::Event::CursorMoved { position: point }),
+                Layout::new(&node),
+                cursor,
+                &renderer,
+                &mut iced::advanced::clipboard::Null,
+                &mut iced::advanced::Shell::new(&mut Vec::new()),
+                &viewport,
+            );
+        }
+        element.as_widget_mut().update(
+            &mut tree,
+            &Event::Window(iced::window::Event::RedrawRequested(
+                std::time::Instant::now(),
+            )),
+            Layout::new(&node),
+            cursor,
+            &renderer,
+            &mut iced::advanced::clipboard::Null,
+            &mut iced::advanced::Shell::new(&mut Vec::new()),
+            &viewport,
+        );
+        element.as_widget().draw(
+            &tree,
+            &mut renderer,
+            theme,
+            &iced::advanced::renderer::Style {
+                text_color: theme.colors.text.primary,
+            },
+            Layout::new(&node),
+            cursor,
+            &viewport,
+        );
+        Pixels {
+            rgba: renderer.screenshot(Size::new(width, height), 1.0, theme.colors.shell.panel),
+            width,
+            focus: probe.focus,
+        }
+    }
+
     /// Exercise a real presenter tree with the shell's focus operation and
     /// either Enter or a complete primary-pointer click at the Action bounds.
     pub fn activate<M: Clone + 'static>(
@@ -722,6 +819,53 @@ pub(crate) mod capture {
             );
         }
         messages
+    }
+}
+
+#[cfg(test)]
+mod card_style_tests {
+    use super::*;
+
+    /// The hub and wallet cards are a panel fill with no outline (V4), and
+    /// the fill differs from the page in both themes.
+    #[test]
+    fn landing_card_has_no_border_and_reads_on_the_page() {
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let style = landing_card_style(&theme);
+            assert_eq!(style.border.width, 0.0, "{name}");
+            assert_eq!(
+                style.background,
+                Some(iced::Background::Color(theme.colors.shell.panel)),
+                "{name}"
+            );
+            let separation = coincube_ui::theme::tenshu::separation::delta_e(
+                theme.colors.shell.panel,
+                theme.colors.shell.background,
+            );
+            assert!(
+                separation >= coincube_ui::theme::tenshu::separation::JUST_NOTICEABLE_DELTA_E,
+                "{}: card on page is only {} apart",
+                name,
+                separation
+            );
+        }
+    }
+
+    /// Page-head secondary actions (Transfer, Swap, Tools, Wallet settings,
+    /// "Back to …") are outlined with no fill at rest, per the button rule.
+    #[test]
+    fn page_head_secondaries_have_no_fill_at_rest() {
+        use coincube_ui::theme::tenshu::button::{action, ActionKind, ActionShape};
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            for shape in [ActionShape::Compact, ActionShape::Chip] {
+                let rest = action(&theme, button::Status::Active, ActionKind::Secondary, shape);
+                assert_eq!(rest.background, None, "{shape:?}");
+                assert_eq!(rest.border.width, 1.0, "{shape:?}");
+            }
+        }
     }
 }
 
