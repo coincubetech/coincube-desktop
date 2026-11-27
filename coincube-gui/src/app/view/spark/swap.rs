@@ -10,7 +10,7 @@ use coincube_spark_protocol::{
 use coincube_ui::locale::copy as localized_copy;
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::{
-    component::tenshu::{icon_action, steps, ActionButton, ActionKind},
+    component::tenshu::{outline_icon_action, steps, ActionButton, ActionKind},
     component::text::*,
     image::asset_network_logo,
     theme,
@@ -388,7 +388,7 @@ fn details_card<'a>(
             from,
             format!("Available {}", balance(from)),
         ))
-        .push(icon_action(
+        .push(outline_icon_action(
             Id::new(REVERSE_ID),
             coincube_ui::icon::arrow_left_right_icon(),
             Message::FocusAction,
@@ -785,6 +785,43 @@ mod tests {
             "dark",
             theme::Theme::dark(),
         )
+    }
+
+    /// Drawn: the reverse arrows between the tiles are a round content
+    /// button (`.flip`) with a 1px ink edge in both themes, not a bare glyph.
+    #[test]
+    fn the_reverse_button_draws_an_ink_edge() {
+        let swap = funded();
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let ink = theme.colors.shell.ink;
+            let pixels = crate::app::view::shared::landing::capture::render_pixels(
+                details_card(&swap, Some(80_000.0), 8, false),
+                (900, 700),
+                &theme,
+                None,
+            );
+            let light = theme.colors.shell.background.r > 0.5;
+            pixels.save_if(
+                "W1_CAPTURE_DIR",
+                if light { "swap-light" } else { "swap-dark" },
+            );
+            let b = pixels.bounds(&Id::new(REVERSE_ID));
+            let y = (b.y + b.height / 2.0) as u32;
+            let x = b.x.round() as u32;
+            // The circle's leftmost point is antialiased: some pixel there is
+            // at least two thirds of the way from the card to the ink.
+            let card = pixels.at(x.saturating_sub(4), y);
+            let edge: Vec<_> = (x.saturating_sub(1)..=x + 1)
+                .map(|x| pixels.at(x, y))
+                .collect();
+            assert!(
+                edge.iter()
+                    .any(|c| (c.r - card.r).abs() > (ink.r - card.r).abs() * 0.66),
+                "edge {:?}, ink {:?}",
+                edge,
+                ink
+            );
+        }
     }
 
     /// The form and the rail fill the page column, as on Send and Receive:
