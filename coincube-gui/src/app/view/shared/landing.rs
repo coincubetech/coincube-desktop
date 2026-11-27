@@ -28,13 +28,13 @@ pub fn landing_control_id(cube: &str, wallet: &str, control: &str) -> Id {
 }
 
 /// Neutral wallet card used on the hub; the orange accent belongs to actions.
+/// A panel fill with no outline (V4): the fill against the page is the edge.
 pub fn landing_card_style(theme: &theme::Theme) -> container::Style {
     container::Style {
         background: Some(iced::Background::Color(theme.colors.shell.panel)),
         border: iced::Border {
-            color: theme.colors.shell.line,
-            width: 1.0,
             radius: 16.0.into(),
+            ..Default::default()
         },
         ..Default::default()
     }
@@ -722,6 +722,47 @@ pub(crate) mod capture {
             );
         }
         messages
+    }
+}
+
+#[cfg(test)]
+mod card_style_tests {
+    use super::*;
+
+    /// The hub and wallet cards are a panel fill with no outline (V4), and
+    /// the fill differs from the page in both themes.
+    #[test]
+    fn landing_card_has_no_border_and_reads_on_the_page() {
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let style = landing_card_style(&theme);
+            assert_eq!(style.border.width, 0.0, "{name}");
+            assert_eq!(
+                style.background,
+                Some(iced::Background::Color(theme.colors.shell.panel)),
+                "{name}"
+            );
+            assert_ne!(
+                theme.colors.shell.panel, theme.colors.shell.background,
+                "{name}"
+            );
+        }
+    }
+
+    /// Page-head secondary actions (Transfer, Swap, Tools, Wallet settings,
+    /// "Back to …") are outlined with no fill at rest, per the button rule.
+    #[test]
+    fn page_head_secondaries_have_no_fill_at_rest() {
+        use coincube_ui::theme::tenshu::button::{action, ActionKind, ActionShape};
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            for shape in [ActionShape::Compact, ActionShape::Chip] {
+                let rest = action(&theme, button::Status::Active, ActionKind::Secondary, shape);
+                assert_eq!(rest.background, None, "{shape:?}");
+                assert_eq!(rest.border.width, 1.0, "{shape:?}");
+            }
+        }
     }
 }
 
