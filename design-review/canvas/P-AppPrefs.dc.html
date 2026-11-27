@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 .tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff}
@@ -17,7 +17,7 @@ body{margin:0}
 .tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
 .tenshu.reduced *{animation:none!important;transition:none!important}
-a{color:#f3821d}a:hover{color:#ffa54d}
+a{color:#f3821d}a:hover{color:#ff9a3f}
 
 /* scene tokens copied from V3-Launcher-Spin; the floor here is static (no transitions) */
 .tenshu{--floor:#1b1c1a;--floor-rule:#2b2c29;--face-t:#41423e;--face-l:#2e2f2c;--face-r:#262724;--edge-btc:rgba(243,130,29,.6);--edge-b2b:rgba(212,166,42,.6);--edge-test:rgba(185,187,181,.6);--shadow:rgba(0,0,0,.6);--on-accent:#1a1208;--skel:#2c2d2b;font-variant-numeric:tabular-nums}
@@ -78,7 +78,7 @@ a.tbtn,a.tbtn:hover{color:var(--ink);text-decoration:none}
 .sheet{position:absolute;left:200px;top:28px;width:1040px;bottom:28px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 64px -16px rgba(0,0,0,.55);overflow:hidden;z-index:4}
 .light .sheet{box-shadow:0 24px 64px -20px rgba(70,52,30,.35)}
 .shead{flex:none;display:flex;align-items:center;gap:16px;padding:18px 24px 18px 28px;border-bottom:1px solid var(--line)}
-.shead h1{margin:0;font-size:22px;font-weight:600;line-height:1.25}
+.shead h1{margin:0;font-size:26px;font-weight:600;line-height:1.25}
 .shead p{margin:2px 0 0;font-size:13px;color:var(--muted)}
 .btn.close{gap:6px;padding:0 12px 0 10px}
 .sbody{flex:1;min-height:0;display:flex}
@@ -114,7 +114,7 @@ a.tbtn,a.tbtn:hover{color:var(--ink);text-decoration:none}
 .stt svg{width:16px;height:16px}
 .tone-ok{color:var(--good)}.tone-muted{color:var(--muted)}
 .val{font-size:13px;white-space:nowrap}
-.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px}
 /* segmented radio group: real radios, visually hidden, label is the target */
 .seg{display:inline-flex;margin:0;padding:2px;border:1px solid var(--line);border-radius:8px;gap:2px;min-inline-size:0}
 .seg input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
@@ -133,7 +133,7 @@ a.tbtn,a.tbtn:hover{color:var(--ink);text-decoration:none}
 .btn svg{width:16px;height:16px}
 .btn:hover{border-color:var(--muted);color:var(--ink)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.btn.primary:hover{background:#ffa54d;border-color:#ffa54d;color:var(--on-accent)}
+.btn.primary:hover{background:#ff9a3f;border-color:#ff9a3f;color:var(--on-accent)}
 .shead .btn{height:36px;font-size:14px}
 .linkbtn{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:2px 0;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px;cursor:pointer;font-size:13px;white-space:nowrap}
 .linkbtn svg{width:14px;height:14px}
@@ -163,6 +163,161 @@ a.tbx-chip{color:var(--ink)}
 .tbx-st{display:inline-flex;align-items:center;gap:5px}
 .tbx-st.ok{color:var(--good)}.tbx-st.out{color:var(--muted)}.tbx-st.warn{color:var(--warn)}
 .tbx-mini{font-weight:600;color:var(--acc-ink,var(--accent))}
+
+/* Closer to Mobile V3 (Robert, 2026-11-25): one-colour wordmark; boxes have no outline; regions keep a quiet dividing line (ink at 10%, as Mobile); menu rows at medium weight; controls keep their outlines. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom-color:var(--rule)}
+.tenshu .foot{border-top-color:var(--rule)}
+.tenshu .sheet{border:0}
+
+/* ---- V3 Phase 2, folded in from the study page (2026-11-26) ---- */
+/* Top bar as the app draws it: [eye, Connect, App preferences]. One Connect control: account glyph with a status light, Connect · account, a chevron; it opens a small panel. */
+.tenshu .chips{gap:8px}
+.tenshu .ccx{position:relative}
+.tenshu .ccx>summary{list-style:none;cursor:pointer}
+.tenshu .ccx>summary::-webkit-details-marker{display:none}
+.tenshu .chip.cc{gap:7px;padding:0 10px 0 10px}
+.tenshu .chip.cc b{font-weight:600}
+.tenshu .ccav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.tenshu .ccav .lt,.tenshu .cpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--panel)}
+.tenshu .ccsep,.tenshu .ccd{color:var(--muted)}
+.tenshu .ccd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .cchev{color:var(--muted);transition:transform .15s}
+.tenshu .ccx[open] .cchev{transform:rotate(180deg)}
+.tenshu .cpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left}
+.tenshu .cph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .cph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .cph span{color:var(--muted);font-size:13px}
+.tenshu .cpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .cpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .cpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .cpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .cpa:hover{background:var(--hover,var(--selected))}
+/* Hide balances: neutral when on. */
+.tenshu .top .chips .eye[aria-pressed="true"]{border-color:transparent;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+/* Sidebar backup strip: one line, a dot, no box. */
+.tenshu .attn{border:0;background:transparent;gap:9px;padding:8px 10px;font-size:13px}
+.tenshu .attn>svg,.tenshu .attn .st>svg{display:none}
+.tenshu .attn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.tenshu .attn .warn,.tenshu .attn .st{color:var(--ink);font-weight:500}
+.tenshu .attn .go{color:var(--muted);font-weight:400}
+.tenshu .attn:hover{background:var(--hover,var(--selected))}
+
+/* Launcher top bar, V3 (2026-11-26): wordmark ... [one Connect control, App preferences]. The Launcher has no balances eye and no "Signed in" chip. The Connect control is the in-Cube .chip.cc / details.ccx markup with lcx- names. */
+.tenshu{--acc-ink:#f59a45;--hover:rgba(245,240,232,.06)}
+.tenshu.light{--acc-ink:#a14d00;--hover:rgba(32,32,32,.05)}
+.tenshu .lcx{position:relative}
+.tenshu .lcx>summary{list-style:none;cursor:pointer}
+.tenshu .lcx>summary::-webkit-details-marker{display:none}
+.tenshu .lcc{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font-size:13px;line-height:1;white-space:nowrap;text-decoration:none;box-sizing:border-box}
+.tenshu a.lcc,.tenshu a.lcc:hover{color:var(--ink);text-decoration:none}
+.tenshu .lcc:hover{background:var(--hover)}
+.tenshu .lcc b{font-weight:600}
+.tenshu .lcc svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tenshu .lcav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none;color:var(--muted)}
+.tenshu .lcav .lt,.tenshu .lcpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--rail)}
+.tenshu .lcsep,.tenshu .lcd{color:var(--muted)}
+.tenshu .lcd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .lchev{color:var(--muted);transition:transform .15s}
+.tenshu .lcx[open] .lchev{transform:rotate(180deg)}
+.tenshu .lcpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left;box-sizing:border-box}
+.tenshu .lcph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .lcph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .lcph span{color:var(--muted);font-size:13px}
+.tenshu .lcpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .lcpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .lcpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .lcpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .lcpa:hover{background:var(--hover);color:var(--ink)}
+.tenshu .tbx-r{display:flex;align-items:center;gap:8px;flex:none}
+
+/* Bitcoin Worldview block: markup and look from WV-Appearance-Samurai/Suitcoiner/Luke (V3 Phase 1: no Artwork row) */
+.tenshu .wv,.tenshu .wv *{box-sizing:border-box}
+.wv{padding:18px 0 22px;border-bottom:1px solid var(--line);list-style:none}
+.wvhead{display:grid;grid-template-columns:minmax(0,1fr) 92px;column-gap:24px;align-items:start}
+.wvhead .lbl{font-weight:500;display:block}.wvhead .dsc{display:block;font-size:13px;color:var(--muted);margin-top:2px;max-width:60ch}
+.wvc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0 0;padding:0;border:0;min-inline-size:0}
+.wvc input{position:absolute;opacity:0;width:1px;height:1px;margin:0}
+.wvc label{position:relative;display:flex;flex-direction:column;gap:2px;min-height:60px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.wvc label:hover{border-color:var(--muted)}
+.wvc .nm{font-weight:600;font-size:14px}
+.wvc .tg{font-size:13px;color:var(--muted)}
+.wvc input:checked + label{background:var(--selected);border-color:var(--accent)}
+.wvc input:checked + label .tg{color:var(--ink)}
+.wvc input:focus-visible + label{outline:2px solid var(--focus);outline-offset:2px}
+.wvc .ck{position:absolute;top:10px;right:10px;width:16px;height:16px;color:var(--acc-ink)}
+.wvp{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);margin-top:12px;border:1px solid var(--line);border-radius:10px;background:var(--rail)}
+.wvp>section{padding:16px 18px 18px}
+.wvp>section+section{border-left:1px solid var(--line)}
+.wvp h3{margin:0 0 12px;font-size:13px;font-weight:600;color:var(--muted)}
+.wvp p{margin:0}
+.nmrow{display:flex;flex-direction:column;gap:2px;padding:10px 0;border-top:1px solid var(--line)}
+.nmrow:first-of-type{border-top:0;padding-top:0}
+.nmrow .tech{font-size:12px;color:var(--muted)}
+.nmrow .disp{display:flex;align-items:baseline;gap:8px;font-size:17px;font-weight:600;line-height:1.3}
+.nmrow .disp.alias{color:var(--acc-ink)}
+.tick{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;font-weight:500;color:var(--muted);padding:0 5px;border:1px solid var(--line);border-radius:4px;line-height:18px}
+.same{font-size:12px;font-weight:400;color:var(--muted)}
+.voice{font-size:15px;line-height:1.45;font-weight:500}
+.voice2{font-size:13px;color:var(--muted);margin-top:4px!important}
+.ex{display:grid;grid-template-columns:104px minmax(0,1fr);column-gap:12px;row-gap:8px;margin:14px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:13px}
+.ex dt{color:var(--muted)}
+.ex dd{margin:0;color:var(--ink)}
+.wvfoot{display:flex;align-items:flex-start;gap:8px;margin:12px 0 0;font-size:12px;color:var(--muted)}
+.wvfoot svg{width:14px;height:14px;margin-top:1px}
+.wvok{margin:10px 0 0;font-size:13px;color:var(--good)}
+/* Share with Mobile: full-width row (three actions) */
+.shr{padding:14px 0 16px;border-bottom:1px solid var(--line);list-style:none}
+.shr .lbl{font-weight:500;display:block}.shr .dsc{display:block;font-size:13px;color:var(--muted);margin-top:2px;max-width:60ch}
+.shr .sys{display:block;font-size:12px;color:var(--muted);margin-top:6px}
+.shr .stl{display:block;font-size:13px;margin-top:8px}
+.shr .acts{margin-top:10px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+/* sheet-level notice (toast anatomy: panel fill, tone tile, title + one line, one action) */
+.nt{display:flex;align-items:flex-start;gap:12px;margin:0 0 20px;padding:12px 14px;border-radius:10px;background:var(--rail);max-width:700px;box-sizing:border-box}
+.nt .tile{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,currentColor 14%,transparent)}
+.nt .tile svg{width:16px;height:16px}
+.nt.warn .tile{color:var(--warn)}.nt.bad .tile{color:var(--bad)}.nt.info .tile{color:var(--muted)}
+.nt b{display:block;font-weight:600;font-size:14px}
+.nt span{display:block;font-size:13px;color:var(--muted)}
+.nt .btn{margin-left:auto;flex:none}
+.sumbox{grid-column:1 / -1;margin:10px 0 0;padding:10px 12px;border-radius:8px;background:var(--rail);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;line-height:1.6;color:var(--muted);white-space:pre-line}
+.row .seg.ctl{flex-wrap:wrap}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
 </style>
 </helmet>
 <div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:900px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
@@ -171,12 +326,10 @@ a.tbx-chip{color:var(--ink)}
   <header class="top">
     <a class="brand" href="{{ closeHref }}" title="{{ backTitle }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg>
-      <span>Tenshu</span>
+      <span><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;letter-spacing:.08em;color:var(--ink)">COINCUBE</span></span>
     </a>
     <span class="grow"></span>
-    <div class="tbx-r"><button type="button" class="tbx-ico" aria-label="Hide balances" aria-pressed="{{ hidePressed }}" title="{{ hideTitle }}" onClick="{{ toggleHide }}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ eyePath }}"></path></svg>
-    </button><a href="P-Connect.dc.html" class="tbx-chip" aria-label="Connect account alex@example.test: signed in"><svg class="pi" aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span class="tbx-st ok"><svg aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Signed in</span></a><button type="button" class="tbx-ico" aria-current="page" aria-label="App preferences" data-tip="App preferences"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button></div>
+    <div class="tbx-r"><sc-if value="{{ ccIn }}" hint-placeholder-val="{{ false }}"><details class="lcx"><summary class="lcc" aria-label="Connect account, alex@example.test, live updates on"><span class="lcav"><svg aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><i class="lt"></i></span><b>Connect</b><span class="lcsep" aria-hidden="true">·</span><span class="lcd">alex@example.test</span><svg class="lchev" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></summary><div class="lcpanel" role="menu"><div class="lcph"><b>alex@example.test</b><span>Signed in to COINCUBE | Connect</span></div><div class="lcpl"><i class="lt"></i>Live updates on this computer</div><div class="lcpr"></div><a class="lcpa" role="menuitem" href="P-Connect.dc.html">Connect account</a></div></details></sc-if><sc-if value="{{ ccOut }}" hint-placeholder-val="{{ true }}"><a class="lcc" href="P-SignIn.dc.html" aria-label="Connect: Sign in"><span class="lcav"><svg aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg></span><b>Connect</b><span class="lcsep" aria-hidden="true">·</span><span class="lcd si">Sign in</span></a></sc-if><a class="tbx-ico" href="{{ closeHref }}" aria-label="App preferences" data-tip="App preferences" aria-current="page"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a></div>
   </header>
   </sc-if>
 
@@ -208,7 +361,7 @@ a.tbx-chip{color:var(--ink)}
           </sc-for>
         </div>
       </div>
-      <div class="bbar"><span class="btn">Create Cube</span><span class="btn">Import or restore a Cube</span></div>
+      <div class="bbar"><span class="btn">Create Cube</span><span class="btn">Import or restore Bitcoin wallet</span></div>
     </div>
     </sc-if>
 
@@ -236,7 +389,12 @@ a.tbx-chip{color:var(--ink)}
 
         <div class="content">
 
-          <!-- APPEARANCE -->
+          <!-- sheet-level states (preferences.rs:720-837) -->
+          <sc-if value="{{ ntOn }}" hint-placeholder-val="{{ false }}">
+            <div class="nt {{ nt.tone }}" role="status"><span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ nt.icon }}"></path></svg></span><div><b>{{ nt.title }}</b><span>{{ nt.line }}</span></div><sc-if value="{{ nt.hasAct }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn" onClick="{{ nt.act }}">{{ nt.actLabel }}</button></sc-if></div>
+          </sc-if>
+
+          <!-- APPEARANCE: Theme, Language, Bitcoin Worldview, Share with Mobile, Zoom (V3 Phase 1: no Artwork row) -->
           <sc-if value="{{ showAppearance }}" hint-placeholder-val="{{ true }}">
             <div class="sec">
               <h2>Appearance</h2>
@@ -250,6 +408,76 @@ a.tbx-chip{color:var(--ink)}
                     </sc-for>
                   </fieldset>
                   <span class="scope">This device</span>
+                </li>
+                <li class="row">
+                  <span><span class="lbl" id="ap-lang-l">Language</span><span class="dsc" id="ap-lang-d">Choose the display language for COINCUBE Desktop on this device.</span></span>
+                  <fieldset class="seg ctl" aria-labelledby="ap-lang-l" aria-describedby="ap-lang-d">
+                    <sc-for list="{{ langOpts }}" as="o" hint-placeholder-count="2">
+                      <input type="radio" name="ap-lang" id="{{ o.id }}" value="{{ o.value }}" checked="{{ o.checked }}" onChange="{{ o.pick }}">
+                      <label for="{{ o.id }}">{{ o.label }}</label>
+                    </sc-for>
+                  </fieldset>
+                  <span class="scope">This device</span>
+                </li>
+                <li class="wv">
+                  <div class="wvhead">
+                    <span><span class="lbl" id="wv-l">Bitcoin Worldview</span><span class="dsc" id="wv-d">Worldview Modes change how COINCUBE speaks: its network names and a few lines of wording. Your wallets, networks, and security settings remain unchanged.</span></span>
+                    <span class="scope">This device</span>
+                  </div>
+                  <fieldset class="wvc" aria-labelledby="wv-l" aria-describedby="wv-d">
+                    <sc-for list="{{ modeOpts }}" as="mo" hint-placeholder-count="3">
+                      <input type="radio" name="wv-mode" id="{{ mo.id }}" checked="{{ mo.checked }}" onChange="{{ mo.pick }}">
+                      <label for="{{ mo.id }}"><span class="nm">{{ mo.name }}</span><span class="tg">{{ mo.tagline }}</span><sc-if value="{{ mo.checked }}" hint-placeholder-val="{{ false }}"><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M8 12.3l2.8 2.8L16.2 9.6"></path></svg></sc-if></label>
+                    </sc-for>
+                  </fieldset>
+                  <div class="wvp" aria-live="polite">
+                    <section aria-labelledby="wv-names">
+                      <h3 id="wv-names">Network names in {{ m.name }}</h3>
+                      <sc-for list="{{ m.names }}" as="r" hint-placeholder-count="1">
+                        <div class="nmrow">
+                          <span class="tech">{{ r.tech }}</span>
+                          <span class="disp {{ r.cls }}">{{ r.display }} <span class="tick">{{ r.ticker }}</span><sc-if value="{{ r.same }}" hint-placeholder-val="{{ true }}"><span class="same">Unchanged</span></sc-if></span>
+                        </div>
+                      </sc-for>
+                    </section>
+                    <section aria-labelledby="wv-ex">
+                      <h3 id="wv-ex">Example wording</h3>
+                      <p class="voice">{{ m.profile }}</p>
+                      <sc-if value="{{ m.hasConsensus }}" hint-placeholder-val="{{ false }}"><p class="voice2">{{ m.consensus }}</p></sc-if>
+                      <dl class="ex">
+                        <sc-for list="{{ m.lines }}" as="l" hint-placeholder-count="4">
+                          <dt>{{ l.where }}</dt><dd>{{ l.text }}</dd>
+                        </sc-for>
+                      </dl>
+                    </section>
+                  </div>
+                  <p class="wvfoot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 11v5.5M12 7.8v.4"></path></svg><span>Signing, addresses, fees, errors and recovery steps always use plain wording and the technical network name, such as Bitcoin SHA-256 · Mainnet.</span></p>
+                  <sc-if value="{{ modeChanged }}" hint-placeholder-val="{{ false }}"><p class="wvok" role="status">{{ m.changed }}</p></sc-if>
+                </li>
+                <li class="shr">
+                  <div class="wvhead">
+                    <span><span class="lbl">Share with Mobile</span><span class="dsc">Once sharing is enabled, saved Worldview changes automatically update COINCUBE Mobile on your Connect account.</span><span class="stl {{ shareTone }}" role="status">{{ shareStatus }}</span></span>
+                    <span class="scope">This device</span>
+                  </div>
+                  <div class="acts">
+                    <button type="button" class="btn" disabled="{{ refreshOff }}" onClick="{{ shareRefresh }}">Refresh</button>
+                    <button type="button" class="btn" disabled="{{ publishOff }}" onClick="{{ sharePublish }}">Share saved selection</button>
+                    <button type="button" class="btn" disabled="{{ stopOff }}" onClick="{{ shareStop }}">Stop sharing</button>
+                  </div>
+                </li>
+                <li class="shr">
+                  <div class="wvhead">
+                    <span><span class="lbl" id="ap-zoom-l">Zoom</span><span class="dsc" id="ap-zoom-d">Text and controls in every window on this device.</span><span class="sys">Cmd + and Cmd − change it from any screen; Cmd 0 returns to 100%.</span></span>
+                    <span class="scope">This device</span>
+                  </div>
+                  <div class="acts">
+                  <fieldset class="seg" aria-labelledby="ap-zoom-l" aria-describedby="ap-zoom-d">
+                    <sc-for list="{{ zoomOpts }}" as="o" hint-placeholder-count="6">
+                      <input type="radio" name="ap-zoom" id="{{ o.id }}" value="{{ o.value }}" checked="{{ o.checked }}" onChange="{{ o.pick }}">
+                      <label for="{{ o.id }}">{{ o.label }}</label>
+                    </sc-for>
+                  </fieldset>
+                  </div>
                 </li>
               </ul>
             </div>
@@ -271,13 +499,13 @@ a.tbx-chip{color:var(--ink)}
                   <span class="scope">This device</span>
                 </li>
                 <li class="row">
-                  <label for="ap-bd"><span class="lbl">Network activity</span><span class="dsc" id="ap-bd-d">Recent blocks and the mempool behind the Cubes, for the network the Launcher is filtered to.</span></label>
+                  <label for="ap-bd"><span class="lbl">Network activity</span><span class="dsc" id="ap-bd-d">Recent blocks, the mempool, fee rate, hashrate and the next halving behind the Cubes, for the network the Launcher is filtered to.</span></label>
                   <span class="ctl"><span class="swst" aria-hidden="true">{{ bdWord }}</span><input type="checkbox" role="switch" class="sw" id="ap-bd" aria-describedby="ap-bd-d" checked="{{ bd }}" onChange="{{ toggleBd }}"></span>
                   <span class="scope">This device</span>
                 </li>
                 <sc-if value="{{ bd }}" hint-placeholder-val="{{ true }}">
                 <li class="row">
-                  <span><span class="lbl" id="ap-src-l">Activity source</span><span class="dsc" id="ap-src-d">Automatic reads a local node that is already running, else COINCUBE | Connect. The Launcher never starts a node.</span></span>
+                  <span><span class="lbl" id="ap-src-l">Activity source</span><span class="dsc" id="ap-src-d">Automatic reads a local node that is already running, else COINCUBE | Connect, or mempool.space for the test networks Connect does not serve. The Launcher never starts a node.</span></span>
                   <fieldset class="seg ctl" aria-labelledby="ap-src-l" aria-describedby="ap-src-d">
                     <sc-for list="{{ srcOpts }}" as="o" hint-placeholder-count="3">
                       <input type="radio" name="ap-src" id="{{ o.id }}" value="{{ o.value }}" checked="{{ o.checked }}" onChange="{{ o.pick }}">
@@ -348,11 +576,14 @@ a.tbx-chip{color:var(--ink)}
                     </button>
                     <button type="button" class="btn" onClick="{{ copySummary }}">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 8.5h11v11h-11zM15.5 8.5v-4h-11v11h4"></path></svg>
-                      <span>Copy summary</span>
+                      <span>{{ copyLabel }}</span>
                     </button>
                   </span>
                   <span class="scope">This device</span>
-                  <sc-if value="{{ copied }}" hint-placeholder-val="{{ false }}"><p class="note" role="status">Summary copied. It contains versions, platform and recent sanitized errors.</p></sc-if>
+                  <p class="sumbox" aria-label="Support summary">COINCUBE Desktop 1.0.0
+Vault daemon [VERSION]
+macOS [VERSION] · arm64
+Log files: [N] · [SIZE]</p>
                 </li>
                 <li class="row">
                   <span><span class="lbl">Repair device registration</span><span class="dsc">For when Connect no longer recognises this device.</span></span>
@@ -369,11 +600,11 @@ a.tbx-chip{color:var(--ink)}
                       <div class="acts"><button type="button" class="btn primary" onClick="{{ doRepair }}">Sign in and repair</button><button type="button" class="btn" onClick="{{ cancelRepair }}">Cancel</button></div>
                     </div>
                   </sc-if>
-                  <sc-if value="{{ repairAsked }}" hint-placeholder-val="{{ false }}"><p class="note" role="status">Repair waits for Connect sign-in. Nothing has changed yet.</p></sc-if>
+                  <sc-if value="{{ repairAsked }}" hint-placeholder-val="{{ false }}"><p class="note" role="status">Opens Connect sign-in first. Nothing has changed yet.</p></sc-if>
                 </li>
                 <li class="row">
                   <span><span class="lbl">Stream status</span><span class="dsc">Live updates from Connect to this device. Separate from account sign-in and each Cube's registration.</span></span>
-                  <span class="ctl"><span class="stt tone-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ okPath }}"></path></svg>Connected</span></span>
+                  <span class="ctl"><span class="stt {{ streamTone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ streamIcon }}"></path></svg>{{ streamWord }}</span></span>
                   <span class="scope">This device</span>
                 </li>
               </ul>
@@ -386,13 +617,13 @@ a.tbx-chip{color:var(--ink)}
               <h2>About</h2>
               <ul class="rows">
                 <li class="row">
-                  <span><span class="lbl">Tenshu version</span><span class="dsc">Installed on this device</span></span>
-                  <span class="ctl val">[VERSION]</span>
+                  <span><span class="lbl">COINCUBE Desktop version</span><span class="dsc">Installed on this device</span></span>
+                  <span class="ctl val">1.0.0</span>
                   <span class="scope">This device</span>
                 </li>
                 <li class="row">
                   <span><span class="lbl">Build provenance</span><span class="dsc">Which build this is, and whether it was reproduced</span></span>
-                  <span class="ctl val"><span class="mono">[BUILD ID]</span> · reproducible build: [status]</span>
+                  <span class="ctl val muted">Unavailable</span>
                   <span class="scope">This device</span>
                 </li>
                 <li class="row">
@@ -405,12 +636,12 @@ a.tbx-chip{color:var(--ink)}
                   <li class="row sub"><span>Spark bridge</span><span class="ctl val">[VERSION]</span><span class="scope">This device</span></li>
                 </sc-if>
                 <li class="row">
-                  <span><span class="lbl">Download Stats</span><span class="dsc">Public download counts for Tenshu releases</span></span>
+                  <span><span class="lbl">Download Stats</span><span class="dsc">Public download counts for COINCUBE Desktop releases</span></span>
                   <span class="ctl"><button type="button" class="linkbtn">View Download Stats<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 7l5 5-5 5"></path></svg></button></span>
                   <span class="scope">This device</span>
                 </li>
                 <li class="row">
-                  <span><span class="lbl">Open-source licenses</span><span class="dsc">Licenses for the software Tenshu is built on</span></span>
+                  <span><span class="lbl">Open-source licenses</span><span class="dsc">Licenses for the software COINCUBE Desktop is built on</span></span>
                   <span class="ctl"><button type="button" class="linkbtn">View licenses<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 7l5 5-5 5"></path></svg></button></span>
                   <span class="scope">This device</span>
                 </li>
@@ -421,10 +652,10 @@ a.tbx-chip{color:var(--ink)}
       </div>
     </section>
   </main>
-  <div class="foot">Concept prototype V3 · synthetic data · App preferences is a layer over the Launcher; settings here apply to this device only</div>
+  <div class="foot">Concept prototype V3 · synthetic data · App preferences is a layer over the Launcher or a Cube; settings here apply to this device only</div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["Appearance","Launcher","Balances &amp; motion","Developer","Diagnostics","About"],"default":"Appearance","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"hideBalances":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":900}}'>
+<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["Appearance","Launcher","Balances &amp; motion","Developer","Diagnostics","About"],"default":"Appearance","section":"Review"},"worldview":{"editor":"enum","options":["samurai","suitcoiner","luke"],"default":"samurai","section":"Review"},"connect":{"editor":"enum","options":["signedOut","signedIn"],"default":"signedOut","section":"Review"},"sharing":{"editor":"enum","options":["auto","signedOut","checking","shared","notShared","refreshNeeded","conflict","locked","unavailable"],"default":"auto","section":"Review"},"sheetState":{"editor":"enum","options":["ready","loading","loadFailed","saveFailed"],"default":"ready","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"hideBalances":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":900}}'>
 class Component extends DCLogic {
   constructor(p) {
     super(p);
@@ -443,11 +674,13 @@ class Component extends DCLogic {
     let BD = true; try { BD = localStorage.getItem('tenshu.proto.backdrop') !== 'off'; } catch (e) {}
     let SRC = 'auto'; try { SRC = localStorage.getItem('tenshu.proto.chainsrc') || 'auto'; } catch (e) {}
     const P = this.props;
-    const L = { section: P.section ?? 'Appearance', os: P.theme ?? 'dark', osReduced: !!P.reducedMotion, hide: !!P.hideBalances };
-    const key = [L.section, L.os, L.osReduced, L.hide].join('|');
+    const L = { section: P.section ?? 'Appearance', os: P.theme ?? 'dark', osReduced: !!P.reducedMotion, hide: !!P.hideBalances, wv: P.worldview ?? 'samurai', cc: P.connect ?? 'signedOut', sheet: P.sheetState ?? 'ready', sh: P.sharing ?? 'auto' };
+    // the sharing lever implies the Connect state: signedOut signs out, any other value signs in
+    if (L.sh === 'signedOut') L.cc = 'signedOut'; else if (L.sh !== 'auto') L.cc = 'signedIn';
+    const key = [L.section, L.os, L.osReduced, L.hide, L.wv, L.cc, L.sheet, L.sh].join('|');
     // a lever change resets live state to the lever values; otherwise live state wins
     const s = this.state.lv !== key
-      ? { section: L.section, hide: L.hide, appearance: APPEAR, style: LSTYLE, testNets: false, motion: 'system', dev: DEV, review: null, copied: false, repairAsked: false, vers: false }
+      ? { section: L.section, hide: L.hide, appearance: APPEAR, style: LSTYLE, testNets: false, motion: 'system', dev: DEV, review: null, copied: false, repairAsked: false, vers: false, wv: L.wv, wvChanged: false, lang: 'en', zoom: '100', share: L.sh === 'auto' || L.sh === 'signedOut' ? 'notShared' : L.sh }
       : this.state;
     const go = (patch) => this.setState(Object.assign({}, s, { lv: key }, patch));
 
@@ -475,6 +708,52 @@ class Component extends DCLogic {
     try { const want = s.style === 'list' ? 'list' : 'cubes'; if (localStorage.getItem('tenshu.proto.launcher') !== want) { localStorage.setItem('tenshu.proto.launcher', want); window.dispatchEvent(new CustomEvent('tenshu-proto')); } } catch (e) {}
     const reduced = s.motion === 'reduced' || (s.motion === 'system' && L.osReduced);
 
+
+    // Bitcoin Worldview (preferences.rs worldview_row; voice lines coincube-ui/src/worldview_copy.rs; names chain.rs:295)
+    const SHA = 'Bitcoin SHA-256 · Mainnet', B2N = 'Bitcoin Blake2b · Mainnet';
+    const MODES = {
+      samurai: { name: 'Samurai', tagline: 'The Way of the Bitcoin', names: [[SHA, 'Bitcoin', 'BTC', true], [B2N, 'Bitcoin BLAKE2b', 'BTCB2', true]],
+        profile: 'Quiet discipline. Elegant simplicity. Tend to what is yours to control.', consensus: '', changed: 'Ideological neutrality restored.',
+        lines: [['Welcome', 'Welcome. Begin when you are ready.'], ['Empty Vault', 'Empty and ready. Fill it with patience.'], ['Payment sent', 'Sent with intention.'], ['Syncing', 'Patience is part of the way.']] },
+      suitcoiner: { name: 'Suitcoiner', tagline: 'The Market Has Spoken', names: [[SHA, 'Bitcoin', 'BTC', true], [B2N, 'LukeCoin', 'BTCB2', false]],
+        profile: 'Institutions are here. Number go up. Everything is fine.', consensus: 'Consensus by market capitalization.', changed: 'Institutional wisdom activated.',
+        lines: [['Welcome', 'Welcome, institutional-grade HODLer.'], ['Empty Vault', 'Time to stack some sats.'], ['Payment sent', 'The free market thanks you.'], ['Syncing', 'Consulting the market…']] },
+      luke: { name: 'Luke', tagline: 'No Spam Shall Pass', names: [[SHA, 'Spamcoin', 'BTC', false], [B2N, 'Bitcoin', 'XBT', false]],
+        profile: 'The rules are sacred. The ledger must remain pure.', consensus: 'Consensus is not a popularity contest.', changed: 'You have rejected the establishment.',
+        lines: [['Welcome', 'Welcome, sovereign individual.'], ['Empty Vault', 'No Spamcoin detected. Excellent.'], ['Payment sent', 'No JPEGs were required.'], ['Syncing', 'Consulting the ancient rules…']] }
+    };
+    const wvKey = MODES[s.wv] ? s.wv : 'samurai';
+    const MM = MODES[wvKey];
+    const m = {
+      name: MM.name, profile: MM.profile, consensus: MM.consensus, hasConsensus: !!MM.consensus, changed: MM.changed,
+      // the Bitcoin Blake2b row shows only when the Blake2b beta is on (App preferences › Developer)
+      names: MM.names.filter((r, i) => i === 0 || B2B).map(([tech, display, ticker, same]) => ({ tech, display, ticker, same, cls: same ? '' : 'alias' })),
+      lines: MM.lines.map(([where, text]) => ({ where, text }))
+    };
+    const signedIn = L.cc === 'signedIn';
+    // Share with Mobile (gui/worldview.rs:241-282 worldview_view; preferences.rs:496 worldview_sharing_row). V3 has no artwork,
+    // so the shared status names the mode only: "Shared with Mobile · {mode}" (the app today adds " · {art}")
+    const SHARE = {
+      checking: 'Checking or updating the shared selection\u2026',
+      shared: 'Shared with Mobile \u00b7 ' + MM.name,
+      notShared: 'No Worldview selection is shared with COINCUBE Mobile.',
+      refreshNeeded: 'Refresh to check the selection shared with COINCUBE Mobile.',
+      conflict: 'The shared selection changed. Refresh, then choose Share or Stop sharing again.',
+      locked: 'Sharing changes are unavailable while Connect is locked.',
+      unavailable: 'Couldn\u2019t confirm the shared selection. Refresh before trying again.'
+    };
+    // buttons as the app enables them: Refresh unless a request is pending; Share once a snapshot exists; Stop only while a selection is shared
+    const shareNow = SHARE[s.share] ? s.share : 'notShared';
+    const sharePending = shareNow === 'checking';
+    const shareSnapshot = shareNow !== 'refreshNeeded';
+    const shareLater = (to) => setTimeout(() => { const c = this.state; if (c && c.lv === key && c.share === 'checking') this.setState(Object.assign({}, c, { share: to })); }, 900);
+    const shareGo = (to) => { go({ share: 'checking' }); shareLater(to); };
+    const NT = {
+      loading: { tone: 'info', icon: CIRC + 'M12 7.5V12l3 2', title: 'Loading device preferences.', line: 'Amounts remain hidden until loading succeeds.', act: '' },
+      loadFailed: { tone: 'bad', icon: CIRC + 'M12 7.5v5.5M12 16.2v.3', title: 'Device preferences could not be loaded: [error]', line: 'Device preferences are unavailable. Retry the load before changing settings. Amounts stay hidden until you choose.', act: 'Retry load' },
+      saveFailed: { tone: 'warn', icon: CIRC + 'M12 7.5v5.5M12 16.2v.3', title: 'Could not save.', line: 'Your previous settings remain active. [error]', act: '' }
+    };
+    const ntCur = NT[L.sheet];
     const SECS = [
       ['Appearance', I.half], ['Launcher', I.cube], ['Balances & motion', I.eye],
       ['Developer', I.code], ['Diagnostics', I.pulse], ['About', I.info]
@@ -510,6 +789,18 @@ class Component extends DCLogic {
       themeClass: this.props.forceTheme ? (this.props.forceTheme === 'light' ? 'light' : '') : (effTheme === 'light' ? 'light' : ''),
       motionClass: reduced ? 'reduced' : '',
       okPath: I.ok, offPath: I.off,
+      ccIn: signedIn, ccOut: !signedIn,
+      ntOn: !!ntCur, nt: ntCur ? { tone: ntCur.tone, icon: ntCur.icon, title: ntCur.title, line: ntCur.line, hasAct: !!ntCur.act, actLabel: ntCur.act, act: () => go({}) } : { tone: '', icon: '', title: '', line: '', hasAct: false, actLabel: '', act: () => {} },
+      langOpts: radios('lang', s.lang, [['en', 'English'], ['es', 'Español']], 'lang'),
+      zoomOpts: radios('zoom', s.zoom, [['80', '80%'], ['90', '90%'], ['100', '100%'], ['110', '110%'], ['125', '125%'], ['150', '150%']], 'zoom'),
+      modeOpts: Object.keys(MODES).map((k) => ({ id: 'wv-' + k, name: MODES[k].name, tagline: MODES[k].tagline, checked: k === wvKey, pick: () => go({ wv: k, wvChanged: true }) })),
+      m, modeChanged: !!s.wvChanged,
+      shareStatus: signedIn ? SHARE[shareNow] : 'Sign in to Connect to share with COINCUBE Mobile.',
+      shareTone: signedIn && shareNow === 'shared' ? 'tone-ok' : 'muted',
+      refreshOff: !signedIn || sharePending, publishOff: !signedIn || sharePending || !shareSnapshot, stopOff: !signedIn || sharePending || shareNow !== 'shared',
+      shareRefresh: () => shareGo(shareNow === 'shared' ? 'shared' : 'notShared'), sharePublish: () => shareGo('shared'), shareStop: () => shareGo('notShared'),
+      copyLabel: s.copied ? 'Copied' : 'Copy summary',
+      streamWord: signedIn ? 'On' : 'Unavailable', streamTone: signedIn ? 'tone-ok' : 'tone-muted', streamIcon: signedIn ? I.ok : I.off,
       floorCubes, sections, inCube: IN_CUBE, atLauncher: !IN_CUBE, closeHref: IN_CUBE ? 'P-Overview.dc.html' : 'P-Launcher.dc.html', backTitle: IN_CUBE ? 'Back to the Cube' : 'Back to the Launcher',
       // hide balances: one device-wide state shared by the top-bar eye and the switch
       hide: !!s.hide,

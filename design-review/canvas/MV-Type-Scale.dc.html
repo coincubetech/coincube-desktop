@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Type scale · Mobile V3, Desktop today, Desktop proposed</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tenshu{--bg:#161716;--panel:#202020;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--acc-ink:#f59a45;--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu.light{--bg:#faf9f6;--panel:#ffffff;--ink:#202020;--muted:#575a54;--line:#c4beb4;--acc-ink:#a14d00}
+.tenshu *{box-sizing:border-box}
+.ts{padding:44px 56px 0}
+.ts h1{margin:0;font-size:26px;font-weight:600;line-height:1.15;letter-spacing:-.01em}
+.ts .lede{margin:8px 0 0;max-width:900px;color:var(--muted);font-size:14px}
+.ts .g{margin-top:26px}
+.ts .r{display:grid;grid-template-columns:200px 1fr 1fr 1fr;align-items:center;gap:0 24px;min-height:58px;padding:9px 0;border-top:1px solid var(--rule)}
+.ts .r.hd{min-height:0;padding:0 0 10px;border-top:0;font-size:13px;font-weight:500;color:var(--muted)}
+.ts .r.hd b{font-weight:600;color:var(--ink)}
+.ts .rl{font-size:13px;color:var(--muted)}
+.ts .c{display:flex;align-items:baseline;gap:12px;min-width:0}
+.ts .c.none{font-size:13px;color:color-mix(in srgb,var(--muted) 70%,transparent)}
+.ts .smp{white-space:nowrap;line-height:1.2}
+.ts .sp{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+.ts .r.ch .c:last-child .sp{color:var(--acc-ink)}
+.ts .ft{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:0 24px;padding:14px 0 0;border-top:1px solid var(--rule);font-size:13px;color:var(--muted)}
+.ts .ft b{font-weight:600;color:var(--ink)}
+</style>
+</helmet>
+<div class="tenshu {{ themeClass }}" style="width:1440px;height:900px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg)">
+  <div class="ts">
+    <h1>Type scale</h1>
+    <p class="lede">Sizes in px, then weight. Orange marks a size that changes. The large sizes take Mobile V3's steps. Running text stays one step under Mobile, because a Desktop window holds more per screen; the lever on the Overview board shows every step at Mobile's size.</p>
+    <div class="g">
+      <div class="r hd"><div></div><div><b>Mobile V3</b></div><div><b>Desktop today</b></div><div><b>Desktop proposed</b></div></div>
+      <div class="r ch"><div class="rl">Main amount</div><div class="c"><span class="smp" style="font-size:46px;font-weight:600;letter-spacing:-.02em;line-height:1.05">$277.70</span><span class="sp">46 / 600</span></div><div class="c"><span class="smp" style="font-size:40px;font-weight:600;letter-spacing:-.01em">$277.70</span><span class="sp">40 / 600 · 34 on one older page</span></div><div class="c"><span class="smp" style="font-size:46px;font-weight:600;letter-spacing:-.02em;line-height:1.05">$277.70</span><span class="sp">46 / 600</span></div></div><div class="r ch"><div class="rl">Page title</div><div class="c"><span class="smp" style="font-size:26px;font-weight:600;letter-spacing:-.01em">Overview</span><span class="sp">26 / 600</span></div><div class="c"><span class="smp" style="font-size:22px;font-weight:600;">Overview</span><span class="sp">22 / 600</span></div><div class="c"><span class="smp" style="font-size:26px;font-weight:600;letter-spacing:-.01em">Overview</span><span class="sp">26 / 600</span></div></div><div class="r "><div class="rl">Amount on a card</div><div class="c none">Amounts sit in rows, at 14</div><div class="c"><span class="smp" style="font-size:26px;font-weight:600;">$70.74</span><span class="sp">26 / 600</span></div><div class="c"><span class="smp" style="font-size:26px;font-weight:600;">$70.74</span><span class="sp">26 / 600</span></div></div><div class="r ch"><div class="rl">Section title</div><div class="c"><span class="smp" style="font-size:20px;font-weight:600;">Wallets</span><span class="sp">20 / 600</span></div><div class="c"><span class="smp" style="font-size:18px;font-weight:600;">Wallets</span><span class="sp">18 / 600</span></div><div class="c"><span class="smp" style="font-size:20px;font-weight:600;">Wallets</span><span class="sp">20 / 600</span></div></div><div class="r "><div class="rl">Sub-section, Cube name</div><div class="c"><span class="smp" style="font-size:18px;font-weight:600;">Everyday</span><span class="sp">18 / 600</span></div><div class="c"><span class="smp" style="font-size:16px;font-weight:600;">Recent activity</span><span class="sp">16 / 600</span></div><div class="c"><span class="smp" style="font-size:16px;font-weight:600;">Recent activity</span><span class="sp">16 / 600</span></div></div><div class="r "><div class="rl">Rows and body</div><div class="c"><span class="smp" style="font-size:16px;font-weight:400;">Spark · Daily spending</span><span class="sp">16 / 400</span></div><div class="c"><span class="smp" style="font-size:14px;font-weight:400;">Spark · Daily spending</span><span class="sp">14 / 400</span></div><div class="c"><span class="smp" style="font-size:14px;font-weight:400;">Spark · Daily spending</span><span class="sp">14 / 400 · 16 with the lever</span></div></div><div class="r "><div class="rl">Main buttons</div><div class="c"><span class="smp" style="font-size:16px;font-weight:600;">Receive</span><span class="sp">16 / 600</span></div><div class="c"><span class="smp" style="font-size:14px;font-weight:600;">Receive</span><span class="sp">14 / 600</span></div><div class="c"><span class="smp" style="font-size:14px;font-weight:600;">Receive</span><span class="sp">14 / 600</span></div></div><div class="r "><div class="rl">Secondary line</div><div class="c"><span class="smp" style="font-size:14px;font-weight:400;color:var(--muted)">Everyday · Bitcoin mainnet</span><span class="sp">14 / 400</span></div><div class="c"><span class="smp" style="font-size:13px;font-weight:400;color:var(--muted)">Everyday · Bitcoin mainnet</span><span class="sp">13 / 400</span></div><div class="c"><span class="smp" style="font-size:13px;font-weight:400;color:var(--muted)">Everyday · Bitcoin mainnet</span><span class="sp">13 / 400 · 14 with the lever</span></div></div><div class="r ch"><div class="rl">Small print</div><div class="c"><span class="smp" style="font-size:13px;font-weight:400;color:var(--muted)">Pending · 2 of 3 signatures</span><span class="sp">13 / 400 · tags 12 / 600</span></div><div class="c"><span class="smp" style="font-size:12px;font-weight:400;color:var(--muted)">Pending · 2 of 3 signatures</span><span class="sp">12 / 400 · also 12.5</span></div><div class="c"><span class="smp" style="font-size:12px;font-weight:400;color:var(--muted)">Pending · 2 of 3 signatures</span><span class="sp">12 / 400 · 12.5 becomes 13</span></div></div><div class="r "><div class="rl">Wordmark</div><div class="c"><span class="smp" style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:.08em">COINCUBE</span><span class="sp">15 / 700</span></div><div class="c"><span class="smp" style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:.08em">COINCUBE</span><span class="sp">15 / 700</span></div><div class="c"><span class="smp" style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:.08em">COINCUBE</span><span class="sp">15 / 700</span></div></div>
+      <div class="ft"><div>Sizes in use on Overview</div><div></div><div><b>12</b> · 12, 12.5, 13, 14, 15, 16, 18, 20, 22, 26, 34, 40</div><div><b>8</b> · 12, 13, 14, 15, 16, 20, 26, 46</div></div>
+    </div>
+  </div>
+</div>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p){super(p);this.state={};}
+  renderVals() {
+    // Static comparison sheet: Mobile V3 sizes are read from the Mobile V3 prototype, Desktop sizes from the Overview study board.
+    return { themeClass: (this.props.forceTheme||this.props.theme)==='light' ? 'light' : '' };
+  }
+}
+</script>
+</x-dc>
+</body>
+</html>

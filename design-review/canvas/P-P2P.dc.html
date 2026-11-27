@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 .tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--acc-ink:#f59a45;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff;--hover:rgba(245,240,232,.06);--b2b:#d4a62a;--mine:#2b2219}
@@ -17,7 +17,7 @@ body{margin:0}
 .tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
 .tenshu.reduced *{animation:none!important;transition:none!important}
-a{color:#f3821d}a:hover{color:#ffa54d}
+a{color:#f3821d}a:hover{color:#ff9a3f}
 .tenshu a.chip{color:var(--ink);text-decoration:none}.tenshu a.chip:hover{border-color:var(--muted)}
 .tenshu *{box-sizing:border-box}
 .tenshu{font-variant-numeric:tabular-nums}
@@ -73,7 +73,7 @@ a{color:#f3821d}a:hover{color:#ffa54d}
 .ni.par{margin-top:10px}
 .ni:disabled{cursor:not-allowed;background:transparent;color:var(--muted)}
 .ni .ds{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:2px}
-.attn{display:flex;align-items:center;gap:6px;margin:0 6px 8px;padding:9px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:12.5px;text-decoration:none}
+.attn{display:flex;align-items:center;gap:6px;margin:0 6px 8px;padding:9px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:13px;text-decoration:none}
 .tenshu a.attn{color:var(--ink)}
 .attn .go{margin-left:auto;color:var(--acc-ink);font-weight:600}
 .foot{border-top:1px solid var(--line);padding:10px}
@@ -90,7 +90,7 @@ a{color:#f3821d}a:hover{color:#ffa54d}
 .tabs .node{margin-left:auto;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .tabs .node b{color:var(--ink);font-weight:500}
 .sech{display:flex;align-items:baseline;gap:12px;margin:24px 0 14px}
-.sech h2{font-size:18px;font-weight:600;flex:1}
+.sech h2{font-size:20px;font-weight:600;flex:1}
 .banner{display:flex;align-items:flex-start;gap:10px;margin-top:16px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;font-size:13px}
 .banner .tx{flex:1}
 /* controls */
@@ -103,7 +103,7 @@ select.inp{appearance:auto}
 .seg button{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:0;border-radius:8px;background:transparent;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--selected);color:var(--ink);font-weight:600}
 .seg.full{display:flex}.seg.full button{flex:1;justify-content:center}
-.tg{display:inline-flex;align-items:center;height:28px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:transparent;cursor:pointer;font-size:12.5px;color:var(--ink)}
+.tg{display:inline-flex;align-items:center;height:28px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:transparent;cursor:pointer;font-size:13px;color:var(--ink)}
 .tg[aria-pressed="true"]{border-color:var(--acc-ink);background:var(--selected);font-weight:600}
 .tgs{display:flex;flex-wrap:wrap;gap:6px}
 .pill{height:38px;padding:0 20px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap}
@@ -119,7 +119,7 @@ select.inp{appearance:auto}
 .back{display:inline-flex;align-items:center;gap:4px;border:0;background:none;padding:2px 0;color:var(--acc-ink);font-size:13px;font-weight:500;cursor:pointer;border-radius:4px}
 .err{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--bad);font-weight:500;margin-top:6px}
 .wn{font-size:13px;color:var(--warn);margin-top:6px}
-.hlp{font-size:12.5px;color:var(--muted);margin-top:6px}
+.hlp{font-size:13px;color:var(--muted);margin-top:6px}
 .spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--acc-ink);border-radius:50%;animation:sp .8s linear infinite;flex:none;display:inline-block}
 @keyframes sp{to{transform:rotate(360deg)}}
 .empty{padding:48px 0;text-align:center;color:var(--muted);font-size:14px}
@@ -129,7 +129,7 @@ select.inp{appearance:auto}
 .flt h3{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:20px 0 8px}
 .flt h3:first-child{margin-top:0}
 .flt .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.flt label{font-size:12.5px;color:var(--muted);display:block;margin-bottom:4px}
+.flt label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
 .ohead,.orow{display:grid;grid-template-columns:132px 128px minmax(0,1fr) 120px 130px 20px;column-gap:14px;align-items:center}
 .ohead{padding:0 12px 8px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line)}
 .orow{width:100%;min-height:52px;padding:6px 12px;border:0;border-bottom:1px solid var(--line);background:transparent;cursor:pointer;text-align:left;font-size:13px;color:var(--ink)}
@@ -201,11 +201,11 @@ select.inp{appearance:auto}
 .citem:hover{background:var(--hover)}
 .citem[aria-current="true"]{background:var(--selected)}
 .citem b{display:block;font-weight:600;font-size:13px}
-.citem span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.citem span{display:block;font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .thread{display:flex;flex-direction:column;min-height:0}
 .thd{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line)}
 .thd b{font-weight:600}
-.thd details{margin-left:auto;font-size:12.5px;color:var(--muted)}
+.thd details{margin-left:auto;font-size:13px;color:var(--muted)}
 .thd summary{cursor:pointer;color:var(--acc-ink);font-weight:500}
 .thd .kd{margin-top:6px;text-align:right}
 .msgs{flex:1;min-height:0;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px}
@@ -214,7 +214,7 @@ select.inp{appearance:auto}
 .bub .who{display:block;font-size:11.5px;color:var(--muted);margin-bottom:2px}
 .att{display:flex;align-items:center;gap:10px}
 .att .ic{color:var(--muted)}
-.sysm{align-self:center;font-size:12.5px;color:var(--muted);text-align:center;max-width:46ch}
+.sysm{align-self:center;font-size:13px;color:var(--muted);text-align:center;max-width:46ch}
 .sysm b{display:block;color:var(--ink);font-weight:600}
 .comp{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
 .ro{padding:14px 20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
@@ -226,14 +226,14 @@ select.inp{appearance:auto}
 .nrow:first-of-type,.rrow:first-of-type{border-top:1px solid var(--line)}
 .nrow .tx{flex:1;min-width:0}
 .nrow .tx b{font-weight:600;display:block}
-.act{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;color:var(--good)}
+.act{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--good)}
 .rrow .tx{flex:1;min-width:0;overflow-wrap:anywhere}
 .addn{margin-top:20px;padding-top:16px}
 .radios{display:flex;gap:16px;font-size:13px}
 .radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .radios input{accent-color:var(--accent);margin:0}
 .gate{padding:40px 0;max-width:560px}
-.gate h2{font-size:18px;font-weight:600;margin-top:12px}
+.gate h2{font-size:20px;font-weight:600;margin-top:12px}
 .gate p{font-size:13px;color:var(--muted);margin-top:6px}
 .hidnote{margin-top:24px;padding:20px 24px;border:1px dashed var(--line);border-radius:12px}
 .hidnote b{display:block;font-weight:600}
@@ -243,6 +243,7 @@ select.inp{appearance:auto}
 .av svg{width:24px;height:24px}
 .cubeid{display:flex;align-items:center;gap:10px;padding:6px 10px 12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
 .cubeid .av{width:36px;height:36px}
+.av.rm{background:none;border-radius:0}.av.rm svg{width:100%;height:100%;display:block}
 .cubeidt{display:flex;flex-direction:column;min-width:0}
 .cubeidt b{font-weight:600;font-size:14px;line-height:1.3}
 .cubeidt span{font-size:12px;color:var(--muted)}
@@ -269,7 +270,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 /* page head (Robert, 2026-10-29): every Cube page pins its head as Activity does: title and Cube line left, page actions right, tabs sitting on a rule that spans the content pane; the page scrolls under it. */
 .main>.phead{position:sticky;top:0;z-index:6;flex:none;background:var(--bg);border-bottom:1px solid var(--line)}
 .phead>.in{max-width:calc(var(--page-max) + 2 * var(--gutter));padding:24px var(--gutter) 20px}
-.phead h1,.phead .ph{margin-top:0;font-size:22px;font-weight:600;line-height:1.25}
+.phead h1,.phead .ph{margin-top:0;font-size:26px;font-weight:600;line-height:1.25}
 .phead .back{margin-bottom:8px}.phead a.back{text-decoration:none}
 .phead .crumbs{margin-bottom:8px}.phead .crumbs .back{margin-bottom:0}
 .phead .hrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
@@ -289,19 +290,145 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 .top .chips .eye:not(.apg){order:-1}
 .top .chips .eye{width:32px;height:32px;border:0;background:transparent}
 .top .chips .eye:hover{background:var(--hover);color:var(--ink)}
+
+/* Closer to Mobile V3 (Robert, 2026-11-25): one-colour wordmark; boxes have no outline; regions keep a quiet dividing line (ink at 10%, as Mobile); menu rows at medium weight; controls keep their outlines. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom-color:var(--rule)}
+.tenshu .side{border-right-color:var(--rule)}
+.tenshu .phead{border-bottom-color:var(--rule)}
+.tenshu .side .menu{border:0}
+.tenshu .mi b{font-weight:500}
+.tenshu .cubeid{border-bottom:0}
+.tenshu .foot{border-top:0}
+.tenshu .attn{border:0}
+.tenshu .form{border:0}
+.tenshu .status{border:0}
+.tenshu .bub{border:0}
+/* Buttons as on Mobile: the second action is a neutral outline, the first is filled */
+.tenshu .pill{height:40px;border-radius:10px}
+.tenshu .pill.out,.tenshu a.pill.out{border:1.5px solid var(--ink);color:var(--ink)}
+
+/* ---- V3 Phase 2, folded in from the study page (2026-11-26) ---- */
+/* Top bar as the app draws it: [eye, Connect, App preferences]. One Connect control: account glyph with a status light, Connect · account, a chevron; it opens a small panel. */
+.tenshu .chips{gap:8px}
+.tenshu .ccx{position:relative}
+.tenshu .ccx>summary{list-style:none;cursor:pointer}
+.tenshu .ccx>summary::-webkit-details-marker{display:none}
+.tenshu .chip.cc{gap:7px;padding:0 10px 0 10px}
+.tenshu .chip.cc b{font-weight:600}
+.tenshu .ccav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.tenshu .ccav .lt,.tenshu .cpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--panel)}
+.tenshu .ccsep,.tenshu .ccd{color:var(--muted)}
+.tenshu .ccd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .cchev{color:var(--muted);transition:transform .15s}
+.tenshu .ccx[open] .cchev{transform:rotate(180deg)}
+.tenshu .cpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left}
+.tenshu .cph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .cph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .cph span{color:var(--muted);font-size:13px}
+.tenshu .cpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .cpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .cpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .cpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .cpa:hover{background:var(--hover,var(--selected))}
+/* Hide balances: neutral when on. */
+.tenshu .top .chips .eye[aria-pressed="true"]{border-color:transparent;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+/* Sidebar backup strip: one line, a dot, no box. */
+.tenshu .attn{border:0;background:transparent;gap:9px;padding:8px 10px;font-size:13px}
+.tenshu .attn>svg,.tenshu .attn .st>svg{display:none}
+.tenshu .attn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.tenshu .attn .warn,.tenshu .attn .st{color:var(--ink);font-weight:500}
+.tenshu .attn .go{color:var(--muted);font-weight:400}
+.tenshu .attn:hover{background:var(--hover,var(--selected))}
+.ni.sub2{padding-left:58px;min-height:32px;font-size:13px}
+.ni.sub2 .ic{width:14px;height:14px}
+.phead .psub{margin:4px 0 0;font-size:14px;color:var(--muted)}
+.tchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:20px 0 14px}
+.tchips .tg{height:30px}
+.tchips .cnt{margin-left:auto;font-size:13px;color:var(--muted)}
+.tenshu a.ni{text-decoration:none}
+
+/* sidebar rows: left-aligned text (the canvas centres button text by default) */
+.tenshu .side .ni,.tenshu .side .ni *{text-align:left!important}
+.tenshu .side .ni{justify-content:flex-start!important}
+
+/* Cube switcher: coin icon and Cube name on one line; the network name is gone (test networks show the tag beside the wordmark) */
+.tenshu .cubeidt.cid1{flex-direction:row!important;align-items:center;gap:8px}
+.tenshu .cubeidt.cid1 .net{flex:none;display:inline-flex}
+.tenshu .cubeidt.cid1 .net img{width:18px;height:18px}
+.tenshu .cubeidt.cid1 b{min-width:0;color:var(--ink);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* cc-toasts v1 */
+.tenshu{position:relative}
+.tenshu .cc-toasts{position:absolute;bottom:24px;left:0;right:0;z-index:90;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.tenshu .cc-toast{pointer-events:auto;display:flex;align-items:flex-start;gap:12px;width:420px;box-sizing:border-box;padding:10px 8px 10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 28px -8px rgba(0,0,0,.6),0 2px 6px rgba(0,0,0,.35);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;text-align:left;animation:ccToastIn .18s ease-out}
+.tenshu.rm .cc-toast,.tenshu.reduced .cc-toast{animation:none}
+@keyframes ccToastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tenshu .cc-toast .cti{flex:none;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.tenshu .cc-toast .cti svg{width:16px;height:16px}
+.tenshu .cc-toast .cbd{flex:1;min-width:0;padding:4px 0;display:flex;flex-direction:column;gap:2px}
+.tenshu .cc-toast .ctt{font-size:14px;line-height:20px;font-weight:500}
+.tenshu .cc-toast .cdt{font-size:13px;line-height:19px;color:var(--muted)}
+.tenshu .cc-toast .cact{margin:6px 0 0 -4px;align-self:flex-start;background:none;border:0;padding:2px 4px;border-radius:4px;color:var(--acc-ink);font:600 13px/18px 'IBM Plex Sans',sans-serif;cursor:pointer;text-decoration:none}
+.tenshu .cc-toast .cact:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.tenshu .cc-toast .cx{flex:none;width:28px;height:28px;border-radius:6px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tenshu .cc-toast .cx:hover{background:var(--hover);color:var(--ink)}
+.tenshu .cc-toast .cx:focus-visible{outline:2px solid var(--focus,#8fc1ff);outline-offset:1px}
+.tenshu .cc-toast .cx svg{width:16px;height:16px}
+.tenshu .cc-toast.t-info .cti{background:color-mix(in srgb,var(--focus,#8fc1ff) 13%,transparent);color:var(--focus,#8fc1ff)}
+.tenshu .cc-toast.t-good .cti{background:color-mix(in srgb,var(--good) 13%,transparent);color:var(--good)}
+.tenshu .cc-toast.t-warn{border-color:color-mix(in srgb,var(--warn) 38%,transparent)}
+.tenshu .cc-toast.t-warn .cti{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn)}
+.tenshu .cc-toast.t-bad{border-color:color-mix(in srgb,var(--bad) 40%,transparent)}
+.tenshu .cc-toast.t-bad .cti{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.tenshu .cc-toast.t-debug .cti{background:color-mix(in srgb,var(--muted) 12%,transparent);color:var(--muted)}
+.tenshu .cc-toast.t-debug .ctt{font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
 </style>
 </helmet>
 <div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:1100px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
 
   <header class="top">
-    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 1.75 15.5 5.5v7L9 16.25 2.5 12.5v-7z"/><path d="M2.5 5.5 9 9.25l6.5-3.75M9 9.25v7"/></svg>Tenshu</a>
+    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 1.75 15.5 5.5v7L9 16.25 2.5 12.5v-7z"/><path d="M2.5 5.5 9 9.25l6.5-3.75M9 9.25v7"/></svg><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;letter-spacing:.08em;color:var(--ink)">COINCUBE</span></a>
     <div class="chips">
-      <a class="chip" href="P-Connect-InCube.dc.html" title="alex@example.test · Signed in"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span class="srl">Connect account alex@example.test:</span><span class="st ok"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Signed in</span></a>
-      <a class="chip" href="P-Settings.dc.html" onClick="{{ toNode }}" title="Cube service · Connected" aria-label="Cube service · Connected. Open Node settings"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><path d="M7.5 10.5a3 3 0 0 0 4.2 0l2.3-2.3a3 3 0 0 0-4.2-4.2l-.9.9"/><path d="M10.5 7.5a3 3 0 0 0-4.2 0L4 9.8A3 3 0 0 0 8.2 14l.9-.9"/></svg><span class="srl">Cube service:</span><span class="st ok"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Connected</span></a>
       <button type="button" class="eye" aria-pressed="{{ hideP }}" aria-label="Hide balances" onClick="{{ toggleHide }}">
         <sc-if value="{{ shown }}" hint-placeholder-val="{{ true }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M1.75 9S4.5 4 9 4s7.25 5 7.25 5S13.5 14 9 14 1.75 9 1.75 9z"/><circle cx="9" cy="9" r="2.25"/></svg></sc-if>
         <sc-if value="{{ hidden }}" hint-placeholder-val="{{ false }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M1.75 9S4.5 4 9 4s7.25 5 7.25 5S13.5 14 9 14 1.75 9 1.75 9z"/><circle cx="9" cy="9" r="2.25"/><path d="M3 3l12 12"/></svg></sc-if>
       </button>
+      <details class="ccx"><summary class="chip cc" aria-label="Connect account, alex@example.test, live updates on"><span class="ccav"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><i class="lt"></i></span><b>Connect</b><span class="ccsep" aria-hidden="true">·</span><span class="ccd">alex@example.test</span><svg class="ic s cchev" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></summary><div class="cpanel" role="menu"><div class="cph"><b>alex@example.test</b><span>Signed in to COINCUBE | Connect</span></div><div class="cpl"><i class="lt"></i>Live updates on this computer</div><div class="cpr"></div><a class="cpa" role="menuitem" href="P-Connect-InCube.dc.html">Connect account</a><a class="cpa" role="menuitem" href="P-Settings.dc.html">Connections settings</a></div></details>
       <a class="eye apg" href="P-AppPrefs-InCube.dc.html" aria-label="App preferences" data-tip="App preferences"><svg class="ic s" aria-hidden="true" viewBox="0 0 24 24" style="stroke-width:1.75"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a>
     </div>
   </header>
@@ -310,56 +437,60 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
     <nav class="side" aria-label="Cube navigation">
         <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
         <div class="menu">
-        <a class="mi" href="P-Launcher.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span class="grow"><b>All Cubes</b></span></a>
+        <a class="mi" href="P-Launcher.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span class="grow" style="text-align:left;justify-content:flex-start"><b>All Cubes</b></span></a>
         <hr>
-        <sc-if value="{{ lockIdle }}" hint-placeholder-val="{{ true }}"><button type="button" class="mi" onClick="{{ askLock }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="3.5" y="8" width="11" height="7.5" rx="1.5"/><path d="M6 8V5.75a3 3 0 0 1 6 0V8"/></svg><span class="grow"><b>Lock Cube</b></span></button></sc-if>
+        <sc-if value="{{ lockIdle }}" hint-placeholder-val="{{ true }}"><button type="button" class="mi" onClick="{{ askLock }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="3.5" y="8" width="11" height="7.5" rx="1.5"/><path d="M6 8V5.75a3 3 0 0 1 6 0V8"/></svg><span class="grow" style="text-align:left;justify-content:flex-start"><b>Lock Cube</b></span></button></sc-if>
         <sc-if value="{{ lockAsk }}" hint-placeholder-val="{{ false }}"><div class="lockq" role="group" aria-labelledby="lockq-t"><p id="lockq-t">Lock {{ cube.name }} and open the Launcher?</p><a class="lkb go" href="P-Locking.dc.html" onMouseDown="{{ lockNow }}" onClick="{{ lockNow }}">Lock</a><button type="button" class="lkb" onClick="{{ cancelLock }}">Cancel</button></div></sc-if>
         </div>
         </sc-if>
       <div class="navp">
-        <button type="button" class="cubeid" aria-haspopup="true" aria-expanded="{{ menuOpen }}" aria-label="Cube menu. Current: Everyday · Bitcoin mainnet" onClick="{{ toggleMenu }}"><span class="av" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="11" fill="currentColor" opacity=".08" stroke="none"></circle><path d="M12 4.2c4.6-.4 7.9 3.1 7.6 7.4-.3 4.6-4.2 8.2-8.6 7.6-4.2-.6-6.9-4.4-6.3-8.5.5-3.3 3-5.9 6.2-6.4"></path></svg></span><span class="cubeidt"><b>Everyday</b><span class="net"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt="">Bitcoin mainnet</span></span><svg class="ic s cv" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></button>
-        <a class="ni" href="P-Overview.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span>Overview</span></a>
-        <a class="ni" href="P-Activity.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l2.5 1.5"/></svg><span>Activity</span></a>
-        <a class="ni" href="P-Overview.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/><path d="m6.5 9 1.8 1.8 3.5-3.5"/></svg><span>Backup &amp; protection</span></a>
+        <button type="button" class="cubeid" aria-haspopup="true" aria-expanded="{{ menuOpen }}" aria-label="Cube menu. Current: Everyday · Bitcoin mainnet" onClick="{{ toggleMenu }}"><span class="av rm" aria-hidden="true" style="text-align:left;justify-content:flex-start"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M5.04 33.38A27 27 0 0 1 58.87 29.31" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M46.36 20.33A18.5 18.5 0 1 1 32.07 13.50" fill="none" stroke="var(--accent,#F3821D)" stroke-width="2.6" stroke-linecap="round"/><circle cx="32" cy="32" r="2.6" fill="currentColor"/></svg></span><span class="cubeidt cid1" style="text-align:left;justify-content:flex-start"><b>Everyday</b></span><svg class="ic s cv" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></button>
+        <a class="ni" href="P-Overview.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span style="text-align:left;justify-content:flex-start">Overview</span></a>
+        <a class="ni" href="P-Activity.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l2.5 1.5"/></svg><span style="text-align:left;justify-content:flex-start">Activity</span></a>
+        <a class="ni" href="P-Overview.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/><path d="m6.5 9 1.8 1.8 3.5-3.5"/></svg><span style="text-align:left;justify-content:flex-start">Backup &amp; protection</span></a>
       </div>
       <div class="mid">
         <h2 class="gh">Wallets</h2>
         <sc-if value="{{ cube.main }}" hint-placeholder-val="{{ true }}">
-          <a class="ni" href="P-Overview.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg><span>Spark · Daily spending</span></a>
-          <a class="ni" href="P-Overview.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/></svg><span>Vault · Family savings</span></a>
-          <a class="ni" href="P-Liquid.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5c2.6 3.2 4.5 5.8 4.5 8a4.5 4.5 0 0 1-9 0c0-2.2 1.9-4.8 4.5-8z"/></svg><span>Liquid · Travel</span></a>
+          <a class="ni" href="P-Spark.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg><span style="text-align:left;justify-content:flex-start">Spark · Daily spending</span></a>
+          <a class="ni" href="P-Vault.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/></svg><span style="text-align:left;justify-content:flex-start">Vault · Family savings</span></a>
         </sc-if>
         <sc-if value="{{ cube.alt }}" hint-placeholder-val="{{ false }}">
-          <a class="ni" href="P-Overview.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/></svg><span>{{ cube.vault }}</span></a>
+          <a class="ni" href="P-Overview.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/></svg><span style="text-align:left;justify-content:flex-start">{{ cube.vault }}</span></a>
         </sc-if>
         <sc-if value="{{ nav.market }}" hint-placeholder-val="{{ true }}">
-          <a class="ni par" href="P-P2P.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M3 7.25 4 3h10l1 4.25"/><path d="M3 7.25c0 1.1.9 1.9 2 1.9s2-.8 2-1.9c0 1.1.9 1.9 2 1.9s2-.8 2-1.9c0 1.1.9 1.9 2 1.9s2-.8 2-1.9"/><path d="M4 9.1v6.4h10V9.1"/><path d="M7.5 15.5V12h3v3.5"/></svg><span>Marketplace</span></a>
+          <a class="ni par" href="P-P2P.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M3 7.25 4 3h10l1 4.25"/><path d="M3 7.25c0 1.1.9 1.9 2 1.9s2-.8 2-1.9c0 1.1.9 1.9 2 1.9s2-.8 2-1.9c0 1.1.9 1.9 2 1.9s2-.8 2-1.9"/><path d="M4 9.1v6.4h10V9.1"/><path d="M7.5 15.5V12h3v3.5"/></svg><span style="text-align:left;justify-content:flex-start">Marketplace</span></a>
           <sc-if value="{{ nav.p2pOn }}" hint-placeholder-val="{{ true }}">
-            <a class="ni sub on" aria-current="page" href="P-P2P.dc.html"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span>P2P</span></a>
+            <a class="ni sub" href="P-P2P.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span style="text-align:left;justify-content:flex-start">P2P</span></a>
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+              <button type="button" class="ni sub2 {{ t.cls }}" aria-current="{{ t.cur }}" disabled="{{ t.off }}" onClick="{{ t.pick }}" style="text-align:left;justify-content:flex-start"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="{{ t.icon }}"/></svg><span style="text-align:left;justify-content:flex-start">{{ t.label }}</span></button>
+            </sc-for>
           </sc-if>
           <sc-if value="{{ nav.p2pOff }}" hint-placeholder-val="{{ false }}">
-            <button type="button" class="ni sub" disabled title="{{ gateMsg }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span><span>P2P</span><span class="ds">{{ gateMsg }}</span></span></button>
+            <button type="button" class="ni sub" disabled title="{{ gateMsg }}" style="text-align:left;justify-content:flex-start"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span style="text-align:left;justify-content:flex-start"><span style="text-align:left;justify-content:flex-start">P2P</span><span class="ds" style="text-align:left;justify-content:flex-start">{{ gateMsg }}</span></span></button>
           </sc-if>
           <sc-if value="{{ nav.bsOn }}" hint-placeholder-val="{{ true }}">
-            <a class="ni sub" href="P-BuySell.dc.html"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M7 5.5v7M7 5.5h2.6a1.6 1.6 0 0 1 0 3.2H7m0 0h3a1.7 1.7 0 0 1 0 3.3H7"/></svg><span>Buy/Sell</span></a>
+            <a class="ni sub" href="P-BuySell.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M7 5.5v7M7 5.5h2.6a1.6 1.6 0 0 1 0 3.2H7m0 0h3a1.7 1.7 0 0 1 0 3.3H7"/></svg><span style="text-align:left;justify-content:flex-start">Buy/Sell</span></a>
           </sc-if>
           <sc-if value="{{ nav.bsOff }}" hint-placeholder-val="{{ false }}">
-            <button type="button" class="ni sub" disabled title="{{ nav.bsMsg }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M7 5.5v7M7 5.5h2.6a1.6 1.6 0 0 1 0 3.2H7m0 0h3a1.7 1.7 0 0 1 0 3.3H7"/></svg><span><span>Buy/Sell</span><span class="ds">{{ nav.bsMsg }}</span></span></button>
+            <button type="button" class="ni sub" disabled title="{{ nav.bsMsg }}" style="text-align:left;justify-content:flex-start"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M7 5.5v7M7 5.5h2.6a1.6 1.6 0 0 1 0 3.2H7m0 0h3a1.7 1.7 0 0 1 0 3.3H7"/></svg><span style="text-align:left;justify-content:flex-start"><span style="text-align:left;justify-content:flex-start">Buy/Sell</span><span class="ds" style="text-align:left;justify-content:flex-start">{{ nav.bsMsg }}</span></span></button>
           </sc-if>
         </sc-if>
       </div>
-      <a class="attn" href="P-Overview.dc.html"><svg class="ic s warn" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg><span class="warn" style="font-weight:500">Backup not confirmed</span><span class="go">Review</span></a>
+      <a class="attn" href="P-Overview.dc.html"><svg class="ic s warn" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg><span class="warn" style="text-align:left;justify-content:flex-start;font-weight:500">Backup not confirmed</span><span class="go" style="text-align:left;justify-content:flex-start">Review</span></a>
       <div class="foot">
-        <a class="ni" href="P-Settings.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.25"/><circle cx="9" cy="9" r="5"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.05 4.05l1.41 1.41M12.54 12.54l1.41 1.41M4.05 13.95l1.41-1.41M12.54 5.46l1.41-1.41"/></svg><span>Settings</span></a>
+        <a class="ni" href="P-Settings.dc.html" style="text-align:left;justify-content:flex-start"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.25"/><circle cx="9" cy="9" r="5"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.05 4.05l1.41 1.41M12.54 12.54l1.41 1.41M4.05 13.95l1.41-1.41M12.54 5.46l1.41-1.41"/></svg><span style="text-align:left;justify-content:flex-start">Settings</span></a>
       </div>
     </nav>
 
     <main class="main">
       <div class="phead"><div class="in">
-          <h1 class="ph">P2P</h1>
-          <p class="idl"><sc-if value="{{ cube.main }}" hint-placeholder-val="{{ true }}"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></sc-if>{{ cube.name }} · {{ cube.net }}</p>
+          <h1 class="ph">{{ head.title }}</h1>
+          <p class="idl"><sc-if value="{{ cube.main }}" hint-placeholder-val="{{ true }}"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></sc-if>{{ cube.name }}</p>
+          <sc-if value="{{ head.hasSub }}" hint-placeholder-val="{{ true }}"><p class="psub">{{ head.sub }}</p></sc-if>
       </div></div>
       <div class="pg">
+        <!-- r4: event toasts, lever toast --><sc-if value="{{ tst.tradeUpdate }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="info|Trade update: FiatSentOk (c3d4e5f6)"></span></sc-if><sc-if value="{{ tst.restored }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="good|Recovered 2 trade(s) from relay"></span></sc-if><sc-if value="{{ tst.cancelFailed }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="bad|Cancel failed|Timed out waiting for a response from Mostro"></span></sc-if><sc-if value="{{ tst.actionFailed }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="bad|Timed out waiting for a response from Mostro"></span></sc-if><sc-if value="{{ tst.chatFailed }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="bad|Chat send failed|Relay connection closed"></span></sc-if><sc-if value="{{ tst.disputeChatFailed }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="bad|Dispute chat send failed|Relay connection closed"></span></sc-if><sc-if value="{{ tst.imageFailed }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="bad|Image send failed|Upload to the file server failed"></span></sc-if><sc-if value="{{ tst.fileSaveFailed }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="bad|File save failed|Permission denied (os error 13)"></span></sc-if>
 
         <sc-if value="{{ v.hiddenNote }}" hint-placeholder-val="{{ false }}">
           <div class="hidnote" role="note"><b>{{ hid.title }}</b><p>{{ hid.text }}</p><p>A stale route shows: “The Marketplace isn't available right now.”</p></div>
@@ -367,12 +498,6 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 
         <sc-if value="{{ v.page }}" hint-placeholder-val="{{ true }}">
         <div>
-          <nav class="tabs" aria-label="P2P sections">
-            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
-              <button type="button" class="tab" aria-current="{{ t.cur }}" disabled="{{ t.off }}" onClick="{{ t.pick }}">{{ t.label }}</button>
-            </sc-for>
-            <span class="node"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2"/><circle cx="3.5" cy="4.5" r="1.5"/><circle cx="14.5" cy="4.5" r="1.5"/><circle cx="9" cy="15" r="1.5"/><path d="M4.7 5.4 7.4 7.8M13.3 5.4l-2.7 2.4M9 11v2.5"/></svg>Node <b>{{ nodeActive }}</b></span>
-          </nav>
 
           <sc-if value="{{ v.banner }}" hint-placeholder-val="{{ false }}">
             <div class="banner" role="alert"><svg class="ic s bad" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5v4M9 12.5v.01"/></svg><p class="tx bad">{{ banner.text }}</p><sc-if value="{{ banner.retry }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn" onClick="{{ retry }}">Retry</button></sc-if></div>
@@ -390,7 +515,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 
           <!-- ============ BOOK ============ -->
           <sc-if value="{{ sec.book }}" hint-placeholder-val="{{ true }}">
-            <div class="sech"><h2>P2P Order Book</h2><span class="cap">Synthetic orders</span></div>
+            <div style="height:20px"></div>
             <div class="book">
               <div class="flt" role="group" aria-label="Order filters">
                 <div class="seg full" role="group" aria-label="Side">
@@ -448,7 +573,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
                           <sc-if value="{{ o.buying }}" hint-placeholder-val="{{ true }}">
                             <div class="fld"><label for="p-take-ln">Lightning invoice or address (optional)</label><input class="inp mono" id="p-take-ln" placeholder="Enter lightning invoice or address" value="{{ takeLn }}" onInput="{{ onTakeLn }}"></div>
                           </sc-if>
-                          <div class="acts"><span class="sp"></span><button type="button" class="btn" onClick="{{ o.toggle }}">Close</button><button type="button" class="pill fill" disabled="{{ tradeOff }}" onClick="{{ o.take }}">{{ o.cta }}</button></div>
+                          <div class="acts"><span class="sp"></span><button type="button" class="btn" onClick="{{ o.toggle }}">Close</button><button type="button" class="pill fill" disabled="{{ tradeOff }}" onClick="{{ o.take }}" data-toast="{{ o.takeToast }}">{{ o.cta }}</button></div>
                         </div>
                       </div>
                     </div>
@@ -460,7 +585,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 
           <!-- ============ CREATE ============ -->
           <sc-if value="{{ sec.create }}" hint-placeholder-val="{{ false }}">
-            <div class="sech"><h2>Create P2P Order</h2></div>
+            <div style="height:20px"></div>
             <section class="form" aria-label="Create P2P Order">
               <sc-if value="{{ cr.form }}" hint-placeholder-val="{{ true }}">
                 <div class="fs" style="border-top:0">
@@ -522,10 +647,10 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
                 </dl></div>
                 <div class="ffoot"><span class="hlp" role="status" style="margin:0">{{ cr.busyText }}</span><span class="sp"></span><button type="button" class="btn" onClick="{{ cr.back }}">Cancel</button><button type="button" class="pill fill" disabled="{{ cr.confirmOff }}" onClick="{{ cr.confirm }}">Confirm</button></div>
               </sc-if>
-              <sc-if value="{{ cr.published }}" hint-placeholder-val="{{ false }}">
+              <sc-if value="{{ cr.published }}" hint-placeholder-val="{{ false }}"><span hidden data-toast-auto="good|Order created successfully (f7a8…synthetic…2c4)"></span>
                 <div class="fh"><svg class="ic ok" style="width:22px;height:22px" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg><h3>This order will be published for 24 hours.</h3><span class="clock"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l2.5 1.5"/></svg>Time remaining 23:59:41</span></div>
                 <div class="fs"><p class="hlp" style="margin:0 0 12px">You can cancel it anytime before someone takes it.</p><dl class="dl"><div><dt>Order ID</dt><dd class="mono">f7a8…synthetic…2c4</dd></div><div><dt>Side</dt><dd>{{ cr.sideWord }}</dd></div><div><dt>Amount</dt><dd>{{ cr.amtWord }}</dd></div></dl></div>
-                <div class="ffoot"><button type="button" class="btn alert" onClick="{{ cr.clear }}">Cancel Order</button><span class="sp"></span><button type="button" class="btn" onClick="{{ toBook }}">Close</button></div>
+                <div class="ffoot"><button type="button" class="btn alert" onClick="{{ cr.clear }}" data-toast="good|Order canceled">Cancel Order</button><span class="sp"></span><button type="button" class="btn" onClick="{{ toBook }}">Close</button></div>
               </sc-if>
             </section>
           </sc-if>
@@ -533,7 +658,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           <!-- ============ MY TRADES ============ -->
           <sc-if value="{{ sec.trades }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ tr.list }}" hint-placeholder-val="{{ true }}">
-              <div class="sech"><h2>My Trades</h2><div class="tfl"><label for="p-tf">Status</label><select class="inp" id="p-tf" style="width:180px;height:34px" onChange="{{ onTFilter }}"><sc-for list="{{ tFilters }}" as="f" hint-placeholder-count="5"><option value="{{ f.v }}" selected="{{ f.sel }}">{{ f.v }}</option></sc-for></select></div></div>
+              <div class="tchips" role="group" aria-label="Status"><sc-for list="{{ tFilters }}" as="f" hint-placeholder-count="10"><button type="button" class="tg" aria-pressed="{{ f.p }}" onClick="{{ f.pick }}">{{ f.v }}</button></sc-for><span class="cnt">{{ tradeCount }}</span></div>
               <div class="thead" aria-hidden="true"><span>Type</span><span>Role</span><span>Amount</span><span>Payment Method</span><span>Status</span><span>Rating</span><span></span></div>
               <sc-if value="{{ v.tradesLoading }}" hint-placeholder-val="{{ false }}"><p class="empty" role="status"><span class="spin" aria-hidden="true" style="vertical-align:-3px;margin-right:8px"></span>Loading trades</p></sc-if>
               <sc-if value="{{ v.tradesEmpty }}" hint-placeholder-val="{{ false }}"><p class="empty">No trades yet</p></sc-if>
@@ -562,7 +687,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
                           <div class="kv"><span class="k">Spark balance: </span><span>{{ pay.bal }}</span></div>
                           <div class="kv"><span class="k">Lock amount: </span><span>20,000 sats</span></div>
                         </div>
-                        <div class="acts"><button type="button" class="pill fill" onClick="{{ pay.spark }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg>Pay from Spark</button><button type="button" class="btn" onClick="{{ pay.other }}">Pay from another wallet</button><span class="sp"></span><button type="button" class="btn alert" onClick="{{ tr.cancelOrder }}">Cancel Order</button></div>
+                        <div class="acts"><button type="button" class="pill fill" onClick="{{ pay.spark }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg>Pay from Spark</button><button type="button" class="btn" onClick="{{ pay.other }}">Pay from another wallet</button><span class="sp"></span><button type="button" class="btn alert" onClick="{{ tr.cancelOrder }}" data-toast="good|Order canceled">Cancel Order</button></div>
                       </sc-if>
                       <sc-if value="{{ pay.preparing }}" hint-placeholder-val="{{ false }}"><p class="acts" role="status"><span class="spin" aria-hidden="true"></span>Preparing payment…</p></sc-if>
                       <sc-if value="{{ pay.confirm }}" hint-placeholder-val="{{ false }}">
@@ -578,7 +703,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
                         <div class="qr">
                           <svg width="132" height="132" viewBox="0 0 29 29" role="img" aria-label="Synthetic hold invoice QR code"><rect width="29" height="29" fill="#fff"/><g fill="#161716"><path d="M2 2h7v7H2zM20 2h7v7h-7zM2 20h7v7H2z"/><path d="M3 3h5v5H3zM21 3h5v5h-5zM3 21h5v5H3z" fill="#fff"/><path d="M4 4h3v3H4zM22 4h3v3h-3zM4 22h3v3H4zM12 2h2v3h-2zM15 5h2v2h-2zM11 9h2v2h-2zM16 10h3v2h-3zM2 12h2v2H2zM6 11h3v2H6zM12 13h3v3h-3zM21 12h2v2h-2zM24 11h3v3h-3zM11 17h2v3h-2zM16 17h3v2h-3zM21 17h3v2h-3zM12 22h3v2h-3zM17 21h2v3h-2zM21 24h3v3h-3zM25 21h2v2h-2zM11 25h2v2h-2z"/></g></svg>
                           <div><label class="cap" for="p-hold">Hold invoice</label><div class="cpy"><input class="inp mono" id="p-hold" readonly value="lnbc…synthetic…h0ld"><button type="button" class="btn" style="height:40px" onClick="{{ pay.copy }}">{{ pay.copyLabel }}</button></div>
-                            <div class="acts"><button type="button" class="btn" onClick="{{ pay.back }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg>Back to Spark</button><span class="sp"></span><button type="button" class="btn alert" onClick="{{ tr.cancelOrder }}">Cancel Order</button></div></div>
+                            <div class="acts"><button type="button" class="btn" onClick="{{ pay.back }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg>Back to Spark</button><span class="sp"></span><button type="button" class="btn alert" onClick="{{ tr.cancelOrder }}" data-toast="good|Order canceled">Cancel Order</button></div></div>
                         </div>
                       </sc-if>
                     </div>
@@ -586,7 +711,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 
                   <!-- invoice entry (buyer) -->
                   <sc-if value="{{ tr.inv }}" hint-placeholder-val="{{ false }}">
-                    <div class="pay"><div class="fld"><label for="p-inv">Lightning invoice or address</label><div style="display:flex;gap:8px"><input class="inp mono" id="p-inv" placeholder="Enter lightning invoice or address" value="{{ invoice }}" onInput="{{ onInvoice }}"><button type="button" class="pill fill" disabled="{{ tr.invOff }}" onClick="{{ tr.submitInv }}">Submit Invoice</button></div></div></div>
+                    <div class="pay"><div class="fld"><label for="p-inv">Lightning invoice or address</label><div style="display:flex;gap:8px"><input class="inp mono" id="p-inv" placeholder="Enter lightning invoice or address" value="{{ invoice }}" onInput="{{ onInvoice }}"><button type="button" class="pill fill" disabled="{{ tr.invOff }}" onClick="{{ tr.submitInv }}" data-toast="good|Action completed: BuyerInvoiceAccepted">Submit Invoice</button></div></div></div>
                   </sc-if>
 
                   <!-- rating -->
@@ -598,12 +723,12 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
                         </div>
                       </fieldset>
                       <p class="hlp" role="status">{{ rateText }}</p>
-                      <div class="acts"><button type="button" class="pill fill" disabled="{{ rateOff }}" onClick="{{ tr.close }}">Submit Rating</button></div>
+                      <div class="acts"><button type="button" class="pill fill" disabled="{{ rateOff }}" onClick="{{ tr.close }}" data-toast="good|Action completed: RateReceived">Submit Rating</button></div>
                     </div>
                   </sc-if>
 
                   <sc-if value="{{ tr.hasCta }}" hint-placeholder-val="{{ false }}">
-                    <div class="pay"><div class="acts" style="margin:0"><button type="button" class="pill fill" disabled="{{ tr.ctaOff }}" onClick="{{ tr.ctaGo }}">{{ tr.cta }}</button><span class="hlp" role="status" style="margin:0">{{ tr.busyText }}</span></div></div>
+                    <div class="pay"><div class="acts" style="margin:0"><button type="button" class="pill fill" disabled="{{ tr.ctaOff }}" onClick="{{ tr.ctaGo }}" data-toast="{{ tr.ctaToast }}">{{ tr.cta }}</button><span class="hlp" role="status" style="margin:0">{{ tr.busyText }}</span></div></div>
                   </sc-if>
                   <sc-if value="{{ tr.chatAdmin }}" hint-placeholder-val="{{ false }}">
                     <div class="pay"><button type="button" class="pill fill" onClick="{{ toDisputeChat }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="M3 4.5h12v8H8l-3.5 3v-3H3z"/></svg>Chat with Admin</button></div>
@@ -611,9 +736,9 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 
                   <div class="ffoot">
                     <button type="button" class="btn" onClick="{{ tr.close }}">Close</button><span class="sp"></span>
-                    <sc-if value="{{ tr.canCancel }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn" onClick="{{ tr.cancel }}">Cancel</button></sc-if>
-                    <sc-if value="{{ tr.canAccept }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn alert" onClick="{{ tr.close }}">Accept Cancel</button></sc-if>
-                    <sc-if value="{{ tr.canDispute }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn alert" onClick="{{ tr.dispute }}">Dispute</button></sc-if>
+                    <sc-if value="{{ tr.canCancel }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn" onClick="{{ tr.cancel }}" data-toast="good|Action completed: CooperativeCancelInitiatedByYou">Cancel</button></sc-if>
+                    <sc-if value="{{ tr.canAccept }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn alert" onClick="{{ tr.close }}" data-toast="good|Action completed: CooperativeCancelAccepted">Accept Cancel</button></sc-if>
+                    <sc-if value="{{ tr.canDispute }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn alert" onClick="{{ tr.dispute }}" data-toast="good|Action completed: DisputeInitiatedByYou">Dispute</button></sc-if>
                   </div>
                 </div>
 
@@ -640,7 +765,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 
           <!-- ============ CHAT ============ -->
           <sc-if value="{{ sec.chat }}" hint-placeholder-val="{{ false }}">
-            <div class="sech"><h2>Chat</h2><span class="cap">Synthetic messages</span></div>
+            <div style="height:20px"></div>
             <sc-if value="{{ v.chatEmpty }}" hint-placeholder-val="{{ false }}"><div class="empty"><b>No conversations yet</b>Chat messages will appear here when you trade</div></sc-if>
             <sc-if value="{{ v.chatOn }}" hint-placeholder-val="{{ true }}">
               <div class="chat">
@@ -658,7 +783,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
                     <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="5">
                       <sc-if value="{{ m.sys }}" hint-placeholder-val="{{ false }}"><p class="sysm"><b>{{ m.title }}</b>{{ m.text }}</p></sc-if>
                       <sc-if value="{{ m.txt }}" hint-placeholder-val="{{ true }}"><p class="bub {{ m.cls }}"><span class="who">{{ m.who }}</span>{{ m.text }}</p></sc-if>
-                      <sc-if value="{{ m.att }}" hint-placeholder-val="{{ false }}"><div class="bub {{ m.cls }}"><span class="who">{{ m.who }}</span><div class="att"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="3" y="3" width="12" height="12" rx="1.5"/><circle cx="7" cy="7" r="1.25"/><path d="m3.5 13.5 3.5-3.5 2.5 2.5 2-2 3 3"/></svg><div style="flex:1"><span>{{ m.name }}</span><span class="cap" style="display:block">{{ m.size }} · Encrypted</span></div><button type="button" class="lbtn" aria-label="{{ m.dl }}">Download</button></div></div></sc-if>
+                      <sc-if value="{{ m.att }}" hint-placeholder-val="{{ false }}"><div class="bub {{ m.cls }}"><span class="who">{{ m.who }}</span><div class="att"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="3" y="3" width="12" height="12" rx="1.5"/><circle cx="7" cy="7" r="1.25"/><path d="m3.5 13.5 3.5-3.5 2.5 2.5 2-2 3 3"/></svg><div style="flex:1"><span>{{ m.name }}</span><span class="cap" style="display:block">{{ m.size }} · Encrypted</span></div><button type="button" class="lbtn" aria-label="{{ m.dl }}" data-toast="good|File saved">Download</button></div></div></sc-if>
                     </sc-for>
                   </div>
                   <sc-if value="{{ ch.canType }}" hint-placeholder-val="{{ true }}">
@@ -676,7 +801,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
 
           <!-- ============ SETTINGS ============ -->
           <sc-if value="{{ sec.settings }}" hint-placeholder-val="{{ false }}">
-            <div class="sech"><h2>P2P Settings</h2><span class="cap">Synthetic nodes and relays</span></div>
+            <div style="height:20px"></div>
             <sc-if value="{{ v.cfgErr }}" hint-placeholder-val="{{ false }}"><p class="banner" role="alert" style="margin:0 0 16px"><svg class="ic s warn" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3M9 12.75v.01"/></svg><span class="tx warn">Saved P2P config couldn't be loaded (it may be from a newer app version); showing defaults. Changes won't overwrite it.</span></p></sc-if>
             <div class="set">
               <section class="blk" aria-labelledby="p-nodes">
@@ -718,15 +843,40 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["book","create","trades","chat","settings"],"default":"book","section":"Review"},"tradeState":{"editor":"enum","options":["list","waitingSeller","payHold","sparkConfirm","sparkFailed","waitingInvoice","submitInvoice","sendFiat","fiatSent","waitingFiat","release","released","paymentFailed","cancelRequested","cancelByPeer","dispute","adminReview","complete","canceledAfterSpark"],"default":"list","section":"Review"},"state":{"editor":"enum","options":["ready","loading","empty","relayError","timeout","mismatch","configError","networkGate","testNoCoord"],"default":"ready","section":"Review"},"gate":{"editor":"enum","options":["on","marketplaceOff","p2pOff"],"default":"on","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"hideBalances":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":1100}}'>
+<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["book","create","trades","chat","settings"],"default":"book","section":"Review"},"tradeState":{"editor":"enum","options":["list","waitingSeller","payHold","sparkConfirm","sparkFailed","waitingInvoice","submitInvoice","sendFiat","fiatSent","waitingFiat","release","released","paymentFailed","cancelRequested","cancelByPeer","dispute","adminReview","complete","canceledAfterSpark"],"default":"list","section":"Review"},"state":{"editor":"enum","options":["ready","loading","empty","relayError","timeout","mismatch","configError","networkGate","testNoCoord"],"default":"ready","section":"Review"},"gate":{"editor":"enum","options":["on","marketplaceOff","p2pOff"],"default":"on","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"hideBalances":{"editor":"boolean","default":false,"section":"Review"},"toast":{"editor":"enum","options":["none","tradeUpdate","restored","cancelFailed","actionFailed","chatFailed","disputeChatFailed","imageFailed","fileSaveFailed"],"default":"none","section":"Review"},"$preview":{"width":1440,"height":1100}}'>
 class Component extends DCLogic {
   constructor(p){super(p); try { const bump = () => { try { this.setState({ protoTick: Date.now() }); } catch (e) {} }; window.addEventListener('tenshu-proto', bump); window.addEventListener('storage', bump); } catch (e) {}this.state={};}
   renderVals(){
+    /* cc-toasts v1 */ try { if (!window.__ccToast) { const W = window; const TIMES = {info:8000,good:8000,warn:8000,bad:8000,debug:8000}; const MAX = 3;
+      const IC = {info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/>', good:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>', warn:'<path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9.5v3.5"/><path d="M12 16.8h.01"/>', bad:'<circle cx="12" cy="12" r="9"/><path d="m14.8 9.2-5.6 5.6"/><path d="m9.2 9.2 5.6 5.6"/>', debug:'<path d="m5 8 4 4-4 4"/><path d="M12 16h7"/>'};
+      const svg = (p) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+      const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+      const parse = (s) => { const f = String(s || '').split('|'); return {tone: IC[f[0]] ? f[0] : 'info', title: f[1] || '', detail: f[2] || '', action: f[3] || '', href: f[4] || ''}; };
+      const hostFor = (el) => { const root = (el && el.closest && el.closest('.tenshu')) || document.querySelector('.tenshu'); if (!root) return null; let h = root.querySelector(':scope > .cc-toasts'); if (!h) { h = document.createElement('div'); h.className = 'cc-toasts'; h.setAttribute('aria-live', 'polite'); root.appendChild(h); }
+        const main = root.querySelector('.main'); if (main) { h.style.left = main.offsetLeft + 'px'; h.style.right = Math.max(0, root.clientWidth - main.offsetLeft - main.offsetWidth) + 'px'; } return h; };
+      const show = (spec, el) => { const t = typeof spec === 'string' ? parse(spec) : spec; if (!t.title) return; const h = hostFor(el); if (!h) return;
+        while (h.children.length >= MAX) h.removeChild(h.firstChild);
+        const n = document.createElement('div'); n.className = 'cc-toast t-' + t.tone; n.setAttribute('role', t.tone === 'bad' ? 'alert' : 'status');
+        n.innerHTML = '<div class="cti" aria-hidden="true">' + svg(IC[t.tone]) + '</div><div class="cbd"><div class="ctt">' + esc(t.title) + '</div>' + (t.detail ? '<div class="cdt">' + esc(t.detail) + '</div>' : '') + (t.action ? (t.href ? '<a class="cact" href="' + esc(t.href) + '">' + esc(t.action) + '</a>' : '<button type="button" class="cact">' + esc(t.action) + '</button>') : '') + '</div><button type="button" class="cx" aria-label="Dismiss">' + svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>') + '</button>';
+        const kill = () => { if (n.parentNode) n.parentNode.removeChild(n); };
+        n.querySelector('.cx').addEventListener('click', (e) => { e.stopPropagation(); kill(); });
+        const a = n.querySelector('button.cact'); if (a) a.addEventListener('click', (e) => { e.stopPropagation(); kill(); });
+        h.appendChild(n); const ms = TIMES[t.tone]; if (ms) setTimeout(kill, ms); };
+      W.__ccToast = show;
+      document.addEventListener('click', (e) => { const el = e.target && e.target.closest && e.target.closest('[data-toast],[data-toast-next]'); if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+        const now = el.getAttribute('data-toast'); const nxt = el.getAttribute('data-toast-next');
+        if (now) setTimeout(() => show(now, el), 0);
+        if (nxt) { try { localStorage.setItem('tenshu.proto.toast', nxt); } catch (x) {} } }, true);
+      W.__ccToastFlush = (root) => { try { const p = localStorage.getItem('tenshu.proto.toast'); if (p) { localStorage.removeItem('tenshu.proto.toast'); show(p, root); } } catch (x) {}
+        try { (root || document).querySelectorAll('[data-toast-auto]:not([data-toast-shown])').forEach((el) => { el.setAttribute('data-toast-shown', '1'); show(el.getAttribute('data-toast-auto'), el); }); } catch (x) {} };
+    } if (!this.__ccTm) { this.__ccTm = 1; setTimeout(() => window.__ccToastFlush && window.__ccToastFlush(), 450); } else { setTimeout(() => window.__ccToastFlush && window.__ccToastFlush(), 60); } } catch (e) {}
+
     // prototype-only: Appearance (App preferences) is a device setting shared across artboards: system follows the review lever
     let THEME = 'system'; try { THEME = localStorage.getItem('tenshu.proto.theme') || 'system'; } catch (e) {}
     const P=this.props,self=this;
-    const sec0=P.section||'book',ts0=P.tradeState||'list',pst=P.state||'ready',gate=P.gate||'on',hb=!!P.hideBalances;
-    const key=[sec0,ts0,pst,gate,hb].join('|');
+    const TQ=({tradeUpdate:'trades',restored:'trades',cancelFailed:'trades',actionFailed:'trades',chatFailed:'chat',disputeChatFailed:'chat',imageFailed:'chat',fileSaveFailed:'chat'})[P.toast]; // r4: the toast lever opens the section its toast belongs to
+    const sec0=TQ||P.section||'book',ts0=P.tradeState||'list',pst=P.state||'ready',gate=P.gate||'on',hb=!!P.hideBalances;
+    const key=[sec0,ts0,pst,gate,hb,P.toast||'none'].join('|');
     const D='••••••';
     const payFor=t=>t==='sparkConfirm'?'confirm':t==='sparkFailed'?'failed':'choose';
     const fresh={k:key,sec:sec0,ts:ts0,pay:payFor(ts0),side:'buy',cur:'',curSearch:'',pms:[],minRating:'0',minDays:'0',open:'',takeAmt:'',takeLn:'',copied:'',
@@ -763,7 +913,8 @@ class Component extends DCLogic {
 
     // tabs
     const TABS=[['book','Book'],['trades','My Trades'],['chat','Chat'],['create','Create'],['settings','Settings']];
-    const tabs=TABS.map(t=>({label:t[1],cur:S.sec===t[0]&&!(gated&&t[0]!=='settings')?'page':'false',off:gated&&t[0]!=='settings',pick:()=>set({sec:t[0],open:''})}));
+    const TICON={book:'M3 8.5 9 3.5l6 5V15H3z',trades:'M4.5 2.5h9v13l-2-1.25-2.5 1.25-2.5-1.25-2 1.25zM7 6.5h4M7 9.5h4',chat:'M3 4.5h12v8H8l-3.5 3v-3H3z',create:'M9 4v10M4 9h10',settings:'M9 6.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5zM9 2v2M9 14v2M2 9h2M14 9h2M4.05 4.05l1.41 1.41M12.54 12.54l1.41 1.41M4.05 13.95l1.41-1.41M12.54 5.46l1.41-1.41'};
+    const tabs=TABS.map(t=>{const cur=S.sec===t[0]&&!(gated&&t[0]!=='settings');return{label:t[1],icon:TICON[t[0]],cls:cur?'on':'',cur:cur?'page':'false',off:gated&&t[0]!=='settings',pick:()=>set({sec:t[0],open:'',ts:t[0]==='trades'?'list':S.ts})};});
 
     // ---------- book ----------
     const ORD=[
@@ -789,7 +940,7 @@ class Component extends DCLogic {
       dir:buying?'BUYING':'SELLING',youDir:buying?'YOU ARE BUYING':'YOU ARE SELLING',dcls:buying?'b':'s',amt:o.min===o.max?String(o.min):o.min+' – '+o.max,cur:o.cur,min:o.min,max:o.max,range:o.min!==o.max,
       pm:o.pm,price:o.price,rated:o.r>0,rep:o.r>0?o.r.toFixed(1)+' · '+o.days+' days':'No rating',rating:o.r>0?o.r.toFixed(1):'No rating available',reviews:o.rev,days:o.days,oid:o.oid,
       exp:open?'true':'false',open:open,pid:'p-take-'+o.id,chev:open?'m4.5 7 4.5 4.5L13.5 7':'m7 4.5 4.5 4.5L7 13.5',buying:buying,cta:S.busy==='take'?'…':(buying?'Buy':'Sell'),
-      toggle:()=>set({open:open?'':o.id,takeAmt:'',takeLn:'',copied:''}),take:()=>takeNext(o)};});
+      toggle:()=>set({open:open?'':o.id,takeAmt:'',takeLn:'',copied:''}),take:()=>takeNext(o),takeToast:buying?'good|Order taken successfully ('+o.oid+')':''};});
     const CURS=['EUR','USD','GBP'];
     const cq=S.curSearch.trim().toUpperCase();
     const curs=CURS.filter(c=>!cq||c.indexOf(cq)>=0).map(c=>({code:c,p:S.cur===c?'true':'false',pick:()=>set({cur:S.cur===c?'':c,open:''})}));
@@ -867,7 +1018,7 @@ class Component extends DCLogic {
     const tr={list:sec==='trades'&&!T,detail:trDetail,close:()=>goTs('list')};
     if(T)Object.assign(tr,{st:T.st,cls:T.cls,title:T.title,body:T.body,hasBody:!!T.body&&!T.rate,bcls:T.warn?'w':'',icon:ICON[T.icon],icls:T.cls==='unk'?'muted':T.cls,
       count:!!T.count,inv:!!T.inv,invOff:!S.invoice.trim()||tradingOff,submitInv:()=>goTs(T.next||'fiatSent'),rate:!!T.rate,chatAdmin:!!T.chatAdmin,
-      hasCta:!!T.cta,cta:T.cta,ctaOff:S.busy==='cta'||tradingOff,busyText:S.busy==='cta'?(T.cta==='Release Sats'?'Releasing…':'Sending…'):'',ctaGo:()=>{set({busy:'cta'});later({busy:'',ts:T.next,pay:'choose'},700);},
+      hasCta:!!T.cta,cta:T.cta,ctaToast:'good|Action completed: '+(T.cta==='Release Sats'?'Released':'FiatSentOk'),ctaOff:S.busy==='cta'||tradingOff,busyText:S.busy==='cta'?(T.cta==='Release Sats'?'Releasing…':'Sending…'):'',ctaGo:()=>{set({busy:'cta'});later({busy:'',ts:T.next,pay:'choose'},700);},
       you:T.role==='b'?'You are buying':'You are selling',
       canCancel:T.acts==='active',canAccept:T.acts==='cancelPeer',canDispute:T.acts==='active'||T.acts==='cancelReq'||T.acts==='cancelPeer',
       cancel:()=>goTs('cancelRequested'),dispute:()=>goTs('dispute'),cancelOrder:()=>goTs('list')});
@@ -920,6 +1071,7 @@ class Component extends DCLogic {
 
     const secFlags={book:sec==='book',create:sec==='create',trades:sec==='trades',chat:sec==='chat',settings:sec==='settings'};
     return {
+      tst:{tradeUpdate:P.toast==='tradeUpdate'&&sec==='trades',restored:P.toast==='restored'&&sec==='trades',cancelFailed:P.toast==='cancelFailed'&&sec==='trades',actionFailed:P.toast==='actionFailed'&&sec==='trades',chatFailed:P.toast==='chatFailed'&&sec==='chat',disputeChatFailed:P.toast==='disputeChatFailed'&&sec==='chat',imageFailed:P.toast==='imageFailed'&&sec==='chat',fileSaveFailed:P.toast==='fileSaveFailed'&&sec==='chat'},
       toNode:()=>{ try { localStorage.setItem('tenshu.proto.settingsScope', JSON.stringify({scope:'vault',tab:'node'})); } catch (e) {} },
       menuOpen: !!this.state.menuOpen, toggleMenu: () => { this.setState({ menuOpen: !this.state.menuOpen }); },
       lockNow: () => { try { localStorage.removeItem('tenshu.proto.open'); } catch (e) {} },
@@ -929,8 +1081,9 @@ class Component extends DCLogic {
       cube:{name:b2b?'Blake workspace':testNC?'Lab':'Everyday',net:b2b?'Bitcoin Blake2b':testNC?'Testnet4':'Bitcoin mainnet',main:!b2b&&!testNC,b2b:b2b,test:testNC,alt:b2b||testNC,vault:b2b?'Vault · Blake workspace':'Vault · Lab'},
       nav:{market:!hidAll,p2pOn:!hidP2P&&!gated,p2pOff:!hidP2P&&gated,bsOn:!b2b&&!testNC,bsOff:b2b||testNC,bsMsg:b2b?"Buy/Sell isn't available on Bitcoin Blake2b.":"Buy/Sell isn't available on Testnet4."},
       gateMsg:gateMsg,
+      head:(()=>{const H={book:['P2P Order Book','Browse and take P2P trading orders from the Mostro network'],create:['Create P2P Order','Create a new buy or sell order for the P2P marketplace'],trades:['My Trades','Your active and completed P2P trades'],chat:['Chat','Your P2P trade conversations'],settings:['P2P Settings','Configure Mostro nodes and relays'],gate:['Not available on this network','']};let h=H[sec]||H.book;if(sec==='trades'&&trDetail)h=['Trade Details','View trade information and take actions'];return{title:h[0],sub:h[1],hasSub:!!h[1]};})(),
       hid:{title:hidAll?'Marketplace hidden':'P2P hidden',text:hidAll?'Server flag off (fails closed). The sidebar omits Marketplace and both entries.':'P2P server flag off. Marketplace shows Buy/Sell only.'},
-      v:{hiddenNote:hiddenRoute,page:!hiddenRoute,banner:bannerOn&&sec!=='settings'||(bannerOn&&mismatch),gate:sec==='gate',gateTest:testNC,gateB2b:b2b,
+      v:{hiddenNote:hiddenRoute,page:!hiddenRoute,banner:bannerOn&&(mismatch?sec==='settings':sec==='book'),gate:sec==='gate',gateTest:testNC,gateB2b:b2b,
         noPm:availPm.length===0,bookLoading:bookLoading,bookEmpty:!bookLoading&&vis.length===0,tradesLoading:trLoading,tradesEmpty:!trLoading&&trades.length===0,
         chatEmpty:st==='empty',chatOn:st!=='empty',cfgErr:st==='configError'},
       banner:banner,retry:()=>set({st:'ready'}),
@@ -941,7 +1094,7 @@ class Component extends DCLogic {
       ratingOpts:ratingOpts,dayOpts:dayOpts,onMinRating:e=>set({minRating:e.target.value,open:''}),onMinDays:e=>set({minDays:e.target.value,open:''}),repText:repText,
       orders:orders,takeAmt:S.takeAmt,onTakeAmt:e=>set({takeAmt:e.target.value}),takeLn:S.takeLn,onTakeLn:e=>set({takeLn:e.target.value}),tradeOff:tradingOff||S.busy==='take',
       copyO:S.copied==='oid'?'Copied':'Copy',copyOid:()=>set({copied:'oid'}),
-      cr:cr,tr:tr,pay:pay,trades:trades,tFilters:FIL.map(f=>({v:f,sel:S.tFilter===f})),onTFilter:e=>set({tFilter:e.target.value}),
+      cr:cr,tr:tr,pay:pay,trades:trades,tFilters:FIL.map(f=>({v:f,p:S.tFilter===f?'true':'false',pick:()=>set({tFilter:f})})),tradeCount:trades.length+' trades',
       invoice:S.invoice,onInvoice:e=>set({invoice:e.target.value}),stars:stars,rateText:S.rating>0?S.rating+' / 5':'Select a rating',rateOff:S.rating===0,
       toDisputeChat:()=>set({sec:'chat',chatTab:'disputes',chatSel:'d1'}),toTradeChat:()=>set({sec:'chat',chatTab:'messages',chatSel:'c1'}),
       convs:convs,msgs:msgs,ch:ch,msg:S.msg,onMsg:e=>set({msg:e.target.value}),

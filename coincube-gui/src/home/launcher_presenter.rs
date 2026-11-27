@@ -2426,7 +2426,7 @@ fn floor_stage<'a, M: 'a + 'static>(
         .width(Length::Fill)
         .height(Length::Fill)
         .push(launcher_chrome::quiet_top_bar(&context.chrome))
-        .push(rule::horizontal(1))
+        .push(top_bar::rule())
         .push(stage.clip(true))
         .push(Space::new().height(Length::Fill))
         .push(rule::horizontal(1))
@@ -2839,7 +2839,7 @@ pub(crate) fn opening_full_screen<'a, M: 'a + 'static>(
         .width(Length::Fill)
         .height(Length::Fill)
         .push(opening_rail(&scene))
-        .push(rule::horizontal(1))
+        .push(top_bar::rule())
         .push(stage)
         .into()
 }
@@ -2908,7 +2908,7 @@ pub(crate) fn opening_body<'a>(
         .width(Length::Fill)
         .height(Length::Fill)
         .push(rail)
-        .push(rule::horizontal(1))
+        .push(top_bar::rule())
         .push(stage)
         .into()
 }

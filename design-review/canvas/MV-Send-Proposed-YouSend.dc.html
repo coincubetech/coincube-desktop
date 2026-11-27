@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Overview · closer to Mobile V3 (buttons, no artwork, fill not outlines)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--acc-ink:#f59a45;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff;--teal:#2a9d7f;--hover:rgba(245,240,232,.06);--shadow:rgba(0,0,0,.45)}
+.tenshu.light{--bg:#faf9f6;--panel:#ffffff;--rail:#ede8e0;--ink:#202020;--muted:#575a54;--line:#c4beb4;--acc-ink:#a14d00;--selected:#f7e3cc;--good:#23613b;--warn:#77450b;--bad:#8f2e1d;--focus:#1d5fb8;--teal:#1f7a62;--hover:rgba(32,32,32,.05);--shadow:rgba(60,40,10,.18)}
+.tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
+.tenshu.reduced *{animation:none!important;transition:none!important}
+a{color:#f3821d}a:hover{color:#ffa54d}
+.tenshu *{box-sizing:border-box}
+.tenshu{font-variant-numeric:tabular-nums}
+.tenshu button{font:inherit;color:inherit}
+.tenshu h1,.tenshu h2,.tenshu h3,.tenshu p{margin:0}
+.tenshu a{color:var(--acc-ink)}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic.s{width:16px;height:16px}
+.muted{color:var(--muted)}.cap{font-size:12px;color:var(--muted)}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:13px}
+/* top bar */
+.top{height:56px;flex:none;display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line);position:relative;z-index:5}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}
+.vsep{width:1px;height:24px;background:var(--line)}
+.switch{display:flex;align-items:center;gap:10px;height:36px;max-width:460px;min-width:0;padding:0 10px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);cursor:pointer}
+.switch .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.net{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--muted);white-space:nowrap}
+.menu{position:absolute;top:50px;left:124px;width:340px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px var(--shadow);padding:6px;z-index:10}
+.menu .ml{font-size:12px;color:var(--muted);padding:8px 10px 4px}
+.mi{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:6px;background:transparent;cursor:pointer;text-align:left;text-decoration:none;color:var(--ink)}
+.tenshu a.mi{color:var(--ink)}
+.mi:hover{background:var(--hover)}.mi.on{background:var(--selected)}
+.mi .grow{flex:1;min-width:0}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.chips{margin-left:auto;display:flex;gap:8px;align-items:center;flex:none}
+.chip{display:flex;align-items:center;gap:8px;height:32px;padding:0 6px 0 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;white-space:nowrap}
+.chip .k{color:var(--muted)}
+.chip .end{padding-right:6px}
+.st{display:inline-flex;align-items:center;gap:5px;font-weight:500}
+.ok{color:var(--good)}.warn{color:var(--warn)}.unk{color:var(--muted)}
+.mini{height:24px;padding:0 10px;border-radius:6px;border:0;background:var(--accent);color:#1a1208;font-weight:600;font-size:12px;cursor:pointer}
+/* shell */
+.body{flex:1;display:flex;min-height:0}
+.side{width:248px;flex:none;display:flex;flex-direction:column;background:var(--rail);border-right:1px solid var(--line)}
+.navp{padding:12px 10px 0;display:flex;flex-direction:column;gap:2px}
+.mid{flex:1;min-height:0;overflow:auto;padding:0 10px 12px;display:flex;flex-direction:column;gap:2px}
+.gh{font-size:13px;font-weight:600;color:var(--muted);padding:22px 10px 6px}
+.ni{display:flex;align-items:center;gap:10px;width:100%;min-height:38px;padding:8px 10px;border:0;border-radius:8px;background:transparent;cursor:pointer;text-align:left;color:var(--ink);font-size:14px;line-height:1.3}
+.ni .ic{color:var(--muted)}
+.ni:hover{background:var(--hover)}
+.ni.on{background:var(--selected);font-weight:600}
+.ni.on .ic{color:var(--acc-ink)}
+/* left-aligned nav labels (Robert, 2026-10-29): the label fills the row after the icon and starts at its left edge */
+.ni{justify-content:flex-start}
+.ni>span{flex:1 1 auto;min-width:0;text-align:left}
+.ni .lbl{min-width:0;overflow-wrap:anywhere}
+.ni.sub{padding-left:38px;min-height:34px}
+.ni.par{margin-top:10px}
+.attn{display:flex;align-items:center;gap:6px;width:calc(100% - 12px);margin:0 6px 8px;padding:9px 8px;white-space:nowrap;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;text-align:left;font-size:12.5px;line-height:1.3}
+.attn .go{margin-left:auto;color:var(--acc-ink);font-weight:600}
+.foot{border-top:1px solid var(--line);padding:10px}
+.main{flex:1;min-width:0;overflow:auto}
+.pg{max-width:1000px;margin:0 auto;padding:32px 48px 48px}
+/* overview */
+.ttl{display:flex;align-items:center;gap:6px;min-height:32px}
+.ttl h1{font-size:20px;font-weight:600}
+.ttl h2{font-size:18px;font-weight:600}
+.eye{width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
+.eye:hover{background:var(--hover);color:var(--ink)}
+.netline{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);min-width:0;overflow-wrap:anywhere;text-align:right}
+.big{font-size:40px;font-weight:600;line-height:1.15;margin-top:4px;letter-spacing:-.01em}
+.sats{font-size:14px;margin-top:2px}
+.sats b{font-weight:600}.sats .u{color:var(--muted)}
+.sats.zero b,.val.zero b{color:var(--muted);font-weight:400}
+.wh{margin-top:36px;margin-bottom:12px}
+.cards{display:flex;flex-direction:column;gap:12px}
+.card{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:20px}
+.ch{display:flex;align-items:center;gap:8px;color:var(--muted)}
+.ch .nm{overflow-wrap:anywhere;min-width:0}
+.amt{font-size:26px;font-weight:600;line-height:1.2;margin-top:8px}
+.assets{margin-top:6px}
+.ar{display:grid;grid-template-columns:32px 64px minmax(0,1fr) auto;align-items:center;column-gap:12px;min-height:56px}
+.ar .tk{font-weight:500}
+.val b{font-weight:600}.val .u{color:var(--muted)}.val .fx{color:var(--muted);margin-left:10px}
+.pills{display:flex;gap:8px}
+.pill{height:36px;padding:0 20px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap}
+.pill.fill{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.pill.out{background:transparent;border:1px solid var(--acc-ink);color:var(--acc-ink)}
+.pill.out:hover{background:var(--hover)}
+.cf{display:flex;align-items:center;margin-top:6px;padding-top:12px;border-top:1px solid var(--line)}
+.rlink{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:4px 2px;color:var(--acc-ink);font-weight:500;cursor:pointer;border-radius:4px}
+.synth{margin-top:24px;text-align:center}
+/* wallet pages */
+.pg h1.ph{font-size:22px;font-weight:600;line-height:1.25;overflow-wrap:anywhere}
+.idl{color:var(--muted);font-size:13px;margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.bal{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-top:24px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.bal .big{font-size:34px;margin-top:0}
+.sec{margin-top:36px}
+.sec h2{font-size:16px;font-weight:600;margin-bottom:10px}
+.rows{border-top:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:12px 6px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;color:var(--ink)}
+button.row{cursor:pointer}
+button.row:hover{background:var(--hover)}
+.row .tx{flex:1;min-width:0}
+.row .lb{font-weight:500;overflow-wrap:anywhere}
+.row .ds{font-size:13px;color:var(--muted);margin-top:2px}
+.row .lead-ic{color:var(--muted)}
+.row .cv{color:var(--muted)}
+.disc{display:flex;align-items:center;gap:10px;width:100%;margin-top:36px;padding:14px 6px;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:none;cursor:pointer;text-align:left;color:var(--ink);font-weight:600;font-size:16px}
+.disc .cap{margin-left:auto;font-weight:400}
+.disc .chev{transition:transform .15s ease-out;color:var(--muted)}
+.disc[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.adv{padding-left:28px}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;font-weight:500;font-size:13px;color:var(--ink);white-space:nowrap}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#1a1208}
+.tr{display:grid;grid-template-columns:104px minmax(0,1fr) 128px 132px;align-items:center;column-gap:12px;height:56px;padding:0 12px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:14px}
+.tenshu a.tr{color:var(--ink)}.tr:hover{background:var(--hover)}
+.tr .tm{font-size:13px;color:var(--muted)}.tr .cell{display:flex;align-items:center;gap:8px;min-width:0}.tr .cell .ic{color:var(--muted);flex:none}.tr .wn{font-size:12px;color:var(--muted);white-space:nowrap}
+.tr .ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tr .amt{text-align:right;font-weight:600;white-space:nowrap;font-size:14px;line-height:1.3;margin:0;padding:0}.tr .amt .fx{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:1px}
+.tr .stc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;white-space:nowrap}.tr .stc.ok{color:var(--good)}.tr .stc.warn{color:var(--warn)}.tr .stc.bad{color:var(--bad)}
+.tr .amt2{text-align:right;font-weight:600}
+.dir{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--hover);color:var(--muted)}
+.lead{display:flex;gap:24px;align-items:center;margin-top:24px;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.lead h2{font-size:18px;font-weight:600;margin-top:6px}
+.lead .tx{flex:1;min-width:0}
+.lead p.d{color:var(--muted);font-size:13px;margin-top:2px}
+.coin{position:relative;display:block;flex:none}.coin>img{position:absolute;display:block}.coin>svg{position:absolute;left:0;top:0}.coin.c32{width:32px;height:32px}.coin.c32>img{left:0;top:0;width:32px;height:32px}.coin.c40{width:40px;height:40px}.coin.c40>img{left:1px;top:1px;width:34px;height:34px}.net>img,.netline>img,.idl>img,.netl>img{display:block;width:16px;height:16px;flex:none}
+
+/* distill pass: visually hidden labels + Lock Cube confirmation row */
+.srl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.lockq{display:flex;align-items:center;gap:8px;font-size:13px;white-space:nowrap}
+.lockq p{margin:0}
+.tenshu .lkb{display:inline-flex;align-items:center;height:28px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:transparent;cursor:pointer;font:inherit;font-size:13px;font-weight:500;color:var(--ink);text-decoration:none;white-space:nowrap}
+.tenshu .lkb:hover{background:var(--hover)}
+.tenshu .lkb.go{background:var(--accent);border-color:var(--accent);color:#1a1208;font-weight:600}
+.menu .lockq{flex-wrap:wrap;white-space:normal;padding:8px 10px}
+.menu .lockq p{flex:1 1 100%}
+.foot-note{font-size:12px;color:var(--muted)}
+
+/* prototype links */
+.tenshu a.chip{color:var(--ink);text-decoration:none}.tenshu a.chip:hover{background:var(--hover,var(--selected))}.tenshu a.ni,.tenshu a.row{color:var(--ink);text-decoration:none}.tenshu a.pill,.tenshu a.rlink,.tenshu a.attn{text-decoration:none}.tenshu span.mini{display:inline-flex;align-items:center}
+.tog{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px 0 4px;border:1px solid var(--line);border-radius:16px;background:transparent;cursor:pointer;font-size:13px;color:var(--ink)}
+.tog .kn{width:30px;height:18px;border-radius:9px;background:var(--line);position:relative;flex:none}
+.tog .kn::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--ink);transition:left .15s}
+.tog[aria-pressed="true"] .kn{background:var(--accent)}
+.tog[aria-pressed="true"] .kn::after{left:14px;background:#161716}
+/* Spark Lightning address (impeccable pass, 2026-11-04): one Share button beside Total balance; the bottom card and its change form are gone (Change lives in Spark Settings › Lightning address). */
+.lnhero{display:flex;align-items:flex-start;justify-content:space-between;gap:32px;margin-top:24px}
+.lnwrap{position:relative}
+.lnbtn{display:flex;align-items:center;gap:12px;min-width:340px;padding:10px 12px 10px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);cursor:pointer;text-align:left;font:inherit;text-decoration:none}
+.lnbtn:hover,.lnbtn[aria-expanded="true"]{border-color:var(--acc-ink)}
+.lnbtn[aria-expanded="true"]{box-shadow:0 0 0 1px var(--acc-ink)}
+.lnbolt{display:grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--accent);color:#1a1208;flex:none}
+.lnbolt .ic{width:20px;height:20px;fill:currentColor;stroke-width:1.25}
+.lnt{flex:1;display:flex;flex-direction:column;min-width:0}
+.lnt b{font-weight:600;overflow-wrap:anywhere}.lnt span{font-size:13px;color:var(--muted)}
+.lnshr{display:inline-flex;align-items:center;gap:6px;padding-left:12px;border-left:1px solid var(--line);font-size:13px;font-weight:600;color:var(--acc-ink);white-space:nowrap}
+.lnpop{position:absolute;right:0;top:calc(100% + 8px);width:380px;padding:20px;border:1px solid var(--line);border-radius:12px;background:var(--panel);box-shadow:0 16px 40px rgba(0,0,0,.45);z-index:6}
+.tenshu.light .lnpop{box-shadow:0 16px 40px rgba(32,32,32,.16)}
+.lnpop h3{font-size:16px;font-weight:600;margin:0}
+.lnpop .ds{margin-top:4px}
+.lnqr{margin:16px auto 12px;width:184px;height:184px;padding:12px;border-radius:10px;background:#fff}
+.lnqr svg{display:block;width:100%;height:100%}
+.lnpa{font-size:18px;font-weight:600;text-align:center;overflow-wrap:anywhere}
+.lnpacts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.lnpacts .btn{justify-content:center;height:36px}
+.lnfoot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.tenshu .lnfoot a{color:var(--acc-ink);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.lnc{padding:14px 6px 16px;border-bottom:1px solid var(--line)}
+.lnrow{display:flex;align-items:center;gap:10px;margin-top:10px}
+.lnrow .inp{flex:1;height:40px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font:inherit}
+.lnconf{margin-top:12px;padding:12px;border:1px solid var(--accent);border-radius:8px}
+.lnc .acts{display:flex;gap:10px;justify-content:space-between;margin-top:12px}
+.btn:disabled{opacity:.45;cursor:default}
+.row .btn{flex:none}
+.row .mono{margin-left:auto}
+.av{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--panel);color:var(--ink);flex:none}
+.av svg{width:24px;height:24px}
+.cubeid{display:flex;align-items:center;gap:10px;padding:6px 10px 12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.cubeid .av{width:36px;height:36px}
+.cubeidt{display:flex;flex-direction:column;min-width:0}
+.cubeidt b{font-weight:600;font-size:14px;line-height:1.3}
+.cubeidt span{font-size:12px;color:var(--muted)}
+.tenshu .side{position:relative}
+.side .cubeid{display:flex;align-items:center;gap:10px;width:100%;padding:6px 8px 10px;margin:0 0 4px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.side .cubeid:hover{background:var(--hover)}
+.side .cubeidt{flex:1;min-width:0}
+.side .cubeidt .net{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);white-space:nowrap}
+.side .cubeidt .net img{width:14px;height:14px;border-radius:50%}
+.side .cv{color:var(--muted)}
+.side .menu{position:absolute;top:69px;left:4px;right:8px;width:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px var(--shadow,rgba(0,0,0,.35));padding:6px;z-index:30}
+.side .menu .ml{font-size:12px;color:var(--muted);padding:8px 10px 4px}
+.side .mi{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:6px;background:transparent;cursor:pointer;text-align:left;text-decoration:none;color:var(--ink);font:inherit}
+.side a.mi{color:var(--ink)}.side .mi:hover{background:var(--hover)}.side .mi.on{background:var(--selected)}
+.side .mi .grow{flex:1;min-width:0}
+.side .menu hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+.side .lockq,.side .lockask{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;font-size:13px;white-space:normal;position:static}
+.side .lockq p,.side .lockask>span{margin:0;flex:1 1 100%}
+.side .lockgrp{display:contents}
+a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color:var(--acc-ink)}
+/* page shell (Robert, 2026-10-27): every Cube page starts one gutter from the side menu; only its right edge varies. Reading pages cap at --page-max; Activity is wide. */
+.tenshu{--gutter:clamp(24px,3vw,48px);--page-max:1120px}
+.main .pg{margin:0;max-width:calc(var(--page-max) + 2 * var(--gutter));padding:28px var(--gutter) 48px}
+/* page head (Robert, 2026-10-29): every Cube page pins its head as Activity does: title and Cube line left, page actions right, tabs sitting on a rule that spans the content pane; the page scrolls under it. */
+.main>.phead{position:sticky;top:0;z-index:6;flex:none;background:var(--bg);border-bottom:1px solid var(--line)}
+.phead>.in{max-width:calc(var(--page-max) + 2 * var(--gutter));padding:24px var(--gutter) 20px}
+.phead h1,.phead .ph{margin-top:0;font-size:22px;font-weight:600;line-height:1.25}
+.phead .back{margin-bottom:8px}.phead a.back{text-decoration:none}
+.phead .crumbs{margin-bottom:8px}.phead .crumbs .back{margin-bottom:0}
+.phead .hrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.phead .hrow>div:first-child{min-width:0}
+.phead .hact{display:flex;align-items:center;gap:8px;flex:none}
+.phead .tabs,.phead .subnav{border-bottom:0;margin-bottom:-20px}
+.phead .hd,.phead .ttl{margin:0}
+.main .pg{padding-top:24px}
+.kbal{font-size:13px;color:var(--muted)}
+/* App preferences (Robert, 2026-10-29): a sliders icon button at the right end of the top bar (the gear stays with Cube Settings), styled like the eye, with an "App preferences" tooltip on hover or focus. */
+.tenshu .top{position:relative;z-index:8}
+.tenshu a.apg{position:relative;text-decoration:none;color:var(--muted)}.tenshu a.apg:hover{color:var(--ink)}
+.apg::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);right:0;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--muted);font-size:13px;font-weight:400;line-height:1.3;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s ease .25s}
+.apg:hover::after,.apg:focus-visible::after{opacity:1}
+/* shared top bar (Robert, 2026-10-29): the same bar on every screen, Launcher and Cube: 64px on the rail colour; on the right the hide-balances eye first, then the status chips, then App preferences; the eye and App preferences are borderless icons. */
+.tenshu .top{height:64px;padding:0 24px;gap:16px;background:var(--rail)}
+.top .brand .ic{width:20px;height:20px}
+.top .chips .eye:not(.apg){order:-1}
+.top .chips .eye{width:32px;height:32px;border:0;background:transparent}
+.top .chips .eye:hover{background:var(--hover);color:var(--ink)}
+/* wallet pages (Robert, 2026-10-29): match the Page header study. Two wallet cards side by side; wallet pages show Total balance, one row per asset, and Recent activity in the Activity row style (44px time under day headings, wallet column). */
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.wa{margin-top:20px;border-top:1px solid var(--line)}
+.wa .ar{grid-template-columns:32px 96px minmax(0,1fr) auto;min-height:64px;border-bottom:1px solid var(--line)}
+.sech{display:flex;align-items:baseline;justify-content:space-between;gap:16px}.sech h2{margin-bottom:0}
+.sech a{font-size:13px;font-weight:500;color:var(--accent);text-decoration:none}
+.acts5{margin:10px -12px 0}
+.acts5 .cols,.tr.w5{grid-template-columns:44px 112px minmax(0,1fr) 128px 132px}
+.acts5 .cols{display:grid;column-gap:12px;align-items:center;height:36px;padding:0 12px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line)}
+.acts5 .cols .r{text-align:right}
+.acts5 .dayh{display:flex;align-items:center;gap:12px;padding:20px 12px 8px;font-size:13px;font-weight:600;border-bottom:1px solid var(--line)}
+.acts5 .dayh .dn{color:var(--muted);font-weight:500}
+.prot{margin-top:28px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.prot .row{padding:14px 18px;border-bottom:1px solid var(--line)}.prot .row:last-child{border-bottom:0}
+.prot .row.att .lead-ic{color:var(--warn)}
+.tenshu a.btn{text-decoration:none;color:var(--ink)}.btn.acc{border-color:var(--accent);color:var(--acc-ink);font-weight:600}.tenshu a.btn.acc{color:var(--acc-ink)}
+
+/* Study, 2026-11-25 · closer to Mobile V3. Three changes only; everything else is P-Overview unchanged.
+   1 Buttons: Receive is a neutral outline with a down arrow, Send is filled with an up arrow; Receive comes first, as on Mobile.
+   2 Artwork: none on Overview.
+   3 Fill, not outlines: cards, strips and the shell are told apart by their fill; hairlines stay only between rows. */
+.tenshu .pills{gap:10px}
+.tenshu .pill{height:40px;padding:0 16px 0 14px;border-radius:10px}
+.tenshu .pill .ic{stroke-width:1.8}
+.tenshu .pill.out,.tenshu a.pill.out{border:1.5px solid var(--ink);color:var(--ink)}
+.tenshu .card{border:0}
+.tenshu .card .ar + .ar{border-top:1px solid var(--line)}
+.tenshu .attn{border:0}
+.tenshu .lnbtn{border:0}
+.tenshu .btn{border-color:transparent}
+.tenshu .btn.pri{border-color:var(--accent)}
+/* Regions of the window keep a dividing line, quieter than --line: Mobile's --rule, ink at 10% (Robert, 2026-11-25). Boxes still have no outline. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom:1px solid var(--rule)}
+.tenshu .side{border-right:1px solid var(--rule)}
+.tenshu .phead{border-bottom:1px solid var(--rule)}
+.tenshu .cubeid{border-bottom:0}
+.tenshu .foot{border-top:0}
+/* the Cube menu floats, so its fill and shadow set it apart; the hairline between its two rows stays */
+.tenshu .menu{border:0}
+/* menu rows at Mobile's medium weight; the wordmark is one colour, ink on the bar (Robert, 2026-11-25) */
+.tenshu .mi b{font-weight:500}
+/* the wordmark's letter spacing matches Mobile (.08em) */
+.tenshu .brand>span{letter-spacing:.08em}
+
+/* Notices and status study (Robert, 2026-11-25). One Connect control, as the app already draws it: account icon with a status light, then Connect · account. */
+.tenshu .chip.cc{gap:7px;padding:0 12px 0 10px}
+.tenshu .chip.cc b{font-weight:600}
+.tenshu .ccav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.tenshu .ccav .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--panel)}
+.tenshu .ccav .lt.amber{background:var(--warn)}
+.tenshu .ccsep,.tenshu .ccd{color:var(--muted)}
+.tenshu .ccd.si{color:var(--acc-ink);font-weight:600}
+.tenshu.testnet .net>img,.tenshu.testnet .idl>img{filter:grayscale(1);opacity:.75}
+.tenshu .pg .ntw{margin:0 0 22px}
+
+/* PROPOSED: every standing notice takes the toast anatomy (Tenshu Toasts, 2026-11-11): panel fill, the tone in a 28px icon tile, a title and one line, one action. No outline and no filled colour block. */
+.tenshu .nt{--tone:var(--muted);display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--panel)}
+.tenshu .nt+.nt{margin-top:8px}
+.tenshu .nt.t-warn{--tone:var(--warn)}
+.tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt .ti{width:28px;height:28px;flex:none;display:grid;place-items:center;border-radius:8px;background:color-mix(in srgb,var(--tone) 16%,transparent);color:var(--tone)}
+.tenshu .nt .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.tenshu .nt .tt{font-weight:500}
+.tenshu .nt .ds{color:var(--muted);font-size:13px}
+.tenshu .nt .ref{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px;margin-left:6px;opacity:.85}
+.tenshu .nt .na{flex:none;height:32px;padding:0 14px;border:1.5px solid var(--ink);border-radius:8px;background:transparent;color:var(--ink);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+/* test network: a quiet tag beside the wordmark, on every page, in place of the full-width bar */
+.tenshu .tnet{display:inline-flex;align-items:center;gap:8px;height:24px;padding:0 10px 0 8px;border-radius:6px;background:color-mix(in srgb,var(--ink) 8%,transparent);font-size:12.5px;color:var(--muted);white-space:nowrap}
+.tenshu .tnet b{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--ink)}
+/* hide balances: neutral when on, and the section eyes step back while everything is hidden */
+.tenshu .top .chips .eye[aria-pressed="true"]{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+.tenshu.hid .pg .eye{display:none}
+/* sidebar: one line, no box */
+.tenshu .attn.nw{background:transparent;gap:9px;padding:8px 10px;margin-bottom:4px}
+.tenshu .attn.nw .dot{width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.tenshu .attn.nw .at{color:var(--ink);font-weight:500}
+.tenshu .attn.nw .go{margin-left:auto;color:var(--muted)}
+.tenshu .attn.nw:hover{background:var(--hover)}
+
+/* PROPOSED: the two dropdown tiles stay. No card around the form, tiles are a fill with no outline, the lists lead with what differs, and one neutral style marks the selected row. Fields keep their outlines, as controls do. */
+.rx.nw{max-width:calc(880px + 2 * var(--gutter))}
+.rx .ntiles{display:flex;align-items:center;gap:12px}
+.rx .ndd{position:relative;flex:1;min-width:0}
+.rx .narrow{color:var(--muted);flex:none}
+.rx .ntile{display:flex;align-items:center;gap:12px;width:100%;height:64px;padding:0 16px 0 14px;border:0;border-radius:12px;background:var(--panel);color:var(--ink);font:inherit;text-align:left;cursor:pointer;outline:1.5px solid transparent;outline-offset:-1.5px}
+.rx .ntile:hover{background:color-mix(in srgb,var(--panel) 92%,var(--ink))}
+.rx .ntile.on{outline-color:var(--ink)}
+.rx .nc{display:block;width:32px;height:32px;flex:none}
+.rx .nc>img,.rx .nc>svg{display:block;width:100%;height:100%;border-radius:50%}
+.rx .ntx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.rx .ncap{font-size:12.5px;color:var(--muted)}
+.rx .nval{font-size:16px;color:var(--muted);white-space:nowrap}
+.rx .nval b{font-weight:600;color:var(--ink)}
+.rx .ntile>.ic{color:var(--muted)}
+.rx .nmenu{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 6px);padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 0 0 1px var(--rule),0 16px 40px var(--shadow)}
+.rx .ngh{display:flex;align-items:baseline;gap:8px;margin:10px 10px 4px;font-size:12.5px;font-weight:500;color:var(--muted)}
+.rx .ngh:first-child{margin-top:6px}
+.rx .ngh span{font-weight:400;opacity:.8}
+.rx .ngh span::before{content:"· "}
+.rx .nrow{display:flex;align-items:center;gap:10px;min-height:38px;padding:6px 10px;border-radius:8px}
+.rx .nrow.sel{background:color-mix(in srgb,var(--ink) 7%,transparent)}
+.rx .nrow>.ic{margin-left:auto;color:var(--ink)}
+.rx .ni2{width:20px;height:20px;flex:none;display:grid;place-items:center;color:var(--muted)}
+.rx .ni2>img,.rx .ni2>svg:not(.ic){display:block;width:20px;height:20px;border-radius:50%}
+.rx .nn{font-weight:500;white-space:nowrap}
+.rx .nh{color:var(--muted);font-size:13px}
+.rx .nr{margin-left:auto;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.rx .nrow.sel .nr{margin-left:auto}
+.rx .nrow.sel .nr+.ic{margin-left:0}
+.rx .ncs{display:flex;gap:5px;margin-left:auto}
+.rx .nch{height:26px;padding:0 8px;white-space:nowrap;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--ink);font:inherit;font-size:12.5px;cursor:pointer}
+.rx .nfoot{margin:6px 4px 2px;padding:10px 6px 6px;border-top:1px solid var(--rule);font-size:13px;color:var(--muted)}
+.rx .nhelp{margin:12px 2px 0;font-size:13px;color:var(--muted)}
+.rx .nhelp a{margin-left:10px;color:var(--acc-ink);font-weight:500;white-space:nowrap}
+.rx .nh2{margin:32px 0 12px;font-size:16px;font-weight:600}
+.rx .nfields{display:flex;gap:12px}
+.rx .nfields.col{flex-direction:column;gap:18px;margin-top:28px}
+.rx .nf{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500}
+.rx .nf>span:first-child{display:flex;justify-content:space-between;align-items:baseline}
+.rx .nf em{font-style:normal;font-weight:400;color:var(--muted)}
+.rx .nf em b{font-weight:500;color:var(--ink)}
+.rx .nfields:not(.col) .nf.namt{flex:0 0 240px}
+.rx .nin{display:flex;align-items:center;justify-content:space-between;height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:400;color:color-mix(in srgb,var(--muted) 70%,transparent)}
+.rx .nin i{font-style:normal;font-size:11px;letter-spacing:.04em;color:var(--muted)}
+.rx .nact{display:flex;align-items:center;gap:16px;margin-top:24px}
+.rx .npri{border:0;background:var(--accent);color:#1a1208;font:inherit;font-weight:600;font-size:14px;padding:0 20px}
+.rx .navail{font-size:13px;color:var(--muted)}
+.rx .navail b{font-weight:500;color:var(--ink)}
+
+.tenshu .phead .rsteps{display:flex;gap:26px;margin:16px 0 -20px}
+.tenshu .phead .rstep{display:flex;align-items:center;gap:8px;padding:0 2px 12px;font-size:14px;color:var(--muted);border-bottom:2px solid transparent}
+.tenshu .phead .rstep i{font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;border:1px solid var(--line)}
+.tenshu .phead .rstep.on{color:var(--ink);font-weight:500;border-bottom-color:var(--accent)}
+.tenshu .phead .rstep.on i{background:var(--accent);border-color:var(--accent);color:#1a1208;font-weight:600}
+</style>
+</helmet>
+<div class="tenshu {{themeClass}} {{motionClass}} {{ testClass }} {{ hidClass }}" style="width:1440px;height:900px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
+
+  <header class="top">
+    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 1.75 15.5 5.5v7L9 16.25 2.5 12.5v-7z"/><path d="M2.5 5.5 9 9.25l6.5-3.75M9 9.25v7"/></svg><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;color:var(--ink)">COINCUBE</span></a>
+    <sc-if value="{{ notClear }}" hint-placeholder-val="{{ true }}"><span class="tnet" role="status" aria-label="Regtest wallet. Test coins have no value."><b>REGTEST</b><span>Test coins, no value</span></span></sc-if>
+    <div class="chips">
+      <a class="chip cc" href="P-Connect-InCube.dc.html" title="{{ cc.title }}" aria-label="{{ cc.title }}">
+        <span class="ccav"><svg class="ic s muted" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><sc-if value="{{ signedIn }}" hint-placeholder-val="{{ true }}"><i class="lt {{ cc.light }}"></i></sc-if></span>
+        <b>Connect</b><span class="ccsep" aria-hidden="true">·</span><span class="ccd {{ cc.cls }}">{{ cc.text }}</span>
+      </a>
+      <button type="button" class="eye" aria-pressed="{{ hide.allP }}" aria-label="Hide balances" onClick="{{ toggleAll }}">
+        <sc-if value="{{ hide.allShown }}" hint-placeholder-val="{{ true }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M1.75 9S4.5 4 9 4s7.25 5 7.25 5S13.5 14 9 14 1.75 9 1.75 9z"/><circle cx="9" cy="9" r="2.25"/></svg></sc-if>
+        <sc-if value="{{ hide.all }}" hint-placeholder-val="{{ false }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M1.75 9S4.5 4 9 4s7.25 5 7.25 5S13.5 14 9 14 1.75 9 1.75 9z"/><circle cx="9" cy="9" r="2.25"/><path d="M3 3l12 12"/></svg></sc-if>
+      </button>
+      <a class="eye apg" href="P-AppPrefs-InCube.dc.html" aria-label="App preferences" data-tip="App preferences"><svg class="ic s" aria-hidden="true" viewBox="0 0 24 24" style="stroke-width:1.75"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a>
+    </div>
+  </header>
+
+  <div class="body">
+    <nav class="side" aria-label="Cube navigation">
+        <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+        <div class="menu">
+        <a class="mi" href="P-Launcher.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span class="grow"><b>All Cubes</b></span></a>
+        <hr>
+        <sc-if value="{{ lockIdle }}" hint-placeholder-val="{{ true }}"><button type="button" class="mi" onClick="{{ askLock }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="3.5" y="8" width="11" height="7.5" rx="1.5"/><path d="M6 8V5.75a3 3 0 0 1 6 0V8"/></svg><span class="grow"><b>Lock Cube</b></span></button></sc-if>
+        <sc-if value="{{ lockAsk }}" hint-placeholder-val="{{ false }}"><div class="lockq" role="group" aria-labelledby="lockq-t"><p id="lockq-t">Lock {{ cubeName }} and open the Launcher?</p><a class="lkb go" href="P-Locking.dc.html" onMouseDown="{{ lockNow }}" onClick="{{ lockNow }}">Lock</a><button type="button" class="lkb" onClick="{{ cancelLock }}">Cancel</button></div></sc-if>
+        </div>
+        </sc-if>
+      <div class="navp">
+        <button type="button" class="cubeid" aria-haspopup="true" aria-expanded="{{ menuOpen }}" aria-label="Cube menu. Current: {{ cubeName }} · {{ netName }}" onClick="{{ toggleMenu }}"><span class="av" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="11" fill="currentColor" opacity=".08" stroke="none"></circle><path d="{{ avPath }}"></path></svg></span><span class="cubeidt"><b>{{ cubeName }}</b><span class="net"><img src="{{ coinSrc }}" alt="">{{ netName }}</span></span><svg class="ic s cv" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></button>
+        <button type="button" class="ni {{ nv.overview.cls }}" aria-current="{{ nv.overview.cur }}" onClick="{{ nv.overview.pick }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><rect x="2.5" y="2.5" width="5" height="5" rx="1"/><rect x="10.5" y="2.5" width="5" height="5" rx="1"/><rect x="2.5" y="10.5" width="5" height="5" rx="1"/><rect x="10.5" y="10.5" width="5" height="5" rx="1"/></svg><span class="lbl">Overview</span></button>
+        <a class="ni {{ nv.activity.cls }}" aria-current="{{ nv.activity.cur }}" href="P-Activity.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l2.5 1.5"/></svg><span class="lbl">Activity</span></a>
+        <button type="button" class="ni {{ nv.backup.cls }}" aria-current="{{ nv.backup.cur }}" onClick="{{ nv.backup.pick }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/><path d="m6.5 9 1.8 1.8 3.5-3.5"/></svg><span class="lbl">Backup &amp; protection</span></button>
+      </div>
+      <div class="mid">
+        <h2 class="gh">Wallets</h2>
+        <button type="button" class="ni {{ nv.spark.cls }}" aria-current="{{ nv.spark.cur }}" onClick="{{ nv.spark.pick }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path stroke-width="2" d="M9 2.5v13M3.37 5.75l11.26 6.5M3.37 12.25l11.26-6.5"/></svg><span class="lbl">Spark · Daily spending</span></button>
+        <button type="button" class="ni {{ nv.vault.cls }}" aria-current="{{ nv.vault.cur }}" onClick="{{ nv.vault.pick }}"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2 3.5 4v4.5c0 3.4 2.3 6.1 5.5 7.5 3.2-1.4 5.5-4.1 5.5-7.5V4z"/></svg><span class="lbl">Vault · {{ vaultAlias }}</span></button>
+        <a class="ni par" href="P-P2P.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M3 7.25 4 3h10l1 4.25"/><path d="M3 7.25c0 1.1.9 1.9 2 1.9s2-.8 2-1.9c0 1.1.9 1.9 2 1.9s2-.8 2-1.9c0 1.1.9 1.9 2 1.9s2-.8 2-1.9"/><path d="M4 9.1v6.4h10V9.1"/><path d="M7.5 15.5V12h3v3.5"/></svg><span class="lbl">Marketplace</span></a>
+        <a class="ni sub" href="P-P2P.dc.html"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span class="lbl">P2P</span></a>
+        <a class="ni sub" href="P-BuySell.dc.html"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"/><path d="M7 5.5v7M7 5.5h2.6a1.6 1.6 0 0 1 0 3.2H7m0 0h3a1.7 1.7 0 0 1 0 3.3H7"/></svg><span class="lbl">Buy/Sell</span></a>
+      </div>
+      <sc-if value="{{ notClear }}" hint-placeholder-val="{{ true }}"><button type="button" class="attn nw" onClick="{{ attn.pick }}"><i class="dot" aria-hidden="true"></i><span class="at">{{ attn.text }}</span><span class="go">Review</span></button></sc-if>
+      <div class="foot">
+        <a class="ni {{ nv.settings.cls }}" aria-current="{{ nv.settings.cur }}" href="P-Settings.dc.html"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.25"/><circle cx="9" cy="9" r="5"/><path d="M9 2v2M9 14v2M2 9h2M14 9h2M4.05 4.05l1.41 1.41M12.54 12.54l1.41 1.41M4.05 13.95l1.41-1.41M12.54 5.46l1.41-1.41"/></svg><span class="lbl">Settings</span></a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="phead"><div class="in"><div class="hrow"><div><h1 class="ph">Send</h1><p class="idl"><img src="{{ coinSrc }}" alt="">Spark · {{ cubeName }} · {{ netName }}</p></div><div class="hact"><a class="btn " href="P-Overview.dc.html"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="m11 4.5-4.5 4.5 4.5 4.5"/></svg>Back to Spark</a></div></div><div class="rsteps"><span class="rstep on"><i>1</i>Details</span><span class="rstep"><i>2</i>Review</span><span class="rstep"><i>3</i>Sent</span></div></div></div>
+      <div class="pg rx nw">
+      <div class="ntiles">
+        <div class="ndd"><button type="button" class="ntile {{ tA }}" onClick="{{ togA }}" aria-haspopup="listbox"><span class="nc"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></span><span class="ntx"><span class="ncap">You send</span><span class="nval"><b>Bitcoin</b> in Spark</span></span><sc-if value="{{ ddAoff }}" hint-placeholder-val="{{ false }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></sc-if><sc-if value="{{ ddA }}" hint-placeholder-val="{{ false }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 11 4-4 4 4"/></svg></sc-if></button><sc-if value="{{ ddA }}" hint-placeholder-val="{{ false }}"><div class="nmenu" role="listbox"><p class="ngh">Your Spark balances</p><div class="nrow sel" role="option"><span class="ni2"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></span><span class="nn">Bitcoin</span><span class="nr">85,452 SATS</span><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="m4 9.5 3.2 3.2L14 5.75"/></svg></div><div class="nrow" role="option"><span class="ni2"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#1f7a55"/><path d="M14.5 25.2c1.2 1.5 3.1 2.3 5.6 2.3 3.2 0 5.1-1.5 5.1-3.7 0-5.2-10.3-2.4-10.3-7.6 0-2.1 1.9-3.7 5-3.7 2.1 0 3.9.7 5 2M20 9.5v21" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></span><span class="nn">US Dollar</span><span class="nr">No USDB</span></div><p class="nfoot">Bitcoin is used first. If it can't cover a payment, just enough USDB converts to cover the rest, and Review shows it.</p></div></sc-if></div>
+        <span class="narrow" aria-hidden="true"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M3.5 9h11M11 5.5 14.5 9 11 12.5"/></svg></span>
+        <div class="ndd"><button type="button" class="ntile {{ tB }}" onClick="{{ togB }}" aria-haspopup="listbox"><span class="nc"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></span><span class="ntx"><span class="ncap">They receive</span><span class="nval"><b>Bitcoin</b> on Lightning</span></span><sc-if value="{{ ddBoff }}" hint-placeholder-val="{{ false }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></sc-if><sc-if value="{{ ddB }}" hint-placeholder-val="{{ false }}"><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 11 4-4 4 4"/></svg></sc-if></button><sc-if value="{{ ddB }}" hint-placeholder-val="{{ false }}"><div class="nmenu" role="listbox"><p class="ngh">Bitcoin</p><div class="nrow sel" role="option"><span class="ni2"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M10 2 4.5 10H9l-1 6 5.5-8H9z"/></svg></span><span class="nn">Lightning</span><svg class="ic s" aria-hidden="true" viewBox="0 0 18 18"><path d="m4 9.5 3.2 3.2L14 5.75"/></svg></div><div class="nrow" role="option"><span class="ni2"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M7.5 10.5a3 3 0 0 0 4.2 0l2.3-2.3a3 3 0 0 0-4.2-4.2l-.9.9"/><path d="M10.5 7.5a3 3 0 0 0-4.2 0L4 9.8A3 3 0 0 0 8.2 14l.9-.9"/></svg></span><span class="nn">On-chain</span></div><div class="nrow" role="option"><span class="ni2"><svg class="ic" aria-hidden="true" viewBox="0 0 18 18"><path d="M9 2.5v13M3.4 5.75l11.2 6.5M14.6 5.75 3.4 12.25"/></svg></span><span class="nn">Spark</span></div><p class="ngh">US Dollar</p><div class="nrow" role="option"><span class="ni2"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#1f7a55"/><path d="M14.5 25.2c1.2 1.5 3.1 2.3 5.6 2.3 3.2 0 5.1-1.5 5.1-3.7 0-5.2-10.3-2.4-10.3-7.6 0-2.1 1.9-3.7 5-3.7 2.1 0 3.9.7 5 2M20 9.5v21" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></span><span class="nn">USDB on Spark</span></div><p class="ngh">Stablecoins<span>Cross-chain</span></p><div class="nrow" role="option"><span class="ni2"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#2a9d7f"/><path d="M12.5 13h15M20 13v15M14.5 19.5c1.7.8 3.5 1.1 5.5 1.1s3.8-.3 5.5-1.1" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg></span><span class="nn">USDt</span></div><div class="nrow" role="option"><span class="ni2"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="#2775ca"/><path d="M15.5 24.3c1 1.3 2.6 2 4.6 2 2.7 0 4.3-1.2 4.3-3.1 0-4.3-8.6-2-8.6-6.3 0-1.8 1.6-3.1 4.2-3.1 1.8 0 3.2.6 4.1 1.7M20 11v18" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/></svg></span><span class="nn">USDC</span></div></div></sc-if></div>
+      </div>
+      <div class="nfields col">
+        <label class="nf"><span>Destination</span><span class="nin">Lightning invoice or Lightning address</span></label>
+        <label class="nf namt"><span>Amount<em>Available <b>85,452 SATS</b></em></span><span class="nin">Optional for invoices with an amount<i>SATS</i></span></label>
+      </div>
+      <div class="nact"><button type="button" class="pill npri">Prepare</button><span class="navail">Prepare gets a fee quote. Nothing is sent yet.</span></div>
+    </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"open":{"editor":"enum","options":["closed","first","second"],"default":"first","section":"Review"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p){super(p); try { const bump = () => { try { this.setState({ protoTick: Date.now() }); } catch (e) {} }; window.addEventListener('tenshu-proto', bump); window.addEventListener('storage', bump); } catch (e) {}this.state={nav:null,menu:false,lock:false,adv:false,hide:null,lnShare:false,lnCopied:false};}
+  renderVals(){
+    // prototype-only: Appearance (App preferences) is a device setting shared across artboards: system follows the review lever
+    let THEME = 'system'; try { THEME = localStorage.getItem('tenshu.proto.theme') || 'system'; } catch (e) {}
+    // prototype-only: arriving here marks the open Cube as entered, so the Launcher returns in browse (see P-Launcher bounce rule)
+    try { const o = localStorage.getItem('tenshu.proto.open'); if (o) localStorage.setItem('tenshu.proto.seen', o); } catch (e) {}
+    const P=this.props,S=this.state,self=this;
+    const rs=P.reviewState||'normal', signedOut=rs==='signedOut', disc=rs==='cubeDisconnected', longN=rs==='longNames';
+    // prototype-only: another board can land this one on a wallet page (P-Swap writes {"page":"spark"}); read once, then cleared
+    if (this._land===undefined) { this._land=null; try { const l=JSON.parse(localStorage.getItem('tenshu.proto.land')||'null'); localStorage.removeItem('tenshu.proto.land'); if (l&&l.page) this._land=l.page; } catch (e) {} }
+    const propPage='spark';
+    const page=(S.nav&&S.nav.for===propPage)?S.nav.page:propPage;
+    const hb=!!P.hideBalances;
+    const hide=(S.hide&&S.hide.for===hb)?S.hide:{for:hb,total:hb,wallets:hb};
+    const go=(pg)=>()=>self.setState({nav:{for:propPage,page:pg},menu:false});
+    // prototype-only: the Cube opened from the Launcher (P-Launcher writes tenshu.proto.openCube); Everyday when arriving any other way
+    let OC=null; try { OC=JSON.parse(localStorage.getItem('tenshu.proto.openCube')||'null'); } catch (e) {}
+    const cubeName=longN?'A very long Cube name that keeps going to test wrapping behaviour':((OC&&OC.name)||'Everyday');
+    const clear=true; const po=P.open||'closed'; const dd=(S.dd&&S.dd.for===po)?S.dd.v:po; const tog=(k)=>()=>self.setState({dd:{for:po,v:dd===k?'closed':k}}); const netName=clear?((OC&&OC.net)||'Bitcoin mainnet'):'Regtest';
+    const coinSrc=OC&&OC.logo==='b2b'?'/_blob/c39785504daaef5633099a8ae196c784':'/_blob/dbbfc88f16f7cc27510d81f434c268ea';
+    const avPath=(OC&&OC.av)||'M12 4.2c4.6-.4 7.9 3.1 7.6 7.4-.3 4.6-4.2 8.2-8.6 7.6-4.2-.6-6.9-4.4-6.3-8.5.5-3.3 3-5.9 6.2-6.4';
+    const vaultAlias=longN?'Family savings for the grandchildren and the house fund':'Family savings';
+    const D='••••••', hw=hide.wallets;
+    const m=(v,h)=>h?D:v;
+    const nvi=(pg)=>({cls:page===pg?'on':'',cur:page===pg?'page':'false',pick:go(pg)});
+    const asset=(wn,a)=>({usdb:a.coin==='usdb',tick:a.tick,num:m(a.num,hw),unit:a.unit,fiat:hw?'':a.fiat,cls:a.zero?'zero':'',btc:a.coin==='btc',lbtc:a.coin==='lbtc',usdt:a.coin==='usdt',sendLabel:'Send '+a.tick+' from '+wn,recvLabel:'Receive '+a.tick+' to '+wn});
+    const card=(wn,fiat,sats,assets)=>({fiat:m(fiat,hw),sats:m(sats,hw),assets:assets.map(a=>asset(wn,a))});
+    const flow=(r)=>Object.assign({},r,{inbound:r.dir==='in',outbound:r.dir==='out',amt:m(r.amt,hw),fiat:m(r.fx||'',hw),
+      st:r.st||'Confirmed',stCls:r.st&&/signature/.test(r.st)?'warn':(r.st&&/pending/i.test(r.st)?'warn':'ok'),sOk:!r.st||r.st==='Confirmed',sPend:!!r.st&&/pending/i.test(r.st),sSig:!!r.st&&/signature/.test(r.st)});
+    const vName='Vault · '+vaultAlias;
+    // prototype-only: tenshu.proto.sendFrom / recvTo tell P-Send / P-Receive which wallet and asset the pill came from
+    const hand=(k,v)=>()=>{ try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+    const row5=(r)=>({btc:r.coin==='btc',usdb:r.coin==='usdb',name:r.name,num:m(r.num,hw),unit:r.unit,fiat:hw?'':r.fiat,cls:r.zero?'zero':'',
+      toSend:hand('tenshu.proto.sendFrom',{wallet:r.w,asset:r.as}),toRecv:hand('tenshu.proto.recvTo',{wallet:r.w,asset:r.as}),
+      sendLabel:'Send '+r.name+' from '+(r.w==='spark'?'Spark':'Vault'),recvLabel:'Receive '+r.name+' to '+(r.w==='spark'?'Spark':'Vault')});
+    // Activity-style rows: a day heading before the first row of each day
+    const days=(list,wk)=>list.map((r,i)=>Object.assign(flow(r),{dayHead:i===0||list[i-1].date!==r.date,spark:wk==='spark',vault:wk==='vault',wname:wk==='spark'?'Daily spending':vaultAlias,swap:r.dir==='swap'}));
+    const SA=[
+        {dir:'in',desc:'Spark transfer',day:'Today',date:'Thu 29 Oct 2026',time:'14:32',amt:'+2 SATS',fx:'$0.00',st:'Pending'},
+        {dir:'swap',desc:'Swap · bitcoin to USDB',day:'Yesterday',date:'Wed 28 Oct 2026',time:'20:05',amt:'+50.00 USDB',fx:'−60,460 SATS'},
+        {dir:'out',desc:'Lightning payment · Example Coffee Co.',day:'Yesterday',date:'Wed 28 Oct 2026',time:'19:47',amt:'\u22123,000 SATS',fx:'$2.48'},
+        {dir:'in',desc:'Lightning address · received',day:'Earlier',date:'Mon 19 Oct 2026',time:'13:40',amt:'+25,000 SATS',fx:'$20.70'}
+      ];
+    const VA=[
+        {dir:'out',desc:'Roof repair deposit',day:'Today',date:'Thu 29 Oct 2026',time:'09:18',amt:'−40,000 SATS',fx:'$33.12',st:'2 of 3 signatures'},
+        {dir:'in',desc:'Received',day:'Earlier',date:'Mon 19 Oct 2026',time:'21:15',amt:'+30,000 SATS',fx:'$24.84'},
+        {dir:'in',desc:'Received',day:'Earlier',date:'Thu 15 Oct 2026',time:'10:02',amt:'+10,000 SATS',fx:'$8.28'}
+      ];
+    // Overview's Recent activity: both wallets' rows, newest first, regrouped by day
+    const ts=r=>Date.parse(r.date.slice(4)+' '+r.time)||0;
+    const mix=()=>{const all=SA.map(r=>[r,'spark']).concat(VA.map(r=>[r,'vault'])).sort((a,b)=>ts(b[0])-ts(a[0])).slice(0,5);return all.map(([r,wk],i)=>Object.assign(days([r],wk)[0],{dayHead:i===0||all[i-1][0].date!==r.date}));};
+    const kit=signedOut?{status:'Sign in required',text:'Needs your Connect account'}:disc?{status:'Reconnect required',text:'Needs this Cube’s service connection'}:{status:'Not set up',text:'Encrypted copy in your Connect account'};
+    const ln=signedOut?{ready:false,blocked:true,text:'Sign in to claim an address',action:'Sign in'}:disc?{ready:false,blocked:true,text:'Reconnect this Cube to check your address',action:'Reconnect'}:{ready:true,blocked:false,text:'Receive to a readable address',action:''};
+    const attn=disc?{text:'Reconnect required',pick:go('settings')}:{text:'Backup not confirmed',pick:go('backup')};
+    return {
+      lockNow: () => { try { localStorage.removeItem('tenshu.proto.open'); } catch (e) {} },
+      themeClass:this.props.forceTheme?(this.props.forceTheme==='light'?'light':''):((THEME==='light'||(THEME!=='dark'&&(P.theme||'dark')==='light'))?'light':''), motionClass:P.reducedMotion?'reduced':'',
+      cubeName:cubeName, netName:netName, coinSrc:coinSrc, avPath:avPath, vaultAlias:vaultAlias,
+      menuOpen:S.menu, toggleMenu:()=>self.setState({menu:!S.menu,lock:false}),
+      lockAsk:!!S.lock, lockIdle:!S.lock, askLock:()=>self.setState({lock:true}), cancelLock:()=>self.setState({lock:false}),
+      chipTitle:{acct:signedOut?'Connect account · Signed out':'alex@example.test · Signed in',conn:'Cube service · '+(disc?'Reconnect required':signedOut?'Not checked':'Connected')},
+      signedOut:signedOut, signedIn:!signedOut,
+      conn:{ok:!signedOut&&!disc,unk:signedOut,warn:disc},
+      nv:{overview:nvi('overview'),activity:nvi('activity'),backup:nvi('backup'),spark:nvi('spark'),vault:nvi('vault'),liquid:nvi('liquid'),settings:nvi('settings')},
+      attn:attn, ddA:dd==='first', ddAoff:dd!=='first', ddB:dd==='second', ddBoff:dd!=='second', togA:tog('first'), togB:tog('second'), tA:dd==='first'?'on':'', tB:dd==='second'?'on':'', clear:clear, notClear:!clear, testClass:clear?'':'testnet', hidClass:(hide.total&&hide.wallets)?'hid':'',
+      cc:{text:signedOut?'Sign in':'alex@example.test',cls:signedOut?'si':'',light:disc?'amber':'on',title:signedOut?'Connect · Signed out. Sign in':(disc?'Connect · alex@example.test · Reconnecting':'Connect · alex@example.test · Live updates on')},
+      pg:{overview:page==='overview',vault:page==='vault',spark:page==='spark',liquid:page==='liquid',activity:page==='activity',backup:page==='backup',settings:page==='settings'},
+      hide:{total:hide.total,totalShown:!hide.total,totalP:hide.total?'true':'false',wallets:hw,walletsShown:!hw,walletsP:hw?'true':'false',all:hide.total&&hw,allShown:!(hide.total&&hw),allP:(hide.total&&hw)?'true':'false'},
+      // top-bar eye hides every balance on the page; the section eyes stay as finer controls
+      toggleAll:()=>{const all=!(hide.total&&hide.wallets);self.setState({hide:{for:hb,total:all,wallets:all}});},
+      toggleTotal:()=>self.setState({hide:{for:hb,total:!hide.total,wallets:hide.wallets}}),
+      toggleWallets:()=>self.setState({hide:{for:hb,total:hide.total,wallets:!hide.wallets}}),
+      total:{fiat:m('$277.70',hide.total),sats:m('335,452',hide.total)},
+      spark:card('Spark · Daily spending','$70.74','85,452',[{coin:'btc',tick:'BTC',num:'25,053',unit:'SATS',fiat:'20.74 USD'},{coin:'usdb',tick:'USDB',num:'50.00',unit:'USDB',fiat:'≈ 60,399 SATS'}]),
+      // wallet-page asset rows (same fixtures as P-Swap: 1 BTC ≈ $82,783); Send/Receive tell P-Send/P-Receive which wallet and asset
+      sparkRows:[{coin:'btc',name:'Bitcoin',num:'25,053',unit:'SATS',fiat:'$20.74',w:'spark',as:'bitcoin'},{coin:'usdb',name:'US Dollar',num:'50.00',unit:'USDB',fiat:'≈ 60,399 SATS',w:'spark',as:'usdb'}].map(r=>row5(r)),
+      vaultRows:[{coin:'btc',name:'Bitcoin',num:'250,000',unit:'SATS',fiat:'$206.96',w:'vault',as:'bitcoin'}].map(r=>row5(r)),
+      toNode:()=>{ try { localStorage.setItem('tenshu.proto.settingsScope', JSON.stringify({scope:'vault',tab:'node'})); } catch (e) {} },
+      toSparkSettings:()=>{ try { localStorage.setItem('tenshu.proto.settingsScope', JSON.stringify({scope:'spark',tab:'balances'})); } catch (e) {} },
+      toVaultSettings:()=>{ try { localStorage.setItem('tenshu.proto.settingsScope', JSON.stringify({scope:'vault',tab:'keys'})); } catch (e) {} },
+      liquid:card('Liquid · Travel','$20.95','25,307',[{coin:'lbtc',tick:'L-BTC',num:'12,784',unit:'SATS',fiat:'10.58 USD'},{coin:'usdt',tick:'USDt',num:'10.37',unit:'USDt',fiat:''}]),
+      vault:card(vName,'$206.96','250,000',[{coin:'btc',tick:'BTC',num:'250,000',unit:'SATS',fiat:'206.96 USD'}]),
+      goVault:go('vault'), goBackup:go('backup'),
+      sparkAct:days(SA,'spark'),
+      sb:{on:S.sb?'true':'false',state:S.sb?'On on this device':'Off on this device',text:S.sb?'On':'Off',toggle:()=>self.setState({sb:!S.sb})},
+      vaultAct:days(VA,'vault'),
+      allAct:mix(),
+      activity:[
+        {dir:'in',desc:'Received',wallet:'Spark · Daily spending',when:'Today 14:32',amt:'+25,053 SATS',fx:'$20.74'},
+        {dir:'in',desc:'Received L-BTC',wallet:'Liquid · Travel',when:'Yesterday 11:05',amt:'+12,784 SATS',fx:'$10.58'},
+        {dir:'in',desc:'Received USDt',wallet:'Liquid · Travel',when:'Yesterday 12:02',amt:'+10.37 USDt',fx:'$10.37'},
+        {dir:'out',desc:'Roof repair deposit',wallet:vName,when:'Today 09:18',amt:'−40,000 SATS',fx:'$33.12',st:'2 of 3 signatures'},
+        {dir:'in',desc:'Received',wallet:vName,when:'Oct 19, 21:15',amt:'+40,000 SATS',fx:'$33.12'}
+      ].map(flow),
+      kit:kit, ln:Object.assign({}, ln, (function(){
+        // Lightning address Share (app: Spark page head). Change lives in Spark Settings › Lightning address, opened with its form expanded.
+        const addr='alex@ln.example.test', open=!!S.lnShare;
+        const toLn=(edit)=>()=>{ try { localStorage.setItem('tenshu.proto.settingsScope', JSON.stringify({scope:'spark',tab:'lnaddr',edit:edit})); } catch (e) {} };
+        return {addr:addr, sharing:open, shareExp:open?'true':'false', copyText:S.lnCopied?'Copied':'Copy address',
+          href:signedOut?'P-SignIn.dc.html':'P-Settings.dc.html',
+          toggle:()=>self.setState({lnShare:!open,lnCopied:false}),
+          copy:()=>self.setState({lnCopied:true}),
+          toChange:toLn(true), toSettings:signedOut?()=>{}:toLn(false)};
+      })()),
+      scopes:[
+        {label:'Cube · '+cubeName,desc:'Display, backup, payment checks, exports'},
+        {label:'Connect account',desc:signedOut?'Signed out on this device':'alex@example.test · plan, devices and security'},
+        {label:vName,desc:'Signers, Mobile pairing, node and maintenance'},
+        {label:'Spark · Daily spending',desc:'Lightning Address and connection'}
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

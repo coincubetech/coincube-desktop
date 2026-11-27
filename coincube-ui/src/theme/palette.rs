@@ -47,6 +47,10 @@ pub struct ShellPalette {
     pub focus: iced::Color,
     pub teal: iced::Color,
     pub hover: iced::Color,
+    /// The quiet region divider: ink at 10% opacity, under the top bar, beside
+    /// the sidebar and under the pinned page head. Mobile's `--rule`; on the
+    /// canvas `color-mix(in srgb, var(--ink) 10%, transparent)`.
+    pub rule: iced::Color,
     pub shadow: iced::Color,
     /// Suitcoiner's accent (antique gold), for the worldview's own marks such
     /// as the rule over the Overview voice line. See [`Theme::worldview_accent`].
@@ -77,6 +81,7 @@ impl ShellPalette {
             focus: iced::color!(0x8fc1ff),
             teal: iced::color!(0x2a9d7f),
             hover: iced::color!(0xf5f0e8, 0.06),
+            rule: iced::color!(0xf5f0e8, 0.10),
             shadow: iced::color!(0x000000, 0.45),
             suitcoiner: iced::color!(0xd9b968),
             luke: iced::color!(0xe39a8f),
@@ -100,6 +105,7 @@ impl ShellPalette {
             focus: iced::color!(0x1d5fb8),
             teal: iced::color!(0x1f7a62),
             hover: iced::color!(0x202020, 0.05),
+            rule: iced::color!(0x202020, 0.10),
             shadow: iced::color!(0x3c280a, 0.18),
             suitcoiner: iced::color!(0x7a5a12),
             luke: iced::color!(0x8f2e1d),
@@ -1264,6 +1270,15 @@ mod tests {
         assert_eq!(decoded, ThemeMode::Light);
     }
 
+    /// `rule` is the shell's ink at 10% opacity (Mobile's `--rule`).
+    fn assert_quiet_rule(shell: ShellPalette) {
+        let ink = shell.ink;
+        let rule = shell.rule;
+        assert_eq!((rule.r, rule.g, rule.b), (ink.r, ink.g, ink.b));
+        assert!((rule.a - 0.10).abs() < 0.005, "rule alpha {}", rule.a);
+        assert_ne!(rule, shell.line);
+    }
+
     #[test]
     fn dark_palette_is_default_and_matches_mode_dispatch() {
         let dark = Palette::dark();
@@ -1273,6 +1288,7 @@ mod tests {
         assert_eq!(dark.general.background, dark.shell.background);
         assert_eq!(dark.general.foreground, dark.shell.rail);
         assert_eq!(dark.text.primary, dark.shell.ink);
+        assert_quiet_rule(dark.shell);
         assert_eq!(dark.buttons.primary.active.background, color::ORANGE);
         assert_eq!(dark.buttons.primary.active.text, color::LIGHT_BLACK);
         assert_eq!(dark.buttons.primary.hovered.background, color::DARK_ORANGE);
@@ -1294,6 +1310,7 @@ mod tests {
         assert_eq!(light.general.foreground, light.shell.rail);
         assert_eq!(light.text.primary, light.shell.ink);
         assert_eq!(light.text.success, light.shell.good);
+        assert_quiet_rule(light.shell);
         assert_eq!(light.buttons.menu.hovered.background, color::LIGHT_HOVER);
         assert_eq!(light.cards.simple.background, light.shell.panel);
         assert_eq!(light.notifications.debug.text, Some(color::DARK_GRAY));

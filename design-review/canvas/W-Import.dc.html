@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Import or restore · modal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff;--floor:#1b1c1a;--floor-rule:#2b2c29;--on-accent:#1a1208;--acc-ink:#f3821d;--hover:rgba(245,240,232,.06);font-variant-numeric:tabular-nums}
+.tenshu.light{--bg:#faf9f6;--panel:#ffffff;--rail:#ede8e0;--ink:#202020;--muted:#575a54;--line:#c4beb4;--selected:#f7e3cc;--good:#23613b;--warn:#77450b;--bad:#8f2e1d;--focus:#1d5fb8;--floor:#efebe3;--floor-rule:#e0d9cd;--acc-ink:#8a4304;--hover:rgba(32,32,32,.05)}
+.tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.tenshu button,.tenshu input,.tenshu textarea{font:inherit;color:inherit}
+a{color:#f3821d}a:hover{color:#ff9a3f}
+.grow{flex:1}
+.muted{color:var(--muted)}
+svg{flex:none}
+/* shared top bar: identical on the Launcher, in a Cube and under every modal */
+.top{height:64px;flex:none;display:flex;align-items:center;gap:16px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--rail);position:relative;z-index:8}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:inherit;text-decoration:none;border-radius:6px}
+a.brand:hover{color:var(--acc-ink)}
+.brand svg{width:20px;height:20px}
+.tbx-r{display:flex;align-items:center;gap:8px;flex:none}
+.tbx-ico{position:relative;width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;text-decoration:none}
+.tbx-ico:hover{background:var(--hover);color:var(--ink)}
+.tbx-ico svg{width:16px;height:16px}
+.tbx-chip{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font-size:13px;white-space:nowrap;text-decoration:none;cursor:pointer}
+a.tbx-chip,a.tbx-chip:hover{color:var(--ink)}
+.tbx-chip:hover{background:var(--hover)}
+.tbx-chip svg{width:16px;height:16px;color:var(--muted)}
+.tbx-st{color:var(--muted)}
+.tbx-mini{font-weight:600;color:var(--acc-ink)}
+/* dimmed, inert Launcher behind the modal */
+.stage{flex:1;min-height:0;position:relative;overflow:hidden}
+.backdrop{position:absolute;inset:0;opacity:.4;pointer-events:none;display:flex;flex-direction:column}
+.bfield{flex:1;position:relative}
+.floor{position:absolute;left:0;right:0;bottom:0;top:30%;background:var(--floor);clip-path:polygon(14% 0,86% 0,100% 100%,0 100%)}
+.bbar{height:64px;flex:none;display:flex;align-items:center;gap:8px;padding:0 24px;border-top:1px solid var(--line);background:var(--rail)}
+/* the modal sheet: same frame as Connect and App preferences */
+.sheet{position:absolute;left:200px;top:28px;width:1040px;bottom:28px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 64px -16px rgba(0,0,0,.55);overflow:hidden;z-index:4}
+.light .sheet{box-shadow:0 24px 64px -20px rgba(70,52,30,.35)}
+.shead{height:72px;flex:none;display:flex;align-items:center;gap:16px;padding:0 24px 0 28px;border-bottom:1px solid var(--line);position:relative}
+.shead h1{margin:0;font-size:22px;font-weight:600}
+.vsep{width:1px;height:24px;background:var(--line)}
+.netchip{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 10px;border:1px solid transparent;border-radius:8px;background:none;font-size:14px;color:var(--ink);white-space:nowrap}
+button.netchip{cursor:pointer;border-color:var(--line)}
+button.netchip:hover{background:var(--hover)}
+button.netchip[aria-expanded="true"]{border-color:var(--accent);background:var(--selected)}
+.netchip .chev{width:14px;height:14px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:none;cursor:pointer;font-size:14px;font-weight:500;text-decoration:none;color:var(--ink);white-space:nowrap}
+a.btn,a.btn:hover{color:var(--ink)}
+.btn svg{width:16px;height:16px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary,a.btn.primary,a.btn.primary:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:#ff9a3f;border-color:#ff9a3f}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.close{gap:6px;padding:0 12px 0 10px}
+.btn.sm{height:30px;padding:0 12px;font-size:13px}
+.linkbtn{border:0;background:none;padding:2px 0;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px;cursor:pointer;font-size:13px}
+a.linkbtn:hover{color:var(--ink)}
+/* network mark: Bitcoin logo; test networks sit in a dashed ring at 60% */
+.nmk{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;box-sizing:border-box;border-radius:50%}
+.nmk img{display:block;width:100%;height:100%;border-radius:50%}
+.nmk.tn{border:1px dashed currentColor;padding:2px}
+.nmk.tn img{opacity:.6}
+.tb{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;border:1px solid var(--muted);font-size:12px;font-weight:500;line-height:1;white-space:nowrap}
+.tb.b2b{border-color:#D4A62A}
+.tb.test{border-style:dashed}
+/* step rail */
+.rail{height:52px;flex:none;display:flex;align-items:center;gap:8px;padding:0 28px;border-bottom:1px solid var(--line);font-size:13px}
+.st{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.st .n{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;box-sizing:border-box}
+.st.cur{color:var(--ink);font-weight:500}
+.st.cur .n{border-color:var(--accent);background:var(--selected)}
+.st.done{color:var(--ink)}
+.st.done .n{border-color:var(--good);color:var(--good)}
+.st{flex-direction:row;flex-wrap:nowrap;white-space:nowrap}
+.st .n{flex:none}
+.st .n .ck{display:none}
+.st .n .ck svg{display:block;width:14px;height:14px}
+.st.done .n .ck{display:block}
+.st.done .n .num{display:none}
+.rl{width:20px;height:1px;background:var(--line)}
+/* body */
+.sbody{flex:1;min-height:0;display:flex;position:relative}
+.content{flex:1;min-width:0;overflow-y:auto;padding:28px 40px 32px}
+.sec{max-width:640px;margin:0 auto}
+.sec.wide{max-width:none;margin:0}
+.sec h2{margin:0;font-size:22px;font-weight:600;line-height:1.3}
+.sec h3{margin:0;font-size:18px;font-weight:600;line-height:1.3}
+.lead{margin:6px 0 0;font-size:14px;color:var(--muted);max-width:620px}
+.gh{margin:24px 0 8px;font-size:13px;font-weight:600;color:var(--muted)}
+.sfoot{height:68px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px;border-top:1px solid var(--line)}
+/* network rows (same component in Create's Network step and Import's network menu) */
+.nlist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.nrow{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:8px 14px;border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer;text-align:left;box-sizing:border-box}
+.nrow:hover{background:var(--hover)}
+.nrow[aria-checked="true"]{background:var(--selected)}
+.radio{width:18px;height:18px;flex:none;border-radius:50%;border:1.5px solid var(--muted);box-sizing:border-box;display:grid;place-items:center}
+.nrow[aria-checked="true"] .radio{border-color:var(--accent)}
+.nrow[aria-checked="true"] .radio::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.nmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.nt{display:flex;align-items:center;gap:8px;font-weight:500}
+.ns{font-size:13px;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:20px}
+.field label{font-size:13px;font-weight:500}
+.inp{height:44px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);box-sizing:border-box;font-size:15px}
+textarea.inp{height:96px;padding:10px 14px;resize:none;font-family:'IBM Plex Mono',monospace;font-size:13px}
+.inp:focus{outline:2px solid var(--focus);outline-offset:1px}
+.hint{font-size:12px;color:var(--muted)}
+.notice{display:flex;gap:12px;align-items:flex-start;margin-top:20px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;font-size:13px}
+.notice svg{width:18px;height:18px;color:var(--muted);margin-top:1px}
+.notice .grow p{margin:0}
+.notice.warn svg{color:var(--warn)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+.seg button{height:32px;padding:0 14px;border:0;border-radius:6px;background:none;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--selected);color:var(--ink);font-weight:500}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.okmark{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--selected);color:var(--good)}
+.okmark svg{width:28px;height:28px}
+.nav{width:232px;flex:none;box-sizing:border-box;padding:16px 12px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.ni{display:flex;align-items:center;gap:10px;min-height:40px;padding:6px 12px;border:0;border-radius:8px;background:none;cursor:pointer;font-size:14px;text-align:left;box-sizing:border-box}
+.ni svg{width:18px;height:18px;color:var(--muted)}
+.ni:hover{background:var(--hover)}
+.ni[aria-current="page"]{background:var(--selected);font-weight:600}
+.ni[aria-current="page"] svg{color:var(--accent)}
+.ni.off{color:var(--muted)}
+.ni.off svg{opacity:.5}
+.ni[disabled]{cursor:not-allowed}
+.ni[disabled]:hover{background:none}
+.ni.off[aria-current="page"]{font-weight:500}
+.ni .nsub{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+.navnote{margin:auto 12px 0;font-size:12px;color:var(--muted);line-height:1.4}
+.menu{position:absolute;top:62px;left:224px;width:460px;z-index:12;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 18px 48px -12px rgba(0,0,0,.6);padding:8px 0 4px;max-height:640px;overflow-y:auto}
+.light .menu{box-shadow:0 18px 48px -16px rgba(70,52,30,.4)}
+.menu .gh{margin:8px 14px 6px}
+.menu .nrow{min-height:52px}
+.menu .mfoot{margin:8px 14px 6px;font-size:12px;color:var(--muted)}
+.mlist{list-style:none;margin:20px 0 0;padding:0;border-top:1px solid var(--line)}
+.mrow{display:flex;align-items:center;gap:16px;min-height:72px;padding:12px 0;border-bottom:1px solid var(--line)}
+.mrow .ic{width:40px;height:40px;border-radius:10px;background:var(--selected);display:grid;place-items:center;color:var(--accent);flex:none}
+.mrow.off .ic{background:var(--hover);color:var(--muted)}
+.mrow .ic svg{width:20px;height:20px}
+.mrow .main{flex:1;min-width:0}
+.mrow .t{font-weight:500;font-size:15px}
+.mrow .s{font-size:13px;color:var(--muted)}
+.mrow.off .t{color:var(--muted)}
+.mrow .why{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:13px;color:var(--warn)}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--muted);white-space:nowrap}
+.pill.ok{border-color:var(--good);color:var(--good)}
+.pill.ok svg{width:12px;height:12px}
+button.pill{gap:6px;height:30px;padding:0 10px;background:none;cursor:pointer;border-color:var(--accent);color:var(--ink);font-weight:500}
+button.pill:hover{background:var(--selected)}
+button.pill svg{width:14px;height:14px;color:var(--muted)}
+.clist{margin-top:16px;border-top:1px solid var(--line)}
+.crow{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:8px 14px;border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer;text-align:left;box-sizing:border-box}
+.crow:hover{background:var(--hover)}
+.crow[aria-checked="true"]{background:var(--selected)}
+.crow[aria-checked="true"] .radio{border-color:var(--accent)}
+.crow[aria-checked="true"] .radio::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.more{display:flex;align-items:center;gap:12px;margin-top:12px;font-size:13px;color:var(--muted)}
+.kv{margin:20px 0 0;border-top:1px solid var(--line)}
+.kv div{display:flex;gap:16px;padding:10px 0;border-bottom:1px solid var(--line)}
+.kv dt{width:200px;flex:none;color:var(--muted);font-size:13px}
+.kv dd{margin:0;overflow-wrap:anywhere}
+.bar{height:8px;margin-top:24px;border-radius:4px;background:var(--hover);overflow:hidden;max-width:560px}
+.bar span{display:block;height:100%;background:var(--accent)}
+.srv{margin:24px 0 0;padding:0;border:0}
+.srv legend{padding:0;font-size:13px;font-weight:500}
+.srv .clist{margin-top:8px}
+.ferr{font-size:13px;color:var(--bad)}
+.inp.bad{border-color:var(--bad)}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:20}
+.choice{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:440px;z-index:21;box-sizing:border-box;padding:24px;display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 64px -16px rgba(0,0,0,.6)}
+.choice h2{margin:0;font-size:18px}
+.choice p{margin:0 0 6px;font-size:14px;color:var(--muted)}
+.choice .btn{justify-content:flex-start;height:44px}
+.wait{display:flex;align-items:center;gap:16px;margin-top:24px;padding:16px;border:1px dashed var(--line);border-radius:10px}
+.wait svg{width:32px;height:32px;color:var(--accent)}
+/* PIN entry: four single-digit boxes per field plus a show/hide eye, as in the app */
+.pins{display:flex;flex-wrap:wrap;gap:24px 72px;margin-top:24px}
+.pin{display:flex;flex-direction:column;gap:12px}
+.pin .pl{font-size:15px;color:var(--muted)}
+.pin .boxes{display:flex;align-items:center;gap:12px}
+.pin .box{width:48px;height:46px;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-align:center;font-size:20px;padding:0}
+.pin .box:focus{outline:2px solid var(--focus);outline-offset:1px;border-color:var(--focus)}
+.pin .eye{width:40px;height:40px;margin-left:12px;border:0;border-radius:8px;background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0}
+.pin .eye:hover{background:var(--hover);color:var(--ink)}
+.pin .eye svg{width:22px;height:22px}
+/* Done: Sumi-e Kage holding the sealed Cube, no backdrop; only the ensō keeps a white disc behind it */
+.finish{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:0}
+.art{position:relative;width:220px;height:330px;flex:none}
+.art .disc{position:absolute;left:34px;top:30px;width:154px;height:154px;border-radius:50%;background:#faf9f6}
+.art .kage{position:relative;display:block;width:100%;height:100%}
+.finish h2{margin:16px 0 0;font-size:26px}
+.finish .lead{margin:8px auto 0;max-width:520px}
+
+/* No artwork (Robert, 2026-11-25): a plain check mark stands where the illustration was, as on Mobile. */
+.tenshu .mvok{width:64px;height:64px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--hover);color:var(--good)}
+.tenshu .mvok svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
+</style>
+</helmet>
+<div class="tenshu {{ themeClass }}" style="width:1440px;height:900px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
+  <header class="top">
+    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg>
+      <span><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;color:var(--ink)"><span style="color:#f3821d">COIN</span>CUBE</span></span>
+    </a>
+    <span class="grow"></span>
+    <div class="tbx-r">
+      <a class="tbx-chip" href="P-Connect.dc.html" aria-label="{{ acctAria }}"><svg aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6.5" r="3"></circle><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"></path></svg><sc-if value="{{ signedIn }}" hint-placeholder-val="{{ false }}"><span>alex@example.test</span></sc-if><sc-if value="{{ signedOut }}" hint-placeholder-val="{{ true }}"><span class="tbx-st">Connect</span><span class="tbx-mini">Sign in</span></sc-if></a>
+      <a class="tbx-ico" href="P-AppPrefs.dc.html" aria-label="App preferences" title="App preferences"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a>
+    </div>
+  </header>
+  <main class="stage">
+    <div class="backdrop" aria-hidden="true">
+      <div class="bfield"><div class="floor"></div></div>
+    </div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="iw-title">
+      <div class="shead">
+        <h1 id="iw-title">Import or restore</h1>
+        <span class="vsep" aria-hidden="true"></span>
+        <button type="button" class="netchip" aria-haspopup="listbox" aria-expanded="{{ menuOpen }}" aria-label="Network: {{ cur.name }}. Change network" onClick="{{ toggleMenu }}"><span class="nmk {{ cur.mkCls }}" aria-hidden="true"><sc-if value="{{ cur.b2b }}" hint-placeholder-val="{{ false }}"><img src="/_blob/c39785504daaef5633099a8ae196c784" alt=""></sc-if><sc-if value="{{ cur.btc }}" hint-placeholder-val="{{ true }}"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></sc-if></span><span>{{ cur.name }}</span><sc-if value="{{ cur.hasTag }}" hint-placeholder-val="{{ false }}"><span class="tb {{ cur.tbCls }}">{{ cur.tag }}</span></sc-if><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+        <span class="grow"></span>
+        <a class="btn close" href="P-Launcher.dc.html" aria-label="Close Import or restore">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          <span>Close</span>
+        </a>
+        <sc-if value="{{ isMenuOpen }}" hint-placeholder-val="{{ false }}">
+          <div class="menu">
+            <p class="gh">Live networks</p>
+            <div class="nlist" role="radiogroup" aria-label="Live networks">
+  <sc-for list="{{ liveNets }}" as="n" hint-placeholder-count="3">
+    <button type="button" class="nrow" role="radio" aria-checked="{{ n.checked }}" onClick="{{ n.pick }}">
+      <span class="radio" aria-hidden="true"></span>
+      <span class="nmk {{ n.mkCls }}" aria-hidden="true"><sc-if value="{{ n.b2b }}" hint-placeholder-val="{{ false }}"><img src="/_blob/c39785504daaef5633099a8ae196c784" alt=""></sc-if><sc-if value="{{ n.btc }}" hint-placeholder-val="{{ true }}"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></sc-if></span>
+      <span class="nmain"><span class="nt">{{ n.name }}<sc-if value="{{ n.hasTag }}" hint-placeholder-val="{{ false }}"><span class="tb {{ n.tbCls }}">{{ n.tag }}</span></sc-if></span><span class="ns">{{ n.caps }}</span></span>
+    </button>
+  </sc-for>
+</div>
+            <p class="gh">Test networks</p>
+            <div class="nlist" role="radiogroup" aria-label="Test networks">
+  <sc-for list="{{ testNets }}" as="n" hint-placeholder-count="3">
+    <button type="button" class="nrow" role="radio" aria-checked="{{ n.checked }}" onClick="{{ n.pick }}">
+      <span class="radio" aria-hidden="true"></span>
+      <span class="nmk {{ n.mkCls }}" aria-hidden="true"><sc-if value="{{ n.b2b }}" hint-placeholder-val="{{ false }}"><img src="/_blob/c39785504daaef5633099a8ae196c784" alt=""></sc-if><sc-if value="{{ n.btc }}" hint-placeholder-val="{{ true }}"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></sc-if></span>
+      <span class="nmain"><span class="nt">{{ n.name }}<sc-if value="{{ n.hasTag }}" hint-placeholder-val="{{ false }}"><span class="tb {{ n.tbCls }}">{{ n.tag }}</span></sc-if></span><span class="ns">{{ n.caps }}</span></span>
+    </button>
+  </sc-for>
+</div>
+          </div>
+        </sc-if>
+      </div>
+      <sc-if value="{{ hasRail }}" hint-placeholder-val="{{ false }}">
+        <div class="rail" role="list" aria-label="Steps">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="5">
+            <sc-if value="{{ s.notFirst }}" hint-placeholder-val="{{ true }}"><span class="rl" aria-hidden="true"></span></sc-if>
+            <span role="listitem" class="st {{ s.cls }}" aria-current="{{ s.current }}"><span class="n"><span class="ck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span><span class="num">{{ s.num }}</span></span><span class="lb">{{ s.label }}</span></span>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div class="sbody">
+        <nav class="nav" aria-label="Import or restore">
+          <sc-for list="{{ nav }}" as="n" hint-placeholder-count="4">
+            <button type="button" class="ni {{ n.cls }}" aria-current="{{ n.current }}" disabled="{{ n.disabled }}" onClick="{{ n.pick }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ n.icon }}"></path></svg>
+              <span>{{ n.label }}<sc-if value="{{ n.hasSub }}" hint-placeholder-val="{{ false }}"><span class="nsub">{{ n.sub }}</span></sc-if></span>
+            </button>
+          </sc-for>
+          <p class="navnote">Everything here makes a new Cube on {{ cur.name }}. Change the network from the menu at the top.</p>
+        </nav>
+        <div class="content" aria-live="polite">
+
+          <!-- OVERVIEW: the default when opened from the Launcher -->
+          <sc-if value="{{ onOverview }}" hint-placeholder-val="{{ true }}">
+            <div class="sec wide">
+              <h2>Choose what to bring in</h2>
+              <p class="lead">Into a new Cube on {{ cur.name }}. <button type="button" class="linkbtn" onClick="{{ toggleMenu }}">Change network</button></p>
+              <ul class="mlist">
+                <sc-for list="{{ methods }}" as="m" hint-placeholder-count="3">
+                  <li class="mrow {{ m.cls }}">
+                    <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="{{ m.icon }}"></path></svg></span>
+                    <div class="main">
+                      <div class="t">{{ m.title }}</div>
+                      <div class="s">{{ m.desc }}</div>
+                      <sc-if value="{{ m.netOff }}" hint-placeholder-val="{{ false }}">
+                        <div class="why"><span>{{ m.why }}</span><button type="button" class="linkbtn" onClick="{{ toBitcoin }}">Switch to Bitcoin</button></div>
+                      </sc-if>
+                    </div>
+                    <sc-if value="{{ m.signBtn }}" hint-placeholder-val="{{ false }}"><button type="button" class="pill" onClick="{{ signIn }}" aria-label="Sign in to Connect to use {{ m.title }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"></circle><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"></path></svg>Sign in to Connect</button></sc-if><sc-if value="{{ m.plainPill }}" hint-placeholder-val="{{ true }}"><span class="pill {{ m.pillCls }}"><sc-if value="{{ m.ok }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>{{ m.pill }}</span></sc-if>
+                    <button type="button" class="btn" onClick="{{ m.start }}" disabled="{{ m.off }}" aria-label="Start: {{ m.title }}">Start</button>
+                  </li>
+                </sc-for>
+              </ul>
+              <sc-if value="{{ signedOut }}" hint-placeholder-val="{{ true }}">
+                <div class="notice">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg>
+                  <div class="grow"><p>Recovery Kit and phone recovery restore Cubes saved on your Connect account, so they open after you sign in. Use Sign in to Connect next to either one. Wallet import needs no account.</p></div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- IMPORT BITCOIN WALLET · source + server -->
+          <sc-if value="{{ onSource }}" hint-placeholder-val="{{ false }}">
+            <div class="sec wide">
+              <h2>Where is the wallet?</h2>
+              <p class="lead">An existing {{ cur.name }} wallet, brought into {{ cubeNameOr }} as its Vault.</p>
+              <div class="field">
+                <label id="iw-src">Source</label>
+                <div class="seg" role="group" aria-labelledby="iw-src">
+                  <button type="button" aria-pressed="{{ srcPhrase }}" onClick="{{ pickPhrase }}">Recovery phrase</button>
+                  <button type="button" aria-pressed="{{ srcDesc }}" onClick="{{ pickDesc }}">Descriptor</button>
+                  <button type="button" aria-pressed="{{ srcHw }}" onClick="{{ pickHw }}">Hardware wallet</button>
+                </div>
+                <span class="hint">{{ srcHint }}</span>
+              </div>
+              <fieldset class="srv">
+                <legend>Bitcoin server</legend>
+                <div class="clist" role="radiogroup" aria-label="Bitcoin server">
+                  <sc-for list="{{ servers }}" as="v" hint-placeholder-count="4">
+                    <button type="button" class="crow" role="radio" aria-checked="{{ v.checked }}" onClick="{{ v.pick }}">
+                      <span class="radio" aria-hidden="true"></span>
+                      <span class="nmain"><span class="nt">{{ v.name }}</span><span class="ns">{{ v.sub }}</span></span>
+                    </button>
+                  </sc-for>
+                </div>
+              </fieldset>
+            </div>
+          </sc-if>
+
+          <!-- IMPORT BITCOIN WALLET · keys -->
+          <sc-if value="{{ onKeys }}" hint-placeholder-val="{{ false }}">
+            <div class="sec wide">
+              <h2>Add the wallet's keys</h2>
+              <p class="lead">{{ srcLabel }} for the {{ cur.name }} wallet.</p>
+              <div class="field">
+                <label for="iw-in">{{ srcLabel }}</label>
+                <textarea id="iw-in" class="inp" placeholder="{{ srcPlaceholder }}"></textarea>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- IMPORT BITCOIN WALLET · review -->
+          <sc-if value="{{ onReview }}" hint-placeholder-val="{{ false }}">
+            <div class="sec wide">
+              <h2>Review Bitcoin wallet</h2>
+              <p class="lead">Check these against the wallet you're bringing in. Nothing is saved until you continue.</p>
+              <dl class="kv">
+                <sc-for list="{{ review }}" as="r" hint-placeholder-count="6">
+                  <div><dt>{{ r.k }}</dt><dd>{{ r.v }}</dd></div>
+                </sc-for>
+              </dl>
+            </div>
+          </sc-if>
+
+          <!-- IMPORT BITCOIN WALLET · scan -->
+          <sc-if value="{{ onScan }}" hint-placeholder-val="{{ false }}">
+            <div class="sec wide">
+              <sc-if value="{{ scanOk }}" hint-placeholder-val="{{ true }}">
+                <h2>Scanning the wallet's history</h2>
+                <p class="lead">Looking up past transactions through {{ serverName }}. You can continue while it finishes.</p>
+                <div class="bar" role="progressbar" aria-label="Scan progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="64"><span style="width:64%"></span></div>
+                <p class="hint" style="margin-top:8px">[N] addresses checked · [N] transactions found</p>
+              </sc-if>
+              <sc-if value="{{ scanErr }}" hint-placeholder-val="{{ false }}">
+                <h2>Bitcoin history needs attention</h2>
+                <div class="notice warn" role="alert">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 4l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+                  <div class="grow"><p>Couldn't sync this wallet with {{ serverName }}. Check your connection, or choose another Bitcoin server. Your keys are not saved yet.</p></div>
+                </div>
+                <div class="row" style="margin-top:16px"><button type="button" class="btn" onClick="{{ clearErr }}">Retry</button><button type="button" class="btn" onClick="{{ toSource }}">Change server</button></div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- IMPORT BITCOIN WALLET · name the Cube -->
+          <sc-if value="{{ onImportCube }}" hint-placeholder-val="{{ false }}">
+            <div class="sec wide">
+              <h2>Name the new Cube</h2>
+              <p class="lead">The imported wallet becomes this Cube's Vault on {{ cur.name }}.</p>
+              <div class="field" style="max-width:480px"><label for="iw-cn">Cube name</label><input id="iw-cn" class="inp" type="text" placeholder="e.g. Cold storage" value="{{ cubeName }}" onChange="{{ setCubeName }}"></div>
+            </div>
+          </sc-if>
+
+          <!-- RECOVERY KIT / PHONE · pick the Cube (filtered to the chosen network) -->
+          <sc-if value="{{ onPick }}" hint-placeholder-val="{{ false }}">
+            <div class="sec wide">
+              <h2>{{ pickHead }}</h2>
+              <p class="lead">Cubes on alex@example.test · {{ cur.name }}</p>
+              <sc-if value="{{ noneHere }}" hint-placeholder-val="{{ false }}">
+                <div class="notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg><div class="grow"><p>{{ noneText }}</p></div></div>
+              </sc-if>
+              <div class="clist" role="radiogroup" aria-label="Cubes">
+                <sc-for list="{{ cubes }}" as="c" hint-placeholder-count="2">
+                  <button type="button" class="crow" role="radio" aria-checked="{{ c.checked }}" onClick="{{ c.pick }}">
+                    <span class="radio" aria-hidden="true"></span>
+                    <span class="nmk {{ c.n.mkCls }}" aria-hidden="true"><sc-if value="{{ c.n.b2b }}" hint-placeholder-val="{{ false }}"><img src="/_blob/c39785504daaef5633099a8ae196c784" alt=""></sc-if><sc-if value="{{ c.n.btc }}" hint-placeholder-val="{{ true }}"><img src="/_blob/dbbfc88f16f7cc27510d81f434c268ea" alt=""></sc-if></span>
+                    <span class="nmain"><span class="nt">{{ c.name }}<sc-if value="{{ c.n.hasTag }}" hint-placeholder-val="{{ false }}"><span class="tb {{ c.n.tbCls }}">{{ c.n.tag }}</span></sc-if></span><span class="ns">{{ c.sub }}</span></span>
+                  </button>
+                </sc-for>
+              </div>
+              <div class="more">
+                <span>{{ otherCount }} more on other networks</span>
+                <button type="button" class="linkbtn" onClick="{{ toggleAll }}">{{ allLabel }}</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- RECOVERY KIT · password -->
+          <sc-if value="{{ onPassword }}" hint-placeholder-val="{{ false }}">
+            <div class="sec wide">
+              <h2>Recovery password for {{ picked }}</h2>
+              <p class="lead">The password you set when you made this Recovery Kit. Connect never sees it.</p>
+              <div class="field" style="max-width:480px"><label for="iw-rp">Recovery password</label><input id="iw-rp" class="inp {{ pwCls }}" type="password" aria-invalid="{{ pwInvalid }}" aria-describedby="iw-rp-e">
+                <sc-if value="{{ pwErr }}" hint-placeholder-val="{{ false }}"><span id="iw-rp-e" class="ferr" role="alert">That password doesn't open this Recovery Kit. Check capitals and spaces, then try again.</span></sc-if>
+              </div>
+              <p class="hint" style="margin-top:16px">Lost the password? Use Recover with phone if this Cube's backup is on a phone.</p>
+            </div>
+          </sc-if>
+
+          <!-- PHONE · approve -->
+          <sc-if value="{{ onApprove }}" hint-placeholder-val="{{ false }}">
+            <div class="sec wide">
+              <h2>Approve on your phone</h2>
+              <p class="lead">Open COINCUBE Mobile on the phone that holds {{ picked }}'s backup and approve this computer.</p>
+              <sc-if value="{{ apWait }}" hint-placeholder-val="{{ true }}">
+                <div class="wait">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"></rect><path d="M11 18.5h2"></path></svg>
+                  <div class="grow"><b>Waiting for approval on Pixel 8</b><div class="hint">Request sent [TIME] · expires in [MINUTES]</div></div>
+                  <button type="button" class="btn sm" onClick="{{ next }}">Simulate approve</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ apDenied }}" hint-placeholder-val="{{ false }}">
+                <div class="notice warn" role="alert">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"></path></svg>
+                  <div class="grow"><p><b>Declined on Pixel 8</b></p><p>The phone turned this request down. If that wasn't you, nothing was shared. Send a new request and approve it on the phone.</p></div>
+                </div>
+                <div class="row" style="margin-top:16px"><button type="button" class="btn primary" onClick="{{ clearErr }}">Send a new request</button></div>
+              </sc-if>
+              <sc-if value="{{ apExpired }}" hint-placeholder-val="{{ false }}">
+                <div class="notice warn" role="alert">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                  <div class="grow"><p><b>Request expired</b></p><p>It wasn't approved within [MINUTES] minutes. Make sure COINCUBE Mobile is open and online on Pixel 8, then send a new one.</p></div>
+                </div>
+                <div class="row" style="margin-top:16px"><button type="button" class="btn primary" onClick="{{ clearErr }}">Send a new request</button></div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- shared: PIN (restored and imported secrets can't go into a passkey) -->
+          <sc-if value="{{ onPin }}" hint-placeholder-val="{{ false }}">
+            <div class="sec wide">
+              <h2>Set a PIN for {{ pinFor }}</h2>
+              <p class="lead">Four digits, entered each time you open this Cube on this computer.</p>
+                <div class="pins">
+                  <div class="pin" role="group" aria-labelledby="iw-lA">
+                    <span id="iw-lA" class="pl">Enter PIN:</span>
+                    <div class="boxes"><input class="box" type="{{ pinTypeA }}" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Enter PIN digit 1"><input class="box" type="{{ pinTypeA }}" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Enter PIN digit 2"><input class="box" type="{{ pinTypeA }}" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Enter PIN digit 3"><input class="box" type="{{ pinTypeA }}" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Enter PIN digit 4"><button type="button" class="eye" aria-pressed="{{ pinShowA }}" aria-label="{{ pinEyeLabelA }}" onClick="{{ togglePinA }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="{{ pinEyePathA }}"></path></svg></button></div>
+                  </div>
+                  <div class="pin" role="group" aria-labelledby="iw-lB">
+                    <span id="iw-lB" class="pl">Confirm PIN:</span>
+                    <div class="boxes"><input class="box" type="{{ pinTypeB }}" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 1"><input class="box" type="{{ pinTypeB }}" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 2"><input class="box" type="{{ pinTypeB }}" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 3"><input class="box" type="{{ pinTypeB }}" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Confirm PIN digit 4"><button type="button" class="eye" aria-pressed="{{ pinShowB }}" aria-label="{{ pinEyeLabelB }}" onClick="{{ togglePinB }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="{{ pinEyePathB }}"></path></svg></button></div>
+                  </div>
+                </div>
+              <sc-if value="{{ srvOnPin }}" hint-placeholder-val="{{ false }}">
+              <fieldset class="srv">
+                <legend>Bitcoin server</legend>
+                <div class="clist" role="radiogroup" aria-label="Bitcoin server">
+                  <sc-for list="{{ servers }}" as="v" hint-placeholder-count="4">
+                    <button type="button" class="crow" role="radio" aria-checked="{{ v.checked }}" onClick="{{ v.pick }}">
+                      <span class="radio" aria-hidden="true"></span>
+                      <span class="nmain"><span class="nt">{{ v.name }}</span><span class="ns">{{ v.sub }}</span></span>
+                    </button>
+                  </sc-for>
+                </div>
+              </fieldset>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- shared: done -->
+          <sc-if value="{{ onDone }}" hint-placeholder-val="{{ false }}">
+            <div class="sec finish">
+              <span class="mvok" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M3.5 9.5l3.5 3.5 7.5-8"></path></svg></span>
+              <h2>{{ doneTitle }}</h2>
+              <p class="lead">{{ doneLine }}</p>
+            </div>
+          </sc-if>
+
+        </div>
+      </div>
+      <sc-if value="{{ inFlow }}" hint-placeholder-val="{{ false }}">
+        <div class="sfoot">
+<sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn" onClick="{{ back }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>{{ backLabel }}</button></sc-if>
+          <span class="grow"></span>
+          <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn primary" onClick="{{ next }}" disabled="{{ nextDisabled }}">{{ nextLabel }}</button></sc-if>
+          <sc-if value="{{ onDone }}" hint-placeholder-val="{{ false }}"><a class="btn primary" href="P-Opening.dc.html">Open Cube</a></sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showChoice }}" hint-placeholder-val="{{ false }}">
+        <div class="scrim" aria-hidden="true"></div>
+        <section class="choice" role="dialog" aria-modal="true" aria-labelledby="iw-ch">
+          <h2 id="iw-ch">Recover "Everyday"</h2>
+          <p>This Cube has two backups. Both restore the same Cube; use the one you have to hand.</p>
+          <button type="button" class="btn" onClick="{{ chooseKit }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6zM9 12l2 2 4-4"></path></svg>Recovery Kit and its password</button>
+          <button type="button" class="btn" onClick="{{ choosePhone }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 2.5h10v19H7zM11 18.5h2"></path></svg>Approve on Pixel 8</button>
+          <button type="button" class="btn" onClick="{{ closeChoice }}">Cancel</button>
+        </section>
+      </sc-if>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["overview","import","kit","phone"],"default":"overview","section":"Review"},"network":{"editor":"enum","options":["bitcoin","b2b","testnet","testnet4","signet","regtest","b2bt4"],"default":"bitcoin","section":"Review"},"signedIn":{"editor":"boolean","default":false,"section":"Review"},"menuOpen":{"editor":"boolean","default":false,"section":"Review"},"error":{"editor":"enum","options":["none","password","denied","expired","scan"],"default":"none","section":"Review"},"choice":{"editor":"boolean","default":false,"section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"forceTheme":{"editor":null},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    const signed = p.signedIn === true || p.signedIn === '1';
+    const sec = p.section || 'overview';
+    // review levers: start a flow at a given step with a Cube already chosen
+    const i = p.flowStep != null ? Number(p.flowStep) : 0;
+    this.state = { sec, net: p.network || 'bitcoin', menu: p.menuOpen === true || p.menuOpen === '1', signed, i, cube: p.cube || null, all: false, src: 'phrase', err: p.error || 'none', choice: p.choice === true || p.choice === '1', server: signed ? 'connect' : 'public', cubeName: p.cubeName || '' };
+  }
+  renderVals() {
+    const NETS = [
+      { id: 'bitcoin', name: 'Bitcoin', tag: '', live: true, b2b: false, spark: true },
+      { id: 'b2b', name: 'Bitcoin Blake2b', tag: 'Blake2b', live: true, b2b: true, spark: false },
+      { id: 'testnet', name: 'Testnet', tag: 'Testnet', live: false, b2b: false, spark: false },
+      { id: 'testnet4', name: 'Testnet4', tag: 'Testnet4', live: false, b2b: false, spark: false },
+      { id: 'signet', name: 'Signet', tag: 'Signet', live: false, b2b: false, spark: false },
+      { id: 'regtest', name: 'Regtest', tag: 'Regtest', live: false, b2b: false, spark: true },
+      { id: 'b2bt4', name: 'Bitcoin Blake2b Testnet4', tag: 'Blake2b Testnet4', live: false, b2b: true, spark: false }
+    ].map((n) => Object.assign(n, {
+      btc: !n.b2b, hasTag: !!n.tag, mkCls: n.live ? '' : 'tn',
+      tbCls: n.b2b && n.live ? 'b2b' : (n.live ? '' : 'test'),
+      caps: n.spark ? 'Spark · Vault' : 'Vault only. Spark isn’t available on ' + n.name + '.',
+      walletImport: n.id === 'bitcoin' || n.id === 'b2b'
+    }));
+    const byId = (id) => NETS.find((n) => n.id === id) || NETS[0];
+    let THEME = 'system'; try { THEME = localStorage.getItem('tenshu.proto.theme') || 'system'; } catch (e) {}
+    const themeClass = this.props.forceTheme ? (this.props.forceTheme === 'light' ? 'light' : '') : ((THEME === 'light' || (THEME !== 'dark' && (this.props.theme || 'dark') === 'light')) ? 'light' : '');
+    const s = this.state;
+    const EYE_ON = 'M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-2.2a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6z';
+    const EYE_OFF = 'M3.3 2 2 3.3l3.4 3.4C3.6 8 2.3 9.9 1.5 12c1.2 2.8 5 7 10.5 7 2 0 3.8-.6 5.3-1.4l3.4 3.4 1.3-1.3zM12 16a4 4 0 0 1-3.9-4.9l5 5c-.4-.1-.7-.1-1.1-.1zm0-11c-1.4 0-2.7.3-3.9.7l2.4 2.4A4 4 0 0 1 16 12.5l3.1 3.1c1.6-1.2 2.8-2.6 3.4-3.6C21.3 9.2 17.5 5 12 5z';
+    const cur = byId(s.net);
+    const I = {
+      home: 'M4 11l8-6 8 6v9H4zM10 20v-5h4v5',
+      wallet: 'M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4zM4 7l11-3v3M16 13.5h.01',
+      kit: 'M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6zM9 12l2 2 4-4',
+      phone: 'M7 2.5h10v19H7zM11 18.5h2'
+    };
+    // Connect fixture: every Cube with a Recovery Kit; phone = its backup is on a paired phone
+    const CUBES = [
+      { name: 'Everyday', net: 'bitcoin', phone: true },
+      { name: 'Household 2024', net: 'bitcoin', phone: false },
+      { name: 'Blake workspace', net: 'b2b', phone: true },
+      { name: 'Lab', net: 'testnet4', phone: false },
+      { name: 'Signet sandbox', net: 'signet', phone: true }
+    ];
+    const FLOWS = {
+      import: ['Cube', 'Source', 'Keys', 'Review', 'Scan', 'PIN', 'Done'],
+      kit: ['Cube', 'Password', 'PIN', 'Done'],
+      phone: ['Cube', 'Approve', 'PIN', 'Done']
+    };
+    const set = (o) => this.setState(o);
+    const open = (sec) => set({ sec, i: 0, cube: null, all: false, menu: false, err: 'none' });
+    const setNet = (id) => set({ net: id, menu: false, cube: null });
+    const mk = (n) => Object.assign({}, n, { checked: n.id === s.net ? 'true' : 'false', pick: () => setNet(n.id) });
+
+    const sec = (s.sec === 'import' && !cur.walletImport) || ((s.sec === 'kit' || s.sec === 'phone') && !s.signed) ? 'overview' : s.sec;
+    const blocked = false;
+    const flow = FLOWS[sec];
+    const inFlow = !!flow && !blocked;
+    const label = inFlow ? flow[s.i] : '';
+    const pool = CUBES.filter((c) => sec !== 'phone' || c.phone);
+    const here = pool.filter((c) => c.net === s.net);
+    const shown = s.all ? pool : here;
+    const cubes = shown.map((c) => ({
+      name: c.name, n: byId(c.net), checked: s.cube === c.name ? 'true' : 'false',
+      sub: sec === 'phone' ? 'Backup on Pixel 8 · paired [DATE]' : 'Recovery Kit saved [DATE]',
+      pick: () => set({ cube: c.name, net: c.net })
+    }));
+    const kitHere = CUBES.filter((c) => c.net === s.net).length;
+    const phoneHere = CUBES.filter((c) => c.net === s.net && c.phone).length;
+    const methods = [
+      { key: 'import', icon: I.wallet, title: 'Import Bitcoin wallet', desc: 'A recovery phrase, descriptor or hardware wallet, as a new Cube’s Vault.',
+        off: !cur.walletImport, netOff: !cur.walletImport, why: 'Bitcoin and Bitcoin Blake2b only.', pill: cur.walletImport ? 'No sign-in' : 'Not on ' + cur.name },
+      { key: 'kit', icon: I.kit, title: 'Restore from Recovery Kit', desc: 'Your Recovery Kit from Connect and its recovery password.',
+        off: !s.signed, pill: 'Connected · ' + kitHere + (kitHere === 1 ? ' Cube' : ' Cubes') + ' on ' + cur.name, ok: s.signed, signBtn: !s.signed },
+      { key: 'phone', icon: I.phone, title: 'Recover with phone', desc: 'Approve on the phone that holds the Cube’s backup.',
+        off: !s.signed, pill: 'Connected · ' + phoneHere + (phoneHere === 1 ? ' Cube' : ' Cubes') + ' on ' + cur.name, ok: s.signed, signBtn: !s.signed }
+    ].map((m) => Object.assign(m, { netOff: !!m.netOff, ok: !!m.ok, signBtn: !!m.signBtn, plainPill: !m.signBtn, cls: m.off ? 'off' : '', pillCls: m.ok ? 'ok' : '', start: () => open(m.key) }));
+    const nav = [
+      { key: 'overview', label: 'Overview', icon: I.home },
+      { key: 'import', label: 'Import Bitcoin wallet', icon: I.wallet, sub: cur.walletImport ? '' : 'Not on ' + cur.name },
+      { key: 'kit', label: 'Recovery Kit', icon: I.kit, sub: s.signed ? '' : 'Sign in to Connect' },
+      { key: 'phone', label: 'Recover with phone', icon: I.phone, sub: s.signed ? '' : 'Sign in to Connect' }
+    ].map((n) => Object.assign(n, { cls: n.sub ? 'off' : '', disabled: !!n.sub, hasSub: !!n.sub, current: n.key === sec ? 'page' : 'false', pick: () => open(n.key) }));
+    const SRV = {
+      connect: ['COINCUBE Connect', s.signed ? 'Hosted Esplora, backed by Bitcoin Knots. No setup.' : 'Hosted Esplora. Needs Connect sign-in.'],
+      public: ['Public Esplora (mempool.space)', 'Free and public. The server sees which addresses you look up.'],
+      esplora: ['My Esplora server', 'Your own server: URL in the next step'],
+      electrum: ['My Electrum server', 'Your own server: host and port in the next step']
+    };
+    const servers = Object.keys(SRV).map((k) => ({ name: SRV[k][0], sub: SRV[k][1], checked: s.server === k ? 'true' : 'false', pick: () => set({ server: k }) }));
+    const steps = inFlow ? flow.map((l, k) => ({ label: l, num: k + 1, notFirst: k > 0, done: k < s.i, todo: k >= s.i, cls: k === s.i ? 'cur' : (k < s.i ? 'done' : ''), current: k === s.i ? 'step' : 'false' })) : [];
+    const last = inFlow ? flow.length - 1 : 0;
+    const go = (d) => {
+      const j = s.i + d;
+      if (j < 0) return open('overview');
+      set({ i: Math.min(last, j), err: 'none' });
+    };
+    const SRC = {
+      phrase: ['Recovery phrase', '12 or 24 words, separated by spaces', 'BIP39. COINCUBE Desktop keeps the seed encrypted on this computer.'],
+      desc: ['Output descriptor', 'wpkh([fingerprint/84h/0h/0h]xpub…/<0;1>/*)', 'Watch-only until you add a signer.'],
+      hw: ['Hardware wallet', 'Connect the device, then choose Continue', 'The device keeps its seed and signs for this wallet.']
+    }[s.src];
+    return {
+      pinFor: sec === 'import' ? (s.cubeName || 'the new Cube') : (s.cube || 'this Cube'),
+      pinTypeA: s.pinShowA ? 'text' : 'password', pinTypeB: s.pinShowB ? 'text' : 'password',
+      pinShowA: s.pinShowA ? 'true' : 'false', pinShowB: s.pinShowB ? 'true' : 'false',
+      pinEyeLabelA: s.pinShowA ? 'Hide PIN' : 'Show PIN', pinEyeLabelB: s.pinShowB ? 'Hide confirmed PIN' : 'Show confirmed PIN',
+      pinEyePathA: s.pinShowA ? EYE_OFF : EYE_ON, pinEyePathB: s.pinShowB ? EYE_OFF : EYE_ON,
+      togglePinA: () => this.setState({ pinShowA: !s.pinShowA }), togglePinB: () => this.setState({ pinShowB: !s.pinShowB }),
+      themeClass, cur,
+      signedIn: s.signed, signedOut: !s.signed,
+      acctAria: s.signed ? 'Connect account: alex@example.test' : 'Connect: signed out. Sign in',
+      menuOpen: s.menu ? 'true' : 'false', isMenuOpen: s.menu, toggleMenu: () => set({ menu: !s.menu }),
+      liveNets: NETS.filter((n) => n.live).map(mk), testNets: NETS.filter((n) => !n.live).map(mk),
+      toBitcoin: () => setNet('bitcoin'), toB2b: () => setNet('b2b'), goKit: () => open('kit'),
+      nav, methods, steps, hasRail: inFlow,
+      onOverview: sec === 'overview',
+      onSource: sec === 'import' && label === 'Source', onKeys: sec === 'import' && label === 'Keys',
+      onReview: sec === 'import' && label === 'Review', onScan: sec === 'import' && label === 'Scan',
+      scanErr: s.err === 'scan', scanOk: s.err !== 'scan', toSource: () => set({ i: 1, err: 'none' }), clearErr: () => set({ err: 'none' }),
+      review: [
+        { k: 'Cube', v: s.cubeName || 'Cold storage' }, { k: 'Network', v: cur.name },
+        { k: 'Source', v: { phrase: 'Recovery phrase (24 words)', desc: 'Output descriptor', hw: 'Hardware wallet · [DEVICE]' }[s.src] },
+        { k: 'Address type', v: 'Native SegWit (BIP84)' },
+        { k: 'Signers', v: s.src === 'desc' ? 'None yet · watch-only' : (s.src === 'hw' ? '1 · the hardware wallet' : '1 · COINCUBE Desktop on this computer') },
+        { k: 'First receive address', v: '[ADDRESS]' }, { k: 'Bitcoin server', v: SRV[s.server][0] }
+      ],
+      servers, serverName: SRV[s.server][0],
+      cubeName: s.cubeName, cubeNameOr: s.cubeName || 'the new Cube', setCubeName: (e) => set({ cubeName: e.target.value }),
+      pwErr: s.err === 'password', pwCls: s.err === 'password' ? 'bad' : '', pwInvalid: s.err === 'password' ? 'true' : 'false',
+      apWait: s.err !== 'denied' && s.err !== 'expired', apDenied: s.err === 'denied', apExpired: s.err === 'expired',
+      showChoice: s.choice, closeChoice: () => set({ choice: false }),
+      chooseKit: () => set({ choice: false, sec: 'kit', net: 'bitcoin', cube: 'Everyday', i: 1, err: 'none' }),
+      choosePhone: () => set({ choice: false, sec: 'phone', net: 'bitcoin', cube: 'Everyday', i: 1, err: 'none' }),
+      srcPhrase: s.src === 'phrase', srcDesc: s.src === 'desc', srcHw: s.src === 'hw',
+      pickPhrase: () => set({ src: 'phrase' }), pickDesc: () => set({ src: 'desc' }), pickHw: () => set({ src: 'hw' }),
+      srcLabel: SRC[0], srcPlaceholder: SRC[1], srcHint: SRC[2],
+      // prototype: stands in for the Connect sign-in modal opening over this one and returning signed in
+      signIn: () => set({ signed: true }),
+      onPick: label === 'Cube' && sec !== 'import',
+      pickHead: sec === 'phone' ? 'Which Cube is on your phone?' : 'Which Cube do you want to restore?',
+      cubes, noneHere: here.length === 0 && !s.all,
+      noneText: 'No ' + (sec === 'phone' ? 'phone backups' : 'Recovery Kits') + ' on ' + cur.name + ' for this account. Show all networks, or change the network at the top.',
+      otherCount: pool.length - here.length, allLabel: s.all ? 'Only ' + cur.name : 'Show all networks', toggleAll: () => set({ all: !s.all }),
+      onPassword: label === 'Password', onApprove: label === 'Approve',
+      onPin: label === 'PIN', srvOnPin: sec !== 'import', onImportCube: sec === 'import' && label === 'Cube',
+      doneTitle: sec === 'import' ? (s.cubeName || 'Cold storage') + ' is ready' : (s.cube || 'Your Cube') + ' is restored',
+      doneLine: sec === 'import' ? 'The imported wallet is this Cube\u2019s Vault. History keeps syncing in the background.' : 'Back on this computer with everything its backup held. Its Recovery Kit stays on Connect.',
+      onDone: label === 'Done', notDone: label !== 'Done',
+      picked: s.cube || 'this Cube', pickedOr: s.cube || 'Your Cube',
+      inFlow, backLabel: 'Back',
+      nextLabel: label === 'Approve' ? 'Waiting…' : 'Continue',
+      nextDisabled: (label === 'Cube' && sec !== 'import' && !s.cube) || label === 'Approve' || (label === 'Scan' && s.err === 'scan'),
+      next: () => go(1), back: () => go(-1)
+    };
+  }
+}
+</script>
+</body>
+</html>

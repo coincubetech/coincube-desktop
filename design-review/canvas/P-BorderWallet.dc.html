@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 .tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff}
@@ -17,7 +17,7 @@ body{margin:0}
 .tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
 .tenshu.reduced *{animation:none!important;transition:none!important}
-a{color:#f3821d}a:hover{color:#ffa54d}
+a{color:#f3821d}a:hover{color:#ff9a3f}
 
 .tenshu{--on-accent:#1a1208;--scrim:rgba(10,10,9,.55);--cell:#262725;font-variant-numeric:tabular-nums}
 .tenshu.light{--scrim:rgba(60,50,40,.28);--cell:#f1ede6}
@@ -43,7 +43,7 @@ svg{flex:none}
 .stage{flex:1;min-height:0;position:relative;overflow:hidden}
 .page{position:absolute;inset:0;padding:40px 96px;box-sizing:border-box}
 .page.dim{opacity:.4}
-.page h1{margin:0;font-size:22px;font-weight:600}
+.page h1{margin:0;font-size:26px;font-weight:600}
 .page .sub{margin:4px 0 0;color:var(--muted);font-size:13px}
 .blk{margin-top:28px;max-width:760px}
 .blk h2{margin:0 0 8px;font-size:14px;font-weight:600}
@@ -103,13 +103,87 @@ svg{flex:none}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn svg{width:16px;height:16px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
-.btn.primary:hover:not(:disabled){background:#ffa54d;border-color:#ffa54d}
+.btn.primary:hover:not(:disabled){background:#ff9a3f;border-color:#ff9a3f}
 .btn.ghost{border-color:transparent}
 .btn.full{flex:1}
 .btn.sm{height:30px;padding:0 12px;font-size:13px}
 
 .foot{height:28px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);border-top:1px solid var(--line);background:var(--bg)}
 a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color:var(--acc-ink)}
+
+/* Closer to Mobile V3 (Robert, 2026-11-25): one-colour wordmark; boxes have no outline; regions keep a quiet dividing line (ink at 10%, as Mobile); menu rows at medium weight; controls keep their outlines. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom-color:var(--rule)}
+.tenshu .foot{border-top-color:var(--rule)}
+.tenshu .dlg{border:0}
+
+/* ---- V3 Phase 2, folded in from the study page (2026-11-26) ---- */
+/* Top bar as the app draws it: [eye, Connect, App preferences]. One Connect control: account glyph with a status light, Connect · account, a chevron; it opens a small panel. */
+.tenshu .chips{gap:8px}
+.tenshu .ccx{position:relative}
+.tenshu .ccx>summary{list-style:none;cursor:pointer}
+.tenshu .ccx>summary::-webkit-details-marker{display:none}
+.tenshu .chip.cc{gap:7px;padding:0 10px 0 10px}
+.tenshu .chip.cc b{font-weight:600}
+.tenshu .ccav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.tenshu .ccav .lt,.tenshu .cpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--panel)}
+.tenshu .ccsep,.tenshu .ccd{color:var(--muted)}
+.tenshu .ccd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .cchev{color:var(--muted);transition:transform .15s}
+.tenshu .ccx[open] .cchev{transform:rotate(180deg)}
+.tenshu .cpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left}
+.tenshu .cph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .cph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .cph span{color:var(--muted);font-size:13px}
+.tenshu .cpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .cpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .cpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .cpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .cpa:hover{background:var(--hover,var(--selected))}
+/* Hide balances: neutral when on. */
+.tenshu .top .chips .eye[aria-pressed="true"]{border-color:transparent;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+/* Sidebar backup strip: one line, a dot, no box. */
+.tenshu .attn{border:0;background:transparent;gap:9px;padding:8px 10px;font-size:13px}
+.tenshu .attn>svg,.tenshu .attn .st>svg{display:none}
+.tenshu .attn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.tenshu .attn .warn,.tenshu .attn .st{color:var(--ink);font-weight:500}
+.tenshu .attn .go{color:var(--muted);font-weight:400}
+.tenshu .attn:hover{background:var(--hover,var(--selected))}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
 </style>
 </helmet>
 <div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:1100px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
@@ -117,7 +191,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
   <header class="top">
     <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg>
-      <span>Tenshu</span>
+      <span><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;letter-spacing:.08em;color:var(--ink)">COINCUBE</span></span>
     </a>
     <span class="vsep"></span>
     <p class="crumb"><b>Everyday</b><span class="sep">›</span><a href="{{ crumbHref }}" style="color:inherit;text-underline-offset:3px;text-decoration-color:var(--accent)">{{ crumb }}</a></p>
@@ -134,7 +208,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           <h2>Primary spending option:</h2>
           <ul class="rows">
             <li class="r"><span class="main"><span class="t">Primary key #1</span><br><span class="s">Cube Key · This device · <span class="mono">a1b2c3d4</span></span></span></li>
-            <li class="r"><span class="main"><span class="t">Primary key #2</span><br><span class="s">Keychain · Alex's phone · <span class="mono">b2c3d4e5</span></span></span></li>
+            <li class="r"><span class="main"><span class="t">Primary key #2</span><br><span class="s">Mobile · Alex's phone · <span class="mono">b2c3d4e5</span></span></span></li>
           </ul>
         </section>
         <section class="blk">
@@ -200,10 +274,10 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           <ol>
             <li>Generate or enter a 12-word recovery phrase (the Entropy Grid seed)</li>
             <li>Select 11 cells from the word grid (your Pattern)</li>
-            <li>Memorize the checksum word (the final derived word)</li>
+            <li>Review the automatically calculated checksum word</li>
             <li>Review and confirm the derived key</li>
           </ol>
-          <p class="imp">Important: To reconstruct this key you need all three components: the recovery phrase, the exact pattern, and the checksum word. Write them down and store them securely.</p>
+          <p>To reconstruct this key, you need your recovery phrase and exact pattern. Keep your recovery phrase safe and make sure you can reproduce your pattern in the same order. The checksum word is calculated automatically.</p>
           <div class="foot2">
             <button type="button" class="btn ghost" onClick="{{ toSource }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"></path></svg>Back</button>
             <span class="grow"></span>
@@ -237,7 +311,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           </sc-if>
           <div class="foot2">
             <button type="button" class="btn ghost" onClick="{{ phraseBack }}">{{ phraseBackLabel }}</button>
-            <button type="button" class="btn primary full" disabled="{{ phraseNextOff }}" onClick="{{ phraseNext }}">Next</button>
+            <button type="button" class="btn primary full" disabled="{{ phraseNextOff }}" onClick="{{ phraseNext }}">{{ phraseNextLabel }}</button>
           </div>
         </section>
       </sc-if>
@@ -285,7 +359,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           <div class="mh"><h2 id="ck-t">Checksum &amp; Key</h2><button type="button" class="x" aria-label="Close" onClick="{{ close }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
           <ol class="steps"><sc-for list="{{ steps }}" as="k" hint-placeholder-count="4"><li class="{{ k.cls }}" aria-current="{{ k.cur }}"><span class="n">{{ k.n }}</span>{{ k.label }}</li></sc-for></ol>
           <p><b>Checksum word: "[synthetic]"</b></p>
-          <p>This is the only word you need to memorize. The checksum word is the 12th word of the derived mnemonic, calculated automatically from your pattern. Together with the recovery phrase and your pattern, it forms the three components needed to reconstruct this key.</p>
+          <p>This word is generated automatically. You can keep it as an optional reference to help check your pattern.</p>
           <div class="kv">
             <p><b>Derived Key Info</b></p>
             <p>Fingerprint: <span class="mono">e5f6a7b8</span></p>
@@ -294,7 +368,7 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           </div>
           <div class="foot2">
             <button type="button" class="btn ghost" onClick="{{ toPattern }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"></path></svg>Back</button>
-            <button type="button" class="btn primary full" onClick="{{ toConfirm }}">Next</button>
+            <button type="button" class="btn primary full" onClick="{{ toConfirm }}">Continue</button>
           </div>
         </section>
       </sc-if>
@@ -307,13 +381,12 @@ a.brand{color:inherit;text-decoration:none;border-radius:6px}a.brand:hover{color
           <div class="imp">
             <p><b>Important — Read carefully</b></p>
             <p style="margin-top:6px">After confirming, the mnemonic and private keys will be permanently erased from memory. Only the public key (xpub) and fingerprint will be stored in the wallet descriptor.</p>
-            <p style="margin-top:6px">To reconstruct this key in the future, you need all three components:</p>
+            <p style="margin-top:6px">To reconstruct this key in the future, you need:</p>
             <ol style="margin-top:4px">
               <li>The recovery phrase (12 words that seed the grid)</li>
               <li>Your exact pattern (the 11 cells in order)</li>
-              <li><b>The checksum word: "[synthetic]"</b></li>
             </ol>
-            <p style="margin-top:6px">Write down and securely store all three. Without any one of them, the key cannot be recovered.</p>
+            <p style="margin-top:6px">Keep your recovery phrase safe and make sure you can reproduce your pattern in the same order. Both are required to recover your key. The checksum word is recalculated automatically; you don't need to memorize it.</p>
           </div>
           <p><b>Key fingerprint: <span class="mono">e5f6a7b8</span></b></p>
           <div class="foot2">
@@ -409,7 +482,7 @@ class Component extends DCLogic {
       themeClass: this.props.forceTheme ? (this.props.forceTheme === 'light' ? 'light' : '') : ((THEME === 'light' || (THEME !== 'dark' && theme === 'light')) ? 'light' : ''),
       motionClass: P.reducedMotion ? 'reduced' : '',
       crumb: recon ? 'Vault · Family savings › PSBTs' : 'Create Vault · Set keys',
-      crumbHref: recon ? 'P-Advanced.dc.html' : 'P-Create.dc.html',
+      crumbHref: recon ? 'P-Advanced.dc.html' : 'P-GapsInstaller.dc.html',
       v: {
         enrolPage: !recon, signPage: recon,
         enrolled: st === 'enrolled',
@@ -461,7 +534,8 @@ class Component extends DCLogic {
         ? "That pattern doesn't rebuild this wallet's recovery phrase. Check the grid and your cell order, then try again."
         : (st === 'reconMismatch' && !s.err ? "That pattern doesn't rebuild this wallet's recovery phrase. Check the grid and your cell order, then try again." : s.err),
       patternBack: () => go({ st: recon ? 'reconPhrase' : 'phrase', err: '', words: recon ? DERIVED.slice() : s.words }),
-      patternNextLabel: recon ? 'Sign' : 'Next',
+      patternNextLabel: recon ? 'Sign' : 'Continue',
+      phraseNextLabel: recon ? 'Next' : 'Continue',
       patternNextOff: recon ? !full : false,
       patternNext: () => {
         if (!full) { go({ err: 'Please select exactly 11 cells. Currently selected: ' + pat.length }); return; }

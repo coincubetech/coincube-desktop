@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Launcher bottom bar · before and after</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff;--floor:#1b1c1a;--floor-rule:#2b2c29;--on-accent:#1a1208;--acc-ink:#f3821d;--hover:rgba(245,240,232,.06);font-variant-numeric:tabular-nums}
+.tenshu.light{--bg:#faf9f6;--panel:#ffffff;--rail:#ede8e0;--ink:#202020;--muted:#575a54;--line:#c4beb4;--selected:#f7e3cc;--good:#23613b;--warn:#77450b;--bad:#8f2e1d;--focus:#1d5fb8;--floor:#efebe3;--floor-rule:#e0d9cd;--acc-ink:#8a4304;--hover:rgba(32,32,32,.05)}
+.tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.tenshu button,.tenshu input,.tenshu textarea{font:inherit;color:inherit}
+a{color:#f3821d}a:hover{color:#ffa54d}
+.grow{flex:1}
+.muted{color:var(--muted)}
+svg{flex:none}
+/* shared top bar: identical on the Launcher, in a Cube and under every modal */
+.top{height:64px;flex:none;display:flex;align-items:center;gap:16px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--rail);position:relative;z-index:8}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:inherit;text-decoration:none;border-radius:6px}
+a.brand:hover{color:var(--acc-ink)}
+.brand svg{width:20px;height:20px}
+.tbx-r{display:flex;align-items:center;gap:8px;flex:none}
+.tbx-ico{position:relative;width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;text-decoration:none}
+.tbx-ico:hover{background:var(--hover);color:var(--ink)}
+.tbx-ico svg{width:16px;height:16px}
+.tbx-chip{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font-size:13px;white-space:nowrap;text-decoration:none;cursor:pointer}
+a.tbx-chip,a.tbx-chip:hover{color:var(--ink)}
+.tbx-chip:hover{background:var(--hover)}
+.tbx-chip svg{width:16px;height:16px;color:var(--muted)}
+.tbx-st{color:var(--muted)}
+.tbx-mini{font-weight:600;color:var(--acc-ink)}
+/* dimmed, inert Launcher behind the modal */
+.stage{flex:1;min-height:0;position:relative;overflow:hidden}
+.backdrop{position:absolute;inset:0;opacity:.4;pointer-events:none;display:flex;flex-direction:column}
+.bfield{flex:1;position:relative}
+.floor{position:absolute;left:0;right:0;bottom:0;top:30%;background:var(--floor);clip-path:polygon(14% 0,86% 0,100% 100%,0 100%)}
+.bbar{height:64px;flex:none;display:flex;align-items:center;gap:8px;padding:0 24px;border-top:1px solid var(--line);background:var(--rail)}
+/* the modal sheet: same frame as Connect and App preferences */
+.sheet{position:absolute;left:200px;top:28px;width:1040px;bottom:28px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 64px -16px rgba(0,0,0,.55);overflow:hidden;z-index:4}
+.light .sheet{box-shadow:0 24px 64px -20px rgba(70,52,30,.35)}
+.shead{height:72px;flex:none;display:flex;align-items:center;gap:16px;padding:0 24px 0 28px;border-bottom:1px solid var(--line);position:relative}
+.shead h1{margin:0;font-size:22px;font-weight:600}
+.vsep{width:1px;height:24px;background:var(--line)}
+.netchip{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 10px;border:1px solid transparent;border-radius:8px;background:none;font-size:14px;color:var(--ink);white-space:nowrap}
+button.netchip{cursor:pointer;border-color:var(--line)}
+button.netchip:hover{background:var(--hover)}
+button.netchip[aria-expanded="true"]{border-color:var(--accent);background:var(--selected)}
+.netchip .chev{width:14px;height:14px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:none;cursor:pointer;font-size:14px;font-weight:500;text-decoration:none;color:var(--ink);white-space:nowrap}
+a.btn,a.btn:hover{color:var(--ink)}
+.btn svg{width:16px;height:16px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary,a.btn.primary,a.btn.primary:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:#ffa54d;border-color:#ffa54d}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.close{gap:6px;padding:0 12px 0 10px}
+.btn.sm{height:30px;padding:0 12px;font-size:13px}
+.linkbtn{border:0;background:none;padding:2px 0;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px;cursor:pointer;font-size:13px}
+a.linkbtn:hover{color:var(--ink)}
+/* network mark: Bitcoin logo; test networks sit in a dashed ring at 60% */
+.nmk{display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;box-sizing:border-box;border-radius:50%}
+.nmk img{display:block;width:100%;height:100%;border-radius:50%}
+.nmk.tn{border:1px dashed currentColor;padding:2px}
+.nmk.tn img{opacity:.6}
+.tb{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;border:1px solid var(--muted);font-size:12px;font-weight:500;line-height:1;white-space:nowrap}
+.tb.b2b{border-color:#D4A62A}
+.tb.test{border-style:dashed}
+/* step rail */
+.rail{height:52px;flex:none;display:flex;align-items:center;gap:8px;padding:0 28px;border-bottom:1px solid var(--line);font-size:13px}
+.st{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.st .n{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;box-sizing:border-box}
+.st.cur{color:var(--ink);font-weight:500}
+.st.cur .n{border-color:var(--accent);background:var(--selected)}
+.st.done{color:var(--ink)}
+.st.done .n{border-color:var(--good);color:var(--good)}
+.st .n svg{width:14px;height:14px}
+.rl{width:20px;height:1px;background:var(--line)}
+/* body */
+.sbody{flex:1;min-height:0;display:flex;position:relative}
+.content{flex:1;min-width:0;overflow-y:auto;padding:28px 40px 32px}
+.sec{max-width:640px;margin:0 auto}
+.sec.wide{max-width:none;margin:0}
+.sec h2{margin:0;font-size:22px;font-weight:600;line-height:1.3}
+.sec h3{margin:0;font-size:18px;font-weight:600;line-height:1.3}
+.lead{margin:6px 0 0;font-size:14px;color:var(--muted);max-width:620px}
+.gh{margin:24px 0 8px;font-size:13px;font-weight:600;color:var(--muted)}
+.sfoot{height:68px;flex:none;display:flex;align-items:center;gap:12px;padding:0 24px;border-top:1px solid var(--line)}
+/* network rows (same component in Create's Network step and Import's network menu) */
+.nlist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.nrow{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:8px 14px;border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer;text-align:left;box-sizing:border-box}
+.nrow:hover{background:var(--hover)}
+.nrow[aria-checked="true"]{background:var(--selected)}
+.radio{width:18px;height:18px;flex:none;border-radius:50%;border:1.5px solid var(--muted);box-sizing:border-box;display:grid;place-items:center}
+.nrow[aria-checked="true"] .radio{border-color:var(--accent)}
+.nrow[aria-checked="true"] .radio::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.nmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.nt{display:flex;align-items:center;gap:8px;font-weight:500}
+.ns{font-size:13px;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:6px;margin-top:20px}
+.field label{font-size:13px;font-weight:500}
+.inp{height:44px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);box-sizing:border-box;font-size:15px}
+textarea.inp{height:96px;padding:10px 14px;resize:none;font-family:'IBM Plex Mono',monospace;font-size:13px}
+.inp:focus{outline:2px solid var(--focus);outline-offset:1px}
+.hint{font-size:12px;color:var(--muted)}
+.notice{display:flex;gap:12px;align-items:flex-start;margin-top:20px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;font-size:13px}
+.notice svg{width:18px;height:18px;color:var(--muted);margin-top:1px}
+.notice .grow p{margin:0}
+.notice.warn svg{color:var(--warn)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+.seg button{height:32px;padding:0 14px;border:0;border-radius:6px;background:none;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--selected);color:var(--ink);font-weight:500}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.okmark{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--selected);color:var(--good)}
+.okmark svg{width:28px;height:28px}
+</style>
+</helmet>
+<div class="tenshu {{ themeClass }}" style="width:1440px;height:580px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column;gap:20px;padding:40px">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:var(--muted)">Today · Launcher on Signet</p>
+    <div class="bbar" style="border:1px solid var(--line);border-radius:10px">
+      <span class="btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Create Cube</span>
+      <span class="btn" style="opacity:.45"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Import Bitcoin wallet</span>
+      <span style="font-size:13px;color:var(--muted)">Bitcoin mainnet only · choose it in Network</span>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:var(--muted)">Proposed · same on every network</p>
+    <div class="bbar" style="border:1px solid var(--accent);border-radius:10px">
+      <a class="btn primary" href="W-Create.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Create Cube</a>
+      <a class="btn" href="W-Import.dc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Import or restore Bitcoin wallet</a>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <p style="margin:0;font-size:13px;font-weight:600;color:var(--muted)">Proposed · no Cube slots left on the plan</p>
+    <div class="bbar" style="border:1px solid var(--line);border-radius:10px">
+      <button type="button" class="btn primary" disabled aria-describedby="lb-full"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Create Cube</button>
+      <button type="button" class="btn" disabled aria-describedby="lb-full"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Import or restore Bitcoin wallet</button>
+      <span id="lb-full" style="font-size:13px;color:var(--muted)">[N] of [N] Cubes on the Free plan.</span>
+      <a class="linkbtn" href="P-Connect.dc.html">Upgrade plan</a>
+    </div>
+  </div>
+  <ul style="margin:0;padding-left:18px;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:6px;max-width:1100px">
+    <li>Disabled only when the plan has no Cube slots left, since both make a new Cube. The reason and Upgrade plan sit beside the buttons, not in a tooltip. The network never disables them. Both buttons open a modal over the Launcher; the network comes from the Launcher's Network filter and can be changed inside.</li>
+    <li>Import or restore always opens on Overview. Only the wallet-import row is limited (Bitcoin and Bitcoin Blake2b); Recovery Kit and phone recovery work on every network.</li>
+    <li>The Create step's own "Import Bitcoin wallet" button becomes a link to this modal, carrying the chosen network.</li>
+  </ul>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"$preview":{"width":1440,"height":580}}'>
+class Component extends DCLogic {
+  renderVals() {
+    let THEME = 'system'; try { THEME = localStorage.getItem('tenshu.proto.theme') || 'system'; } catch (e) {}
+    const themeClass = (THEME === 'light' || (THEME !== 'dark' && (this.props.theme || 'dark') === 'light')) ? 'light' : '';
+    return { themeClass };
+  }
+}
+</script>
+</body>
+</html>

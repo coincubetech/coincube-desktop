@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 body{margin:0}
 .tenshu{--bg:#161716;--panel:#202020;--rail:#111211;--ink:#f5f0e8;--muted:#b9bbb5;--line:#424242;--accent:#f3821d;--selected:#36291e;--good:#8bdfab;--warn:#f3b465;--bad:#ffad9b;--focus:#8fc1ff}
@@ -17,7 +17,7 @@ body{margin:0}
 .tenshu :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media (prefers-reduced-motion: reduce){.tenshu *{animation:none!important;transition:none!important}}
 .tenshu.reduced *{animation:none!important;transition:none!important}
-a{color:#f3821d}a:hover{color:#ffa54d}
+a{color:#f3821d}a:hover{color:#ff9a3f}
 
 .tenshu{--floor:#1b1c1a;--face-t:#41423e;--face-l:#2e2f2c;--face-r:#262724;--edge-btc:rgba(243,130,29,.6);--edge-b2b:rgba(212,166,42,.6);--edge-test:rgba(185,187,181,.6);--shadow:rgba(0,0,0,.6);--on-accent:#1a1208;--accent-ink:#f3821d;--hover:rgba(245,240,232,.06);font-variant-numeric:tabular-nums}
 .tenshu.light{--floor:#efebe3;--face-t:#e6e0d5;--face-l:#d6cfc2;--face-r:#c9c1b2;--edge-test:rgba(87,90,84,.6);--shadow:rgba(70,52,30,.3);--accent-ink:#8a4304;--hover:rgba(32,32,32,.05)}
@@ -64,7 +64,7 @@ svg{flex:none}
 .sheet{position:absolute;left:200px;top:28px;width:1040px;bottom:28px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 24px 64px -16px rgba(0,0,0,.55);overflow:hidden;z-index:4}
 .light .sheet{box-shadow:0 24px 64px -20px rgba(70,52,30,.35)}
 .shead{height:72px;flex:none;display:flex;align-items:center;gap:16px;padding:0 24px 0 28px;border-bottom:1px solid var(--line)}
-.shead h1{font-size:22px;font-weight:600}
+.shead h1{font-size:26px;font-weight:600}
 .shead .who{font-size:14px;color:var(--muted)}
 .sbody{flex:1;min-height:0;display:flex}
 .nav{width:232px;flex:none;padding:16px 12px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
@@ -99,7 +99,7 @@ svg{flex:none}
 .tenshu a.btn{color:var(--ink)}
 .btn:hover{border-color:var(--muted)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
-.btn.primary:hover{background:#ffa54d;border-color:#ffa54d}
+.btn.primary:hover{background:#ff9a3f;border-color:#ff9a3f}
 .btn.sm{height:30px;padding:0 12px;font-size:13px}
 .btn:disabled{opacity:.55;cursor:not-allowed}
 .btn.danger{color:var(--bad)}
@@ -143,7 +143,7 @@ svg{flex:none}
 .foot{height:28px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);border-top:1px solid var(--line);background:var(--bg)}
 /* duress active: replaces every other view */
 .lock{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative}
-.lock h1{font-size:22px;font-weight:600}
+.lock h1{font-size:26px;font-weight:600}
 .lock p.t{margin-top:12px;font-size:15px;color:var(--muted)}
 .lock .btn{width:220px;margin-top:24px;height:40px}
 .lock .em{margin-top:14px;font-size:14px;color:var(--muted)}
@@ -167,6 +167,112 @@ a.tbx-chip{color:var(--ink)}
 .tbx-st{display:inline-flex;align-items:center;gap:5px}
 .tbx-st.ok{color:var(--good)}.tbx-st.out{color:var(--muted)}.tbx-st.warn{color:var(--warn)}
 .tbx-mini{font-weight:600;color:var(--acc-ink,var(--accent))}
+
+/* Closer to Mobile V3 (Robert, 2026-11-25): one-colour wordmark; boxes have no outline; regions keep a quiet dividing line (ink at 10%, as Mobile); menu rows at medium weight; controls keep their outlines. */
+.tenshu{--rule:color-mix(in srgb,var(--ink) 10%,transparent)}
+.tenshu .top{border-bottom-color:var(--rule)}
+.tenshu .foot{border-top-color:var(--rule)}
+.tenshu .sheet{border:0}
+.tenshu .form{border:0}
+
+/* ---- V3 Phase 2, folded in from the study page (2026-11-26) ---- */
+/* Top bar as the app draws it: [eye, Connect, App preferences]. One Connect control: account glyph with a status light, Connect · account, a chevron; it opens a small panel. */
+.tenshu .chips{gap:8px}
+.tenshu .ccx{position:relative}
+.tenshu .ccx>summary{list-style:none;cursor:pointer}
+.tenshu .ccx>summary::-webkit-details-marker{display:none}
+.tenshu .chip.cc{gap:7px;padding:0 10px 0 10px}
+.tenshu .chip.cc b{font-weight:600}
+.tenshu .ccav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.tenshu .ccav .lt,.tenshu .cpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--panel)}
+.tenshu .ccsep,.tenshu .ccd{color:var(--muted)}
+.tenshu .ccd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .cchev{color:var(--muted);transition:transform .15s}
+.tenshu .ccx[open] .cchev{transform:rotate(180deg)}
+.tenshu .cpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left}
+.tenshu .cph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .cph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .cph span{color:var(--muted);font-size:13px}
+.tenshu .cpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .cpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .cpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .cpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .cpa:hover{background:var(--hover,var(--selected))}
+/* Hide balances: neutral when on. */
+.tenshu .top .chips .eye[aria-pressed="true"]{border-color:transparent;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
+/* Sidebar backup strip: one line, a dot, no box. */
+.tenshu .attn{border:0;background:transparent;gap:9px;padding:8px 10px;font-size:13px}
+.tenshu .attn>svg,.tenshu .attn .st>svg{display:none}
+.tenshu .attn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+.tenshu .attn .warn,.tenshu .attn .st{color:var(--ink);font-weight:500}
+.tenshu .attn .go{color:var(--muted);font-weight:400}
+.tenshu .attn:hover{background:var(--hover,var(--selected))}
+
+/* Launcher top bar, V3 (2026-11-26): wordmark ... [one Connect control, App preferences]. The Launcher has no balances eye and no "Signed in" chip. The Connect control is the in-Cube .chip.cc / details.ccx markup with lcx- names. */
+.tenshu{--acc-ink:#f59a45;--hover:rgba(245,240,232,.06)}
+.tenshu.light{--acc-ink:#a14d00;--hover:rgba(32,32,32,.05)}
+.tenshu .lcx{position:relative}
+.tenshu .lcx>summary{list-style:none;cursor:pointer}
+.tenshu .lcx>summary::-webkit-details-marker{display:none}
+.tenshu .lcc{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font-size:13px;line-height:1;white-space:nowrap;text-decoration:none;box-sizing:border-box}
+.tenshu a.lcc,.tenshu a.lcc:hover{color:var(--ink);text-decoration:none}
+.tenshu .lcc:hover{background:var(--hover)}
+.tenshu .lcc b{font-weight:600}
+.tenshu .lcc svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tenshu .lcav{position:relative;width:20px;height:20px;display:grid;place-items:center;flex:none;color:var(--muted)}
+.tenshu .lcav .lt,.tenshu .lcpl .lt{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 2px var(--rail)}
+.tenshu .lcsep,.tenshu .lcd{color:var(--muted)}
+.tenshu .lcd.si{color:var(--acc-ink);font-weight:600}
+.tenshu .lchev{color:var(--muted);transition:transform .15s}
+.tenshu .lcx[open] .lchev{transform:rotate(180deg)}
+.tenshu .lcpanel{position:absolute;right:0;top:calc(100% + 6px);z-index:60;width:280px;padding:6px;border-radius:12px;background:var(--panel);box-shadow:0 12px 32px rgba(0,0,0,.35);text-align:left;box-sizing:border-box}
+.tenshu .lcph{display:flex;flex-direction:column;gap:2px;padding:10px 10px 8px}
+.tenshu .lcph b{font-weight:600;font-size:14px;word-break:break-all}
+.tenshu .lcph span{color:var(--muted);font-size:13px}
+.tenshu .lcpl{position:relative;display:flex;align-items:center;gap:8px;padding:2px 10px 10px 24px;font-size:13px;color:var(--muted)}
+.tenshu .lcpl .lt{left:10px;right:auto;top:6px;box-shadow:none}
+.tenshu .lcpr{height:1px;margin:0 4px 4px;background:var(--rule,var(--line))}
+.tenshu .lcpa{display:block;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:13px}
+.tenshu .lcpa:hover{background:var(--hover);color:var(--ink)}
+.tenshu .tbx-r{display:flex;align-items:center;gap:8px;flex:none}
+.tenshu .lcx>summary.lcc{height:32px}
+.ident{display:flex;align-items:center;gap:16px;margin-top:20px}.ident .av{width:48px;height:48px;border-radius:50%;background:var(--selected);display:grid;place-items:center;color:var(--accent)}.ident .av.pm{background:none;border-radius:0;color:var(--ink)}.ident .av.pm svg{display:block;width:48px;height:48px}.pm text{font-family:'IBM Plex Sans',sans-serif}.ident .em{font-size:18px;font-weight:600}
+.tenshu a.ni{text-decoration:none;color:var(--ink)}
+/* cc-buttons v1 */
+/* One button language (Robert, 2026-11-26).
+   In a bar (top bar, side menu, Launcher bottom bar): no outline. Buttons there are quiet, like the side menu rows:
+   hover is a light fill, an open menu keeps it, and the current item or an active filter has the selected fill.
+   In page content: every button is outlined (text or icon only), 1 px in the text colour (ink), radius 8px, as on Mobile; hover adds a light fill.
+   Primary is filled accent wherever it sits, once per view. Text links and the close x in a toast or dialog corner have no box. */
+.tenshu{--hover:rgba(245,240,232,.06)}
+.tenshu.light{--hover:rgba(32,32,32,.05)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.sb){border-radius:8px}
+.tenshu :is(.pill.out,.back,.sb){background:transparent;color:var(--ink)}
+.tenshu .phead .hact .back:not(:hover){background:transparent}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pgbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri)):not(.danger):not(.on):not([aria-pressed="true"]):not(:is(.top,.side,.bottom) *){border:1px solid var(--ink)}
+.tenshu :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.pill,.back,.sb):not(:is(.primary,.fill,.pri,.npri,.danger)):not(.on):not([aria-pressed="true"]):not(:disabled):not(:is(.top,.side,.bottom) *):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:var(--ink)}
+.tenshu .btn.danger:not(:disabled):hover{background:var(--hover);color:var(--bad)}
+.tenshu .pgbtn:not([disabled]):hover{background:var(--hover);border-color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)){border:1px solid transparent;border-radius:8px;background:transparent}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):not(:disabled):is(:hover,[aria-expanded="true"]){background:var(--hover);border-color:transparent;color:var(--ink)}
+.tenshu :is(.top,.side,.bottom) :is(.btn,.chip,.planbtn,.srcbtn,.keybtn,.tbtn,.tbx-ico,.eye,.sb):not(:is(.primary,.pri,.npri)):is(.on,[aria-pressed="true"],[aria-current="page"]){background:var(--selected);border-color:transparent;color:var(--ink)}
+.tenshu .top :is(.tbx-ico,.eye){width:32px;height:32px;box-sizing:border-box}
+.tenshu :is(.planbtn,.srcbtn,.keybtn){height:36px;padding:0 12px}
+/* Primary: filled accent with a 1 px accent edge, dark label. Hover brightens the fill; disabled dims it and hover does nothing. */
+.tenshu :is(.btn,.pill,.oprim):is(.primary,.fill,.pri,.npri),.tenshu .oprim{background:var(--accent);border:1px solid var(--accent);color:#1a1208}
+.tenshu :is(.btn,.pill):is(.primary,.fill,.pri,.npri):not(:disabled):hover,.tenshu .oprim:not(:disabled):hover{background:#ff9a3f;border-color:#ff9a3f;color:#1a1208}
+.tenshu :is(.btn,.pill,.oprim):disabled{opacity:.45;cursor:not-allowed}
+/* Content dropdowns, filter chips and small icon or text buttons follow the same outline. */
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg){border:1px solid var(--ink)}
+.tenshu .nmax{border-radius:8px}
+.tenshu :is(.mx-chip,.netchip,.flip,.nmax,.tg):not(:disabled):is(:hover,[aria-expanded="true"]){border-color:var(--ink);background:var(--hover)}
+.tenshu .tg[aria-pressed="true"]{border-color:var(--ink);background:var(--selected)}
+/* Notices and toasts, option D (Robert, 2026-11-27): a warning or an error washes its panel 8% in its tone; no tone edge. Info and success stay plain. */
+.tenshu .nt.t-warn{--tone:var(--warn)} .tenshu .nt.t-bad{--tone:var(--bad)}
+.tenshu .nt:is(.t-warn,.t-bad){background:color-mix(in srgb,var(--tone) 8%,var(--panel))}
+.tenshu .nt .na{border-width:1px}
+.tenshu .cc-toast.t-warn.t-warn{border-color:var(--line);background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.tenshu .cc-toast.t-bad.t-bad{border-color:var(--line);background:color-mix(in srgb,var(--bad) 8%,var(--panel))}
 </style>
 </helmet>
 <div class="tenshu {{themeClass}} {{motionClass}}" style="width:1440px;height:1100px;box-sizing:border-box;overflow:hidden;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--ink);background:var(--bg);display:flex;flex-direction:column">
@@ -175,7 +281,7 @@ a.tbx-chip{color:var(--ink)}
   <sc-if value="{{ isActive }}" hint-placeholder-val="{{ false }}">
     <main class="lock" aria-labelledby="da-h">
       <h1 id="da-h">Duress Mode Activated</h1>
-      <p class="t">Use the Tenshu app on a trusted device to manage your account.</p>
+      <p class="t">Use COINCUBE Desktop on a trusted device to manage your account.</p>
       <sc-if value="{{ act.idle }}" hint-placeholder-val="{{ true }}"><button type="button" class="btn primary" onClick="{{ act.check }}">Sign in to Connect</button></sc-if>
       <sc-if value="{{ act.checking }}" hint-placeholder-val="{{ false }}"><button type="button" class="btn primary" disabled aria-busy="true">Checking…</button></sc-if>
       <sc-if value="{{ act.later }}" hint-placeholder-val="{{ false }}"><p class="em" role="status">Duress mode is active. Try again later.</p></sc-if>
@@ -186,9 +292,9 @@ a.tbx-chip{color:var(--ink)}
 
   <sc-if value="{{ notActive }}" hint-placeholder-val="{{ true }}">
   <header class="top">
-    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg><span>Tenshu</span></a>
+    <a class="brand" href="P-Launcher.dc.html" title="Back to the Launcher"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M4 7.5l8 4.5 8-4.5M12 12v9"></path></svg><span><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1;letter-spacing:.08em;color:var(--ink)">COINCUBE</span></span></a>
     <span class="grow"></span>
-    <div class="tbx-r"><a href="P-Connect.dc.html" class="tbx-chip" aria-label="Connect account alex@example.test: signed in"><svg class="pi" aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><span class="tbx-st ok"><svg aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.5"/><path d="m6.25 9.25 1.9 1.9 3.6-3.9"/></svg>Signed in</span></a><a class="tbx-ico" href="P-AppPrefs.dc.html" aria-label="App preferences" data-tip="App preferences"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a></div>
+    <div class="tbx-r"><sc-if value="{{ ccIn }}" hint-placeholder-val="{{ true }}"><details class="lcx"><summary class="lcc" aria-label="Connect account, alex@example.test, live updates on"><span class="lcav"><svg aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg><i class="lt"></i></span><b>Connect</b><span class="lcsep" aria-hidden="true">·</span><span class="lcd">alex@example.test</span><svg class="lchev" aria-hidden="true" viewBox="0 0 18 18"><path d="m5 7 4 4 4-4"/></svg></summary><div class="lcpanel" role="menu"><div class="lcph"><b>alex@example.test</b><span>Signed in to COINCUBE | Connect</span></div><div class="lcpl"><i class="lt"></i>Live updates on this computer</div><div class="lcpr"></div><a class="lcpa" role="menuitem" href="P-Connect.dc.html">Connect account</a></div></details></sc-if><sc-if value="{{ ccOut }}" hint-placeholder-val="{{ false }}"><a class="lcc" href="P-SignIn.dc.html" aria-label="Connect: Sign in"><span class="lcav"><svg aria-hidden="true" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3"/><path d="M3.5 15.5c.8-2.8 2.9-4.25 5.5-4.25s4.7 1.45 5.5 4.25"/></svg></span><b>Connect</b><span class="lcsep" aria-hidden="true">·</span><span class="lcd si">Sign in</span></a></sc-if><a class="tbx-ico" href="P-AppPrefs.dc.html" aria-label="App preferences" data-tip="App preferences"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></a></div>
   </header>
 
   <main class="stage">
@@ -203,7 +309,7 @@ a.tbx-chip{color:var(--ink)}
 
     <section class="sheet" aria-labelledby="cx-title">
       <div class="shead">
-        <h1 id="cx-title">Connect</h1>
+        <h1 id="cx-title">Connect account</h1>
         <span class="who">alex@example.test</span>
         <span class="grow"></span>
         <a class="btn" href="P-Launcher.dc.html" aria-label="Close Connect"><svg class="ic s" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg><span>Close</span></a>
@@ -217,13 +323,12 @@ a.tbx-chip{color:var(--ink)}
 
         <div class="content" aria-live="polite">
 
-          <!-- gate: Duress hidden (server flag off, not enrolled): the entry is absent, Account shows -->
+          <!-- gate closed: show_duress() is false (Free plan, or server flag off and not enrolled). The nav entry is absent and the sheet falls back to Account. -->
           <sc-if value="{{ v.hidden }}" hint-placeholder-val="{{ false }}">
             <div class="sec">
               <h2>Account</h2>
-              <ul class="list" style="margin-top:20px">
-                <li class="li"><span class="main"><span class="nm">alex@example.test</span><span class="s" style="display:block">Connect account</span></span><span class="stt ok"><svg class="ic s" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ I.ok }}"></path></svg>Signed in</span></li>
-              </ul>
+              <div class="ident"><span class="av pm" aria-hidden="true"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" stroke-width="2.4" opacity=".28"></circle><text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-weight="600" font-size="22" fill="currentColor">A</text></svg></span><div><div class="em">alex@example.test</div><div class="s" style="font-size:13px;color:var(--muted)">Signed in on this device</div></div></div>
+              <p class="cap" style="margin-top:24px">The full Account section is on <a href="P-Connect.dc.html">P-Connect</a>.</p>
             </div>
           </sc-if>
 
@@ -236,14 +341,6 @@ a.tbx-chip{color:var(--ink)}
                 <div class="gatebox" role="alert"><b>Couldn't verify your account status.</b></div>
                 <div class="acts"><button type="button" class="btn primary" onClick="{{ vf.retry }}">Retry</button><button type="button" class="btn">Sign Out</button></div>
               </sc-if>
-            </div>
-          </sc-if>
-
-          <!-- gate: plan does not include duress -->
-          <sc-if value="{{ v.plan }}" hint-placeholder-val="{{ false }}">
-            <div class="sec">
-              <h2>Duress Mode</h2>
-              <div class="gatebox"><p>Duress mode is available on Pro and Estate plans. Upgrade your Connect plan to enable it.</p><a class="btn primary" href="P-Connect.dc.html">View plans</a></div>
             </div>
           </sc-if>
 
@@ -319,14 +416,14 @@ a.tbx-chip{color:var(--ink)}
                   <h3>Set your all-clear passphrase</h3>
                   <p class="t">A memorable phrase, at least 12 characters. You'll need this to recover your account from a trusted device — choose something you can remember even after months of disuse.</p>
                   <div class="fld"><label for="d-ac">All-clear passphrase</label><input id="d-ac" class="inp" type="password" autocomplete="off" placeholder="All-clear passphrase" value="{{ en.ac }}" aria-invalid="{{ en.acBadA }}" aria-describedby="d-ac-e" onInput="{{ en.onAc }}">
-                    <sc-if value="{{ en.acBad }}" hint-placeholder-val="{{ false }}"><span class="err" id="d-ac-e" role="alert">Your all-clear passphrase must be at least 12 characters.</span></sc-if>
+                    <sc-if value="{{ en.acBad }}" hint-placeholder-val="{{ false }}"><span class="err" id="d-ac-e" role="alert">At least 12 characters.</span></sc-if>
                   </div>
                 </sc-if>
                 <sc-if value="{{ en.is.crk }}" hint-placeholder-val="{{ false }}">
                   <h3>Set your duress recovery-kit password</h3>
                   <p class="t">This password applies to all your Cubes. If you ever enter it on a recovery screen, the entire account enters duress.</p>
                   <div class="fld"><label for="d-crk">Duress recovery-kit password</label><input id="d-crk" class="inp" type="password" autocomplete="off" placeholder="Duress recovery-kit password" value="{{ en.crk }}" aria-invalid="{{ en.crkBadA }}" aria-describedby="d-crk-e" onInput="{{ en.onCrk }}">
-                    <sc-if value="{{ en.crkBad }}" hint-placeholder-val="{{ false }}"><span class="err" id="d-crk-e" role="alert">Your duress recovery password must be at least 12 characters.</span></sc-if>
+                    <sc-if value="{{ en.crkBad }}" hint-placeholder-val="{{ false }}"><span class="err" id="d-crk-e" role="alert">At least 12 characters.</span></sc-if>
                   </div>
                 </sc-if>
                 <sc-if value="{{ en.is.delay }}" hint-placeholder-val="{{ false }}">
@@ -474,14 +571,17 @@ a.tbx-chip{color:var(--ink)}
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["status","enroll","disable","clear","contacts"],"default":"status","section":"Review"},"step":{"editor":"enum","options":["pin","passphrase","crk","delay","memorize"],"default":"pin","section":"Review"},"state":{"editor":"enum","options":["ready","kitIncomplete","kitChecking","enabledHere","enabledElsewhere","submitting","checking","stepUpPasskey","stepUpNone","locked","clearEntry","cleared","contactsEmpty","contactsMax","contactsForm","verifyChecking","verifyFailed","active","activeChecking","activeTryLater"],"default":"ready","section":"Review"},"gate":{"editor":"enum","options":["estate","pro","notEntitled","hidden"],"default":"estate","section":"Review"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":1100}}'>
+<script type="text/x-dc" data-dc-script data-props='{"section":{"editor":"enum","options":["status","enroll","disable","clear","contacts"],"default":"status","section":"Review"},"step":{"editor":"enum","options":["pin","passphrase","crk","delay","memorize"],"default":"pin","section":"Review"},"state":{"editor":"enum","options":["ready","kitIncomplete","kitChecking","enabledHere","enabledElsewhere","submitting","checking","stepUpPasskey","stepUpNone","locked","clearEntry","cleared","contactsEmpty","contactsMax","contactsForm","verifyChecking","verifyFailed","active","activeChecking","activeTryLater"],"default":"ready","section":"Review"},"plan":{"editor":"enum","options":["free","pro","estate"],"default":"estate","section":"Gate"},"serverFlag":{"editor":"boolean","default":true,"section":"Gate"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Review"},"reducedMotion":{"editor":"boolean","default":false,"section":"Review"},"$preview":{"width":1440,"height":1100}}'>
 class Component extends DCLogic {
   constructor(p){super(p); try { const bump = () => { try { this.setState({ protoTick: Date.now() }); } catch (e) {} }; window.addEventListener('tenshu-proto', bump); window.addEventListener('storage', bump); } catch (e) {}this.state={k:null};}
   renderVals(){
     // prototype-only: Appearance (App preferences) is a device setting shared across artboards: system follows the review lever
     let THEME = 'system'; try { THEME = localStorage.getItem('tenshu.proto.theme') || 'system'; } catch (e) {}
     const P=this.props,self=this;
-    const L={sec:P.section||'status',step:P.step||'pin',st:P.state||'ready',gate:P.gate||'estate'};
+    const plan=P.plan||'estate',flag=P.serverFlag!==false&&P.serverFlag!=='false';
+    // show_duress() = paid duress entitlement (Pro/Estate) AND (server duressEnabled OR this account is enrolled)
+    const enrolledSt=['enabledHere','enabledElsewhere','locked','clearEntry','cleared','active','activeChecking','activeTryLater','checking','stepUpPasskey','stepUpNone'].indexOf(P.state||'ready')>=0||(P.section==='disable')||(P.section==='clear');
+    const L={sec:P.section||'status',step:P.step||'pin',st:P.state||'ready',gate:plan==='free'||!(flag||enrolledSt)?'hidden':plan};
     const key=[L.sec,L.step,L.st,L.gate].join('|');
     const STEPS=['pin','passphrase','crk','delay','memorize'];
     const init={key:key,sec:L.sec,ix:Math.max(0,STEPS.indexOf(L.step)),pin1:L.step==='pin'?'':'2580',pin2:L.step==='pin'?'':'2580',ac:L.step==='pin'||L.step==='passphrase'?'':'river lantern autumn',crk:['pin','passphrase','crk'].indexOf(L.step)>=0?'':'quiet harbour 1979',
@@ -497,18 +597,19 @@ class Component extends DCLogic {
       people:'M9 5.5a3 3 0 1 0 0 6a3 3 0 1 0 0-6M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M15.5 5.8a3 3 0 0 1 0 5.4M17 14.6c1.8.5 3 1.9 3.5 4.4',
       shieldOk:'M12 3l7 3v5.5c0 4.3-3 7.6-7 9.5-4-1.9-7-5.2-7-9.5V6zM8.8 12l2.2 2.2 4.2-4.4',duress:'M12 3l7 3v5.5c0 4.3-3 7.6-7 9.5-4-1.9-7-5.2-7-9.5V6zM12 8v5M12 15.8v.3'
     };
-    const hidden=L.gate==='hidden';
+    const hidden=L.gate==='hidden'&&!(L.st==='active'||L.st==='activeChecking'||L.st==='activeTryLater');
     const active=L.st==='active'||L.st==='activeChecking'||L.st==='activeTryLater';
-    const nav=[['Account',I.person,'P-Connect.dc.html'],['Plan & billing',I.card,'P-Connect.dc.html'],['Contacts',I.people,'P-Connect.dc.html'],['Devices & security',I.dev,'P-Connect.dc.html'],['Recovery services',I.shieldOk,'P-Connect.dc.html']];
-    if(!hidden)nav.push(['Duress',I.duress,'P-Duress.dc.html']);
-    const navItems=nav.map((n)=>({label:n[0],icon:n[1],href:n[2],cur:(hidden?n[0]==='Account':n[0]==='Duress')?'page':'false'}));
+    const nav=[['Account',I.person,'P-Connect.dc.html'],['Plan & billing',I.card,'P-Connect.dc.html'],['Contacts',I.people,'P-Connect.dc.html'],['Devices & security',I.dev,'P-Connect.dc.html']];
+    if(!hidden)nav.push(['Duress mode',I.duress,'P-Duress.dc.html']);
+    nav.push(['Recovery services',I.shieldOk,'P-Connect.dc.html']);
+    const navItems=nav.map((n)=>({label:n[0],icon:n[1],href:n[2],cur:(hidden?n[0]==='Account':n[0]==='Duress mode')?'page':'false'}));
     const floorCubes=[{name:'Everyday',edge:'btc'},{name:'Blake workspace',edge:'b2b'},{name:'Lab',edge:'test'},{name:'Archive',edge:'btc'}];
 
     const verify=!hidden&&(L.st==='verifyChecking'||L.st==='verifyFailed');
-    const plan=!hidden&&!verify&&L.gate==='notEntitled';
-    const live=!hidden&&!verify&&!plan;
+    const planGate=false;
+    const live=!hidden&&!verify&&!planGate;
     const sec=S.sec;
-    const v={hidden:hidden,verify:verify,plan:plan,status:live&&sec==='status',enroll:live&&sec==='enroll',disable:live&&sec==='disable',clear:live&&sec==='clear',contacts:live&&sec==='contacts'};
+    const v={hidden:hidden,verify:verify,status:live&&sec==='status',enroll:live&&sec==='enroll',disable:live&&sec==='disable',clear:live&&sec==='clear',contacts:live&&sec==='contacts'};
     const go={status:()=>set({sec:'status'}),enroll:()=>set({sec:'enroll',ix:0}),disable:()=>set({sec:'disable',dbusy:false}),contacts:()=>set({sec:'contacts',cform:false})};
 
     // status
@@ -522,7 +623,7 @@ class Component extends DCLogic {
     const st={here:here,elsewhere:elsewhere,enrolled:here||elsewhere,setup:!(here||elsewhere),cannot:kitInc||kitChk,why:why,hasWhy:!!why};
 
     // enroll
-    const LBL=['PIN','Passphrase','Kit password','Delay','Memorize'];
+    const LBL=['PIN','All-clear','Kit password','Delay','Confirm'];
     const ix=S.ix;
     const digits=(s)=>/^[0-9]{4}$/.test(s);
     const mismatch=S.pin2!==''&&S.pin1!==S.pin2;
@@ -585,11 +686,11 @@ class Component extends DCLogic {
 
     const foot=active
       ?'Prototype · synthetic data · this screen replaces every other view; the dot marks a queued activation; only a server-side clear exits'
-      :hidden?'Prototype · synthetic data · gate: server flag off and not enrolled, so the Duress entry is hidden (not greyed)'
+      :hidden?'Prototype · synthetic data · gate closed ('+(plan==='free'?'Free plan':'server flag off and not enrolled')+'): no Duress mode entry, the sheet shows Account'
       :'Prototype · synthetic account and contacts · gate: server flag or enrolment, plus Pro/Estate entitlement · copy quoted from the app';
     return {
       themeClass:this.props.forceTheme?(this.props.forceTheme==='light'?'light':''):((THEME==='light'||(THEME!=='dark'&&(P.theme||'dark')==='light'))?'light':''),motionClass:P.reducedMotion?'reduced':'',
-      isActive:active,notActive:!active,act:act,vf:vf,foot:foot,I:I,
+      isActive:active,notActive:!active,ccIn:true,ccOut:false,act:act,vf:vf,foot:foot,I:I,
       navItems:navItems,floorCubes:floorCubes,v:v,go:go,st:st,kits:kits,en:en,ds:ds,cl:cl,ct:ct
     };
   }
