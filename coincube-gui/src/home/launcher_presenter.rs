@@ -2635,6 +2635,7 @@ fn opening_content<'a, M: 'a>(
     light: bool,
     alpha: f32,
     quote_width: f32,
+    artwork_size: f32,
     dots: [f32; 3],
 ) -> (Element<'a, M>, Element<'a, M>) {
     use coincube_ui::font;
@@ -2668,6 +2669,11 @@ fn opening_content<'a, M: 'a>(
     let ready = face.stage == super::launcher_opening::Stage::Ready;
     let mut body = Column::new()
         .align_x(Alignment::Center)
+        .push(coincube_ui::component::tenshu::top_bar::display_cube(
+            artwork_size,
+            alpha,
+        ))
+        .push(Space::new().height(Length::Fixed(16.0)))
         .push(opening_quotes(face, alpha, quote_width))
         .push(Space::new().height(Length::Fixed(32.0)))
         .push(opening_dots(dots, alpha))
@@ -2752,6 +2758,10 @@ fn opening_details<'a, M: 'a>(
         .into()
 }
 
+fn opening_art_size(height: f32) -> f32 {
+    (height - 430.0).clamp(96.0, 160.0)
+}
+
 fn opening_face_content<'a, M: 'a>(
     face: &OpeningFace<'a, M>,
     light: bool,
@@ -2759,7 +2769,7 @@ fn opening_face_content<'a, M: 'a>(
     side: f32,
     dots: [f32; 3],
 ) -> Element<'a, M> {
-    let (heading, body) = opening_content(face, light, alpha, 520.0, dots);
+    let (heading, body) = opening_content(face, light, alpha, 520.0, opening_art_size(side), dots);
     let k = side / launcher_scene::OPEN_FACE_SIZE;
     Container::new(opening_details(heading, body, 44.0 * k, 72.0 * k))
         .width(Length::Fixed(side))
@@ -2825,7 +2835,14 @@ pub(crate) fn opening_full_screen<'a, M: 'a + 'static>(
     let alpha = opening.content(now);
     let scene = project_opening(&face.cube.name, face.cube.network);
     let stage = responsive(move |size: Size| {
-        let (heading, body) = opening_content(&face, light, alpha, 640.0, opening.dots(now));
+        let (heading, body) = opening_content(
+            &face,
+            light,
+            alpha,
+            640.0,
+            opening_art_size(size.height),
+            opening.dots(now),
+        );
         let top = (size.height * 0.09).min(64.0);
         Stack::new()
             .width(Length::Fill)

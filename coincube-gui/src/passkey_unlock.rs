@@ -41,7 +41,7 @@ use iced::{Alignment, Length, Task};
 
 use coincube_ui::{
     component::{
-        quote_display::{self, Quote, QuoteDisplayProps},
+        quote_display::{self, Quote},
         text::{p1_regular, text},
     },
     theme,
@@ -482,9 +482,7 @@ impl PasskeyUnlock {
                     .spacing(20)
                     .align_x(Alignment::Center)
                     .push(Space::new().height(Length::Fill))
-                    .push(quote_display::display(&QuoteDisplayProps::new(
-                        &self.loading_quote,
-                    )))
+                    .push(crate::loader::cube_and_quote(&self.loading_quote))
                     .push(crate::loading::loading_indicator(None))
                     .push(text(CopyText::LoadingYourCube.get()).style(theme::text::secondary))
                     .push(Space::new().height(Length::Fill)),
