@@ -2143,15 +2143,6 @@ fn sheet_navigation<'a>(
             .on_press(ConnectSheetMessage::SelectSection(section)),
         );
     }
-    navigation = navigation
-            .push(iced::widget::Space::new().height(Length::Fill))
-            .push(
-                container(tenshu_text::caption(
-                    localized_copy("Account-wide. Each Cube's own service connection stays in that Cube's Settings › Connections."),
-                ))
-                .padding([0, 12]),
-            );
-
     navigation
 }
 
