@@ -47,7 +47,8 @@ pub fn sign_in_prompt<'a>(feature_label: &'a str) -> Element<'a, Message> {
             ),
     )
     .padding(20)
-    .style(theme::card::simple)
+    // Drawn on the page and inside the panel-filled Spark receive card: keeps its outline (R4).
+    .style(theme::card::outlined)
     .width(Length::Fill);
 
     Column::new().spacing(0).push(card).into()

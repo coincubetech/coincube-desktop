@@ -1,6 +1,7 @@
 use coincube_ui::locale::copy as localized_copy;
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::localized_format;
+use coincube_ui::{component::tenshu::ActionButton, theme::tenshu::button::ActionKind};
 use std::time::Duration;
 
 use coincube_ui::component::text::Text;
@@ -192,14 +193,16 @@ fn wallet_card<'a>(
                 ))
                 .push(text(localized_copy("Wallet import pending")).style(theme::text::secondary))
                 .push(Space::new().width(Length::Fill))
-                .push(landing_button(
-                    landing_control_id(cube_id, "Vault", "finish-import"),
-                    localized_copy("Finish import"),
-                    None,
-                    Message::FocusAction,
-                    Some(Message::Menu(Menu::Vault(VaultSubMenu::Overview))),
-                    theme::button::primary,
-                )),
+                .push(
+                    ActionButton::new(
+                        landing_control_id(cube_id, "Vault", "finish-import"),
+                        localized_copy("Finish import"),
+                        ActionKind::Primary,
+                        Message::FocusAction,
+                    )
+                    .compact()
+                    .on_press(Message::Menu(Menu::Vault(VaultSubMenu::Overview))),
+                ),
         ),
         WalletType::Vault if !has_vault => Column::new().spacing(12).push(
             Row::new()
@@ -219,26 +222,24 @@ fn wallet_card<'a>(
                         .align_y(Alignment::Center)
                         .push(Space::new().width(Length::Fill))
                         .push(
-                            landing_button(
+                            ActionButton::new(
                                 landing_control_id(cube_id, "Vault", "restore"),
                                 localized_copy("Restore from Connect"),
-                                None,
+                                ActionKind::Secondary,
                                 Message::FocusAction,
-                                Some(Message::SetupVaultRestoreFromKit),
-                                theme::button::secondary,
                             )
-                            .width(Length::Fixed(200.0)),
+                            .compact()
+                            .on_press(Message::SetupVaultRestoreFromKit),
                         )
                         .push(
-                            landing_button(
+                            ActionButton::new(
                                 landing_control_id(cube_id, "Vault", "create"),
                                 localized_copy("Create Vault"),
-                                None,
+                                ActionKind::Primary,
                                 Message::FocusAction,
-                                Some(Message::SetupVault),
-                                theme::button::primary,
                             )
-                            .width(Length::Fixed(160.0)),
+                            .compact()
+                            .on_press(Message::SetupVault),
                         ),
                 ),
         ),
@@ -279,28 +280,16 @@ fn wallet_card<'a>(
                 Row::new()
                     .spacing(8)
                     .align_y(Alignment::Center)
-                    .push(
-                        landing_button(
-                            landing_control_id(cube_id, title, "send-btc"),
-                            localized_copy("Send"),
-                            None,
-                            Message::FocusAction,
-                            Some(send_action),
-                            theme::button::primary,
-                        )
-                        .width(Length::Fixed(90.0)),
-                    )
-                    .push(
-                        landing_button(
-                            landing_control_id(cube_id, title, "receive-btc"),
-                            localized_copy("Receive"),
-                            None,
-                            Message::FocusAction,
-                            Some(receive_action),
-                            theme::button::orange_outline,
-                        )
-                        .width(Length::Fixed(90.0)),
-                    ),
+                    .push(coincube_ui::component::tenshu::receive_action(
+                        landing_control_id(cube_id, title, "receive-btc"),
+                        Message::FocusAction,
+                        Some(receive_action),
+                    ))
+                    .push(coincube_ui::component::tenshu::send_action(
+                        landing_control_id(cube_id, title, "send-btc"),
+                        Message::FocusAction,
+                        Some(send_action),
+                    )),
             );
 
             // Headline — animated dots while the daemon hasn't
@@ -1055,8 +1044,8 @@ fn append_other_cube_options<'a>(
     list
 }
 
-/// A route tile that opens its menu: the Send tile's surface, the accent
-/// line while open.
+/// A route tile that opens its menu, in the Send tile's styles: one border,
+/// line grey at rest and ink with the hover fill while hovered or open.
 fn route_tile<'a>(
     id: &'static str,
     body: Element<'a, Message>,
@@ -2947,26 +2936,12 @@ fn spark_bitcoin_row<'a>(
                     })
                     .flatten(),
             ),
-        Row::new()
-            .spacing(8)
-            .align_y(Alignment::Center)
-            .push(
-                landing_button(
-                    landing_control_id(cube_id, "Spark", "send-btc"),
-                    localized_copy("Send"),
-                    None,
-                    Message::FocusAction,
-                    Some(Message::Home(HomeMessage::SendSparkBtc)),
-                    theme::button::primary,
-                )
-                .width(Length::Fixed(90.0)),
-            )
-            .push(spark_receive_button(
-                cube_id,
-                "Spark",
-                "receive-btc",
-                Message::Home(HomeMessage::ReceiveSparkBtc),
-            )),
+        spark_pair(
+            cube_id,
+            "btc",
+            Message::Home(HomeMessage::ReceiveSparkBtc),
+            Message::Home(HomeMessage::SendSparkBtc),
+        ),
     )
     .into()
 }
@@ -3122,47 +3097,37 @@ fn spark_usdb_row<'a>(
                             .filter(|_| shown)
                             .map(|sats| text(sats).size(P2_SIZE).style(theme::text::secondary)),
                     ),
-                Row::new()
-                    .spacing(8)
-                    .align_y(Alignment::Center)
-                    .push(
-                        landing_button(
-                            landing_control_id(cube_id, "Spark", "send-usdb"),
-                            localized_copy("Send"),
-                            None,
-                            Message::FocusAction,
-                            Some(Message::Home(HomeMessage::SendSparkUsdb)),
-                            theme::button::primary,
-                        )
-                        .width(Length::Fixed(90.0)),
-                    )
-                    .push(spark_receive_button(
-                        cube_id,
-                        "Spark",
-                        "receive-usdb",
-                        Message::Home(HomeMessage::ReceiveSparkUsdb),
-                    )),
+                spark_pair(
+                    cube_id,
+                    "usdb",
+                    Message::Home(HomeMessage::ReceiveSparkUsdb),
+                    Message::Home(HomeMessage::SendSparkUsdb),
+                ),
             )
         })
         .map(Into::into)
 }
 
-fn spark_receive_button<'a>(
+/// A Spark asset's Receive and Send, Receive first.
+fn spark_pair<'a>(
     cube_id: &str,
-    wallet: &'static str,
-    control: &'static str,
-    msg: Message,
-) -> Element<'a, Message> {
-    landing_button(
-        landing_control_id(cube_id, wallet, control),
-        localized_copy("Receive"),
-        None,
-        Message::FocusAction,
-        Some(msg),
-        theme::button::orange_outline,
-    )
-    .width(Length::Fixed(90.0))
-    .into()
+    asset: &'static str,
+    receive: Message,
+    send: Message,
+) -> Row<'a, Message> {
+    Row::new()
+        .spacing(8)
+        .align_y(Alignment::Center)
+        .push(coincube_ui::component::tenshu::receive_action(
+            landing_control_id(cube_id, "Spark", &format!("receive-{asset}")),
+            Message::FocusAction,
+            Some(receive),
+        ))
+        .push(coincube_ui::component::tenshu::send_action(
+            landing_control_id(cube_id, "Spark", &format!("send-{asset}")),
+            Message::FocusAction,
+            Some(send),
+        ))
 }
 
 fn overview_total<'a>(
@@ -3263,8 +3228,7 @@ fn overview_total<'a>(
     };
 
     // `.hero`: the balance on the left and, at the far right on the same
-    // baseline, the worldview's voice line and art, over a hairline. The
-    // art is decorative and stays while balances are hidden.
+    // baseline, the worldview's voice line.
     let total_balance_row = coincube_ui::component::tenshu::worldview_hero(
         Column::new()
             .spacing(6)
@@ -3281,15 +3245,12 @@ fn overview_total<'a>(
             .style(theme::text::warning)
         }),
     );
+    // No hairline under the total (`P-Overview`, canvas 345): Wallets sits
+    // 36px below it (`.wh { margin-top: 36px }`), 4 here plus the caller's
+    // 12 + 8 + 12.
     Column::new()
         .push(total_balance_block)
-        .push(Space::new().height(Length::Fixed(28.0)))
-        .push(
-            Container::new(Space::new())
-                .width(Length::Fill)
-                .height(Length::Fixed(1.0))
-                .style(theme::tenshu::control::divider),
-        )
+        .push(Space::new().height(Length::Fixed(4.0)))
 }
 
 /// The Overview page (`P-Overview`): its head with the Transfer action, the
@@ -4025,6 +3986,146 @@ mod tests {
             "{messages:?}",
             messages = messages
         );
+    }
+
+    /// Each wallet card's pair is Receive then Send, both reachable by keyboard
+    /// and pointer with their messages unchanged, and labelled "Receive" and
+    /// "Send" (their accessible names). Widths are no longer fixed, so the
+    /// Spanish labels must sit whole inside their buttons.
+    #[test]
+    fn overview_receive_and_send_pairs_are_receive_first_and_keep_their_routes() {
+        use crate::app::view::shared::landing::capture;
+        use coincube_ui::locale::{render_in, Language};
+        let fixture = ViewFixture::new();
+        let usdb = coincube_spark_protocol::UsdbBalanceSnapshot {
+            token_identifier: "btkn1synthetic".into(),
+            balance: 50_760_000,
+            decimals: 6,
+            ticker: "USDB".into(),
+        };
+        let config = || {
+            let mut config = fixture.config(0, None, None);
+            config.spark_usdb_balance = Some(&usdb);
+            config.spark_balance_loaded = true;
+            config
+        };
+        type Route = fn(&Message) -> bool;
+        let pairs: [(&str, &str, Route, Route); 3] = [
+            (
+                "Spark",
+                "btc",
+                |m| matches!(m, Message::Home(HomeMessage::ReceiveSparkBtc)),
+                |m| matches!(m, Message::Home(HomeMessage::SendSparkBtc)),
+            ),
+            (
+                "Spark",
+                "usdb",
+                |m| matches!(m, Message::Home(HomeMessage::ReceiveSparkUsdb)),
+                |m| matches!(m, Message::Home(HomeMessage::SendSparkUsdb)),
+            ),
+            (
+                "Vault",
+                "btc",
+                |m| matches!(m, Message::Menu(Menu::Vault(VaultSubMenu::Receive))),
+                |m| matches!(m, Message::Menu(Menu::Vault(VaultSubMenu::Send))),
+            ),
+        ];
+        for (wallet, asset, is_receive, is_send) in pairs {
+            for (control, expected) in [("receive", is_receive), ("send", is_send)] {
+                let id = landing_control_id("test-cube", wallet, &format!("{control}-{asset}"));
+                for pointer in [false, true] {
+                    let messages =
+                        capture::activate(overview(config()), id.clone(), (1440, 900), pointer);
+                    assert!(
+                        messages.iter().any(expected),
+                        "{wallet} {control}-{asset} pointer={pointer}: {messages:?}",
+                        wallet = wallet,
+                        control = control,
+                        asset = asset,
+                        pointer = pointer,
+                        messages = messages
+                    );
+                }
+            }
+        }
+        for (language, receive_label, send_label) in [
+            (Language::English, "Receive", "Send"),
+            (Language::Spanish, "Recibir", "Enviar"),
+        ] {
+            for (appearance, theme) in [
+                ("dark", theme::Theme::dark()),
+                ("light", theme::Theme::light()),
+            ] {
+                let shown = render_in(language, || {
+                    capture::inspect(
+                        "overview-pairs",
+                        overview(config()),
+                        (1440, 900),
+                        appearance,
+                        theme,
+                    )
+                });
+                for (wallet, asset, _, _) in pairs {
+                    let at = |control: &str| {
+                        let id =
+                            landing_control_id("test-cube", wallet, &format!("{control}-{asset}"));
+                        shown
+                            .focus
+                            .iter()
+                            .find(|(focus, _)| *focus == id)
+                            .unwrap_or_else(|| {
+                                panic!(
+                                    "no {wallet} {control}-{asset}",
+                                    wallet = wallet,
+                                    control = control,
+                                    asset = asset
+                                )
+                            })
+                            .1
+                    };
+                    let (receive, send) = (at("receive"), at("send"));
+                    assert!(
+                        receive.x + receive.width <= send.x,
+                        "{wallet} {asset}: Receive {receive:?} not before Send {send:?}",
+                        wallet = wallet,
+                        asset = asset,
+                        receive = receive,
+                        send = send
+                    );
+                    assert_eq!(receive.height, 40.0, "{wallet} {asset}");
+                    assert_eq!(send.height, 40.0, "{wallet} {asset}");
+                    for (label, button) in [(receive_label, receive), (send_label, send)] {
+                        let text = shown
+                            .text
+                            .iter()
+                            .find(|(value, bounds)| {
+                                value == label && button.contains(bounds.center())
+                            })
+                            .unwrap_or_else(|| {
+                                panic!(
+                                    "{appearance} {wallet} {asset}: no {label} in {button:?}",
+                                    appearance = appearance,
+                                    wallet = wallet,
+                                    asset = asset,
+                                    label = label,
+                                    button = button
+                                )
+                            })
+                            .1;
+                        assert!(
+                            text.x >= button.x && text.x + text.width <= button.x + button.width,
+                            "{appearance} {wallet} {asset}: {label} {text:?} clipped by {button:?}",
+                            appearance = appearance,
+                            wallet = wallet,
+                            asset = asset,
+                            label = label,
+                            text = text,
+                            button = button
+                        );
+                    }
+                }
+            }
+        }
     }
 
     #[test]
@@ -4876,13 +4977,14 @@ mod tests {
                             btc
                         );
                     }
-                    // A half-width card keeps its row's actions inside it.
-                    let receive = at("Spark", "receive-btc");
+                    // A half-width card keeps its row's actions inside it;
+                    // Send is the last of them.
+                    let send = at("Spark", "send-btc");
                     let card_right = spark.x - 20.0 + column;
                     assert!(
-                        receive.x + receive.width <= card_right - 20.0 + 0.5,
+                        send.x + send.width <= card_right - 20.0 + 0.5,
                         "{:?} past {}",
-                        receive,
+                        send,
                         card_right
                     );
                 } else {
@@ -4935,38 +5037,61 @@ mod tests {
             for (index, wallet) in ["Spark", "Vault"].iter().copied().enumerate() {
                 let left = index as f32 * (column + CARD_GAP);
                 let (send, receive) = (at(wallet, "send-btc"), at(wallet, "receive-btc"));
+                // Widths follow their labels now; each label sits whole
+                // inside its button.
+                for (label, button) in [("Receive", receive), ("Send", send)] {
+                    let text = shown
+                        .text
+                        .iter()
+                        .find(|(value, bounds)| value == label && button.contains(bounds.center()))
+                        .unwrap_or_else(|| {
+                            panic!(
+                                "{wallet}: no {label} in {button:?}",
+                                wallet = wallet,
+                                label = label,
+                                button = button
+                            )
+                        })
+                        .1;
+                    assert!(
+                        text.x >= button.x && text.x + text.width <= button.x + button.width,
+                        "{wallet}: {label} {text:?} clipped by {button:?}",
+                        wallet = wallet,
+                        label = label,
+                        text = text,
+                        button = button
+                    );
+                }
+                // Receive comes first, then Send.
                 assert!(
-                    send.width >= 89.5 && receive.width >= 89.5,
-                    "{}: {:?} {:?}",
-                    wallet,
-                    send,
-                    receive
-                );
-                assert!(
-                    send.x >= left && receive.x + receive.width <= left + column + 0.5,
+                    receive.x >= left
+                        && receive.x + receive.width <= send.x
+                        && send.x + send.width <= left + column + 0.5,
                     "{} ({}): {:?} {:?} outside {}..{}",
                     wallet,
                     appearance,
-                    send,
                     receive,
+                    send,
                     left,
                     left + column
                 );
                 // No text in the card overlaps the two actions' row band
-                // horizontally unless it sits beside them, left of Send.
+                // horizontally unless it sits beside them, left of Receive.
                 let band = send.y..send.y + send.height;
                 for (value, bounds) in &shown.text {
                     let in_card = bounds.x >= left && bounds.x < left + column;
                     let in_band = band.contains(&(bounds.y + bounds.height / 2.0));
-                    if in_card && in_band && value != "Send" && value != "Receive" {
+                    let in_action =
+                        receive.contains(bounds.center()) || send.contains(bounds.center());
+                    if in_card && in_band && !in_action {
                         assert!(
-                            bounds.x + bounds.width <= send.x + 0.5,
-                            "{} ({}): {:?} {:?} runs under Send {:?}",
+                            bounds.x + bounds.width <= receive.x + 0.5,
+                            "{} ({}): {:?} {:?} runs under Receive {:?}",
                             wallet,
                             appearance,
                             value,
                             bounds,
-                            send
+                            receive
                         );
                     }
                 }

@@ -16,7 +16,8 @@ use coincube_ui::localized_format;
 
 use crate::app::wallets::DomainPaymentStatus;
 use coincube_ui::component::tenshu::{
-    asset_row, fit_row, ActionButton, ActionKind, AmountVisibility, BalanceValue, Figure,
+    asset_row, fit_row, receive_action, send_action, ActionButton, ActionKind, AmountVisibility,
+    BalanceValue, Figure,
 };
 use coincube_ui::{
     component::{amount::*, text::*},
@@ -32,8 +33,8 @@ use iced::{
 use crate::app::settings::display::DisplayMode;
 use crate::app::state::spark::overview::SparkBalanceSnapshot;
 use crate::app::view::shared::landing::{
-    amount_cell, landing_balance_section, landing_button, landing_card_style, landing_control_id,
-    AmountCell, AmountTier,
+    amount_cell, landing_balance_section, landing_card_style, landing_control_id, AmountCell,
+    AmountTier,
 };
 use crate::app::view::spark::settings::lightning_address::LN_ADDRESS_DOMAIN;
 use crate::app::view::vault::fiat::FiatAmount;
@@ -366,14 +367,21 @@ pub fn lightning_share_panel<'a>(
     Container::new(panel)
         .padding(20)
         .width(Length::Fixed(380.0))
-        .style(|theme: &theme::Theme| iced::widget::container::Style {
-            border: iced::Border {
-                radius: 12.0.into(),
-                ..landing_card_style(theme).border
-            },
-            ..landing_card_style(theme)
-        })
+        .style(lightning_share_panel_style)
         .into()
+}
+
+/// The share popover floats over the page without a shadow, so it keeps a
+/// 1px line where the cards around it have none (R4).
+pub(crate) fn lightning_share_panel_style(theme: &theme::Theme) -> iced::widget::container::Style {
+    iced::widget::container::Style {
+        border: iced::Border {
+            color: theme.colors.shell.line,
+            width: 1.0,
+            radius: 12.0.into(),
+        },
+        ..landing_card_style(theme)
+    }
 }
 
 /// The balances the Spark page lists, in order. Bitcoin always, unless the
@@ -524,25 +532,17 @@ fn connected_view<'a>(
     let usdb_units = usdb_balance.map_or(0, |sb| sb.balance);
     let send_receive = |asset: &str, send: SparkOverviewMessage, receive: SparkOverviewMessage| {
         vec![
-            landing_button(
-                landing_control_id(cube_id, "Spark", &format!("send-{asset}")),
-                "Send",
-                None,
-                SparkOverviewMessage::FocusAction,
-                Some(send),
-                theme::button::primary,
-            )
-            .width(Length::Fixed(90.0))
-            .into(),
-            landing_button(
+            receive_action(
                 landing_control_id(cube_id, "Spark", &format!("receive-{asset}")),
-                "Receive",
-                None,
                 SparkOverviewMessage::FocusAction,
                 Some(receive),
-                theme::button::orange_outline,
             )
-            .width(Length::Fixed(90.0))
+            .into(),
+            send_action(
+                landing_control_id(cube_id, "Spark", &format!("send-{asset}")),
+                SparkOverviewMessage::FocusAction,
+                Some(send),
+            )
             .into(),
         ]
     };
@@ -687,6 +687,22 @@ fn pending_btc_sats(recent: &[SparkRecentTransaction]) -> (u64, u64) {
         .sum();
 
     (pending_outgoing_sats, pending_incoming_sats)
+}
+
+#[cfg(test)]
+mod share_panel_style_tests {
+    use super::*;
+
+    /// The Lightning-address share popover has no shadow, so it keeps its
+    /// 1px line while the cards lose theirs.
+    #[test]
+    fn share_popover_keeps_its_border() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let style = lightning_share_panel_style(&theme);
+            assert_eq!(style.border.width, 1.0);
+            assert_eq!(style.border.color, theme.colors.shell.line);
+        }
+    }
 }
 
 #[cfg(test)]

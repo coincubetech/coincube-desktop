@@ -7,9 +7,10 @@ mainnet network names and voice lines.
 
 > **Changed on 2026-11-25 (Robert).** Bitcoin Worldview is wording only.
 > COINCUBE Desktop shows no illustrations, the Artwork preference is removed
-> and the modes have no accent colours. The app still draws artwork until the
-> Desktop V3 Phase 1 work lands; that plan is in the company brain under
-> `plans/desktop-v3-phase1/`. This document describes the target.
+> and the modes have no accent colours. Desktop V3 Phase 1 (on
+> `feature/desktop-v3`) implements this: the app draws no artwork, has no
+> Artwork row, and a mode switch changes wording only. The plan is in the
+> company brain under `plans/desktop-v3-phase1/`.
 
 ## Modes
 

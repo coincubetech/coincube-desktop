@@ -78,7 +78,7 @@ pub fn link<'a>(url: &'a str, link_text: &'static str) -> Element<'a, Message> {
         button::link(Some(icon::link_icon()), link_text)
             .on_press(Message::OpenUrl(url.to_string())),
         Container::new(text(url))
-            .style(theme::card::simple)
+            .style(theme::card::tooltip)
             .padding(10),
         iced_tooltip::Position::Bottom,
     )
@@ -2385,7 +2385,8 @@ pub fn node_setup_mode_picker_panel<'a>() -> Element<'a, NodeSettingsMessage> {
         .size(14),
     );
 
-    let external_card = card::simple(
+    // Sits inside the panel-filled node card below: background fill (R4).
+    let external_card = card::inset(
         Container::new(
             Column::new()
                 .spacing(8)
@@ -2413,7 +2414,8 @@ pub fn node_setup_mode_picker_panel<'a>() -> Element<'a, NodeSettingsMessage> {
         .width(Length::Fill),
     );
 
-    let internal_card = card::simple(
+    // Sits inside the panel-filled node card below: background fill (R4).
+    let internal_card = card::inset(
         Container::new(
             Column::new()
                 .spacing(8)
@@ -5110,6 +5112,43 @@ mod tests {
             flavor_switch_chain_note(NodeFlavor::Knots),
         ] {
             assert!(!note.contains("RDTS") && !note.contains("BIP-110"));
+        }
+    }
+
+    /// Node settings' legacy cards (Desktop V3, V5): the mode picker, whose two
+    /// choice cards sit inset in a panel card, and the pruned-node notice.
+    /// Opt-in: `TOP_BAR_CAPTURE_DIR=<dir> cargo test -p coincube-gui --lib
+    /// node_legacy_cards_capture -- --ignored`.
+    #[test]
+    #[ignore = "writes PNG frames; needs a GPU adapter"]
+    fn node_legacy_cards_capture() {
+        use crate::app::local_switch::PrunedHistory;
+        use crate::app::view::nav::shell::capture_tests;
+        let Some(directory) = capture_tests::directory() else {
+            return;
+        };
+        let mut renderer = capture_tests::renderer();
+        for (appearance, palette) in capture_tests::themes() {
+            let page: Element<'_, NodeSettingsMessage> = Container::new(
+                Column::new()
+                    .spacing(20)
+                    .push(node_setup_mode_picker_panel())
+                    .push(pruned_node_notice(PrunedHistory::CoinsBelowPrune {
+                        prune_height: 969_938,
+                        earliest: 958_601,
+                    })),
+            )
+            .padding(40)
+            .width(Length::Fill)
+            .into();
+            capture_tests::save(
+                &mut renderer,
+                page,
+                iced::Size::new(1024.0, 768.0),
+                &palette,
+                None,
+                directory.join(format!("settings-node-cards-{appearance}.png")),
+            );
         }
     }
 

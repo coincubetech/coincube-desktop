@@ -2228,15 +2228,6 @@ mod tests {
                 }),
                 ..Default::default()
             };
-            for id in [
-                "tenshu.preferences.artwork.existing",
-                "tenshu.preferences.artwork.scene",
-            ] {
-                let (focused, messages) =
-                    activate(model, Section::Appearance, id, keyboard::key::Named::Enter);
-                assert!(!focused, "{}", id);
-                assert!(messages.is_empty());
-            }
             for (appearance, theme) in [("light", Theme::light()), ("dark", Theme::dark())] {
                 let mounted = capture::inspect_filled(
                     &format!("appearance-no-artwork-{worldview:?}"),
@@ -2249,6 +2240,26 @@ mod tests {
                 assert!(mounted.contains("Samurai"));
                 assert!(mounted.contains("Suitcoiner"));
                 assert!(mounted.contains("Luke"));
+                // The probe sees the page's controls: the three worldview
+                // segments are focusable, and no control is an artwork one.
+                for id in [
+                    "tenshu.preferences.worldview.samurai",
+                    "tenshu.preferences.worldview.suitcoiner",
+                    "tenshu.preferences.worldview.luke",
+                ] {
+                    assert!(mounted.has_focus(Id::new(id)), "{:?}: {}", worldview, id);
+                }
+                let names: Vec<_> = mounted
+                    .focus
+                    .iter()
+                    .map(|(id, _)| format!("{id:?}"))
+                    .collect();
+                // An id's name shows in its debug form, so the filter below
+                // can find one.
+                assert!(names.iter().any(|id| id.contains("worldview.samurai")));
+                let artwork_controls: Vec<_> =
+                    names.iter().filter(|id| id.contains("artwork")).collect();
+                assert!(artwork_controls.is_empty(), "{:?}", artwork_controls);
                 for gone in [
                     "Artwork",
                     "Existing set",

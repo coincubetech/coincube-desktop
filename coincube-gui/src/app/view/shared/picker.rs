@@ -356,20 +356,6 @@ fn dropdown_option_style(
     }
 }
 
-/// A route tile's frame while its menu is open: the accent line instead of
-/// the hover outline, so the tile reads as the menu's owner.
-pub fn open_tile_style(theme: &theme::Theme, _: iced_button::Status) -> iced_button::Style {
-    iced_button::Style {
-        background: Some(Background::Color(color::TRANSPARENT)),
-        border: iced::Border {
-            color: theme.colors.shell.accent,
-            width: 1.0,
-            radius: 8.0.into(),
-        },
-        ..Default::default()
-    }
-}
-
 #[cfg(test)]
 mod menu_style_tests {
     use super::*;

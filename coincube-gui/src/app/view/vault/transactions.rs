@@ -283,7 +283,8 @@ pub fn create_rbf_modal<'a>(
 
     if created {
         body = body
-            .push(card::simple(
+            // Inside a modal whose fill matches the panel in light theme: keeps its outline (R4).
+            .push(card::outlined(
                 Row::new()
                     .spacing(10)
                     .align_y(Alignment::Center)

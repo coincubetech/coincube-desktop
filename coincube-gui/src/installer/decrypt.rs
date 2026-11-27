@@ -633,7 +633,7 @@ fn optional_content(state: &DecryptModal) -> Container<'static, installer::Messa
         tt = tt.push(text::text(format!("{d}")));
     }
     let tt = Container::new(tt)
-        .style(theme::card::simple)
+        .style(theme::card::tooltip)
         .padding(10)
         .width(300);
 

@@ -16,12 +16,57 @@ impl Catalog for Theme {
     }
 }
 
+/// Filled accent. Hover and press use the app's one primary hover
+/// (`tenshu::ACCENT_HOVER`); disabled is the resting style at
+/// `tenshu::DISABLED_ALPHA`, as in Tenshu.
 pub fn primary(theme: &Theme, status: Status) -> Style {
-    button(&theme.colors.buttons.primary, status)
+    let palette = &theme.colors.buttons.primary;
+    match status {
+        Status::Disabled => faded_style(button(palette, Status::Active)),
+        _ => button(palette, status),
+    }
 }
 
+/// The content button rule (`cc-buttons v1`): a 1px ink outline, ink text and
+/// no fill at rest; hover and press add the shell's light fill and the
+/// outline stays ink. Disabled fades the resting style.
 pub fn secondary(theme: &Theme, status: Status) -> Style {
-    button(&theme.colors.buttons.secondary, status)
+    let shell = &theme.colors.shell;
+    let resting = Style {
+        background: None,
+        text_color: shell.ink,
+        border: Border {
+            radius: super::tenshu::radius::CONTROL.into(),
+            width: 1.0,
+            color: shell.ink,
+        },
+        ..Default::default()
+    };
+    match status {
+        Status::Active => resting,
+        Status::Hovered | Status::Pressed => Style {
+            background: Some(Background::Color(shell.hover)),
+            ..resting
+        },
+        Status::Disabled => faded_style(resting),
+    }
+}
+
+/// `style` at `tenshu::DISABLED_ALPHA`, like a disabled Tenshu action.
+fn faded_style(style: Style) -> Style {
+    let fade = |color: Color| super::tenshu::faded(color, super::tenshu::DISABLED_ALPHA);
+    Style {
+        background: style.background.map(|background| match background {
+            Background::Color(color) => Background::Color(fade(color)),
+            other => other,
+        }),
+        text_color: fade(style.text_color),
+        border: Border {
+            color: fade(style.border.color),
+            ..style.border
+        },
+        ..style
+    }
 }
 
 pub fn destructive(theme: &Theme, status: Status) -> Style {
@@ -54,10 +99,6 @@ pub fn transparent_border(theme: &Theme, status: Status) -> Style {
 
 pub fn link(theme: &Theme, status: Status) -> Style {
     button(&theme.colors.buttons.link, status)
-}
-
-pub fn orange_outline(theme: &Theme, status: Status) -> Style {
-    button(&theme.colors.buttons.orange_outline, status)
 }
 
 /// Bordered buttons take the Tenshu `.btn` corner (8px), not a pill: the
@@ -193,6 +234,72 @@ pub fn rail_disabled(theme: &Theme, _status: Status) -> Style {
     style
 }
 
-pub fn tab_liquid(theme: &Theme, _status: Status) -> Style {
+/// The selected tab: [`tab`] held in its pressed state.
+pub fn tab_active(theme: &Theme, _status: Status) -> Style {
     tab(theme, Status::Pressed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::theme::tenshu::{ACCENT_HOVER, DISABLED_ALPHA};
+
+    fn themes() -> [(&'static str, Theme); 2] {
+        [("dark", Theme::dark()), ("light", Theme::light())]
+    }
+
+    fn fill(style: &Style) -> Option<Color> {
+        match style.background {
+            Some(Background::Color(color)) => Some(color),
+            None => None,
+            Some(other) => panic!("unexpected background {other:?}"),
+        }
+    }
+
+    /// The legacy secondary follows the content rule: an ink outline, and a
+    /// hover that adds the light fill without turning the label orange.
+    #[test]
+    fn legacy_secondary_is_the_content_outline_in_both_themes() {
+        for (name, theme) in themes() {
+            let shell = theme.colors.shell;
+            let rest = secondary(&theme, Status::Active);
+            assert_eq!(fill(&rest), None, "{name}");
+            assert_eq!(rest.border.width, 1.0, "{name}");
+            assert_eq!(rest.border.color, shell.ink, "{name}");
+            assert_eq!(rest.border.radius.top_left, 8.0, "{name}");
+            assert_eq!(rest.text_color, shell.ink, "{name}");
+            for status in [Status::Hovered, Status::Pressed] {
+                let style = secondary(&theme, status);
+                assert_eq!(fill(&style), Some(shell.hover), "{name} {status:?}");
+                assert_eq!(style.border.color, shell.ink, "{name} {status:?}");
+                assert_eq!(style.text_color, shell.ink, "{name} {status:?}");
+            }
+            let off = secondary(&theme, Status::Disabled);
+            assert_eq!(off.text_color.a, DISABLED_ALPHA, "{name}");
+        }
+    }
+
+    #[test]
+    fn legacy_primary_shares_the_one_primary_hover_in_both_themes() {
+        for (name, theme) in themes() {
+            let rest = primary(&theme, Status::Active);
+            assert_eq!(fill(&rest), Some(theme.colors.shell.accent), "{name}");
+            assert_eq!(rest.border.width, 1.0, "{name}");
+            for status in [Status::Hovered, Status::Pressed] {
+                let style = primary(&theme, status);
+                assert_eq!(fill(&style), Some(ACCENT_HOVER), "{name} {status:?}");
+                assert_eq!(style.border.color, ACCENT_HOVER, "{name} {status:?}");
+            }
+            let off = primary(&theme, Status::Disabled);
+            assert_eq!(
+                fill(&off),
+                Some(crate::theme::tenshu::faded(
+                    theme.colors.shell.accent,
+                    DISABLED_ALPHA
+                )),
+                "{name}"
+            );
+            assert_eq!(off.text_color.a, DISABLED_ALPHA, "{name}");
+        }
+    }
 }

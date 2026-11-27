@@ -150,7 +150,8 @@ pub fn downloads_card<'a, M: 'a>(
         .push(text(today_label).size(14).style(theme::text::secondary))
         .push(Space::new().width(Length::Fill));
 
-    card::simple(Column::new().spacing(10).push(inner).push(today_row))
+    // Drawn on the page and inside the panel-filled Preferences sheet: keeps its outline (R4).
+    card::outlined(Column::new().spacing(10).push(inner).push(today_row))
         .width(Length::Fill)
         .into()
 }
@@ -206,7 +207,8 @@ pub fn chart_card<'a, M: Clone + 'static>(
         .push(period_btn(StatsPeriod::Month, period, &on_period))
         .push(period_btn(StatsPeriod::Year, period, &on_period));
 
-    card::simple(
+    // Drawn on the page and inside the panel-filled Preferences sheet: keeps its outline (R4).
+    card::outlined(
         Column::new()
             .spacing(12)
             .push(chart_area)

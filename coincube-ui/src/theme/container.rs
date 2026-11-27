@@ -150,15 +150,3 @@ pub fn shell_menu(theme: &Theme) -> Style {
         ..Default::default()
     }
 }
-
-pub fn shell_chip(theme: &Theme) -> Style {
-    Style {
-        background: Some(Background::Color(theme.colors.shell.panel)),
-        border: iced::Border {
-            color: theme.colors.shell.line,
-            width: 1.0,
-            radius: 16.0.into(),
-        },
-        ..Default::default()
-    }
-}

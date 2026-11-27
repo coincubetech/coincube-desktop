@@ -34,8 +34,10 @@ pub const ICON_BUTTON: f32 = 32.0;
 const GLYPH: f32 = 16.0;
 /// `.brand svg { width: 20px }`.
 const BRAND_MARK: f32 = 20.0;
-/// `.tbtn { border-radius: 6px }`, also the brand's.
+/// `.brand { border-radius: 6px }`.
 const RADIUS: f32 = 6.0;
+/// `.tbtn { border-radius: 8px }` (`cc-buttons v1`: bar buttons are radius 8).
+pub const BUTTON_RADIUS: f32 = 8.0;
 
 /// The accessible name of the App preferences control on every bar.
 pub const APP_PREFERENCES: &str = "App preferences";
@@ -239,25 +241,26 @@ pub fn brand_action<'a, M: Clone + 'static>(
         .into()
 }
 
-/// `.tbtn`: a 32px bar control, borderless at rest, with the line border on
-/// hover. `pressed` (`aria-pressed`, an open sheet) adds the selected fill
-/// and the accent border.
+/// `.tbtn`: a quiet 32px bar control (the button rule, `cc-buttons v1`). It has
+/// no outline in any state: hover is the light fill, and `pressed`
+/// (`aria-pressed`, an open sheet) is the selected fill.
 pub fn button_style(theme: &Theme, status: button::Status, pressed: bool) -> button::Style {
     let shell = theme.colors.shell;
     let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
+    let background = if pressed {
+        Some(shell.selected)
+    } else if hovered {
+        Some(shell.hover)
+    } else {
+        None
+    };
     button::Style {
-        background: pressed.then_some(Background::Color(shell.selected)),
+        background: background.map(Background::Color),
         text_color: shell.ink,
         border: Border {
-            color: if pressed {
-                shell.accent
-            } else if hovered {
-                shell.line
-            } else {
-                Color::TRANSPARENT
-            },
-            width: 1.0,
-            radius: RADIUS.into(),
+            color: Color::TRANSPARENT,
+            width: 0.0,
+            radius: BUTTON_RADIUS.into(),
         },
         ..Default::default()
     }
@@ -348,7 +351,7 @@ impl<'a, M: Clone + 'static> From<IconAction<'a, M>> for Element<'a, M> {
             .height(Length::Fixed(ICON_BUTTON))
             .padding(0.0)
             .style(move |theme, status| button_style(theme, status, pressed))
-            .focus_radius(RADIUS)
+            .focus_radius(BUTTON_RADIUS)
             .on_press_maybe(on_press);
         tooltip(
             AccessibleLabel::new(control, label.clone()),
@@ -550,6 +553,51 @@ mod tests {
     }
 
     const WIDTH: f32 = 1024.0;
+
+    /// `cc-buttons v1` rounds bar buttons at 8, like the sidebar rows; the
+    /// brand link keeps its own 6.
+    #[test]
+    fn bar_buttons_are_radius_8() {
+        let theme = Theme::dark();
+        for pressed in [false, true] {
+            for status in [button::Status::Active, button::Status::Hovered] {
+                let style = button_style(&theme, status, pressed);
+                assert_eq!(style.border.radius, 8.0.into());
+            }
+        }
+    }
+
+    /// Bar buttons are quiet (`cc-buttons v1`): no outline in any state, the
+    /// light fill on hover, the selected fill while pressed. Pressed carries
+    /// no accent edge, so Hide balances reads as neutral when on.
+    #[test]
+    fn bar_buttons_have_no_outline_in_both_themes() {
+        for theme in [Theme::dark(), Theme::light()] {
+            let shell = theme.colors.shell;
+            for pressed in [false, true] {
+                for status in [
+                    button::Status::Active,
+                    button::Status::Hovered,
+                    button::Status::Pressed,
+                    button::Status::Disabled,
+                ] {
+                    let style = button_style(&theme, status, pressed);
+                    assert_eq!(style.border.width, 0.0, "{status:?} {pressed}");
+                    assert_eq!(style.border.color, Color::TRANSPARENT);
+                    assert_eq!(style.text_color, shell.ink);
+                }
+            }
+            let fill = |status, pressed| button_style(&theme, status, pressed).background;
+            assert_eq!(fill(button::Status::Active, false), None);
+            assert_eq!(
+                fill(button::Status::Hovered, false),
+                Some(Background::Color(shell.hover))
+            );
+            for status in [button::Status::Active, button::Status::Hovered] {
+                assert_eq!(fill(status, true), Some(Background::Color(shell.selected)));
+            }
+        }
+    }
 
     fn renderer() -> Renderer {
         for bytes in font::load() {
