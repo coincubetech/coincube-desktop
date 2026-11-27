@@ -11529,6 +11529,109 @@ pub(crate) mod tests {
         assert!(tag.x > 100.0 && tag.x < 260.0, "{:?}", tag);
     }
 
+    /// Draws `element` at 1440x900 with its overlays, as the window does,
+    /// and returns the RGBA pixels.
+    fn draw_with_overlays<M>(
+        element: Element<'_, M>,
+        theme: &coincube_ui::theme::Theme,
+    ) -> Vec<u8> {
+        use iced::advanced::renderer::Headless;
+        use iced_runtime::user_interface::{Cache, UserInterface};
+        for bytes in coincube_ui::font::load() {
+            iced::advanced::graphics::text::font_system()
+                .write()
+                .unwrap()
+                .load_font(bytes);
+        }
+        let mut renderer = iced::futures::executor::block_on(<iced::Renderer as Headless>::new(
+            coincube_ui::font::REGULAR,
+            iced::Pixels(16.0),
+            Some("tiny-skia"),
+        ))
+        .expect("software renderer");
+        let size = iced::Size::new(1440.0, 900.0);
+        let mut ui = UserInterface::build(element, size, Cache::new(), &mut renderer);
+        // An update lays the overlays out; `draw` only draws laid-out ones.
+        let _ = ui.update(
+            &[],
+            iced::mouse::Cursor::Unavailable,
+            &mut renderer,
+            &mut iced::advanced::clipboard::Null,
+            &mut Vec::new(),
+        );
+        ui.draw(
+            &mut renderer,
+            theme,
+            &iced::advanced::renderer::Style {
+                text_color: theme.colors.text.primary,
+            },
+            iced::mouse::Cursor::Unavailable,
+        );
+        renderer.screenshot(
+            iced::Size::new(1440, 900),
+            1.0,
+            theme.colors.shell.background,
+        )
+    }
+
+    /// S1: a dialog over a Cube page (`Modal` over the page, as Spark
+    /// settings, the PSBT and coin dialogs and Mobile signing open them)
+    /// leaves the top bar, and the test-network tag on it, undimmed, while
+    /// the page under the dialog is dimmed. Drawn, in both themes.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn a_dialog_over_a_cube_page_leaves_the_test_network_tag_undimmed() {
+        use coincube_ui::theme::tenshu::separation::delta_e;
+        let root = tempfile::tempdir().unwrap();
+        let (mut app, _) = {
+            let _guard = crate::app::session::test_guard();
+            crate::app::shell_tests::bitcoin_app(root.path())
+        };
+        app.cache.fiat_chain = crate::chain::ChainId::Testnet4;
+        app.cache.network = bitcoin::Network::Testnet4;
+        app.panels.current = Menu::Cube(menu::CubeSubMenu::Overview);
+        let at = |rgba: &[u8], x: u32, y: u32| {
+            let i = (y * 1440 + x) as usize * 4;
+            iced::Color::from_rgb8(rgba[i], rgba[i + 1], rgba[i + 2])
+        };
+        let tag = crate::home::restore_frame::rendered_bounds(app.active_panel_view(), "TESTNET4")
+            .await
+            .expect("the tag names Testnet4");
+        // Inside the tag's 8px left padding, clear of the glyphs, and on
+        // the bar just right of the tag.
+        let in_tag = ((tag.x - 4.0) as u32, (tag.y + tag.height / 2.0) as u32);
+        // The filled Send on the Vault card, below the bar.
+        let on_page = (800u32, 545u32);
+        for (name, theme) in [
+            ("dark", coincube_ui::theme::Theme::dark()),
+            ("light", coincube_ui::theme::Theme::light()),
+        ] {
+            let open = draw_with_overlays(app.active_panel_view(), &theme);
+            let dialog = iced::widget::container(iced::widget::text("A dialog"))
+                .width(320)
+                .height(160)
+                .style(coincube_ui::theme::container::background);
+            let dimmed = draw_with_overlays(
+                coincube_ui::widget::modal::Modal::new(app.active_panel_view(), dialog).into(),
+                &theme,
+            );
+            let (x, y) = in_tag;
+            let (before, after) = (at(&open, x, y), at(&dimmed, x, y));
+            assert!(
+                delta_e(before, after) < 1.0,
+                "{}: the tag went from {:?} to {:?} under the dialog",
+                name,
+                before,
+                after
+            );
+            let (x, y) = on_page;
+            assert!(
+                delta_e(at(&open, x, y), at(&dimmed, x, y)) > 5.0,
+                "{}: the dialog does not dim the page",
+                name
+            );
+        }
+    }
+
     /// Opt-in look check against `P-Overview` and `D4-Notices`: Overview on
     /// Testnet4 in both themes, with the backup reminder showing.
     /// `W3_CAPTURE_DIR=<dir> cargo test -p coincube-gui --lib

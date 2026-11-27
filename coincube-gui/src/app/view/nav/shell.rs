@@ -229,7 +229,11 @@ pub fn top_bar_with_privacy<'a>(
         .chip(connect)
         .into();
     // The quiet rule under the bar, as on the Launcher.
-    let mut bar = column![top, bar::rule()];
+    // A dialog over the page leaves this bar undimmed: it carries the
+    // test-network tag (S1), which a scrim would make unreadable.
+    let mut bar =
+        column![container(column![top, bar::rule()])
+            .id(Id::new(coincube_ui::widget::modal::UNDIMMED_ID))];
     // The panel hangs from the control's trailing edge, clear of App
     // preferences, and covers the page rather than pushing it down.
     if ctx.connect.panel_open {

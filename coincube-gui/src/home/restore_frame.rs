@@ -578,6 +578,58 @@ pub(crate) fn full_rule<'a, M: 'a>() -> Element<'a, M> {
         .into()
 }
 
+/// The bounds of the first text equal to `needle` in a view laid out at
+/// 1440×900.
+#[cfg(test)]
+pub(crate) async fn rendered_bounds<M>(
+    element: Element<'_, M>,
+    needle: &str,
+) -> Option<iced::Rectangle> {
+    use iced::advanced::{
+        layout,
+        renderer::Headless,
+        widget::{Id, Operation, Tree},
+        Layout,
+    };
+
+    struct Find<'n>(&'n str, Option<iced::Rectangle>);
+    impl Operation for Find<'_> {
+        fn traverse(&mut self, operate: &mut dyn FnMut(&mut dyn Operation)) {
+            operate(self);
+        }
+        fn text(&mut self, _: Option<&Id>, bounds: iced::Rectangle, text: &str) {
+            if self.1.is_none() && text == self.0 {
+                self.1 = Some(bounds);
+            }
+        }
+    }
+    for bytes in coincube_ui::font::load() {
+        iced::advanced::graphics::text::font_system()
+            .write()
+            .unwrap()
+            .load_font(bytes);
+    }
+    let renderer = <iced::Renderer as Headless>::new(
+        coincube_ui::font::REGULAR,
+        iced::Pixels(16.0),
+        Some("tiny-skia"),
+    )
+    .await
+    .expect("software renderer");
+    let mut element = element;
+    let mut tree = Tree::new(element.as_widget());
+    let node = element.as_widget_mut().layout(
+        &mut tree,
+        &renderer,
+        &layout::Limits::new(iced::Size::ZERO, iced::Size::new(1440.0, 900.0)),
+    );
+    let mut find = Find(needle, None);
+    element
+        .as_widget_mut()
+        .operate(&mut tree, Layout::new(&node), &renderer, &mut find);
+    find.1
+}
+
 /// Every text a view lays out at 1440×900, in tree order.
 #[cfg(test)]
 pub(crate) async fn rendered_labels<M>(element: Element<'_, M>) -> Vec<String> {
