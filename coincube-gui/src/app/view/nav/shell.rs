@@ -1394,14 +1394,15 @@ mod backup_strip_style_tests {
             ("light", theme::Theme::light()),
         ] {
             let rest = backup_attention_style(&theme, Status::Active);
-            assert_eq!(rest.border.width, 0.0, "{name}");
-            assert_eq!(rest.background, None, "{name}: a fill at rest is a box");
+            assert_eq!(rest.border.width, 0.0, "{}", name);
+            assert_eq!(rest.background, None, "{}: a fill at rest is a box", name);
             let hover = backup_attention_style(&theme, Status::Hovered);
-            assert_eq!(hover.border.width, 0.0, "{name}");
+            assert_eq!(hover.border.width, 0.0, "{}", name);
             assert_eq!(
                 hover.background,
                 Some(iced::Background::Color(theme.colors.shell.hover)),
-                "{name}"
+                "{}",
+                name
             );
         }
     }
