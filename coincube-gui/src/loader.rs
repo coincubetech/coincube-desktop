@@ -1292,6 +1292,7 @@ pub async fn load_application(
         lightning_address: None,
         cube_mark_seed: config.cube_settings.mark_seed(),
         cube_mark_variation: config.cube_settings.mark_variation,
+        cube_mark_style: config.cube_settings.cube_mark_style(),
         cube_mark_access: crate::app::cache::CubeMarkAccess::Waiting,
         cube_mark_change: crate::app::cache::CubeMarkChange::Idle,
         cube_id: config.cube_settings.id.clone(),

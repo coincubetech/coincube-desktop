@@ -3,7 +3,7 @@ use coincube_ui::localized_format;
 use iced::widget::{mouse_area, Column, Container, Row, Space};
 use iced::{Alignment, Length};
 
-use coincube_ui::component::ring_mark;
+use coincube_ui::component::cube_mark::{self, CubeMarkStyle};
 use coincube_ui::component::tenshu::{
     segment, segmented, select, setting_row, toggle, SegmentSize, Tone,
 };
@@ -107,6 +107,13 @@ fn general_section<'a>(
 pub const CUBE_NAME_ID: &str = "tenshu.settings.cube-name";
 pub const MARK_REGENERATE_ID: &str = "tenshu.settings.mark-regenerate";
 pub const MARK_BACK_ID: &str = "tenshu.settings.mark-back";
+/// The Style row's tiles, one per [`CubeMarkStyle`], in [`CubeMarkStyle::ALL`]
+/// order.
+pub const MARK_STYLE_IDS: [&str; 3] = [
+    "tenshu.settings.mark-style-rings",
+    "tenshu.settings.mark-style-crest",
+    "tenshu.settings.mark-style-grid",
+];
 
 /// The Display & appearance groups (`#h-amt`, `#h-id`).
 pub(crate) fn display_content<'a>(
@@ -156,9 +163,11 @@ pub(crate) fn display_content<'a>(
         .width(Length::Fixed(280.0)),
     );
 
+    let mut identity_rows = vec![name_row.into(), avatar_row(cache)];
+    identity_rows.extend(style_row(cache));
     let identity = Column::new()
         .width(Length::Fill)
-        .push(page::rows([name_row.into(), avatar_row(cache)]));
+        .push(page::rows(identity_rows));
 
     Column::new()
         .width(Length::Fill)
@@ -215,20 +224,21 @@ pub(crate) const MARK_UNCONFIRMED_LINE: &str = "Connect hasn't confirmed this Cu
 /// failure, Connect's duress refusal included.
 pub(crate) const MARK_FAILED_LINE: &str = "Couldn't change the mark. Nothing was changed.";
 
-/// The Avatar row: the Cube's 48px ring mark and, for the Cube's owner,
-/// Regenerate and (above 0) Back. Each sets the mark number to one more or
-/// one less; the App decides whether that goes through Connect or stays on
-/// this device (`cache::CubeMarkAccess`).
+/// The Avatar row: the Cube's 48px mark in its chosen style and, for the
+/// Cube's owner, Regenerate and (above 0) Back. Each sets the mark number to
+/// one more or one less, within the chosen style; the App decides whether
+/// that goes through Connect or stays on this device
+/// (`cache::CubeMarkAccess`).
 pub(crate) fn avatar_row<'a>(cache: &'a cache::Cache) -> Element<'a, Message> {
     use cache::{CubeMarkAccess, CubeMarkChange};
-    let tile: Element<'a, Message> = ring_mark::ring_mark(cache.cube_mark_seed.as_deref(), 48.0);
+    let tile: Element<'a, Message> =
+        cube_mark::cube_mark(cache.cube_mark_style, cache.cube_mark_seed.as_deref(), 48.0);
     let row = page::row(localized_copy("Avatar")).leading(tile);
     let access = cache.cube_mark_access;
     if access == CubeMarkAccess::NotOwner {
         return row.into();
     }
-    let saving = matches!(cache.cube_mark_change, CubeMarkChange::Saving { .. });
-    let enabled = !saving && matches!(access, CubeMarkAccess::Connect | CubeMarkAccess::Local);
+    let enabled = mark_change_enabled(cache);
     let variation = cache.cube_mark_variation;
     let mut row = match access {
         CubeMarkAccess::SignedOut => row.description(localized_copy(MARK_SIGN_IN_LINE)),
@@ -252,6 +262,72 @@ pub(crate) fn avatar_row<'a>(cache: &'a cache::Cache) -> Element<'a, Message> {
             .then_some(Message::CubeMark(CubeMarkIntent::Regenerate)),
     ))
     .into()
+}
+
+/// Whether the owner may change the mark right now: the same rule for
+/// Regenerate, Back and Style (master plan D8 keeps CD3's rules).
+fn mark_change_enabled(cache: &cache::Cache) -> bool {
+    use cache::{CubeMarkAccess, CubeMarkChange};
+    !matches!(cache.cube_mark_change, CubeMarkChange::Saving { .. })
+        && matches!(
+            cache.cube_mark_access,
+            CubeMarkAccess::Connect | CubeMarkAccess::Local
+        )
+}
+
+/// The Style row, for the Cube's owner only: three tiles, this Cube's own
+/// mark drawn in Rings, Crest and Grid at 48 px with each style's name under
+/// it, the current one selected (master plan D8). Choosing one keeps the
+/// mark number. The tiles are disabled exactly when Regenerate is; the line
+/// that says why sits on the Avatar row just above, so it is not repeated.
+pub(crate) fn style_row<'a>(cache: &'a cache::Cache) -> Option<Element<'a, Message>> {
+    if cache.cube_mark_access == cache::CubeMarkAccess::NotOwner {
+        return None;
+    }
+    let enabled = mark_change_enabled(cache);
+    let tiles = CubeMarkStyle::ALL
+        .iter()
+        .copied()
+        .zip(MARK_STYLE_IDS.iter().copied())
+        .fold(Row::new().spacing(8), |tiles, (style, id)| {
+            tiles.push(style_tile(cache, style, id, enabled))
+        });
+    Some(page::row(localized_copy("Style")).control(tiles).into())
+}
+
+/// One Style tile: the Cube's mark in `style`, its name under it, outlined
+/// in the accent when it is the Cube's style.
+fn style_tile<'a>(
+    cache: &'a cache::Cache,
+    style: CubeMarkStyle,
+    id: &'static str,
+    enabled: bool,
+) -> Element<'a, Message> {
+    let selected = cache.cube_mark_style == style;
+    let content = Column::new()
+        .spacing(6)
+        .align_x(Alignment::Center)
+        .push(cube_mark::cube_mark(
+            style,
+            cache.cube_mark_seed.as_deref(),
+            48.0,
+        ))
+        .push(
+            iced::widget::text(localized_copy(style.name()))
+                .size(13)
+                .font(if selected {
+                    coincube_ui::font::SEMIBOLD
+                } else {
+                    coincube_ui::font::REGULAR
+                }),
+        );
+    coincube_ui::widget::action::Action::new(id, content, Message::FocusAction)
+        .style(move |theme, status| theme::tenshu::control::choice_chip(theme, status, selected))
+        .width(Length::Fixed(84.0))
+        .padding([10.0, 8.0])
+        .focus_radius(8.0)
+        .on_press_maybe(enabled.then_some(Message::CubeMark(CubeMarkIntent::Style(style))))
+        .into()
 }
 
 fn payment_checks_section<'a>(
@@ -3287,7 +3363,7 @@ mod mark_row_tests {
 
     fn cache(access: CubeMarkAccess, variation: u32) -> cache::Cache {
         cache::Cache {
-            cube_mark_seed: ring_mark::seed(CUBE, variation),
+            cube_mark_seed: coincube_ui::component::ring_mark::seed(CUBE, variation),
             cube_mark_variation: variation,
             cube_mark_access: access,
             ..cache::Cache::default()
@@ -3464,5 +3540,125 @@ mod mark_row_tests {
             )
         });
         assert!(failed.contains("No se pudo cambiar la marca. No se cambió nada."));
+    }
+
+    fn styled(access: CubeMarkAccess, style: CubeMarkStyle) -> cache::Cache {
+        cache::Cache {
+            cube_mark_style: style,
+            ..cache(access, 2)
+        }
+    }
+
+    fn inspect_style(
+        scenario: &str,
+        cache: &cache::Cache,
+        theme_name: &str,
+        theme: theme::Theme,
+    ) -> capture::Inspection {
+        capture::inspect(
+            scenario,
+            style_row(cache).expect("the owner has a Style row"),
+            OUTER,
+            theme_name,
+            theme,
+        )
+    }
+
+    /// The Style intents an activation of the tile for `style` emits, by
+    /// pointer or by keyboard. A disabled tile takes no focus: nothing.
+    fn pressed_style(
+        cache: &cache::Cache,
+        style: CubeMarkStyle,
+        pointer: bool,
+    ) -> Vec<CubeMarkIntent> {
+        let id = MARK_STYLE_IDS[usize::from(style.as_u8())];
+        let Some(row) = style_row(cache) else {
+            return Vec::new();
+        };
+        if !capture::inspect("style-row-press", row, OUTER, "dark", theme::Theme::dark())
+            .has_focus(Id::new(id))
+        {
+            return Vec::new();
+        }
+        capture::activate(style_row(cache).unwrap(), Id::new(id), OUTER, pointer)
+            .into_iter()
+            .filter_map(|message| match message {
+                Message::CubeMark(intent) => Some(intent),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// Three tiles named Rings, Crest and Grid, each focusable and answering
+    /// pointer and keyboard with its style, in both themes.
+    #[test]
+    fn style_tiles_answer_pointer_and_keyboard_in_both_themes() {
+        for access in [CubeMarkAccess::Local, CubeMarkAccess::Connect] {
+            let cache = styled(access, CubeMarkStyle::Crest);
+            for (name, theme) in [
+                ("dark", theme::Theme::dark()),
+                ("light", theme::Theme::light()),
+            ] {
+                let shown = inspect_style("style-row-owner", &cache, name, theme);
+                assert!(shown.contains("Style"));
+                for (style, id) in CubeMarkStyle::ALL.iter().zip(MARK_STYLE_IDS) {
+                    assert!(shown.contains(style.name()), "{:?} {}", style, name);
+                    assert!(shown.has_focus(Id::new(id)), "{:?} {}", style, name);
+                }
+            }
+            for style in CubeMarkStyle::ALL {
+                for pointer in [true, false] {
+                    assert_eq!(
+                        pressed_style(&cache, style, pointer),
+                        [CubeMarkIntent::Style(style)],
+                        "{:?} {:?} pointer={}",
+                        access,
+                        style,
+                        pointer
+                    );
+                }
+            }
+        }
+    }
+
+    /// The tiles are disabled exactly when Regenerate is: signed out,
+    /// unconfirmed, waiting, or while a change is in flight; another
+    /// account's Cube has no Style row at all.
+    #[test]
+    fn style_tiles_follow_the_regenerate_rules() {
+        let saving = cache::Cache {
+            cube_mark_change: CubeMarkChange::Saving { generation: 0 },
+            ..styled(CubeMarkAccess::Connect, CubeMarkStyle::Rings)
+        };
+        for cache in [
+            styled(CubeMarkAccess::SignedOut, CubeMarkStyle::Grid),
+            styled(CubeMarkAccess::Unconfirmed, CubeMarkStyle::Grid),
+            styled(CubeMarkAccess::Waiting, CubeMarkStyle::Grid),
+            saving,
+        ] {
+            let shown = inspect_style("style-row-off", &cache, "dark", theme::Theme::dark());
+            for style in CubeMarkStyle::ALL {
+                assert!(shown.contains(style.name()));
+                assert!(pressed_style(&cache, style, true).is_empty(), "{:?}", style);
+                assert!(
+                    pressed_style(&cache, style, false).is_empty(),
+                    "{:?}",
+                    style
+                );
+            }
+        }
+        assert!(style_row(&styled(CubeMarkAccess::NotOwner, CubeMarkStyle::Crest)).is_none());
+    }
+
+    #[test]
+    fn the_style_row_is_spanish() {
+        let cache = styled(CubeMarkAccess::Local, CubeMarkStyle::Grid);
+        let shown = render_in(Language::Spanish, || {
+            inspect_style("style-row-es", &cache, "light", theme::Theme::light())
+        });
+        shown.assert_spanish("Cube Settings › Display, Style row");
+        for word in ["Estilo", "Anillos", "Emblema", "Cuadrícula"] {
+            assert!(shown.contains(word), "{}", word);
+        }
     }
 }

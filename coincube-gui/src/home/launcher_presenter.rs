@@ -13,6 +13,7 @@ use iced::{
 
 use coincube_ui::{
     component::{
+        cube_mark,
         quote_display::Quote,
         ring_mark,
         tenshu::{self, top_bar, ActionButton, ActionKind},
@@ -296,8 +297,12 @@ fn local_facts<'a>(
             .spacing(CELL_GAP)
             .align_y(Alignment::Center)
             .push(
-                Container::new(ring_mark::ring_mark(row.mark_seed.as_deref(), 32.0))
-                    .width(Length::Fixed(AVATAR_WIDTH)),
+                Container::new(cube_mark::cube_mark(
+                    row.mark_style,
+                    row.mark_seed.as_deref(),
+                    32.0,
+                ))
+                .width(Length::Fixed(AVATAR_WIDTH)),
             )
             .push(name)
             .push(
@@ -324,7 +329,11 @@ fn local_facts<'a>(
                 Row::new()
                     .spacing(12)
                     .align_y(Alignment::Center)
-                    .push(ring_mark::ring_mark(row.mark_seed.as_deref(), 32.0))
+                    .push(cube_mark::cube_mark(
+                        row.mark_style,
+                        row.mark_seed.as_deref(),
+                        32.0,
+                    ))
                     .push(name),
             )
             .push(network_label(row.key.chain, network, 16.0, light))
@@ -402,7 +411,11 @@ fn details<'a>(row: &launcher_catalog::LocalRow<'_>, light: bool) -> Element<'a,
             Row::new()
                 .spacing(12)
                 .align_y(Alignment::Center)
-                .push(ring_mark::ring_mark(row.mark_seed.as_deref(), 34.0))
+                .push(cube_mark::cube_mark(
+                    row.mark_style,
+                    row.mark_seed.as_deref(),
+                    34.0,
+                ))
                 .push(
                     tenshu::section(row.name.clone())
                         .width(Length::Fill)
@@ -686,7 +699,7 @@ fn floor_details<'a>(
 ) -> Element<'a, ViewMessage> {
     use coincube_ui::font;
     let (backup_text, backup_tone) = backup(row.cube);
-    let avatar = ring_mark::ring_mark(row.mark_seed.as_deref(), 32.0);
+    let avatar = cube_mark::cube_mark(row.mark_style, row.mark_seed.as_deref(), 32.0);
     let facts = Column::new()
         .spacing(10)
         .push(face_fact(
@@ -796,9 +809,13 @@ fn face_secondary_style(theme: &theme::Theme, status: iced_button::Status) -> ic
     }
 }
 
-/// `.av.ghost`: a dashed ring holding the Cube's ring mark in the muted
-/// colour, for a Cube that lives on another computer.
-pub(super) fn ghost_avatar<'a, M: 'a>(seed: Option<&str>, size: f32) -> Element<'a, M> {
+/// `.av.ghost`: a dashed ring holding the Cube's mark, in its chosen style,
+/// in the muted colour, for a Cube that lives on another computer.
+pub(super) fn ghost_avatar<'a, M: 'a>(
+    style: cube_mark::CubeMarkStyle,
+    seed: Option<&str>,
+    size: f32,
+) -> Element<'a, M> {
     let ring = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><circle cx=\"16\" cy=\"16\" r=\"15.5\" fill=\"none\" stroke=\"#fff\" stroke-dasharray=\"3 2\"/></svg>";
     let ring = iced::widget::svg(iced::widget::svg::Handle::from_memory(ring.as_bytes()))
         .width(Length::Fixed(size))
@@ -808,7 +825,7 @@ pub(super) fn ghost_avatar<'a, M: 'a>(seed: Option<&str>, size: f32) -> Element<
         });
     // Three quarters of the ring, so the outer arc clears the dashes; never
     // below the mark's minimum size.
-    let mark = ring_mark::ring_mark_muted(seed, (size * 0.75).max(ring_mark::MIN_SIZE));
+    let mark = cube_mark::cube_mark_muted(style, seed, (size * 0.75).max(ring_mark::MIN_SIZE));
     iced::widget::stack![
         ring,
         Container::new(mark)
@@ -926,7 +943,11 @@ fn ghost_details<'a>(
                 Row::new()
                     .spacing(10)
                     .align_y(Alignment::Center)
-                    .push(ghost_avatar(cube.mark_seed().as_deref(), 32.0))
+                    .push(ghost_avatar(
+                        cube.cube_mark_style(),
+                        cube.mark_seed().as_deref(),
+                        32.0,
+                    ))
                     .push(
                         face_words(
                             super::catalog_display_name(&cube.name),
@@ -981,7 +1002,11 @@ fn ghost_slot<'a>(
     let label = Row::new()
         .spacing(8)
         .align_y(Alignment::Center)
-        .push(ghost_avatar(cube.mark_seed().as_deref(), 32.0))
+        .push(ghost_avatar(
+            cube.cube_mark_style(),
+            cube.mark_seed().as_deref(),
+            32.0,
+        ))
         .push(
             Column::new()
                 .spacing(2)
@@ -1053,7 +1078,11 @@ fn remote_row<'a>(cube: &super::RemoteCube) -> Element<'a, ViewMessage> {
         .spacing(12)
         .align_y(Alignment::Center)
         // A Cube on another computer: its mark, muted, in the dashed ring.
-        .push(ghost_avatar(cube.mark_seed().as_deref(), 32.0))
+        .push(ghost_avatar(
+            cube.cube_mark_style(),
+            cube.mark_seed().as_deref(),
+            32.0,
+        ))
         .push(
             Column::new()
                 .spacing(4)
@@ -1266,7 +1295,7 @@ fn floor_slot<'a>(
     closes_face: bool,
 ) -> Element<'a, ViewMessage> {
     let label = Container::new(floor_label(
-        &launcher_catalog::PeerMark::Local(row.mark_seed.clone()),
+        &launcher_catalog::PeerMark::Local(row.mark_seed.clone(), row.mark_style),
         &row.name,
         if row.actionable {
             unlock_prompt(row.cube)
@@ -1326,8 +1355,12 @@ fn floor_label<'a, M: 'static>(
     dimmed: bool,
 ) -> Row<'a, M> {
     let avatar: Element<'a, M> = match mark {
-        launcher_catalog::PeerMark::Local(seed) => ring_mark::ring_mark(seed.as_deref(), 32.0),
-        launcher_catalog::PeerMark::Ghost(seed) => ghost_avatar(seed.as_deref(), 32.0),
+        launcher_catalog::PeerMark::Local(seed, style) => {
+            cube_mark::cube_mark(*style, seed.as_deref(), 32.0)
+        }
+        launcher_catalog::PeerMark::Ghost(seed, style) => {
+            ghost_avatar(*style, seed.as_deref(), 32.0)
+        }
     };
     let name = iced::widget::text(name.to_owned())
         .size(14)
@@ -1365,6 +1398,7 @@ fn face_text<'r>(row: &'r launcher_catalog::LocalRow<'_>) -> launcher_scene::Fac
         wallets: &row.wallets,
         passkey: row.cube.is_passkey_cube(),
         mark: row.mark_seed.as_deref(),
+        mark_style: row.mark_style,
     }
 }
 
@@ -1785,6 +1819,7 @@ fn floor_layout<'a>(
                 ghost_copy(cube).0,
                 launcher_catalog::ghost_kind(cube) == launcher_scene::Ghost::Restorable,
                 cube.mark_seed(),
+                cube.cube_mark_style(),
             )),
             FloorEntry::Local(_) => None,
         })
@@ -1793,20 +1828,21 @@ fn floor_layout<'a>(
         let (key, entry) = &visible[*index];
         let (marks, details, ghost_details) = match entry {
             FloorEntry::Local(row) => (launcher_gpu::marks(row.cube), Some(face_text(row)), None),
-            FloorEntry::Ghost(cube) => (
-                launcher_catalog::ghost_marks(cube),
-                None,
-                ghost_text[*index]
-                    .as_ref()
-                    .map(
-                        |(name, backup, restorable, mark)| launcher_scene::GhostText {
+            FloorEntry::Ghost(cube) => {
+                (
+                    launcher_catalog::ghost_marks(cube),
+                    None,
+                    ghost_text[*index].as_ref().map(
+                        |(name, backup, restorable, mark, mark_style)| launcher_scene::GhostText {
                             name,
                             backup,
                             restorable: *restorable,
                             mark: mark.as_deref(),
+                            mark_style: *mark_style,
                         },
                     ),
-            ),
+                )
+            }
         };
         launcher_gpu::StageCube {
             rest: layout.rest_center(*index, count),
@@ -2134,6 +2170,7 @@ fn lone_cube<'a, M: 'a>(
     let cube = cube.clone();
     let wallets = local_wallets(&cube);
     let mark = cube.mark_seed();
+    let mark_style = cube.cube_mark_style();
     responsive(move |size: Size| {
         let layout = launcher_scene::Layout::new(size.width, size.height);
         let name = crate::cube_display::name(&cube.name);
@@ -2153,6 +2190,7 @@ fn lone_cube<'a, M: 'a>(
                     wallets: &wallets,
                     passkey: cube.is_passkey_cube(),
                     mark: mark.as_deref(),
+                    mark_style,
                 }),
                 ghost_details: None,
                 unlock_name: Some(&name),
@@ -2331,6 +2369,7 @@ fn floor_stage<'a, M: 'a + 'static>(
     let count = context.peers.len();
     let name = crate::cube_display::name(&cube.name);
     let mark = cube.mark_seed();
+    let mark_style = cube.cube_mark_style();
     let selected_pose = lead.pose;
     // Peers first, the turning Cube last, as on the Launcher page.
     let mut order: Vec<usize> = (0..count).collect();
@@ -2351,6 +2390,7 @@ fn floor_stage<'a, M: 'a + 'static>(
                 wallets: &context.wallets,
                 passkey: cube.is_passkey_cube(),
                 mark: mark.as_deref(),
+                mark_style,
             }),
             ghost_details: None,
             unlock_name: faces.then_some(name.as_str()),
@@ -2945,6 +2985,7 @@ mod tests {
     fn remote_list_rows_show_the_cubes_mark_not_a_cloud() {
         let cube = super::super::RemoteCube {
             mark_variation: 2,
+            mark_style: 0,
             id: 9,
             uuid: "9fb93534-081c-4253-b1e2-73a87984a8ab".into(),
             name: "Elsewhere".into(),
@@ -3105,14 +3146,14 @@ mod tests {
             wallets: "Spark".into(),
             peers: vec![
                 launcher_catalog::LauncherScenePeer {
-                    mark: launcher_catalog::PeerMark::Local(None),
+                    mark: launcher_catalog::PeerMark::Local(None, Default::default()),
                     key: selected,
                     name: "Everyday".into(),
                     status: "PIN prompt",
                     marks: launcher_gpu::marks(cube),
                 },
                 launcher_catalog::LauncherScenePeer {
-                    mark: launcher_catalog::PeerMark::Local(None),
+                    mark: launcher_catalog::PeerMark::Local(None, Default::default()),
                     key: peer_key,
                     name: "Travel".into(),
                     status: "PIN prompt",
@@ -3121,7 +3162,7 @@ mod tests {
                 // The 420px face covers the two middle labels, as the
                 // prototype's lead Cube does; the last peer stays readable.
                 launcher_catalog::LauncherScenePeer {
-                    mark: launcher_catalog::PeerMark::Local(None),
+                    mark: launcher_catalog::PeerMark::Local(None, Default::default()),
                     key: CubeCatalogKey {
                         chain: cube.network,
                         cube_id: "studio".into(),
@@ -3131,7 +3172,7 @@ mod tests {
                     marks: launcher_gpu::marks(&peer),
                 },
                 launcher_catalog::LauncherScenePeer {
-                    mark: launcher_catalog::PeerMark::Local(None),
+                    mark: launcher_catalog::PeerMark::Local(None, Default::default()),
                     key: CubeCatalogKey {
                         chain: cube.network,
                         cube_id: "lab".into(),
@@ -3688,6 +3729,7 @@ mod tests {
         }
         home.remote_cubes.push(super::super::RemoteCube {
             mark_variation: 0,
+            mark_style: 0,
             id: 7,
             uuid: "restore-me".into(),
             name: "Connect backup".into(),
@@ -3740,6 +3782,7 @@ mod tests {
     fn ghost_fixture(uuid: &str, name: &str, kit: bool) -> super::super::RemoteCube {
         super::super::RemoteCube {
             mark_variation: 0,
+            mark_style: 0,
             id: 9,
             uuid: uuid.into(),
             name: name.into(),
@@ -4857,6 +4900,7 @@ mod tests {
         let mut home = home_with_cubes();
         home.remote_cubes.push(super::super::RemoteCube {
             mark_variation: 0,
+            mark_style: 0,
             id: 7,
             uuid: "remote-id".into(),
             name: "Travel backup".into(),

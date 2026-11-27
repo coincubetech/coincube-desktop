@@ -53,6 +53,7 @@ mod tests {
             vault_alias: None,
             lightning_address: None,
             mark_seed: None,
+            mark_style: Default::default(),
             theme_mode: coincube_ui::theme::palette::ThemeMode::default(),
             connect_authenticated: false,
             connect_email: None,

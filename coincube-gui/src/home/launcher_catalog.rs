@@ -26,7 +26,11 @@ use iced::{
 use std::time::{Duration, Instant};
 
 use coincube_ui::{
-    component::{card, ring_mark, text::*},
+    component::{
+        card,
+        cube_mark::{self, CubeMarkStyle},
+        text::*,
+    },
     theme,
     widget::{action::Action, text_input, Column, Container, Element, Row, TextInput},
 };
@@ -155,8 +159,9 @@ pub(crate) struct LauncherScenePeer {
 /// computer's in the muted colour inside the dashed treatment.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum PeerMark {
-    Local(Option<String>),
-    Ghost(Option<String>),
+    /// The Cube's mark seed and the style its owner chose.
+    Local(Option<String>, CubeMarkStyle),
+    Ghost(Option<String>, CubeMarkStyle),
 }
 
 /// The prototype's Key card: hover peeks, a click pins, a second click or
@@ -704,14 +709,14 @@ impl Home {
                         "Unavailable on this network"
                     },
                     marks: super::launcher_gpu::marks(row.cube),
-                    mark: PeerMark::Local(row.mark_seed.clone()),
+                    mark: PeerMark::Local(row.mark_seed.clone(), row.mark_style),
                 },
                 FloorEntry::Ghost(cube) => LauncherScenePeer {
                     key: ghost_key(cube),
                     name: catalog_display_name(&cube.name),
                     status: ghost_status(cube, projection.connect_trouble),
                     marks: ghost_marks(cube),
-                    mark: PeerMark::Ghost(cube.mark_seed()),
+                    mark: PeerMark::Ghost(cube.mark_seed(), cube.cube_mark_style()),
                 },
             })
             .collect::<Vec<_>>();
@@ -1360,6 +1365,9 @@ pub(super) struct LocalRow<'a> {
     /// The seed the Cube's ring mark is drawn from
     /// ([`CubeSettings::mark_seed`]).
     pub(super) mark_seed: Option<String>,
+    /// The style the Cube's mark is drawn in
+    /// ([`CubeSettings::cube_mark_style`]).
+    pub(super) mark_style: CubeMarkStyle,
     pub(super) vault: String,
     pub(super) connect: (Tone, String),
     /// A short, visible registration refusal; full guidance stays in details.
@@ -1692,6 +1700,7 @@ impl<'a> LocalProjection<'a> {
                 wallets: super::launcher_presenter::local_wallets(cube),
                 vault: vault_subtitle(cube),
                 mark_seed: cube.mark_seed(),
+                mark_style: cube.cube_mark_style(),
                 connect_off: home
                     .connect_off_cubes
                     .contains(&cube.id)
@@ -1927,9 +1936,10 @@ fn wallets_cell<'a>(row: &LocalRow<'_>) -> Element<'a, ViewMessage> {
         .into()
 }
 
-/// The Cube's 32px ring mark, beside its name in the list and table.
+/// The Cube's 32px mark, in its chosen style, beside its name in the list
+/// and table.
 fn cube_avatar<'a>(row: &LocalRow<'_>) -> Element<'a, ViewMessage> {
-    ring_mark::ring_mark(row.mark_seed.as_deref(), 32.0)
+    cube_mark::cube_mark(row.mark_style, row.mark_seed.as_deref(), 32.0)
 }
 
 fn label_action<'a>(
@@ -2058,6 +2068,7 @@ fn remote_row<'a>(cube: &RemoteCube) -> Element<'a, ViewMessage> {
                 // A Cube on another computer: its mark, muted, in the
                 // dashed ring, as on the floor.
                 .push(super::launcher_presenter::ghost_avatar(
+                    cube.cube_mark_style(),
                     cube.mark_seed().as_deref(),
                     32.0,
                 ))
@@ -2720,6 +2731,7 @@ mod tests {
     ) -> RemoteCube {
         RemoteCube {
             mark_variation: 0,
+            mark_style: 0,
             id: 7,
             uuid: uuid.to_string(),
             name: name.to_string(),
@@ -6446,6 +6458,34 @@ mod tests {
             assert!(create.y >= body.y + body.height, "{:?} {:?}", create, body);
             assert_eq!(tree.emitted, 0);
         }
+    }
+
+    /// Every Launcher row draws the Cube in the style its owner chose
+    /// (D-R3): the projected row carries the Cube's style beside its seed,
+    /// and a style this build does not know is drawn as Rings.
+    #[test]
+    fn rows_carry_each_cubes_chosen_style() {
+        let mut home = home_with(&[
+            ("9fb93534-081c-4253-b1e2-73a87984a8ab", "Rings"),
+            ("3994693e-a3ae-4e68-9323-451b4a95902a", "Crest"),
+            ("1aa615a9-4b6a-4551-a061-ae14a1dbf721", "Future"),
+        ]);
+        if let State::Cubes { cubes, .. } = &mut home.state {
+            cubes[1].mark_style = 1;
+            cubes[2].mark_style = 9;
+        }
+        let projection = project(&home);
+        let style_of = |name: &str| {
+            projection
+                .locals
+                .iter()
+                .find(|row| row.name == name)
+                .map(|row| (row.mark_style, row.mark_seed.is_some()))
+                .unwrap()
+        };
+        assert_eq!(style_of("Rings"), (CubeMarkStyle::Rings, true));
+        assert_eq!(style_of("Crest"), (CubeMarkStyle::Crest, true));
+        assert_eq!(style_of("Future"), (CubeMarkStyle::Rings, true));
     }
 
     #[test]

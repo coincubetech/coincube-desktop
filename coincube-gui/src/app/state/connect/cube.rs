@@ -301,6 +301,10 @@ pub struct ConnectCubePanel {
     /// the row (API CA1), so a Cube regenerated before it ever registered
     /// keeps its mark.
     pub mark_variation: u32,
+    /// The Cube's mark style (`CubeSettings::mark_style`), kept in step like
+    /// [`Self::mark_variation`] and sent on registration when it is Crest or
+    /// Grid (create-only on the server, API CA6).
+    pub mark_style: u8,
     /// The Cube has a row on Connect: `CubeSettings::remote_synced` when the
     /// App opened it, or a registration succeeded since. Unlike
     /// [`Self::server_cube_id`] it survives a sign-out, because a registered
@@ -456,6 +460,7 @@ impl ConnectCubePanel {
             cube_has_vault,
             spark_stable_balance: None,
             mark_variation: 0,
+            mark_style: 0,
             has_server_record: false,
             cube_encryption_pubkey: None,
             enc_pubkey_registered: false,
@@ -751,6 +756,7 @@ impl ConnectCubePanel {
             // Used by the server only when it creates the row (API CA1), so
             // a Cube regenerated before it ever registered keeps its mark.
             mark_variation: RegisterCubeRequest::mark_variation_for(self.mark_variation),
+            mark_style: RegisterCubeRequest::mark_style_for(self.mark_style),
         };
         iced::Task::perform(async move { client.register_cube(req).await }, move |res| {
             Message::View(view::Message::ConnectCube(
@@ -1291,11 +1297,16 @@ impl ConnectCubePanel {
                 let stable_balance_task = iced::Task::done(Message::SparkStableBalanceFromConnect(
                     cube_resp.spark_stable_balance,
                 ));
-                // The server's mark variation is the record once it has
-                // one (`CubeSettings::mark_variation`); the App owns the
-                // local copy and the sidebar's seed.
-                let mark_task =
-                    iced::Task::done(Message::CubeMarkFromConnect(cube_resp.mark_variation));
+                // The server's mark variation and style are the record
+                // once it has them (`CubeSettings::mark_variation`,
+                // `CubeSettings::mark_style`); the App owns the local copy
+                // and the sidebar's mark.
+                let mark_task = iced::Task::done(Message::CubeMarkFromConnect(
+                    crate::app::settings::ServerMark {
+                        variation: cube_resp.mark_variation,
+                        style: cube_resp.mark_style,
+                    },
+                ));
                 // Connect now has a row for this Cube: the App records it,
                 // so the Cube is still known to be registered after a
                 // sign-out and a relaunch.
@@ -2207,6 +2218,7 @@ mod tests {
             vault: None,
             connect_features_disabled: false,
             mark_variation: None,
+            mark_style: None,
             mark_version: None,
         }
     }
@@ -2336,6 +2348,7 @@ mod tests {
             vault: None,
             connect_features_disabled: false,
             mark_variation: None,
+            mark_style: None,
             mark_version: None,
         }
     }
