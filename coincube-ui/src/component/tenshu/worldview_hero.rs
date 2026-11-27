@@ -172,14 +172,22 @@ fn layout_hero<'a, M: 'a>(
     layout::Node::with_children(Size::new(width, height), nodes)
 }
 
-/// `.line`: the mode's 28px rule over the italic voice line, both aligned to
+/// The colour of the 28px rule over the voice line: muted ink in every
+/// worldview and appearance. The modes have no accent colours (Desktop V3:
+/// Bitcoin Worldview is wording only), so a mode switch changes the line's
+/// words and never its colour.
+pub fn voice_rule_color(theme: &Theme) -> iced::Color {
+    theme.colors.shell.muted
+}
+
+/// `.line`: the 28px rule over the italic voice line, both aligned to
 /// `align`.
 fn voice_line<'a, M: 'a>(line: &'a str, size: f32, max: f32, align: Horizontal) -> Element<'a, M> {
     let rule = Container::new(iced::widget::Space::new())
         .width(Length::Fixed(RULE_WIDTH))
         .height(Length::Fixed(1.0))
         .style(|theme: &Theme| iced::widget::container::Style {
-            background: Some(theme.worldview_accent().into()),
+            background: Some(voice_rule_color(theme).into()),
             ..Default::default()
         });
     let text_align = match align {
@@ -219,5 +227,25 @@ mod tests {
         // A mode with no line keeps the row at any width it can hold.
         assert_eq!(hero_layout(640.0, 0.0, 0.0), HeroLayout::Wide);
         assert_eq!(hero_layout(520.0, 0.0, 0.0), HeroLayout::Narrow);
+    }
+
+    /// Desktop V3 (V7): the rule over the voice line is the same muted ink
+    /// in all three worldviews, in both appearances.
+    #[test]
+    fn the_voice_rule_keeps_one_colour_in_every_worldview() {
+        use crate::theme::WorldviewMode;
+        for base in [Theme::dark(), Theme::light()] {
+            for mode in [
+                WorldviewMode::Samurai,
+                WorldviewMode::Suitcoiner,
+                WorldviewMode::Luke,
+            ] {
+                assert_eq!(
+                    voice_rule_color(&base.with_worldview(mode)),
+                    base.colors.shell.muted,
+                    "{mode:?}"
+                );
+            }
+        }
     }
 }
