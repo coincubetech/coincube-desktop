@@ -153,11 +153,72 @@ pub(crate) fn save_scrolled<M>(
 
 fn draw_and_save<M>(
     renderer: &mut iced::Renderer,
+    element: Element<'_, M>,
+    tree: Tree,
+    node: layout::Node,
+    size: Size,
+    theme: &theme::Theme,
+    path: PathBuf,
+) {
+    draw_and_save_at(
+        renderer,
+        element,
+        tree,
+        node,
+        size,
+        theme,
+        mouse::Cursor::Unavailable,
+        path,
+    );
+}
+
+/// Lays `element` out at `size`, moves the pointer to `pointer` and saves the
+/// frame with it there, so hover styles can be checked by eye.
+pub(crate) fn save_hovered<M>(
+    renderer: &mut iced::Renderer,
+    mut element: Element<'_, M>,
+    size: Size,
+    theme: &theme::Theme,
+    pointer: iced::Point,
+    path: PathBuf,
+) {
+    let mut tree = Tree::new(element.as_widget());
+    let node =
+        element
+            .as_widget_mut()
+            .layout(&mut tree, renderer, &layout::Limits::new(Size::ZERO, size));
+    let viewport = Rectangle::with_size(size);
+    element.as_widget_mut().update(
+        &mut tree,
+        &iced::Event::Mouse(mouse::Event::CursorMoved { position: pointer }),
+        Layout::new(&node),
+        mouse::Cursor::Available(pointer),
+        renderer,
+        &mut iced::advanced::clipboard::Null,
+        &mut Shell::new(&mut Vec::new()),
+        &viewport,
+    );
+    draw_and_save_at(
+        renderer,
+        element,
+        tree,
+        node,
+        size,
+        theme,
+        mouse::Cursor::Available(pointer),
+        path,
+    );
+}
+
+#[allow(clippy::too_many_arguments)]
+fn draw_and_save_at<M>(
+    renderer: &mut iced::Renderer,
     mut element: Element<'_, M>,
     mut tree: Tree,
     node: layout::Node,
     size: Size,
     theme: &theme::Theme,
+    cursor: mouse::Cursor,
     path: PathBuf,
 ) {
     let viewport = Rectangle::with_size(size);
@@ -166,7 +227,7 @@ fn draw_and_save<M>(
         &mut tree,
         &iced::Event::Window(iced::window::Event::RedrawRequested(Instant::now())),
         Layout::new(&node),
-        mouse::Cursor::Unavailable,
+        cursor,
         renderer,
         &mut iced::advanced::clipboard::Null,
         &mut Shell::new(&mut Vec::new()),
@@ -180,7 +241,7 @@ fn draw_and_save<M>(
             text_color: theme.colors.shell.ink,
         },
         Layout::new(&node),
-        mouse::Cursor::Unavailable,
+        cursor,
         &viewport,
     );
     let pixels = renderer.screenshot(
@@ -444,4 +505,87 @@ pub(crate) fn assert_quiet_rule(
         actual,
         expected
     );
+}
+
+/// Hover states by eye, for the Desktop V3 button rule: the bar buttons (top
+/// bar, side panel, backup strip) take a light fill with no outline, and the
+/// content buttons (the Receive/Send pair, legacy secondary and primary) keep
+/// their outline or fill and add the hover. Pointer positions are fixed for
+/// the 1440×900 layout. `TOP_BAR_CAPTURE_DIR=<dir> cargo test -p coincube-gui
+/// --lib hover_capture -- --ignored`.
+#[test]
+#[ignore = "writes PNG frames; needs a GPU adapter"]
+fn hover_capture() {
+    use crate::app::view::Message;
+    let Some(directory) = directory() else {
+        return;
+    };
+    let mut renderer = renderer();
+    let size = Size::new(1440.0, 900.0);
+    let go = || Message::Menu(Menu::Cube(CubeSubMenu::Overview));
+    for (appearance, palette) in themes() {
+        let cache = cache(appearance == "light", BalancePrivacy::Shown);
+        for (name, x, y) in [
+            ("eye", 1076.0, 31.0),
+            ("connect", 1240.0, 31.0),
+            ("preferences", 1400.0, 31.0),
+            ("nav-activity", 70.0, 183.0),
+            ("backup", 100.0, 822.0),
+        ] {
+            save_hovered(
+                &mut renderer,
+                dashboard(&cache),
+                size,
+                &palette,
+                iced::Point::new(x, y),
+                directory.join(format!("hover-{appearance}-bar-{name}.png")),
+            );
+        }
+        type Button = fn(fn() -> Message) -> Element<'static, Message>;
+        let pages: [(&str, Button); 4] = [
+            ("receive", |go| {
+                coincube_ui::component::tenshu::action::receive_action(
+                    "capture.receive",
+                    Message::FocusAction,
+                    Some(go()),
+                )
+                .into()
+            }),
+            ("send", |go| {
+                coincube_ui::component::tenshu::action::send_action(
+                    "capture.send",
+                    Message::FocusAction,
+                    Some(go()),
+                )
+                .into()
+            }),
+            ("legacy-secondary", |go| {
+                coincube_ui::component::button::secondary(None, "Cancel")
+                    .on_press(go())
+                    .into()
+            }),
+            ("legacy-primary", |go| {
+                coincube_ui::component::button::primary(None, "Continue")
+                    .on_press(go())
+                    .into()
+            }),
+        ];
+        for (name, button) in pages {
+            for (state, pointer) in [
+                ("rest", None),
+                ("hover", Some(iced::Point::new(300.0, 106.0))),
+            ] {
+                let page = crate::app::view::dashboard(
+                    &Menu::Cube(CubeSubMenu::Overview),
+                    &cache,
+                    iced::widget::column![button(go)],
+                );
+                let path = directory.join(format!("hover-{appearance}-content-{name}-{state}.png"));
+                match pointer {
+                    Some(point) => save_hovered(&mut renderer, page, size, &palette, point, path),
+                    None => save(&mut renderer, page, size, &palette, None, path),
+                }
+            }
+        }
+    }
 }
