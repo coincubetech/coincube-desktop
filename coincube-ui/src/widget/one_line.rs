@@ -24,6 +24,9 @@ type Paragraph = <Renderer as text::Renderer>::Paragraph;
 
 const ELLIPSIS: &str = "…";
 
+/// A text colour drawn from the theme.
+type ColorFn<'a> = Box<dyn Fn(&Theme) -> Color + 'a>;
+
 /// `content` on one line, cut with an ellipsis to the width it is given.
 pub fn one_line<'a>(content: impl Into<String>) -> OneLine<'a> {
     OneLine {
@@ -40,7 +43,7 @@ pub struct OneLine<'a> {
     size: Option<Pixels>,
     font: Option<Font>,
     line_height: LineHeight,
-    color: Option<Box<dyn Fn(&Theme) -> Color + 'a>>,
+    color: Option<ColorFn<'a>>,
 }
 
 impl<'a> OneLine<'a> {
@@ -220,7 +223,6 @@ impl<'a, Message: 'a> From<OneLine<'a>> for Element<'a, Message> {
 mod tests {
     use super::*;
     use iced::advanced::renderer::Headless;
-    use iced::advanced::Widget as _;
 
     fn renderer() -> Renderer {
         for bytes in crate::font::load() {

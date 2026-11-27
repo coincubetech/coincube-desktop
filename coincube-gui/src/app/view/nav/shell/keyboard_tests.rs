@@ -1945,7 +1945,7 @@ fn switcher_is_the_mark_and_name_on_one_line_at_both_widths() {
                         view(),
                         (width as u32, 60),
                         "dark",
-                        theme.clone(),
+                        theme,
                     );
                     let case = format!("{:?} {} {:?} {:?}", chain, width, mode, cube_name);
                     // One text: the name. No network label, no coin row.
