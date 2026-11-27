@@ -76,6 +76,9 @@ pub struct NavContext<'a> {
     /// ([`crate::app::settings::CubeSettings::mark_seed`]); `None` draws its
     /// centre dot alone.
     pub mark_seed: Option<&'a str>,
+    /// The style the Cube's mark is drawn in
+    /// ([`crate::app::settings::CubeSettings::cube_mark_style`]).
+    pub mark_style: coincube_ui::component::cube_mark::CubeMarkStyle,
     pub theme_mode: coincube_ui::theme::palette::ThemeMode,
     pub connect_authenticated: bool,
     pub connect_email: Option<&'a str>,
@@ -136,6 +139,7 @@ impl<'a> NavContext<'a> {
             vault_alias: cache.wallet_names.vault.as_deref(),
             lightning_address: None,
             mark_seed: cache.cube_mark_seed.as_deref(),
+            mark_style: cache.cube_mark_style,
             theme_mode: cache.theme_mode,
             connect_authenticated: cache.sidebar_connect_signed_in,
             connect_email: cache.connect_email.as_deref(),
@@ -152,6 +156,25 @@ impl<'a> NavContext<'a> {
             server_enabled: self.btcb2_server_enabled,
             already_claimed: self.btcb2_already_claimed,
         }
+    }
+}
+
+#[cfg(test)]
+mod mark_tests {
+    use super::*;
+    use coincube_ui::component::cube_mark::CubeMarkStyle;
+
+    /// The sidebar's Cube switcher draws the open Cube in its chosen style.
+    #[test]
+    fn the_sidebar_takes_the_cubes_style_from_the_cache() {
+        let cache = crate::app::cache::Cache {
+            cube_mark_seed: Some("9fb93534-081c-4253-b1e2-73a87984a8ab".into()),
+            cube_mark_style: CubeMarkStyle::Grid,
+            ..Default::default()
+        };
+        let ctx = NavContext::from_cache(&cache);
+        assert_eq!(ctx.mark_style, CubeMarkStyle::Grid);
+        assert_eq!(ctx.mark_seed, cache.cube_mark_seed.as_deref());
     }
 }
 

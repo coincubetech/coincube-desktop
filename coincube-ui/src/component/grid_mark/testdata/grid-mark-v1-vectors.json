@@ -1,0 +1,254 @@
+{
+ "spec": "SPEC-cube-grid-mark-v1.md",
+ "note": "Implementations must match fnvState, draws and rows exactly. Each row is five cells, left to right, 1 for a large dot and 0 for a small one. svg is the study's own output for this seed, for visual comparison only.",
+ "vectors": [
+  {
+   "cubeId": "26329c0c-d0e3-4e97-bc1a-9cec432f438e",
+   "variation": 0,
+   "seed": "26329c0c-d0e3-4e97-bc1a-9cec432f438e",
+   "fnvState": "0x6c85bc2a",
+   "draws": [
+    61258,
+    71597,
+    16443,
+    95734,
+    39074,
+    48936,
+    74787,
+    68693,
+    99109,
+    48472,
+    48621,
+    55003,
+    31248,
+    42519,
+    29196
+   ],
+   "rows": [
+    "11011",
+    "10001",
+    "11111",
+    "00100",
+    "00000"
+   ],
+   "svg": "<circle cx=\"14\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/>"
+  },
+  {
+   "cubeId": "39abb429-5dde-4519-90ce-ed0798d02723",
+   "variation": 0,
+   "seed": "39abb429-5dde-4519-90ce-ed0798d02723",
+   "fnvState": "0x50c47634",
+   "draws": [
+    73941,
+    78788,
+    95769,
+    20427,
+    25595,
+    92142,
+    64714,
+    26459,
+    36179,
+    41536,
+    98594,
+    93024,
+    22756,
+    26560,
+    22182
+   ],
+   "rows": [
+    "11111",
+    "00100",
+    "10001",
+    "01110",
+    "00000"
+   ],
+   "svg": "<circle cx=\"14\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/>"
+  },
+  {
+   "cubeId": "7388bbbf-9f15-49e4-acef-da87f9d3cb52",
+   "variation": 0,
+   "seed": "7388bbbf-9f15-49e4-acef-da87f9d3cb52",
+   "fnvState": "0x8a4fa8bb",
+   "draws": [
+    21111,
+    59339,
+    55684,
+    45020,
+    73231,
+    93295,
+    38241,
+    31531,
+    1480,
+    59150,
+    64147,
+    96646,
+    99718,
+    66887,
+    15465
+   ],
+   "rows": [
+    "01110",
+    "01110",
+    "00000",
+    "11111",
+    "11011"
+   ],
+   "svg": "<circle cx=\"14\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/>"
+  },
+  {
+   "cubeId": "1d6511c0-5829-4110-a76f-e0c491b413c9",
+   "variation": 0,
+   "seed": "1d6511c0-5829-4110-a76f-e0c491b413c9",
+   "fnvState": "0xb267ff00",
+   "draws": [
+    19875,
+    57287,
+    91574,
+    87429,
+    89279,
+    77465,
+    36668,
+    5542,
+    20053,
+    70054,
+    63785,
+    536,
+    90201,
+    51884,
+    44891
+   ],
+   "rows": [
+    "01110",
+    "11111",
+    "00000",
+    "11011",
+    "11011"
+   ],
+   "svg": "<circle cx=\"14\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/>"
+  },
+  {
+   "cubeId": "945ca68c-e79f-4bdd-a246-620ede33d47a",
+   "variation": 0,
+   "seed": "945ca68c-e79f-4bdd-a246-620ede33d47a",
+   "fnvState": "0xf8b4c1e8",
+   "draws": [
+    68716,
+    89557,
+    92365,
+    23887,
+    99412,
+    45451,
+    70645,
+    36528,
+    93801,
+    18514,
+    63938,
+    30771,
+    10304,
+    35434,
+    61724
+   ],
+   "rows": [
+    "11111",
+    "01010",
+    "10101",
+    "01010",
+    "00100"
+   ],
+   "svg": "<circle cx=\"14\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/>"
+  },
+  {
+   "cubeId": "26329c0c-d0e3-4e97-bc1a-9cec432f438e",
+   "variation": 1,
+   "seed": "26329c0c-d0e3-4e97-bc1a-9cec432f438e:1",
+   "fnvState": "0xe7997893",
+   "draws": [
+    56982,
+    84805,
+    32148,
+    19670,
+    48475,
+    87952,
+    23686,
+    12048,
+    61213,
+    35946,
+    71825,
+    22465,
+    64593,
+    1821,
+    97580
+   ],
+   "rows": [
+    "11011",
+    "00100",
+    "00100",
+    "01010",
+    "10101"
+   ],
+   "svg": "<circle cx=\"14\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/>"
+  },
+  {
+   "cubeId": "26329c0c-d0e3-4e97-bc1a-9cec432f438e",
+   "variation": 2,
+   "seed": "26329c0c-d0e3-4e97-bc1a-9cec432f438e:2",
+   "fnvState": "0xe8997a26",
+   "draws": [
+    75176,
+    31575,
+    30544,
+    16112,
+    70892,
+    68144,
+    19820,
+    93433,
+    50539,
+    43337,
+    4212,
+    58471,
+    46359,
+    78189,
+    81694
+   ],
+   "rows": [
+    "10001",
+    "01110",
+    "01110",
+    "00100",
+    "01110"
+   ],
+   "svg": "<circle cx=\"14\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"41\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"14\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/>"
+  },
+  {
+   "cubeId": "26329c0c-d0e3-4e97-bc1a-9cec432f438e",
+   "variation": 17,
+   "seed": "26329c0c-d0e3-4e97-bc1a-9cec432f438e:17",
+   "fnvState": "0x3a98ea2c",
+   "draws": [
+    75394,
+    99267,
+    15898,
+    86210,
+    24129,
+    128,
+    77030,
+    97860,
+    9557,
+    38775,
+    4517,
+    32261,
+    42014,
+    48726,
+    83959
+   ],
+   "rows": [
+    "11011",
+    "10001",
+    "11011",
+    "00000",
+    "00100"
+   ],
+   "svg": "<circle cx=\"14\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"14\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"14\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"23\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"23\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"50\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"23\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"41\" cy=\"32\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/><circle cx=\"32\" cy=\"32\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"41\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"14\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"50\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"23\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"41\" cy=\"50\" r=\"1.1\" fill=\"currentColor\" opacity=\"0.3\"/><circle cx=\"32\" cy=\"50\" r=\"3.2\" fill=\"currentColor\" opacity=\"1\"/>"
+  }
+ ]
+}

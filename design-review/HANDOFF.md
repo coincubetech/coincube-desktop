@@ -151,6 +151,11 @@ Where the plan departs from the boards, the plan wins:
   Display shows the Cube's ring mark at 48px with Regenerate and, once the
   number is above 0, Back: owner only, free on every plan, and through Connect
   once the Cube is registered (Cube avatars plan CD3).
+- **Three mark styles.** Below that row, the owner picks Rings, Crest or Grid
+  from three 48px tiles showing this Cube's own mark in each style, labelled
+  under it, the current one outlined in the accent. Same rules as Regenerate;
+  the number is kept (Cube avatars plan CD5, master D8). The canvas has no
+  board for this row yet.
 
 Already in the app and not changed by the plan: the Launcher's network activity
 (canvas page "Launcher backdrop (design B)": `P-Launcher-Rail*`,

@@ -123,19 +123,23 @@ pub enum Message {
     /// when no desktop has recorded one (or the API predates the field).
     SparkStableBalanceFromConnect(Option<bool>),
     /// The Cube's Connect registration answered with its ring-mark variation
-    /// (`CubeResponse::mark_variation`). `None` from an API that predates
-    /// the field, which leaves the local number alone.
-    CubeMarkFromConnect(Option<u32>),
+    /// and style (`CubeResponse::mark_variation`, `CubeResponse::mark_style`).
+    /// A part that is `None` (an API that predates the field) leaves the
+    /// local value alone.
+    CubeMarkFromConnect(crate::app::settings::ServerMark),
     /// The open Cube's Connect registration succeeded: Connect has a row for
     /// it (`CubeSettings::connect_registered`), which the App records.
     CubeRegisteredWithConnect,
-    /// Result of `PUT /connect/cubes/{id}/mark` from Regenerate or Back:
-    /// the number the server kept, or why it failed. `generation` is the
+    /// Result of `PUT /connect/cubes/{id}/mark` from Regenerate, Back or
+    /// Style: the mark the server kept, or why it failed. `generation` is the
     /// Connect session that issued it (`ConnectCubePanel::session_generation`);
-    /// a result from an ended session is dropped.
+    /// a result from an ended session is dropped. `asked_style` says the call
+    /// set the style, so an answer without one (a server that predates the
+    /// style) counts as a failure.
     CubeMarkSet {
         generation: u64,
-        result: Result<u32, String>,
+        asked_style: bool,
+        result: Result<crate::app::settings::ServerMark, String>,
     },
     Fiat(FiatMessage),
     UpdatePanelCache(/* is current panel */ bool),

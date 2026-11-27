@@ -1619,7 +1619,6 @@ impl GUI {
                 .preferences_sheet
                 .as_ref()
                 .and_then(|sheet| sheet.worldview_changed),
-            worldview_sharing: self.worldview_view(),
             diagnostics: self
                 .preferences_sheet
                 .as_ref()
@@ -2112,15 +2111,6 @@ impl GUI {
                     sheet.page.toggle_registration_repair();
                 }
                 Task::none()
-            }
-            ViewMessage::Action(Action::RefreshWorldview) => {
-                self.worldview_action(worldview::Action::Refresh)
-            }
-            ViewMessage::Action(Action::PublishWorldview) => {
-                self.worldview_action(worldview::Action::Publish)
-            }
-            ViewMessage::Action(Action::RevokeWorldview) => {
-                self.worldview_action(worldview::Action::Revoke)
             }
             ViewMessage::Action(Action::Close) => self.close_preferences_sheet(),
             ViewMessage::Action(Action::RetryLoad) => self.retry_preferences(),
@@ -3506,12 +3496,9 @@ impl GUI {
         });
         self.connect_sheet = None;
         self.publish_preferences_sheet();
-        Task::batch([
-            iced_runtime::task::widget(iced::advanced::widget::operation::focusable::focus(
-                iced::advanced::widget::Id::new("tenshu.preferences.close"),
-            )),
-            self.worldview_action(worldview::Action::Refresh),
-        ])
+        iced_runtime::task::widget(iced::advanced::widget::operation::focusable::focus(
+            iced::advanced::widget::Id::new("tenshu.preferences.close"),
+        ))
     }
 
     fn handle_duress_lock(
@@ -7580,7 +7567,6 @@ mod shared_adoption_generation_tests {
                     1,
                     tab::Message::Load(loader::Message::WalletsLoaded {
                         cube_signer: None,
-                        spark_backend: None,
                         cache,
                         wallet,
                         config: app::Config::new(false),
@@ -8508,7 +8494,7 @@ mod single_open_lifecycle_tests {
                             cube_signer: Err(app::cube_signer::CubeSignerError::Signer(
                                 "fixture".into(),
                             )),
-                            spark_backend: None,
+                            spark: app::breez_spark::SparkStartup::none(),
                             config: app::Config::new(false),
                             datadir: root.clone(),
                             network: bitcoin::Network::Bitcoin,

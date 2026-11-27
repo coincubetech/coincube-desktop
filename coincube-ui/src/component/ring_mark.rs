@@ -239,7 +239,7 @@ pub fn svg(mark: Option<&RingMark>, ink: Color, accent: Color) -> String {
 }
 
 /// `#rrggbb` for an opaque colour.
-fn hex(color: Color) -> String {
+pub(crate) fn hex(color: Color) -> String {
     let [r, g, b, _] = color.into_rgba8();
     format!("#{r:02x}{g:02x}{b:02x}")
 }
@@ -320,7 +320,7 @@ fn build_layers(seed: Option<&str>) -> Layers {
 /// The side a Cube mark is actually drawn at: never below [`MIN_SIZE`].
 /// Debug builds assert, so a too-small call site is caught in development;
 /// release builds clamp.
-fn mark_size(size: f32) -> f32 {
+pub(crate) fn mark_size(size: f32) -> f32 {
     debug_assert!(
         size >= MIN_SIZE,
         "a Cube ring mark must be at least {MIN_SIZE}px, got {size}"
@@ -462,4 +462,4 @@ fn uppercase_grapheme(cluster: &str) -> String {
 }
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;

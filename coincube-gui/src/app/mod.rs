@@ -49,6 +49,8 @@ use tracing::{error, info, warn};
 
 pub use coincube_core::miniscript::bitcoin;
 use coincube_ui::{component::network_banner, theme::notification::ToastTone, widget::Element};
+
+use crate::services::coincube::SetCubeMarkRequest;
 pub use coincubed::{
     commands::CoinStatus,
     config::{BitcoindRpcAuth, Config as DaemonConfig},
@@ -3657,6 +3659,7 @@ impl App {
         // this seed; every constructor goes through here.
         cache.cube_mark_seed = cube_settings.mark_seed();
         cache.cube_mark_variation = cube_settings.mark_variation;
+        cache.cube_mark_style = cube_settings.cube_mark_style();
         cache.has_vault = wallet.supports_inheritance() || wallet.is_imported();
         cache.has_imported_bitcoin = wallet.is_imported();
         cache.vault_lacks_keychain_key = wallet.lacks_keychain_key();
@@ -3730,10 +3733,11 @@ impl App {
         panels
             .connect
             .set_spark_stable_balance(cube_settings.spark_stable_balance);
-        // The Cube's mark number rides a first registration (API CA1).
+        // The Cube's mark number and style ride a first registration (API
+        // CA1, CA6).
         panels
             .connect
-            .set_cube_mark_variation(cube_settings.mark_variation);
+            .set_cube_mark(cube_settings.mark_variation, cube_settings.mark_style);
         panels
             .connect
             .set_cube_has_server_record(cube_settings.is_connect_registered());
@@ -4047,6 +4051,7 @@ impl App {
             cube_id: cube_settings.id.clone(),
             cube_mark_seed: cube_settings.mark_seed(),
             cube_mark_variation: cube_settings.mark_variation,
+            cube_mark_style: cube_settings.cube_mark_style(),
             recovery_kit_last_backed_up_descriptor_fingerprint: cube_settings
                 .recovery_kit_last_backed_up_descriptor_fingerprint
                 .clone(),
@@ -4099,7 +4104,7 @@ impl App {
             .set_spark_stable_balance(cube_settings.spark_stable_balance);
         panels
             .connect
-            .set_cube_mark_variation(cube_settings.mark_variation);
+            .set_cube_mark(cube_settings.mark_variation, cube_settings.mark_style);
         panels
             .connect
             .set_cube_has_server_record(cube_settings.is_connect_registered());
@@ -4854,17 +4859,26 @@ impl App {
         ])
     }
 
-    /// Take Connect's ring-mark variation for the open Cube when it differs
-    /// from the local one: once the server has a number it is the record
-    /// (`CubeSettings::mark_variation`). Updates memory and the sidebar's
-    /// seed at once, then the settings file off the UI thread.
-    fn adopt_cube_mark_variation(&mut self, server: Option<u32>) -> Task<Message> {
-        match server {
-            Some(variation) if variation != self.cube_settings.mark_variation => {
-                self.set_cube_mark_variation_locally(variation)
-            }
-            _ => Task::none(),
+    /// Take Connect's ring-mark variation and style for the open Cube when
+    /// either differs from the local one: once the server has a value it is
+    /// the record (`CubeSettings::mark_variation`, `CubeSettings::mark_style`).
+    /// A part the response did not carry keeps the local value. Updates
+    /// memory and the sidebar's mark at once, then the settings file off the
+    /// UI thread.
+    fn adopt_cube_mark(&mut self, server: settings::ServerMark) -> Task<Message> {
+        let variation = server
+            .variation
+            .unwrap_or(self.cube_settings.mark_variation);
+        let style = server.style.unwrap_or(self.cube_settings.mark_style);
+        if (variation, style)
+            == (
+                self.cube_settings.mark_variation,
+                self.cube_settings.mark_style,
+            )
+        {
+            return Task::none();
         }
+        self.set_cube_mark_locally(variation, style)
     }
 
     /// Whether another Connect account owns the open Cube. The same signal
@@ -4892,13 +4906,14 @@ impl App {
         }
     }
 
-    /// Regenerate or Back on Cube Settings › Display: set the Cube's mark
-    /// number to current ± 1 (Regenerate stops at
-    /// [`settings::MARK_VARIATION_MAX`], Back at 0). Owner only, free on
-    /// every plan. A registered Cube changes through Connect and takes the
-    /// number from the response; a never-registered Cube changes here and
-    /// sends the number at its first registration; a registered Cube with
-    /// no session does not change (D-R2).
+    /// Regenerate, Back or Style on Cube Settings › Display. Regenerate and
+    /// Back set the Cube's mark number to current ± 1 (Regenerate stops at
+    /// [`settings::MARK_VARIATION_MAX`], Back at 0) and keep the style;
+    /// Style sets the style and keeps the number (master plan D8). Owner
+    /// only, free on every plan. A registered Cube changes through Connect
+    /// and takes the mark from the response; a never-registered Cube changes
+    /// here and sends its mark at its first registration; a registered Cube
+    /// with no session does not change (D-R2).
     fn change_cube_mark(&mut self, intent: view::CubeMarkIntent) -> Task<Message> {
         if matches!(
             self.cache.cube_mark_change,
@@ -4907,13 +4922,32 @@ impl App {
             return Task::none();
         }
         let current = self.cube_settings.mark_variation;
-        let target = match intent {
+        let current_style = self.cube_settings.mark_style;
+        // What the set call sends: only the part that changes, so Regenerate
+        // keeps working against a server that predates the style.
+        let request = match intent {
             view::CubeMarkIntent::Regenerate if current < settings::MARK_VARIATION_MAX => {
-                current + 1
+                SetCubeMarkRequest {
+                    mark_variation: Some(current + 1),
+                    mark_style: None,
+                }
             }
-            view::CubeMarkIntent::Back if current > 0 => current - 1,
+            view::CubeMarkIntent::Back if current > 0 => SetCubeMarkRequest {
+                mark_variation: Some(current - 1),
+                mark_style: None,
+            },
+            // Choosing the stored style changes nothing. A stored number
+            // this build does not know draws as Rings, so choosing Rings
+            // then writes 0.
+            view::CubeMarkIntent::Style(style) if style.as_u8() != current_style => {
+                SetCubeMarkRequest {
+                    mark_variation: None,
+                    mark_style: Some(style.as_u8()),
+                }
+            }
             _ => return Task::none(),
         };
+        let asked_style = request.mark_style.is_some();
         let not_owner = self.cube_owned_by_another_account();
         match self.panels.connect.cube.mark_access(not_owner) {
             cache::CubeMarkAccess::Connect => {
@@ -4927,17 +4961,27 @@ impl App {
                 Task::perform(
                     async move {
                         client
-                            .set_cube_mark(&server_id.to_string(), target)
+                            .set_cube_mark(&server_id.to_string(), request)
                             .await
-                            .map(|mark| mark.mark_variation)
+                            .map(|mark| settings::ServerMark {
+                                variation: Some(mark.mark_variation),
+                                style: mark.mark_style,
+                            })
                             .map_err(|e| e.to_string())
                     },
-                    move |result| Message::CubeMarkSet { generation, result },
+                    move |result| Message::CubeMarkSet {
+                        generation,
+                        asked_style,
+                        result,
+                    },
                 )
             }
             cache::CubeMarkAccess::Local => {
                 self.cache.cube_mark_change = cache::CubeMarkChange::Idle;
-                self.set_cube_mark_variation_locally(target)
+                self.set_cube_mark_locally(
+                    request.mark_variation.unwrap_or(current),
+                    request.mark_style.unwrap_or(current_style),
+                )
             }
             cache::CubeMarkAccess::Waiting
             | cache::CubeMarkAccess::Unconfirmed
@@ -4947,10 +4991,16 @@ impl App {
     }
 
     /// The answer to [`Self::change_cube_mark`]'s set call. On success the
-    /// local number becomes the server's; on failure nothing changes and the
-    /// Display row says so. A result from an ended Connect session only
-    /// releases the buttons.
-    fn on_cube_mark_set(&mut self, generation: u64, result: Result<u32, String>) -> Task<Message> {
+    /// local mark becomes the server's; on failure nothing changes and the
+    /// Display row says so. A style change answered without a style (a
+    /// server that predates it, API CA6) is a failure too. A result from an
+    /// ended Connect session only releases the buttons.
+    fn on_cube_mark_set(
+        &mut self,
+        generation: u64,
+        asked_style: bool,
+        result: Result<settings::ServerMark, String>,
+    ) -> Task<Message> {
         let ours = self.cache.cube_mark_change == cache::CubeMarkChange::Saving { generation };
         if generation != self.panels.connect.cube.session_generation() {
             if ours {
@@ -4958,13 +5008,17 @@ impl App {
             }
             return Task::none();
         }
+        let result = result.and_then(|mark| {
+            if asked_style && mark.style.is_none() {
+                Err("Connect answered without a mark style".to_owned())
+            } else {
+                Ok(mark)
+            }
+        });
         match result {
-            Ok(variation) => {
+            Ok(mark) => {
                 self.cache.cube_mark_change = cache::CubeMarkChange::Idle;
-                if variation != self.cube_settings.mark_variation {
-                    return self.set_cube_mark_variation_locally(variation);
-                }
-                Task::none()
+                self.adopt_cube_mark(mark)
             }
             Err(e) => {
                 log::warn!("failed to change the Cube's mark: {e}");
@@ -4991,9 +5045,13 @@ impl App {
         let cube_id = self.cube_settings.id.clone();
         Task::perform(
             async move {
-                settings::record_connect_row(&network_dir, &cube_id, None)
-                    .await
-                    .map_err(|e| e.to_string())
+                settings::record_connect_row(
+                    &network_dir,
+                    &cube_id,
+                    settings::ServerMark::default(),
+                )
+                .await
+                .map_err(|e| e.to_string())
             },
             |res: Result<(), String>| {
                 if let Err(e) = res {
@@ -5005,14 +5063,16 @@ impl App {
         )
     }
 
-    /// Record the open Cube's ring-mark variation in memory, the cache's
-    /// seed, the Connect panel (so a first registration carries it) and its
-    /// settings file.
-    fn set_cube_mark_variation_locally(&mut self, variation: u32) -> Task<Message> {
+    /// Record the open Cube's ring-mark variation and style in memory, the
+    /// cache's seed and style, the Connect panel (so a first registration
+    /// carries them) and its settings file.
+    fn set_cube_mark_locally(&mut self, variation: u32, style: u8) -> Task<Message> {
         self.cube_settings.mark_variation = variation;
+        self.cube_settings.mark_style = style;
         self.cache.cube_mark_seed = self.cube_settings.mark_seed();
         self.cache.cube_mark_variation = variation;
-        self.panels.connect.set_cube_mark_variation(variation);
+        self.cache.cube_mark_style = self.cube_settings.cube_mark_style();
+        self.panels.connect.set_cube_mark(variation, style);
         let network_dir = self
             .cache
             .datadir_path
@@ -5020,7 +5080,7 @@ impl App {
         let cube_id = self.cube_settings.id.clone();
         Task::perform(
             async move {
-                settings::set_cube_mark_variation(&network_dir, &cube_id, variation)
+                settings::set_cube_mark(&network_dir, &cube_id, variation, style)
                     .await
                     .map_err(|e| e.to_string())
             },
@@ -5028,7 +5088,7 @@ impl App {
                 if let Err(e) = res {
                     // The server keeps the number for a registered Cube, so
                     // the next registration response puts it back.
-                    log::warn!("failed to persist the Cube's mark variation: {e}");
+                    log::warn!("failed to persist the Cube's mark: {e}");
                 }
                 Message::SettingsSaved
             },
@@ -9709,13 +9769,17 @@ impl App {
                 return self.route_received_celebration(message)
             }
             Message::CubeMarkFromConnect(server) => {
-                return self.adopt_cube_mark_variation(server);
+                return self.adopt_cube_mark(server);
             }
             Message::View(view::Message::CubeMark(intent)) => {
                 return self.change_cube_mark(intent);
             }
-            Message::CubeMarkSet { generation, result } => {
-                return self.on_cube_mark_set(generation, result);
+            Message::CubeMarkSet {
+                generation,
+                asked_style,
+                result,
+            } => {
+                return self.on_cube_mark_set(generation, asked_style, result);
             }
             Message::CubeRegisteredWithConnect => {
                 return self.record_cube_connect_row();
@@ -18156,6 +18220,49 @@ mod settings_navigation_integration_tests {
             .mark_variation
     }
 
+    fn server_mark(variation: Option<u32>, style: Option<u8>) -> settings::ServerMark {
+        settings::ServerMark { variation, style }
+    }
+
+    /// Connect's style is the record once it has one, as the number is: a
+    /// registration response with a different style replaces the local one,
+    /// the sidebar's style and the settings file, and keeps the number.
+    #[test]
+    fn connects_mark_style_replaces_the_local_one() {
+        use coincube_ui::component::cube_mark::CubeMarkStyle;
+        let _guard = crate::app::session::test_guard();
+        let root = std::env::temp_dir().join(format!("cube-style-adopt-{}", uuid::Uuid::new_v4()));
+        let mut app = mark_app(&root);
+        assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Rings);
+
+        drop(outputs(app.update(Message::CubeMarkFromConnect(
+            server_mark(None, Some(2)),
+        ))));
+        assert_eq!(app.cube_settings.mark_style, 2);
+        assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Grid);
+        assert_eq!(app.panels.connect.cube.mark_style, 2);
+        assert_eq!(app.cache.cube_mark_seed.as_deref(), Some(MARK_CUBE));
+        let saved = |app: &App| {
+            settings::Settings::from_file(&app.datadir.network_directory(app.cube_settings.network))
+                .unwrap()
+                .cubes
+                .into_iter()
+                .find(|cube| cube.id == MARK_CUBE)
+                .map(|cube| (cube.mark_variation, cube.mark_style))
+                .unwrap()
+        };
+        assert_eq!(saved(&app), (0, 2));
+
+        // A style a newer app added is kept, and drawn as Rings.
+        drop(outputs(app.update(Message::CubeMarkFromConnect(
+            server_mark(Some(1), Some(7)),
+        ))));
+        assert_eq!(app.cube_settings.mark_style, 7);
+        assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Rings);
+        assert_eq!(saved(&app), (1, 7));
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
     /// Connect's number is the record once it has one: a registration
     /// response with a different variation replaces the local number, the
     /// sidebar's seed and the settings file.
@@ -18166,7 +18273,9 @@ mod settings_navigation_integration_tests {
         let mut app = mark_app(&root);
         assert_eq!(app.cache.cube_mark_seed.as_deref(), Some(MARK_CUBE));
 
-        drop(outputs(app.update(Message::CubeMarkFromConnect(Some(2)))));
+        drop(outputs(app.update(Message::CubeMarkFromConnect(
+            server_mark(Some(2), None),
+        ))));
         assert_eq!(app.cube_settings.mark_variation, 2);
         assert_eq!(
             app.cache.cube_mark_seed.as_deref(),
@@ -18175,7 +18284,9 @@ mod settings_navigation_integration_tests {
         assert_eq!(saved_mark_variation(&app), 2);
 
         // Back to 0 (the owner pressed Back on another computer).
-        drop(outputs(app.update(Message::CubeMarkFromConnect(Some(0)))));
+        drop(outputs(app.update(Message::CubeMarkFromConnect(
+            server_mark(Some(0), None),
+        ))));
         assert_eq!(app.cache.cube_mark_seed.as_deref(), Some(MARK_CUBE));
         assert_eq!(saved_mark_variation(&app), 0);
         let _ = std::fs::remove_dir_all(&root);
@@ -18190,7 +18301,12 @@ mod settings_navigation_integration_tests {
         let mut app = mark_app(&root);
         app.cube_settings.mark_variation = 5;
         app.cache.cube_mark_seed = app.cube_settings.mark_seed();
-        for server in [None, Some(5)] {
+        for server in [
+            server_mark(None, None),
+            server_mark(Some(5), None),
+            server_mark(None, Some(0)),
+            server_mark(Some(5), Some(0)),
+        ] {
             let produced = outputs(app.update(Message::CubeMarkFromConnect(server)));
             assert!(produced.is_empty(), "{:?} should write nothing", server);
             assert_eq!(app.cube_settings.mark_variation, 5);

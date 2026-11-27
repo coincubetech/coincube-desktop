@@ -4,17 +4,23 @@
 //! and signed in, on this device when it never registered, and not at all
 //! when it is registered but signed out or belongs to another account.
 //!
+//! The Style row (Cube avatars CD5, master plan D8) follows the same rules:
+//! the owner picks Rings, Crest or Grid, the number is kept, and the call
+//! sends `markStyle` alone.
+//!
 //! Every Connect call goes to a local `httpmock` server with a catch-all on
 //! `/avatar`, so a request to the retired avatar routes fails the test.
 
 use super::*;
 use crate::app::cache::{CubeMarkAccess, CubeMarkChange};
+use crate::app::settings::ServerMark;
 use crate::app::view::settings::general::{
-    avatar_row, MARK_BACK_ID, MARK_FAILED_LINE, MARK_REGENERATE_ID, MARK_SIGN_IN_LINE,
-    MARK_UNCONFIRMED_LINE,
+    avatar_row, style_row, MARK_BACK_ID, MARK_FAILED_LINE, MARK_REGENERATE_ID, MARK_SIGN_IN_LINE,
+    MARK_STYLE_IDS, MARK_UNCONFIRMED_LINE,
 };
 use crate::app::view::shared::landing::capture;
 use crate::services::coincube::CoincubeClient;
+use coincube_ui::component::cube_mark::CubeMarkStyle;
 use httpmock::{Method as MockMethod, Mock, MockServer};
 use iced::advanced::widget::Id;
 use serde_json::json;
@@ -299,7 +305,11 @@ fn a_set_result_from_an_ended_session_is_dropped() {
         &mut app,
         Message::CubeMarkSet {
             generation: stale,
-            result: Ok(9),
+            asked_style: false,
+            result: Ok(ServerMark {
+                variation: Some(9),
+                style: None,
+            }),
         },
     );
     assert_eq!(app.cube_settings.mark_variation, 0);
@@ -395,7 +405,13 @@ fn a_registered_cube_signed_out_waits_for_the_servers_number() {
     assert_eq!(app.cube_settings.mark_variation, 1);
 
     // Signing in: the registration response carries the server's number.
-    settle(&mut app, Message::CubeMarkFromConnect(Some(5)));
+    settle(
+        &mut app,
+        Message::CubeMarkFromConnect(ServerMark {
+            variation: Some(5),
+            style: None,
+        }),
+    );
     assert_eq!(app.cube_settings.mark_variation, 5);
     assert_eq!(
         app.cache.cube_mark_seed.as_deref(),
@@ -740,7 +756,11 @@ fn a_save_in_flight_does_not_hold_the_next_session() {
     let current = app.cube_settings.mark_variation;
     drop(app.update(Message::CubeMarkSet {
         generation: old,
-        result: Ok(current + 5),
+        asked_style: false,
+        result: Ok(ServerMark {
+            variation: Some(current + 5),
+            style: None,
+        }),
     }));
     assert_eq!(app.cache.cube_mark_change, CubeMarkChange::Idle);
     assert_eq!(app.cube_settings.mark_variation, current);
@@ -774,5 +794,326 @@ fn a_failure_line_does_not_outlive_its_session() {
         coincube_ui::theme::Theme::dark(),
     );
     assert!(!shown.contains(MARK_FAILED_LINE));
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// The Style tile for `style`.
+fn style_id(style: CubeMarkStyle) -> &'static str {
+    MARK_STYLE_IDS[usize::from(style.as_u8())]
+}
+
+/// What pressing the Style tile for `style` emits, by pointer or by
+/// keyboard, as App messages. A disabled tile takes no focus, and with no
+/// Style row (another account's Cube) nothing can be pressed.
+fn press_style(app: &App, style: CubeMarkStyle, pointer: bool) -> Vec<Message> {
+    let Some(row) = style_row(&app.cache) else {
+        return Vec::new();
+    };
+    let id = style_id(style);
+    let focusable = capture::inspect(
+        "cube-mark-style-press",
+        row,
+        OUTER,
+        "dark",
+        coincube_ui::theme::Theme::dark(),
+    )
+    .has_focus(Id::new(id));
+    if !focusable {
+        return Vec::new();
+    }
+    capture::activate(
+        style_row(&app.cache).expect("checked above"),
+        Id::new(id),
+        OUTER,
+        pointer,
+    )
+    .into_iter()
+    .filter(|message| matches!(message, view::Message::CubeMark(_)))
+    .map(Message::View)
+    .collect()
+}
+
+fn saved_mark(app: &App) -> (u32, u8) {
+    let network_dir = app.datadir.network_directory(app.cube_settings.network);
+    settings::Settings::from_file(&network_dir)
+        .unwrap()
+        .cubes
+        .into_iter()
+        .find(|cube| cube.id == MARK_CUBE)
+        .map(|cube| (cube.mark_variation, cube.mark_style))
+        .unwrap()
+}
+
+/// The set call for a style alone, answered with the server's mark.
+fn set_style(server: &MockServer, style: u8, kept_variation: u32, kept_style: u8) -> Mock<'_> {
+    server.mock(|when, then| {
+        when.method(MockMethod::PUT)
+            .path(format!("/api/v1/connect/cubes/{}/mark", SERVER_ID))
+            .header("authorization", "Bearer fixture-token")
+            .json_body(json!({ "markStyle": style }));
+        then.status(200).json_body(json!({
+            "success": true,
+            "data": { "markVariation": kept_variation, "markVersion": 1, "markStyle": kept_style }
+        }));
+    })
+}
+
+/// The Style row shows three tiles, the current one selected, labelled
+/// Rings, Crest and Grid.
+#[test]
+fn the_style_row_shows_three_tiles_for_the_owner() {
+    let _guard = crate::app::session::test_guard();
+    let root = temp_root("style-row");
+    let mut app = mark_app(&root);
+    assert_eq!(app.cache.cube_mark_access, CubeMarkAccess::Local);
+    let shown = capture::inspect(
+        "cube-mark-style-row",
+        style_row(&app.cache).expect("the owner has a Style row"),
+        OUTER,
+        "dark",
+        coincube_ui::theme::Theme::dark(),
+    );
+    assert!(shown.contains("Style"));
+    for style in CubeMarkStyle::ALL {
+        assert!(shown.contains(style.name()), "{:?}", style);
+        assert!(shown.has_focus(Id::new(style_id(style))), "{:?}", style);
+    }
+    // Another account's Cube has no Style row at all.
+    app.panels.connect.cube.owned_by_other_account = true;
+    app.sync_panel_derived_cache_fields();
+    assert_eq!(app.cache.cube_mark_access, CubeMarkAccess::NotOwner);
+    assert!(style_row(&app.cache).is_none());
+    for style in CubeMarkStyle::ALL {
+        assert!(press_style(&app, style, true).is_empty());
+    }
+    settle(
+        &mut app,
+        Message::View(view::Message::CubeMark(view::CubeMarkIntent::Style(
+            CubeMarkStyle::Grid,
+        ))),
+    );
+    assert_eq!(app.cube_settings.mark_style, 0);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// Signed in to a registered Cube: choosing Crest by pointer and Grid by
+/// keyboard sends `markStyle` alone, and the local style, the sidebar's
+/// style and the settings file follow the server's answer. The number is
+/// never touched.
+#[test]
+fn signed_in_style_is_set_through_connect() {
+    let _guard = crate::app::session::test_guard();
+    let root = temp_root("style-connect");
+    let server = MockServer::start();
+    let tripwire = avatar_tripwire(&server);
+    let mut app = mark_app(&root);
+    sign_in(&mut app, &server);
+    app.cube_settings.mark_variation = 3;
+    app.cache.cube_mark_variation = 3;
+    app.cache.cube_mark_seed = app.cube_settings.mark_seed();
+    assert_eq!(app.cache.cube_mark_access, CubeMarkAccess::Connect);
+
+    let crest = set_style(&server, 1, 3, 1);
+    let pressed = press_style(&app, CubeMarkStyle::Crest, true);
+    assert_eq!(pressed.len(), 1);
+    for message in pressed {
+        settle(&mut app, message);
+    }
+    crest.assert();
+    assert_eq!(app.cube_settings.mark_style, 1);
+    assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Crest);
+    assert_eq!(app.panels.connect.cube.mark_style, 1);
+    assert_eq!(app.cube_settings.mark_variation, 3, "the number is kept");
+    assert_eq!(
+        app.cache.cube_mark_seed.as_deref(),
+        Some("9fb93534-081c-4253-b1e2-73a87984a8ab:3")
+    );
+    assert_eq!(saved_mark(&app).1, 1);
+    assert_eq!(app.cache.cube_mark_change, CubeMarkChange::Idle);
+
+    let grid = set_style(&server, 2, 3, 2);
+    let pressed = press_style(&app, CubeMarkStyle::Grid, false);
+    assert_eq!(pressed.len(), 1);
+    for message in pressed {
+        settle(&mut app, message);
+    }
+    grid.assert();
+    assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Grid);
+    assert_eq!(saved_mark(&app).1, 2);
+
+    // Choosing the current style sends nothing.
+    settle(
+        &mut app,
+        Message::View(view::Message::CubeMark(view::CubeMarkIntent::Style(
+            CubeMarkStyle::Grid,
+        ))),
+    );
+    grid.assert_hits(1);
+
+    // Regenerate keeps working within the chosen style.
+    let regenerate = set_mark(&server, 4, 4);
+    settle(
+        &mut app,
+        Message::View(view::Message::CubeMark(view::CubeMarkIntent::Regenerate)),
+    );
+    regenerate.assert();
+    assert_eq!(saved_mark(&app), (4, 2));
+    assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Grid);
+    tripwire.assert_hits(0);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// A failed style call, or an answer without a style (a server that
+/// predates it), leaves the style and file as they were and the row shows
+/// the failure line.
+#[test]
+fn a_failed_style_call_changes_nothing() {
+    let _guard = crate::app::session::test_guard();
+    let root = temp_root("style-failed");
+    let server = MockServer::start();
+    let mut app = mark_app(&root);
+    sign_in(&mut app, &server);
+
+    let mut refused = server.mock(|when, then| {
+        when.method(MockMethod::PUT)
+            .path(format!("/api/v1/connect/cubes/{}/mark", SERVER_ID));
+        then.status(400).json_body(json!({
+            "success": false,
+            "error": { "code": "BAD_REQUEST", "message": "markVariation is required" }
+        }));
+    });
+    settle(
+        &mut app,
+        Message::View(view::Message::CubeMark(view::CubeMarkIntent::Style(
+            CubeMarkStyle::Crest,
+        ))),
+    );
+    refused.assert();
+    refused.delete();
+    assert_eq!(app.cube_settings.mark_style, 0);
+    assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Rings);
+    assert_eq!(saved_mark(&app), (0, 0));
+    assert!(matches!(
+        app.cache.cube_mark_change,
+        CubeMarkChange::Failed { .. }
+    ));
+    let shown = capture::inspect(
+        "cube-mark-style-failed",
+        avatar_row(&app.cache),
+        OUTER,
+        "dark",
+        coincube_ui::theme::Theme::dark(),
+    );
+    assert!(shown.contains(MARK_FAILED_LINE));
+
+    let no_style = server.mock(|when, then| {
+        when.method(MockMethod::PUT)
+            .path(format!("/api/v1/connect/cubes/{}/mark", SERVER_ID));
+        then.status(200).json_body(json!({
+            "success": true,
+            "data": { "markVariation": 0, "markVersion": 1 }
+        }));
+    });
+    settle(
+        &mut app,
+        Message::View(view::Message::CubeMark(view::CubeMarkIntent::Style(
+            CubeMarkStyle::Grid,
+        ))),
+    );
+    no_style.assert();
+    assert_eq!(app.cube_settings.mark_style, 0);
+    assert_eq!(saved_mark(&app), (0, 0));
+    assert!(matches!(
+        app.cache.cube_mark_change,
+        CubeMarkChange::Failed { .. }
+    ));
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// A Cube that never registered changes its style on this device only, with
+/// no request; the Connect panel carries it for the first registration.
+/// Switching style and back draws the earlier mark: the number is shared,
+/// and Regenerate and Back work within the chosen style.
+#[test]
+fn a_never_registered_cube_changes_its_style_locally_and_back_restores_it() {
+    let _guard = crate::app::session::test_guard();
+    let root = temp_root("style-local");
+    let mut app = mark_app(&root);
+    assert_eq!(app.cache.cube_mark_access, CubeMarkAccess::Local);
+
+    let regenerate = || Message::View(view::Message::CubeMark(view::CubeMarkIntent::Regenerate));
+    settle(&mut app, regenerate());
+    settle(&mut app, regenerate());
+    let seed_before = app.cache.cube_mark_seed.clone();
+    assert_eq!(saved_mark(&app), (2, 0));
+
+    for message in press_style(&app, CubeMarkStyle::Crest, true) {
+        settle(&mut app, message);
+    }
+    assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Crest);
+    assert_eq!(app.panels.connect.cube.mark_style, 1);
+    assert_eq!(saved_mark(&app), (2, 1));
+    assert_eq!(app.cache.cube_mark_seed, seed_before, "the number is kept");
+
+    // Back within Crest.
+    settle(
+        &mut app,
+        Message::View(view::Message::CubeMark(view::CubeMarkIntent::Back)),
+    );
+    assert_eq!(saved_mark(&app), (1, 1));
+    settle(&mut app, regenerate());
+
+    for message in press_style(&app, CubeMarkStyle::Rings, false) {
+        settle(&mut app, message);
+    }
+    assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Rings);
+    assert_eq!(app.cache.cube_mark_seed, seed_before);
+    assert_eq!(saved_mark(&app), (2, 0));
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// A registered Cube with no session: every tile is disabled (the sign-in
+/// line on the Avatar row explains why) and an intent that arrives changes
+/// nothing; the server's style arrives with sign-in.
+#[test]
+fn a_registered_cube_signed_out_cannot_change_its_style() {
+    let _guard = crate::app::session::test_guard();
+    let root = temp_root("style-signed-out");
+    let mut app = mark_app(&root);
+    app.cube_settings.remote_synced = true;
+    app.panels.connect.set_cube_has_server_record(true);
+    app.sync_panel_derived_cache_fields();
+    assert_eq!(app.cache.cube_mark_access, CubeMarkAccess::SignedOut);
+    let shown = capture::inspect(
+        "cube-mark-style-signed-out",
+        style_row(&app.cache).expect("the owner still sees the row"),
+        OUTER,
+        "dark",
+        coincube_ui::theme::Theme::dark(),
+    );
+    for style in CubeMarkStyle::ALL {
+        assert!(shown.contains(style.name()));
+        assert!(!shown.has_focus(Id::new(style_id(style))), "{:?}", style);
+        for pointer in [true, false] {
+            assert!(press_style(&app, style, pointer).is_empty());
+        }
+    }
+    settle(
+        &mut app,
+        Message::View(view::Message::CubeMark(view::CubeMarkIntent::Style(
+            CubeMarkStyle::Crest,
+        ))),
+    );
+    assert_eq!(saved_mark(&app), (0, 0));
+
+    settle(
+        &mut app,
+        Message::CubeMarkFromConnect(ServerMark {
+            variation: Some(0),
+            style: Some(2),
+        }),
+    );
+    assert_eq!(app.cache.cube_mark_style, CubeMarkStyle::Grid);
+    assert_eq!(saved_mark(&app), (0, 2));
     let _ = std::fs::remove_dir_all(&root);
 }

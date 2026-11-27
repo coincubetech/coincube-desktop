@@ -62,9 +62,10 @@ impl Home {
                 let server_cubes = rc_client.list_cubes().await.map_err(|e| e.to_string())?;
 
                 // Collect local cube UUIDs across all networks. Each listed
-                // Cube's mark variation rides back with the result; it is
-                // written to disk only once the result is known current.
-                let marks = server_mark_variations(&server_cubes);
+                // Cube's mark variation and style ride back with the result;
+                // they are written to disk only once the result is known
+                // current.
+                let marks = server_marks(&server_cubes);
                 let mut local_uuids = std::collections::HashSet::new();
                 for cube in locally_stored_cubes(&datadir) {
                     local_uuids.insert(cube.id);
@@ -141,6 +142,7 @@ impl Home {
                             encryption_pubkey: sc.encryption_pubkey,
                             has_vault: sc.has_vault,
                             mark_variation: sc.mark_variation.unwrap_or_default(),
+                            mark_style: sc.mark_style.unwrap_or_default(),
                         }
                     }),
                 )
@@ -182,7 +184,7 @@ impl Home {
         request_id: u64,
         result: Result<Vec<RemoteCube>, String>,
         connect_off: Vec<String>,
-        marks: MarkVariations,
+        marks: ListedMarks,
     ) -> Task<Message> {
         // Superseded by a newer fetch, or invalidated by logout. Drop
         // it: applying it would either roll the list back to an older
@@ -199,13 +201,13 @@ impl Home {
             Ok(remote_only) => {
                 self.remote_cubes = remote_only;
                 self.connect_off_cubes = connect_off.into_iter().collect();
-                // Connect's number is the record: show it now, and write
-                // any differing one into the Cube's settings file, with the
-                // fact that Connect has a row for every listed local Cube.
-                // Only a current result gets here, so a late, older listing
-                // can never write an older number.
-                self.adopt_mark_variations(&marks);
-                return persist_mark_variations(self.datadir_path.clone(), marks);
+                // Connect's number and style are the record: show them
+                // now, and write any differing one into the Cube's settings
+                // file, with the fact that Connect has a row for every
+                // listed local Cube. Only a current result gets here, so a
+                // late, older listing can never write an older mark.
+                self.adopt_listed_marks(&marks);
+                return persist_listed_marks(self.datadir_path.clone(), marks);
             }
             Err(e) => {
                 log::warn!("[LAUNCHER] Failed to fetch remote cubes: {e}");
@@ -215,20 +217,21 @@ impl Home {
     }
 }
 
-/// Every listed Cube by UUID, with its ring-mark variation when the response
-/// carried one. An API that predates the field sends none, and the local
-/// numbers stand; the Cube is still listed, so Connect has a row for it.
-pub(crate) type MarkVariations = std::collections::HashMap<String, Option<u32>>;
+/// Every listed Cube by UUID, with its ring-mark variation and style where
+/// the response carried them. An API that predates a field sends none, and
+/// the local value stands; the Cube is still listed, so Connect has a row
+/// for it.
+pub(crate) type ListedMarks = std::collections::HashMap<String, settings::ServerMark>;
 
-type RemoteListing = (Vec<RemoteCube>, Vec<String>, MarkVariations);
+type RemoteListing = (Vec<RemoteCube>, Vec<String>, ListedMarks);
 
-/// Write each listed number into the local Cube's settings file where it
-/// differs, and record that Connect has a row for each listed local Cube
-/// (`CubeSettings::connect_registered`), off the UI thread. A Cube already
-/// recorded with a matching number is not rewritten.
-fn persist_mark_variations(
+/// Write each listed number and style into the local Cube's settings file
+/// where it differs, and record that Connect has a row for each listed local
+/// Cube (`CubeSettings::connect_registered`), off the UI thread. A Cube
+/// already recorded with a matching mark is not rewritten.
+fn persist_listed_marks(
     datadir: crate::dir::CoincubeDirectory,
-    marks: MarkVariations,
+    marks: ListedMarks,
 ) -> Task<Message> {
     if marks.is_empty() {
         return Task::none();
@@ -236,11 +239,14 @@ fn persist_mark_variations(
     Task::perform(
         async move {
             for cube in locally_stored_cubes(&datadir) {
-                let Some(&variation) = marks.get(&cube.id) else {
+                let Some(&listed) = marks.get(&cube.id) else {
                     continue;
                 };
-                let new_mark = variation.filter(|v| *v != cube.mark_variation);
-                if cube.connect_registered && new_mark.is_none() {
+                let new_mark = settings::ServerMark {
+                    variation: listed.variation.filter(|v| *v != cube.mark_variation),
+                    style: listed.style.filter(|s| *s != cube.mark_style),
+                };
+                if cube.connect_registered && new_mark == settings::ServerMark::default() {
                     continue;
                 }
                 let nd = datadir.network_directory(cube.network);
@@ -258,25 +264,36 @@ fn persist_mark_variations(
     .discard()
 }
 
-fn server_mark_variations(server_cubes: &[CubeResponse]) -> MarkVariations {
+fn server_marks(server_cubes: &[CubeResponse]) -> ListedMarks {
     server_cubes
         .iter()
-        .map(|sc| (sc.uuid.clone(), sc.mark_variation))
+        .map(|sc| {
+            (
+                sc.uuid.clone(),
+                settings::ServerMark {
+                    variation: sc.mark_variation,
+                    style: sc.mark_style,
+                },
+            )
+        })
         .collect()
 }
 
 impl Home {
-    /// Take the server's ring-mark variations into the Cubes on screen: the
-    /// current network's list and every other network's catalog.
-    pub(super) fn adopt_mark_variations(&mut self, marks: &MarkVariations) {
+    /// Take the server's ring-mark variations and styles into the Cubes on
+    /// screen: the current network's list and every other network's catalog.
+    pub(super) fn adopt_listed_marks(&mut self, marks: &ListedMarks) {
         if marks.is_empty() {
             return;
         }
         let adopt = |cube: &mut crate::app::settings::CubeSettings| {
             if let Some(&listed) = marks.get(&cube.id) {
                 cube.connect_registered = true;
-                if let Some(variation) = listed {
+                if let Some(variation) = listed.variation {
                     cube.mark_variation = variation;
+                }
+                if let Some(style) = listed.style {
+                    cube.mark_style = style;
                 }
             }
         };
@@ -353,6 +370,7 @@ mod tests {
     fn cached() -> RemoteCube {
         RemoteCube {
             mark_variation: 0,
+            mark_style: 0,
             id: 9,
             uuid: "cached".into(),
             name: "Cached".into(),
@@ -474,10 +492,11 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let datadir = CoincubeDirectory::new(dir.path().to_path_buf());
         let mut home = home(dir.path(), server.base_url());
-        settings::set_cube_mark_variation(
+        settings::set_cube_mark(
             &datadir.network_directory(ChainId::BitcoinBlake2b),
             "local",
             3,
+            2,
         )
         .await
         .unwrap();
@@ -486,6 +505,58 @@ mod tests {
             assert!(outputs(persist).await.is_empty());
         }
         assert_eq!(saved_local_mark(dir.path()), 3);
+        assert_eq!(
+            saved_local_style(dir.path()),
+            2,
+            "no style listed, local kept"
+        );
+    }
+
+    fn saved_local_style(dir: &std::path::Path) -> u8 {
+        let datadir = CoincubeDirectory::new(dir.to_path_buf());
+        settings::Settings::from_file(&datadir.network_directory(ChainId::BitcoinBlake2b))
+            .unwrap()
+            .cubes
+            .into_iter()
+            .find(|cube| cube.id == "local")
+            .unwrap()
+            .mark_style
+    }
+
+    /// Connect's mark style is the record too (API CA6): a listed style is
+    /// written into the local Cube's settings beside the number, and a Cube
+    /// on another computer carries its own.
+    #[tokio::test]
+    async fn listing_adopts_connects_mark_style() {
+        let server = MockServer::start();
+        let mut local = cube(1, "local");
+        local["markVariation"] = json!(0);
+        local["markStyle"] = json!(1);
+        let mut ghost = cube(2, "ghost");
+        ghost["markStyle"] = json!(2);
+        server.mock(|when, then| {
+            when.method(GET).path("/api/v1/connect/cubes");
+            then.status(200).json_body(json!({"data": [local, ghost]}));
+        });
+        server.mock(|when, then| {
+            when.method(GET)
+                .path("/api/v1/connect/cubes/2/recovery-kit/status");
+            then.status(404);
+        });
+        let dir = tempfile::tempdir().unwrap();
+        let mut home = home(dir.path(), server.base_url());
+        assert_eq!(saved_local_style(dir.path()), 0);
+        for message in outputs(home.fetch_remote_cubes()).await {
+            let persist = home.update(message);
+            assert!(outputs(persist).await.is_empty());
+        }
+        assert_eq!(saved_local_style(dir.path()), 1);
+        assert_eq!(saved_local_mark(dir.path()), 0);
+        assert_eq!(home.remote_cubes[0].mark_style, 2);
+        assert_eq!(
+            home.remote_cubes[0].cube_mark_style(),
+            coincube_ui::component::cube_mark::CubeMarkStyle::Grid
+        );
     }
 
     /// Every local Cube a current Connect listing shows is recorded as
@@ -542,16 +613,19 @@ mod tests {
             create_cube: false,
             source: ChainId::Bitcoin,
         };
-        let marks = super::MarkVariations::from([
-            ("other".to_owned(), Some(6)),
-            ("here".to_owned(), Some(2)),
+        let listed = |variation, style| settings::ServerMark { variation, style };
+        let marks = super::ListedMarks::from([
+            ("other".to_owned(), listed(Some(6), Some(1))),
+            ("here".to_owned(), listed(Some(2), None)),
         ]);
-        home.adopt_mark_variations(&marks);
+        home.adopt_listed_marks(&marks);
         assert_eq!(home.network_catalog[0].1[0].mark_variation, 6);
+        assert_eq!(home.network_catalog[0].1[0].mark_style, 1);
         let State::Cubes { cubes, .. } = &home.state else {
             unreachable!()
         };
         assert_eq!(cubes[0].mark_variation, 2);
+        assert_eq!(cubes[0].mark_style, 0, "no style listed, local kept");
     }
 
     /// A listing that a newer fetch (or a logout) has superseded writes

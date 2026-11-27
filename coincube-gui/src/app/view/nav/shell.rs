@@ -18,7 +18,7 @@ use crate::{
 };
 use coincube_ui::locale::copy as localized_copy;
 use coincube_ui::{
-    component::{ring_mark, tenshu::top_bar as bar},
+    component::{cube_mark, tenshu::top_bar as bar},
     font,
     icon::shop_icon,
     theme,
@@ -740,9 +740,9 @@ fn section(label: &'static str) -> Element<'static, Message> {
 }
 
 fn identity<'a>(ctx: &NavContext<'a>) -> Element<'a, Message> {
-    // The Cube's ring mark: decoration beside its name, which the switcher
-    // always shows.
-    let avatar: Element<'a, Message> = ring_mark::ring_mark(ctx.mark_seed, 36.0);
+    // The Cube's mark, in the style its owner chose: decoration beside its
+    // name, which the switcher always shows.
+    let avatar: Element<'a, Message> = cube_mark::cube_mark(ctx.mark_style, ctx.mark_seed, 36.0);
     let title = if ctx.cube_name.is_empty() {
         "Cube".to_owned()
     } else {

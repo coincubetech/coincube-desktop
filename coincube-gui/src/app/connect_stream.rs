@@ -105,6 +105,9 @@ impl App {
                 crate::services::coincube::RegisterCubeRequest::mark_variation_for(
                     self.cube_settings.mark_variation,
                 );
+            let cube_mark_style = crate::services::coincube::RegisterCubeRequest::mark_style_for(
+                self.cube_settings.mark_style,
+            );
             let cube_uuid = cube_uuid.clone();
             let registration_email = expected_email.clone();
             let registration_base_url = base_url.clone();
@@ -147,6 +150,7 @@ impl App {
                             has_vault: cube_has_vault,
                             spark_stable_balance: cube_spark_stable_balance,
                             mark_variation: cube_mark_variation,
+                            mark_style: cube_mark_style,
                         }) // upgrade-only Option<bool>
                         .await
                         .map_err(|e| {

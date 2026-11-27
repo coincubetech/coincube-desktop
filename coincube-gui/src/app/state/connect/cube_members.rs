@@ -444,6 +444,7 @@ mod tests {
             vault: None,
             connect_features_disabled: false,
             mark_variation: None,
+            mark_style: None,
             mark_version: None,
         }
     }
