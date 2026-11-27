@@ -14,6 +14,7 @@ use iced::{
 use coincube_ui::{
     component::tenshu::top_bar::{self, APP_PREFERENCES, SLIDERS},
     font, theme,
+    theme::tenshu::{button as tenshu_button, faded, DISABLED_ALPHA, ON_ACCENT},
     widget::{action::Action, Column, Container, Element, Row},
 };
 
@@ -105,12 +106,12 @@ fn ink(theme: &theme::Theme, tone: Ink) -> Color {
         Ink::Accent => shell.accent_ink,
         Ink::Warn => shell.warn,
         Ink::Good => shell.good,
-        Ink::OnAccent => iced::color!(0x201407),
+        Ink::OnAccent => ON_ACCENT,
         Ink::Clear => Color::TRANSPARENT,
         // Solid blends toward the dock's rail: Iced's SVG tint ignores alpha,
         // and `dock_button` fades a disabled fill and border to 45%.
         Ink::Faded => blend(shell.muted, shell.rail, 0.55),
-        Ink::FadedOnAccent => blend(iced::color!(0x201407), shell.rail, 0.55),
+        Ink::FadedOnAccent => blend(ON_ACCENT, shell.rail, 0.55),
     }
 }
 
@@ -154,7 +155,7 @@ fn focus(id: Id) -> ViewMessage {
     ViewMessage::Catalog(CatalogMessage::Focus(id))
 }
 
-/// `.tbtn`: a 32px borderless bar control whose border appears on hover.
+/// `.tbtn`: a quiet 32px bar control (see [`top_bar::button_style`]).
 fn bar_button(
     theme: &theme::Theme,
     status: iced_button::Status,
@@ -163,52 +164,29 @@ fn bar_button(
     top_bar::button_style(theme, status, pressed)
 }
 
-/// `.btn` and `.btn.primary`: 36px dock actions, 8px radius.
+/// `.btn` and `.btn.primary`: 36px dock actions, 8px radius. The dock is a bar,
+/// so its other actions are quiet like [`bar_button`]; the primary is the
+/// app's one primary (`ActionKind::Primary`), hovering to `ACCENT_HOVER`.
 fn dock_button(
     theme: &theme::Theme,
     status: iced_button::Status,
     primary: bool,
 ) -> iced_button::Style {
-    let shell = theme.colors.shell;
-    let hovered = matches!(
-        status,
-        iced_button::Status::Hovered | iced_button::Status::Pressed
-    );
-    let disabled = matches!(status, iced_button::Status::Disabled);
-    let fade = |c: Color| {
-        if disabled {
-            Color { a: c.a * 0.45, ..c }
-        } else {
-            c
-        }
-    };
     if primary {
-        let fill = if hovered {
-            iced::color!(0xffa54d)
-        } else {
-            shell.accent
-        };
-        iced_button::Style {
-            background: Some(iced::Background::Color(fade(fill))),
-            text_color: fade(iced::color!(0x201407)),
-            border: Border {
-                color: fade(fill),
-                width: 1.0,
-                radius: 8.0.into(),
-            },
-            ..Default::default()
-        }
+        tenshu_button::action(
+            theme,
+            status,
+            tenshu_button::ActionKind::Primary,
+            tenshu_button::ActionShape::Compact,
+        )
     } else {
-        iced_button::Style {
-            background: None,
-            text_color: fade(shell.ink),
-            border: Border {
-                color: fade(if hovered { shell.muted } else { shell.line }),
-                width: 1.0,
-                radius: 8.0.into(),
-            },
-            ..Default::default()
+        let mut style = bar_button(theme, status, false);
+        style.border.radius = 8.0.into();
+        if matches!(status, iced_button::Status::Disabled) {
+            style.background = None;
+            style.text_color = faded(style.text_color, DISABLED_ALPHA);
         }
+        style
     }
 }
 
@@ -254,8 +232,19 @@ pub(super) fn network_menu_name(chain: ChainId) -> &'static str {
     }
 }
 
-/// `.chip`: 32px, square-cornered; `.chip.on` while a network narrows the Cubes shown.
+/// `.chip` in the bar: 32px and quiet, with the light fill on hover and the
+/// selected fill (`.chip.on`) while a network narrows the Cubes shown.
 fn chip_style(on: bool) -> impl Fn(&theme::Theme, iced_button::Status) -> iced_button::Style {
+    move |theme, status| {
+        let mut style = bar_button(theme, status, on);
+        style.border.radius = 8.0.into();
+        style
+    }
+}
+
+/// One half of the Network activity menu's two-way switch: a segmented
+/// control, not a button, so it keeps its outline.
+fn segment_style(on: bool) -> impl Fn(&theme::Theme, iced_button::Status) -> iced_button::Style {
     move |theme, status| {
         let shell = theme.colors.shell;
         let hovered = matches!(
@@ -274,7 +263,7 @@ fn chip_style(on: bool) -> impl Fn(&theme::Theme, iced_button::Status) -> iced_b
                     shell.line
                 },
                 width: 1.0,
-                radius: 8.0.into(),
+                radius: 6.0.into(),
             },
             ..Default::default()
         }
@@ -395,29 +384,38 @@ pub(super) fn connect_control<'a>(
     )
 }
 
-/// One `.chip`: a 32px filter toggle, `.chip.on` while it applies.
+/// One `.chip`: a 32px filter toggle, `.chip.on` while it applies. `menu` is
+/// `Some(open)` for a chip that opens a menu.
 fn filter_chip<'a>(
     id: Id,
     label: String,
     on: bool,
     quiet: bool,
-    menu: bool,
+    menu: Option<bool>,
     message: ViewMessage,
 ) -> Element<'a, ViewMessage> {
     let on = on && !quiet;
+    let open = menu == Some(true);
     let mut content = Row::new().spacing(6).align_y(Alignment::Center).push(words(
         label,
         13.0,
         if on { font::MEDIUM } else { font::REGULAR },
         body(quiet),
     ));
-    if menu {
+    if menu.is_some() {
         content = content.push(glyph(CHEVRON, 14.0, body(quiet)));
     }
     Action::new(id, Container::new(content).center_y(Length::Fill), focus)
         .height(Length::Fixed(32.0))
         .padding([0.0, 12.0])
-        .style(chip_style(on))
+        .style(move |theme: &theme::Theme, status| {
+            let mut style = chip_style(on)(theme, status);
+            // An open menu keeps the hover fill.
+            if open && !on {
+                style.background = Some(iced::Background::Color(theme.colors.shell.hover));
+            }
+            style
+        })
         .on_press(message)
         .into()
 }
@@ -434,7 +432,7 @@ fn filter_chips<'a>(home: &Home, filter: NetworkFilter, quiet: bool) -> Row<'a, 
             label.to_string(),
             filter == filter_kind,
             quiet,
-            false,
+            None,
             pick(filter_kind),
         ));
     }
@@ -447,7 +445,7 @@ fn filter_chips<'a>(home: &Home, filter: NetworkFilter, quiet: bool) -> Row<'a, 
         label,
         on,
         quiet,
-        true,
+        Some(home.catalog.network_menu),
         ViewMessage::Catalog(CatalogMessage::NetworkMenu(!home.catalog.network_menu)),
     ))
 }
@@ -752,15 +750,14 @@ fn activity_option_id(source: NetworkActivitySource) -> Id {
     })
 }
 
-/// A 32px bar control that shows `open` while its menu is up.
+/// A 32px bar control that keeps its hover fill while its menu is up.
 fn menu_button_style(
     open: bool,
 ) -> impl Fn(&theme::Theme, iced_button::Status) -> iced_button::Style {
     move |theme, status| {
         let mut style = bar_button(theme, status, false);
         if open {
-            style.background = Some(iced::Background::Color(theme.colors.shell.panel));
-            style.border.color = theme.colors.shell.line;
+            style.background = Some(iced::Background::Color(theme.colors.shell.hover));
         }
         style
     }
@@ -858,11 +855,7 @@ fn activity_networks<'a>(home: &Home) -> Element<'a, ViewMessage> {
         )
         .width(Length::Fill)
         .height(Length::Fixed(30.0))
-        .style(move |theme: &theme::Theme, status| {
-            let mut style = chip_style(on)(theme, status);
-            style.border.radius = 6.0.into();
-            style
-        })
+        .style(segment_style(on))
         .on_press(ViewMessage::Catalog(CatalogMessage::Activity(
             ActivityMessage::Blake2b(blake2b),
         )))
@@ -2213,8 +2206,105 @@ pub(crate) fn quiet_dock<'a, M: 'a>(chrome: &ChromeSnapshot) -> Element<'a, M> {
 
 #[cfg(test)]
 mod tests {
-    use super::{count_text, KeyNetworks};
+    use super::{
+        bar_button, chip_style, count_text, dock_button, menu_button_style, segment_style,
+        KeyNetworks,
+    };
     use crate::chain::ChainId;
+    use coincube_ui::theme::{
+        self,
+        tenshu::{ACCENT_HOVER, DISABLED_ALPHA, ON_ACCENT},
+    };
+    use iced::{widget::button::Status, Background, Color};
+
+    fn themes() -> [theme::Theme; 2] {
+        [theme::Theme::dark(), theme::Theme::light()]
+    }
+
+    const STATUSES: [Status; 4] = [
+        Status::Active,
+        Status::Hovered,
+        Status::Pressed,
+        Status::Disabled,
+    ];
+
+    /// The Launcher's bar controls are quiet: no outline in any state, the
+    /// light fill on hover, an open menu keeping it, and an active filter on
+    /// the selected fill.
+    #[test]
+    fn launcher_bar_controls_have_no_outline_in_both_themes() {
+        for theme in themes() {
+            let shell = theme.colors.shell;
+            for status in STATUSES {
+                for style in [
+                    bar_button(&theme, status, false),
+                    dock_button(&theme, status, false),
+                    chip_style(false)(&theme, status),
+                    chip_style(true)(&theme, status),
+                    menu_button_style(false)(&theme, status),
+                    menu_button_style(true)(&theme, status),
+                ] {
+                    assert_eq!(style.border.width, 0.0, "{status:?}");
+                }
+            }
+            let fill = |style: iced::widget::button::Style| style.background;
+            let hover = Some(Background::Color(shell.hover));
+            assert_eq!(fill(chip_style(false)(&theme, Status::Active)), None);
+            assert_eq!(fill(chip_style(false)(&theme, Status::Hovered)), hover);
+            assert_eq!(
+                fill(chip_style(true)(&theme, Status::Active)),
+                Some(Background::Color(shell.selected))
+            );
+            assert_eq!(fill(dock_button(&theme, Status::Hovered, false)), hover);
+            assert_eq!(fill(menu_button_style(true)(&theme, Status::Active)), hover);
+            assert_eq!(fill(menu_button_style(false)(&theme, Status::Active)), None);
+        }
+    }
+
+    /// Create Cube is the app's one primary: `ACCENT_HOVER` on hover, the
+    /// shared on-accent ink, and 45% when disabled.
+    #[test]
+    fn the_dock_primary_shares_the_one_primary_hover() {
+        for theme in themes() {
+            let rest = dock_button(&theme, Status::Active, true);
+            assert_eq!(
+                rest.background,
+                Some(Background::Color(theme.colors.shell.accent))
+            );
+            assert_eq!(rest.text_color, ON_ACCENT);
+            assert_eq!(rest.border.width, 1.0);
+            let hover = dock_button(&theme, Status::Hovered, true);
+            assert_eq!(hover.background, Some(Background::Color(ACCENT_HOVER)));
+            let off = dock_button(&theme, Status::Disabled, true);
+            assert_eq!(off.text_color.a, DISABLED_ALPHA);
+            assert_eq!(
+                super::super::launcher_presenter::face_primary_style(&theme, Status::Hovered)
+                    .background,
+                Some(Background::Color(ACCENT_HOVER))
+            );
+        }
+    }
+
+    /// The Network activity switch is a segmented control, not a button: it
+    /// keeps its outline.
+    #[test]
+    fn the_activity_switch_keeps_its_outline() {
+        for theme in themes() {
+            let shell = theme.colors.shell;
+            assert_eq!(
+                segment_style(false)(&theme, Status::Active).border.color,
+                shell.line
+            );
+            assert_eq!(
+                segment_style(true)(&theme, Status::Active).border.color,
+                shell.accent
+            );
+            assert_ne!(
+                segment_style(false)(&theme, Status::Active).border.color,
+                Color::TRANSPARENT
+            );
+        }
+    }
 
     #[test]
     fn the_key_explains_only_the_networks_the_user_has_shown() {

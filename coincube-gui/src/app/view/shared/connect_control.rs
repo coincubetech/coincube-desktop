@@ -33,11 +33,16 @@ pub fn chip_button(
     style
 }
 
-/// `.chip`: the shell's chip surface with the design's 8px corners.
-pub fn chip_style(t: &theme::Theme) -> iced::widget::container::Style {
-    let mut style = theme::container::shell_chip(t);
-    style.border.radius = CHIP_RADIUS.into();
-    style
+/// `.chip` in a bar: quiet, with no surface or outline of its own (the button
+/// rule, `cc-buttons v1`). Its press target supplies the hover fill.
+pub fn chip_style(_t: &theme::Theme) -> iced::widget::container::Style {
+    iced::widget::container::Style {
+        border: iced::Border {
+            radius: CHIP_RADIUS.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
 }
 
 /// The light colours (`--alert`, `--amber`): stronger than the text tones,
@@ -236,9 +241,9 @@ pub fn connect_control<'a, M: Clone + 'static>(
     .max_width(300)
     .style(move |t: &theme::Theme| {
         let mut style = chip_style(t);
+        // An open menu keeps the hover fill.
         if open {
-            style.background = Some(t.colors.shell.selected.into());
-            style.border.color = t.colors.shell.selected;
+            style.background = Some(t.colors.shell.hover.into());
         }
         style
     });

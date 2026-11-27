@@ -629,34 +629,18 @@ fn face_link<'a>(id: Id, label: &'static str, message: ViewMessage) -> Element<'
         .into()
 }
 
-/// `.btn.primary`, hovering to `#ffa54d`; disabled at `opacity: .45`.
+/// `.btn.primary`: the app's one primary (`ActionKind::Primary`), hovering to
+/// `ACCENT_HOVER`; disabled at `opacity: .45`.
 pub(crate) fn face_primary_style(
     theme: &theme::Theme,
     status: iced_button::Status,
 ) -> iced_button::Style {
-    let fill = match status {
-        iced_button::Status::Hovered | iced_button::Status::Pressed => iced::color!(0xffa54d),
-        _ => theme.colors.shell.accent,
-    };
-    let alpha = if matches!(status, iced_button::Status::Disabled) {
-        0.45
-    } else {
-        1.0
-    };
-    let fade = |c: iced::Color| iced::Color {
-        a: c.a * alpha,
-        ..c
-    };
-    iced_button::Style {
-        background: Some(iced::Background::Color(fade(fill))),
-        text_color: fade(iced::color!(0x201407)),
-        border: iced::Border {
-            color: fade(fill),
-            width: 1.0,
-            radius: 8.0.into(),
-        },
-        ..Default::default()
-    }
+    theme::tenshu::button::action(
+        theme,
+        status,
+        theme::tenshu::button::ActionKind::Primary,
+        theme::tenshu::button::ActionShape::Compact,
+    )
 }
 
 /// A `.btn` label: 14px medium in the button's own text colour.
