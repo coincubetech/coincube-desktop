@@ -366,6 +366,7 @@ fn fixture_nav_context(cache: &Cache) -> crate::app::view::nav::NavContext<'_> {
         vault_alias: cache.wallet_names.vault.as_deref(),
         lightning_address: cache.lightning_address.as_deref(),
         mark_seed: cache.cube_mark_seed.as_deref(),
+        mark_style: cache.cube_mark_style,
         theme_mode: cache.theme_mode,
         connect_authenticated: cache.sidebar_connect_signed_in,
         connect_email: cache.connect_email.as_deref(),

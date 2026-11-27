@@ -153,6 +153,7 @@ impl Fixture {
             vault_alias: Some("Family savings"),
             lightning_address: None,
             mark_seed: None,
+            mark_style: Default::default(),
             theme_mode: self.mode,
             connect_authenticated: false,
             connect_email: None,

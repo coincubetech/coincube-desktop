@@ -327,7 +327,8 @@ fn received_invite_card<'a>(
 /// Size of a Cube's ring mark on a received invitation.
 const RECEIVED_INVITE_MARK_SIZE: f32 = 32.0;
 
-/// One Cube on a received invitation: its ring mark at 32 px, then its name
+/// One Cube on a received invitation: its mark at 32 px, in the style its
+/// owner chose, then its name
 /// and network, which together identify the Cube (RM6). With no network the
 /// line is the name alone. With no UUID from the server (one that predates
 /// API CA1a) no mark is drawn; a UUID that is present but malformed draws
@@ -337,7 +338,8 @@ fn received_invite_cube<'a>(
 ) -> Element<'a, ConnectAccountMessage> {
     let mut row = Row::new().spacing(10).align_y(Alignment::Center);
     if cube.has_mark() {
-        row = row.push(coincube_ui::component::ring_mark::ring_mark(
+        row = row.push(coincube_ui::component::cube_mark::cube_mark(
+            cube.cube_mark_style(),
             cube.mark_seed().as_deref(),
             RECEIVED_INVITE_MARK_SIZE,
         ));

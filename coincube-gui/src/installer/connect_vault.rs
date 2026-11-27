@@ -180,6 +180,10 @@ pub async fn create_connect_vault(
     // (`RegisterCubeRequest::mark_variation_for`). Used by the server only if
     // this registration creates the Cube's row (API CA1).
     mark_variation: Option<u32>,
+    // The Cube's mark style when Crest or Grid
+    // (`RegisterCubeRequest::mark_style_for`), create-only like the number
+    // (API CA6).
+    mark_style: Option<u8>,
 ) -> Result<ConnectVaultOutcome, ConnectVaultError> {
     let (Some(client), Some(cube_uuid), Some(cube_name)) = (client, cube_uuid, cube_name) else {
         return Err(ConnectVaultError::NotApplicable);
@@ -210,6 +214,7 @@ pub async fn create_connect_vault(
             // No Spark decision is known in the installer; leave the server's.
             spark_stable_balance: None,
             mark_variation,
+            mark_style,
         })
         .await
         .map_err(|e| ConnectVaultError::Other(format!("Failed to register cube: {}", e)))?;
@@ -419,6 +424,7 @@ mod tests {
             Some(180),
             Some("8099ee80".to_string()),
             None,
+            None,
         )
         .await
         .expect_err("should short-circuit");
@@ -437,6 +443,7 @@ mod tests {
             vec![],
             Some(180),
             Some("8099ee80".to_string()),
+            None,
             None,
         )
         .await
@@ -529,6 +536,7 @@ mod tests {
             Some(180),
             Some("8099ee80".to_string()),
             Some(3),
+            None,
         )
         .await
         .expect("happy path");
@@ -624,6 +632,7 @@ mod tests {
             Some(180),
             Some("8099ee80".to_string()),
             None,
+            None,
         )
         .await
         .expect_err("expected W9 409 error");
@@ -717,6 +726,7 @@ mod tests {
             vec![sample_member("deadbeef", 99, None)],
             Some(180),
             Some("8099ee80".to_string()),
+            None,
             None,
         )
         .await
@@ -814,6 +824,7 @@ mod tests {
             Some(180),
             Some("8099ee80".to_string()),
             None,
+            None,
         )
         .await
         .expect_err("expected the exhausted-retry error");
@@ -869,6 +880,7 @@ mod tests {
             vec![sample_member("deadbeef", 99, None)],
             Some(180),
             Some("8099ee80".to_string()),
+            None,
             None,
         )
         .await
@@ -931,6 +943,7 @@ mod tests {
             ],
             Some(180),
             Some("8099ee80".to_string()),
+            None,
             None,
         )
         .await
@@ -1004,6 +1017,7 @@ mod tests {
             vec![sample_member("deadbeef", 99, None)],
             Some(180),
             Some("8099ee80".to_string()),
+            None,
             None,
         )
         .await
@@ -1087,6 +1101,7 @@ mod tests {
             Some(180),
             Some("8099ee80".to_string()),
             None,
+            None,
         )
         .await
         .expect("a vault missing one row should be completed, not failed");
@@ -1144,6 +1159,7 @@ mod tests {
             vec![sample_member("deadbeef", 99, None)],
             Some(180),
             Some("8099ee80".to_string()),
+            None,
             None,
         )
         .await

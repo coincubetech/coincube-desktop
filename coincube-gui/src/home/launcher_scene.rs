@@ -67,8 +67,10 @@ pub(super) struct FaceText<'a> {
     pub connect: &'a str,
     pub wallets: &'a str,
     pub passkey: bool,
-    /// The seed of the Cube's ring mark, drawn beside the name.
+    /// The seed of the Cube's mark, drawn beside the name.
     pub mark: Option<&'a str>,
+    /// The style the mark is drawn in.
+    pub mark_style: coincube_ui::component::cube_mark::CubeMarkStyle,
 }
 
 /// Persisted facts drawn on a resting Cube. Nothing here needs an unlock.
@@ -1155,8 +1157,10 @@ pub(super) struct GhostText<'a> {
     pub name: &'a str,
     pub backup: &'a str,
     pub restorable: bool,
-    /// The seed of the Cube's ring mark, drawn muted in the dashed ring.
+    /// The seed of the Cube's mark, drawn muted in the dashed ring.
     pub mark: Option<&'a str>,
+    /// The style the mark is drawn in.
+    pub mark_style: coincube_ui::component::cube_mark::CubeMarkStyle,
 }
 
 /// The ghost's details face (G-Ghost-Details `.fc`) as it turns into place,
@@ -1178,7 +1182,7 @@ pub(super) fn ghost_details_svg(network: ChainId, light: bool, text: GhostText<'
     let _ = write!(
         svg,
         "<circle cx=\"44\" cy=\"44\" r=\"15.5\" fill=\"none\" stroke=\"{muted}\" stroke-dasharray=\"3 2\"/>{}<text x=\"70\" y=\"51\" font-size=\"20\" font-weight=\"600\" fill=\"{ink}\">{}</text>",
-        mark_fragment(text.mark, light, true, 44.0, 44.0, 24.0),
+        mark_fragment(text.mark_style, text.mark, light, true, 44.0, 44.0, 24.0),
         xml_text(&name)
     );
     let _ = write!(
@@ -1226,11 +1230,12 @@ fn append_ghost_primary_action(
     );
 }
 
-/// A Cube's ring mark as an SVG group, `size` px square centred on
-/// (`cx`, `cy`), in the theme's ink and accent, or all muted for a Cube on
-/// another computer. The same drawing as the live widget
-/// ([`coincube_ui::component::ring_mark`]).
+/// A Cube's mark in its chosen style as an SVG group, `size` px square
+/// centred on (`cx`, `cy`), in the theme's ink and accent, or all muted for
+/// a Cube on another computer. The same drawing as the live widget
+/// ([`coincube_ui::component::cube_mark`]).
 fn mark_fragment(
+    style: coincube_ui::component::cube_mark::CubeMarkStyle,
     seed: Option<&str>,
     light: bool,
     muted: bool,
@@ -1238,7 +1243,7 @@ fn mark_fragment(
     cy: f32,
     size: f32,
 ) -> String {
-    use coincube_ui::component::ring_mark;
+    use coincube_ui::component::cube_mark;
     use coincube_ui::theme::palette::ShellPalette;
     let shell = if light {
         ShellPalette::light()
@@ -1250,13 +1255,12 @@ fn mark_fragment(
     } else {
         (shell.ink, shell.accent)
     };
-    let mark = seed.map(ring_mark::RingMark::from_seed);
     format!(
         "<g transform=\"translate({:.2} {:.2}) scale({:.4})\">{}</g>",
         cx - size / 2.0,
         cy - size / 2.0,
         size / 64.0,
-        ring_mark::svg_body(mark.as_ref(), ink, accent)
+        cube_mark::svg_body(style, seed, ink, accent)
     )
 }
 
@@ -1281,7 +1285,7 @@ pub(super) fn details_svg(network: ChainId, light: bool, text: FaceText<'_>) -> 
     let _ = write!(
         svg,
         "{}<text x=\"70\" y=\"51\" font-size=\"20\" font-weight=\"600\" fill=\"{ink}\">{}</text>",
-        mark_fragment(text.mark, light, false, 44.0, 44.0, 32.0),
+        mark_fragment(text.mark_style, text.mark, light, false, 44.0, 44.0, 32.0),
         xml_text(&name)
     );
     // `.pnet`: the 18px coin and the network's full name, 8px below.
@@ -1510,6 +1514,7 @@ mod tests {
                     wallets: "Spark",
                     passkey: false,
                     mark,
+                    mark_style: Default::default(),
                 },
             )
         };
@@ -1536,6 +1541,7 @@ mod tests {
                 backup: "Recovery Kit in Connect",
                 restorable: true,
                 mark: Some(seed),
+                mark_style: Default::default(),
             },
         );
         assert!(
@@ -1553,6 +1559,49 @@ mod tests {
             !ghost_mark.contains("#f3821d"),
             "a ghost's mark is all muted"
         );
+    }
+
+    /// The details faces draw the Cube's chosen style: a Crest face has the
+    /// faint ring and petals and no orange, a Grid ghost its 25 dots in the
+    /// muted colour (D-R3: every site draws the owner's choice).
+    #[test]
+    fn details_faces_draw_the_chosen_style() {
+        use coincube_ui::component::cube_mark::CubeMarkStyle;
+        let seed = "9fb93534-081c-4253-b1e2-73a87984a8ab";
+        let crest = details_svg(
+            ChainId::Bitcoin,
+            false,
+            FaceText {
+                name: "Savings",
+                lock: "Locked",
+                backup: "Confirmed",
+                connect: "None",
+                wallets: "Spark",
+                passkey: false,
+                mark: Some(seed),
+                mark_style: CubeMarkStyle::Crest,
+            },
+        );
+        assert!(crest.contains(r#"<circle cx="32" cy="32" r="29" fill="none""#));
+        assert!(crest.contains(r#"opacity=".28""#));
+        assert!(!crest.contains("stroke=\"#f3821d\""), "Crest has no orange");
+        let ghost = ghost_details_svg(
+            ChainId::Bitcoin,
+            false,
+            GhostText {
+                name: "Savings",
+                backup: "Recovery Kit in Connect",
+                restorable: true,
+                mark: Some(seed),
+                mark_style: CubeMarkStyle::Grid,
+            },
+        );
+        // The grid's 25 dots: large and solid or small and faint.
+        assert_eq!(
+            ghost.matches(r#"r="3.2""#).count() + ghost.matches(r#"r="1.1""#).count(),
+            25
+        );
+        assert_eq!(ghost.matches(r#"cx="32" cy="14""#).count(), 1, "one grid");
     }
 
     #[test]
@@ -1636,6 +1685,7 @@ mod tests {
                 wallets: "Vault",
                 passkey: false,
                 mark: None,
+                mark_style: Default::default(),
             },
         );
         assert!(details.contains("Alice &amp; &lt;Bob&gt;"));
@@ -1756,6 +1806,7 @@ mod tests {
                 false,
                 GhostText {
                     mark: None,
+                    mark_style: Default::default(),
                     name: "Old <laptop>",
                     backup: "No Recovery Kit in Connect",
                     restorable,

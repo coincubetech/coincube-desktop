@@ -249,6 +249,7 @@ fn launcher_capture_sizes() {
 fn ghost(uuid: &str, name: &str, kit: bool) -> super::RemoteCube {
     super::RemoteCube {
         mark_variation: 0,
+        mark_style: 0,
         id: 9,
         uuid: uuid.into(),
         name: name.into(),

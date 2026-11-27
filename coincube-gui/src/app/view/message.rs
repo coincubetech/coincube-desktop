@@ -2060,12 +2060,15 @@ pub enum ContactsMessage {
     Error(String),
 }
 
-/// Regenerate and Back on Cube Settings › Display. Each sets the Cube's
-/// ring-mark variation to the current number plus or minus one.
+/// Regenerate, Back and Style on Cube Settings › Display. Regenerate and
+/// Back set the Cube's ring-mark variation to the current number plus or
+/// minus one, within the chosen style; Style picks the drawing rule and
+/// keeps the number (master plan D8).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CubeMarkIntent {
     Regenerate,
     Back,
+    Style(coincube_ui::component::cube_mark::CubeMarkStyle),
 }
 
 /// Per-Cube Connect messages (Lightning Address, Members).

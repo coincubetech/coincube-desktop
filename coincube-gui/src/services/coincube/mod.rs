@@ -1,3 +1,4 @@
+use coincube_ui::component::cube_mark::CubeMarkStyle;
 use serde::{Deserialize, Serialize};
 
 pub mod client;
@@ -1540,6 +1541,12 @@ pub struct RegisterCubeRequest {
     /// re-register of an existing Cube ignores it (API CA1).
     #[serde(rename = "markVariation", skip_serializing_if = "Option::is_none")]
     pub mark_variation: Option<u32>,
+    /// The Cube's mark style (`CubeSettings::mark_style`, master plan D8),
+    /// sent when it is Crest or Grid so a Cube restyled before it ever
+    /// registered keeps its look. Create-only on the server, like
+    /// `markVariation` (API CA6).
+    #[serde(rename = "markStyle", skip_serializing_if = "Option::is_none")]
+    pub mark_style: Option<u8>,
 }
 
 impl RegisterCubeRequest {
@@ -1548,25 +1555,45 @@ impl RegisterCubeRequest {
     pub fn mark_variation_for(variation: u32) -> Option<u32> {
         (variation > 0).then_some(variation)
     }
+
+    /// The `mark_style` a registration carries for a Cube whose local style
+    /// number is `style`: omitted for Rings, the server's own default, and
+    /// for a number this app does not know (it draws that as Rings, and the
+    /// server would refuse it).
+    pub fn mark_style_for(style: u8) -> Option<u8> {
+        match CubeMarkStyle::from_u8(style) {
+            CubeMarkStyle::Rings => None,
+            known => Some(known.as_u8()),
+        }
+    }
 }
 
-/// Request body for `PUT /api/v1/connect/cubes/{cubeId}/mark` (API CA1): the
-/// owner sets the Cube's ring-mark variation. A set rather than an increment,
-/// so a retried request cannot skip a number.
-#[derive(Debug, Clone, Serialize)]
+/// Request body for `PUT /api/v1/connect/cubes/{cubeId}/mark`: the owner
+/// sets the Cube's ring-mark variation (API CA1), its style (API CA6), or
+/// both. Each is optional and the server needs at least one. A set rather
+/// than an increment, so a retried request cannot skip a number. The app
+/// sends only the field that changed, so Regenerate keeps working against a
+/// server that predates the style.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct SetCubeMarkRequest {
-    #[serde(rename = "markVariation")]
-    pub mark_variation: u32,
+    #[serde(rename = "markVariation", skip_serializing_if = "Option::is_none")]
+    pub mark_variation: Option<u32>,
+    #[serde(rename = "markStyle", skip_serializing_if = "Option::is_none")]
+    pub mark_style: Option<u8>,
 }
 
 /// The Cube's mark after `PUT /api/v1/connect/cubes/{cubeId}/mark`. The app
-/// takes `mark_variation` from here, not from what it asked for.
+/// takes the number and the style from here, not from what it asked for.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CubeMarkResponse {
     pub mark_variation: u32,
     #[serde(default)]
     pub mark_version: Option<u32>,
+    /// `None` from a server that predates the style (API CA6). Read as
+    /// [`CubeResponse::mark_style`] is.
+    #[serde(default, deserialize_with = "deserialize_mark_style")]
+    pub mark_style: Option<u8>,
 }
 
 /// Request body for PUT /api/v1/connect/cubes/{id}
@@ -1702,6 +1729,31 @@ pub struct CubeResponse {
     /// does not know.
     #[serde(default, deserialize_with = "deserialize_mark_version")]
     pub mark_version: Option<u32>,
+    /// The Cube's mark style (master plan D8, API CA6): 0 Rings, 1 Crest,
+    /// 2 Grid, set only by the owner. `None` from an API that predates the
+    /// field: the app then keeps its local style, as for the number. A
+    /// number this app does not know is kept as it is and drawn as Rings
+    /// ([`CubeMarkStyle::from_u8`]). Read leniently: absent or `null` is
+    /// `None`; a value outside 0..=255, or of the wrong type, is `Some(0)`.
+    #[serde(default, deserialize_with = "deserialize_mark_style")]
+    pub mark_style: Option<u8>,
+}
+
+/// `markStyle`: see [`CubeResponse::mark_style`].
+fn deserialize_mark_style<'de, D>(deserializer: D) -> Result<Option<u8>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = serde_json::Value::deserialize(deserializer)?;
+    Ok(match value {
+        serde_json::Value::Null => None,
+        value => Some(
+            value
+                .as_u64()
+                .filter(|v| *v <= u64::from(u8::MAX))
+                .map_or(0, |v| v as u8),
+        ),
+    })
 }
 
 /// `markVariation`: see [`CubeResponse::mark_variation`].
@@ -2404,9 +2456,18 @@ pub struct ReceivedInviteCube {
     /// Read as [`CubeResponse::mark_version`] is.
     #[serde(default, deserialize_with = "deserialize_mark_version")]
     pub mark_version: Option<u32>,
+    /// Read as [`CubeResponse::mark_style`] is (API CA6); absent is Rings.
+    #[serde(default, deserialize_with = "deserialize_mark_style")]
+    pub mark_style: Option<u8>,
 }
 
 impl ReceivedInviteCube {
+    /// The style the Cube's mark is drawn in: the owner's choice, Rings
+    /// when the server sent none or one this app does not know.
+    pub fn cube_mark_style(&self) -> CubeMarkStyle {
+        CubeMarkStyle::from_u8(self.mark_style.unwrap_or(0))
+    }
+
     /// The ring-mark seed, or `None` when the server sent no UUID (no mark
     /// is drawn then). A UUID that is present but malformed also gives
     /// `None` here; the view draws the centre dot for it.
@@ -4745,6 +4806,84 @@ mod cube_has_vault_tests {
         assert_eq!(vault_presence_report(false, None), None);
     }
 
+    /// Registration sends Crest and Grid; Rings and a style number this
+    /// build does not know send nothing (the server would refuse the latter).
+    #[test]
+    fn register_request_sends_only_a_known_style_above_rings() {
+        use super::RegisterCubeRequest;
+        assert_eq!(RegisterCubeRequest::mark_style_for(0), None);
+        assert_eq!(RegisterCubeRequest::mark_style_for(1), Some(1));
+        assert_eq!(RegisterCubeRequest::mark_style_for(2), Some(2));
+        assert_eq!(RegisterCubeRequest::mark_style_for(3), None);
+        assert_eq!(RegisterCubeRequest::mark_style_for(255), None);
+    }
+
+    /// The set call sends only the part that changes, so Regenerate keeps
+    /// working against a server that predates the style.
+    #[test]
+    fn set_mark_request_sends_only_what_changes() {
+        use super::{CubeMarkResponse, SetCubeMarkRequest};
+        let number = SetCubeMarkRequest {
+            mark_variation: Some(4),
+            mark_style: None,
+        };
+        assert_eq!(
+            serde_json::to_value(number).unwrap(),
+            json!({ "markVariation": 4 })
+        );
+        let style = SetCubeMarkRequest {
+            mark_variation: None,
+            mark_style: Some(2),
+        };
+        assert_eq!(
+            serde_json::to_value(style).unwrap(),
+            json!({ "markStyle": 2 })
+        );
+        let answer: CubeMarkResponse =
+            serde_json::from_value(json!({ "markVariation": 4, "markVersion": 1 })).unwrap();
+        assert_eq!(answer.mark_style, None, "a server that predates the style");
+        let answer: CubeMarkResponse =
+            serde_json::from_value(json!({ "markVariation": 4, "markVersion": 1, "markStyle": 1 }))
+                .unwrap();
+        assert_eq!(answer.mark_style, Some(1));
+    }
+
+    /// `markStyle` is read leniently on every Cube response and received
+    /// invitation: absent or `null` is `None` (the local style stands); a
+    /// value outside 0..=255 or of the wrong type is `Some(0)`, Rings; a
+    /// number this build does not know is kept and drawn as Rings.
+    #[test]
+    fn mark_style_is_read_leniently() {
+        use super::{CubeMarkStyle, ReceivedInviteCube};
+        let parse = |field: serde_json::Value| -> Option<u8> {
+            let mut cube = json!({ "cubeId": 1, "cubeName": "Family" });
+            cube["markStyle"] = field;
+            serde_json::from_value::<ReceivedInviteCube>(cube)
+                .unwrap()
+                .mark_style
+        };
+        assert_eq!(parse(json!(null)), None);
+        assert_eq!(parse(json!(1)), Some(1));
+        assert_eq!(parse(json!(2)), Some(2));
+        assert_eq!(parse(json!(7)), Some(7));
+        assert_eq!(parse(json!(256)), Some(0));
+        assert_eq!(parse(json!(-1)), Some(0));
+        assert_eq!(parse(json!("1")), Some(0));
+        assert_eq!(parse(json!(1.5)), Some(0));
+        let absent: ReceivedInviteCube =
+            serde_json::from_value(json!({ "cubeId": 1, "cubeName": "Family" })).unwrap();
+        assert_eq!(absent.mark_style, None);
+        assert_eq!(absent.cube_mark_style(), CubeMarkStyle::Rings);
+        let crest: ReceivedInviteCube =
+            serde_json::from_value(json!({ "cubeId": 1, "cubeName": "Family", "markStyle": 1 }))
+                .unwrap();
+        assert_eq!(crest.cube_mark_style(), CubeMarkStyle::Crest);
+        let future: ReceivedInviteCube =
+            serde_json::from_value(json!({ "cubeId": 1, "cubeName": "Family", "markStyle": 7 }))
+                .unwrap();
+        assert_eq!(future.cube_mark_style(), CubeMarkStyle::Rings);
+    }
+
     #[test]
     fn register_request_reports_vault_upgrade_only_and_the_mark_above_zero() {
         // Device holds the Vault → assert `hasVault: true`.
@@ -4755,9 +4894,11 @@ mod cube_has_vault_tests {
             has_vault: Some(true),
             spark_stable_balance: Some(false),
             mark_variation: RegisterCubeRequest::mark_variation_for(3),
+            mark_style: RegisterCubeRequest::mark_style_for(1),
         };
         let v = serde_json::to_value(&with_vault).unwrap();
         assert_eq!(v["markVariation"], json!(3));
+        assert_eq!(v["markStyle"], json!(1));
         assert_eq!(v["hasVault"], json!(true));
         assert_eq!(v["sparkStableBalance"], json!(false));
         assert_eq!(v["uuid"], json!("u1"));
@@ -4772,11 +4913,14 @@ mod cube_has_vault_tests {
             has_vault: None,
             spark_stable_balance: None,
             mark_variation: RegisterCubeRequest::mark_variation_for(0),
+            mark_style: RegisterCubeRequest::mark_style_for(0),
         };
         let v = serde_json::to_value(&no_vault).unwrap();
         assert!(v.get("hasVault").is_none());
         // A Cube at its plain mark sends no number: 0 is the server default.
         assert!(v.get("markVariation").is_none());
+        // Rings is the server default too.
+        assert!(v.get("markStyle").is_none());
         // Same rule for the Spark decision: no local decision → omitted, so
         // another device's record is left alone.
         assert!(v.get("sparkStableBalance").is_none());
@@ -4899,8 +5043,16 @@ mod cube_has_vault_tests {
         };
         let old = cube("");
         assert_eq!((old.mark_variation, old.mark_version), (None, None));
+        assert_eq!(
+            old.mark_style, None,
+            "an API before CA6 keeps the local style"
+        );
         let new = cube(r#","markVariation":17,"markVersion":1"#);
         assert_eq!((new.mark_variation, new.mark_version), (Some(17), Some(1)));
+        let styled = cube(r#","markVariation":17,"markVersion":1,"markStyle":2"#);
+        assert_eq!(styled.mark_style, Some(2));
+        assert_eq!(cube(r#","markStyle":null"#).mark_style, None);
+        assert_eq!(cube(r#","markStyle":"grid""#).mark_style, Some(0));
         let null = cube(r#","markVariation":null,"markVersion":null"#);
         assert_eq!((null.mark_variation, null.mark_version), (None, None));
         // Read as COINCUBE Mobile reads them: a bad value never fails the
@@ -6152,6 +6304,7 @@ mod received_invite_cubes_tests {
                 cube_uuid: Some(UUID_A.into()),
                 mark_variation: Some(0),
                 mark_version: Some(1),
+                mark_style: None,
             }]
         );
         assert_eq!(one.cubes[0].mark_seed().as_deref(), Some(UUID_A));

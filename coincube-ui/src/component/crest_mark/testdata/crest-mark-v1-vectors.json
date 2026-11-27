@@ -1,0 +1,351 @@
+{
+ "spec": "SPEC-cube-crest-mark-v1.md",
+ "note": "Angles and radii are shown to 6 decimals. Implementations must match fnvState, draws, petalCount, shape and dot exactly, and every radius, twist and angle to within 1e-6 of these values. svg is the study's own output for this seed, for visual comparison only; its coordinates depend on cos and sin and are not asserted.",
+ "vectors": [
+  {
+   "cubeId": "2571891e-a33e-484b-81e1-f894901f7a63",
+   "variation": 0,
+   "seed": "2571891e-a33e-484b-81e1-f894901f7a63",
+   "fnvState": "0x149d7976",
+   "draws": [
+    24239,
+    13180,
+    23892,
+    94748,
+    80785,
+    17326
+   ],
+   "petalCount": 3,
+   "shape": 0,
+   "innerRadius": 9.43352,
+   "outerRadius": 21.7374,
+   "twist": 0.338635,
+   "dot": false,
+   "petals": [
+    {
+     "angle": -1.570796,
+     "outerAngle": -1.232161
+    },
+    {
+     "angle": 0.523599,
+     "outerAngle": 0.862234
+    },
+    {
+     "angle": 2.617994,
+     "outerAngle": 2.956629
+    }
+   ],
+   "svg": "<circle cx=\"32\" cy=\"32\" r=\"29\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".28\"/><path d=\"M32.00 22.57L39.22 11.50\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M40.17 36.72L46.15 48.51\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M23.83 36.72L10.63 36.00\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+   "cubeId": "4bf822a7-ad46-4243-a977-10e63e28ea5a",
+   "variation": 0,
+   "seed": "4bf822a7-ad46-4243-a977-10e63e28ea5a",
+   "fnvState": "0x7a549027",
+   "draws": [
+    27983,
+    61401,
+    94917,
+    9636,
+    83805,
+    55072
+   ],
+   "petalCount": 4,
+   "shape": 1,
+   "innerRadius": 13.69502,
+   "outerRadius": 17.4818,
+   "twist": 0.371855,
+   "dot": true,
+   "petals": [
+    {
+     "angle": -1.570796,
+     "outerAngle": -1.198941,
+     "thirdAngle": -0.698941
+    },
+    {
+     "angle": 0,
+     "outerAngle": 0.371855,
+     "thirdAngle": 0.871855
+    },
+    {
+     "angle": 1.570796,
+     "outerAngle": 1.942651,
+     "thirdAngle": 2.442651
+    },
+    {
+     "angle": 3.141593,
+     "outerAngle": 3.513448,
+     "thirdAngle": 4.013448
+    }
+   ],
+   "svg": "<circle cx=\"32\" cy=\"32\" r=\"29\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".28\"/><path d=\"M32.00 18.30Q45.38 20.75 38.35 15.71\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M45.70 32.00Q43.25 45.38 48.29 38.35\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M32.00 45.70Q18.62 43.25 25.65 48.29\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M18.30 32.00Q20.75 18.62 15.71 25.65\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"32\" r=\"3\" fill=\"currentColor\"/>"
+  },
+  {
+   "cubeId": "0c3579f9-347f-4f4e-9a36-7e9694a4346e",
+   "variation": 0,
+   "seed": "0c3579f9-347f-4f4e-9a36-7e9694a4346e",
+   "fnvState": "0xe7ea0542",
+   "draws": [
+    51907,
+    86283,
+    81415,
+    26694,
+    22148,
+    8333
+   ],
+   "petalCount": 5,
+   "shape": 2,
+   "innerRadius": 12.8849,
+   "outerRadius": 18.3347,
+   "twist": -0.306372,
+   "dot": false,
+   "petals": [
+    {
+     "angle": -1.570796,
+     "outerAngle": -1.877168,
+     "thirdAngle": -1.374514
+    },
+    {
+     "angle": -0.314159,
+     "outerAngle": -0.620531,
+     "thirdAngle": -0.117876
+    },
+    {
+     "angle": 0.942478,
+     "outerAngle": 0.636106,
+     "thirdAngle": 1.138761
+    },
+    {
+     "angle": 2.199115,
+     "outerAngle": 1.892743,
+     "thirdAngle": 2.395398
+    },
+    {
+     "angle": 3.455752,
+     "outerAngle": 3.14938,
+     "thirdAngle": 3.652035
+    }
+   ],
+   "svg": "<circle cx=\"32\" cy=\"32\" r=\"29\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".28\"/><path d=\"M32.00 19.12L26.47 14.52L35.58 14.02\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M44.25 28.02L46.92 21.34L50.21 29.84\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M39.57 42.42L46.75 42.89L39.68 48.65\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24.43 42.42L26.20 49.39L18.54 44.45\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M19.75 28.02L13.67 31.86L16.00 23.04\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+   "cubeId": "b76a25e2-31af-451f-88ab-a680259ecd86",
+   "variation": 0,
+   "seed": "b76a25e2-31af-451f-88ab-a680259ecd86",
+   "fnvState": "0xcac38fb4",
+   "draws": [
+    91086,
+    9311,
+    40281,
+    18155,
+    81378,
+    86082
+   ],
+   "petalCount": 6,
+   "shape": 0,
+   "innerRadius": 10.41686,
+   "outerRadius": 17.90775,
+   "twist": 0.345158,
+   "dot": true,
+   "petals": [
+    {
+     "angle": -1.570796,
+     "outerAngle": -1.225638
+    },
+    {
+     "angle": -0.523599,
+     "outerAngle": -0.178441
+    },
+    {
+     "angle": 0.523599,
+     "outerAngle": 0.868757
+    },
+    {
+     "angle": 1.570796,
+     "outerAngle": 1.915954
+    },
+    {
+     "angle": 2.617994,
+     "outerAngle": 2.963152
+    },
+    {
+     "angle": 3.665191,
+     "outerAngle": 4.010349
+    }
+   ],
+   "svg": "<circle cx=\"32\" cy=\"32\" r=\"29\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".28\"/><path d=\"M32.00 21.58L38.06 15.15\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M41.02 26.79L49.62 28.82\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M41.02 37.21L43.56 45.67\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M32.00 42.42L25.94 48.85\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M22.98 37.21L14.38 35.18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M22.98 26.79L20.44 18.33\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"32\" r=\"3\" fill=\"currentColor\"/>"
+  },
+  {
+   "cubeId": "7f041680-d251-4426-a660-f0132a322078",
+   "variation": 0,
+   "seed": "7f041680-d251-4426-a660-f0132a322078",
+   "fnvState": "0xe7a0449b",
+   "draws": [
+    40770,
+    86394,
+    73645,
+    67782,
+    69357,
+    76189
+   ],
+   "petalCount": 4,
+   "shape": 2,
+   "innerRadius": 12.4187,
+   "outerRadius": 20.3891,
+   "twist": 0.212927,
+   "dot": true,
+   "petals": [
+    {
+     "angle": -1.570796,
+     "outerAngle": -1.357869,
+     "thirdAngle": -0.729551
+    },
+    {
+     "angle": 0,
+     "outerAngle": 0.212927,
+     "thirdAngle": 0.841246
+    },
+    {
+     "angle": 1.570796,
+     "outerAngle": 1.783723,
+     "thirdAngle": 2.412042
+    },
+    {
+     "angle": 3.141593,
+     "outerAngle": 3.35452,
+     "thirdAngle": 3.982838
+    }
+   ],
+   "svg": "<circle cx=\"32\" cy=\"32\" r=\"29\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".28\"/><path d=\"M32.00 19.58L36.31 12.07L47.20 18.41\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M44.42 32.00L51.93 36.31L45.59 47.20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M32.00 44.42L27.69 51.93L16.80 45.59\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M19.58 32.00L12.07 27.69L18.41 16.80\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"32\" r=\"3\" fill=\"currentColor\"/>"
+  },
+  {
+   "cubeId": "2571891e-a33e-484b-81e1-f894901f7a63",
+   "variation": 1,
+   "seed": "2571891e-a33e-484b-81e1-f894901f7a63:1",
+   "fnvState": "0xabfce08f",
+   "draws": [
+    39225,
+    57403,
+    38169,
+    32834,
+    56356,
+    70022
+   ],
+   "petalCount": 4,
+   "shape": 1,
+   "innerRadius": 10.29014,
+   "outerRadius": 18.6417,
+   "twist": 0.069916,
+   "dot": true,
+   "petals": [
+    {
+     "angle": -1.570796,
+     "outerAngle": -1.50088,
+     "thirdAngle": -1.00088
+    },
+    {
+     "angle": 0,
+     "outerAngle": 0.069916,
+     "thirdAngle": 0.569916
+    },
+    {
+     "angle": 1.570796,
+     "outerAngle": 1.640712,
+     "thirdAngle": 2.140712
+    },
+    {
+     "angle": 3.141593,
+     "outerAngle": 3.211509,
+     "thirdAngle": 3.711509
+    }
+   ],
+   "svg": "<circle cx=\"32\" cy=\"32\" r=\"29\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".28\"/><path d=\"M32.00 21.71Q42.06 16.30 33.30 13.40\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M42.29 32.00Q47.70 42.06 50.60 33.30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M32.00 42.29Q21.94 47.70 30.70 50.60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M21.71 32.00Q16.30 21.94 13.40 30.70\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"32\" r=\"3\" fill=\"currentColor\"/>"
+  },
+  {
+   "cubeId": "2571891e-a33e-484b-81e1-f894901f7a63",
+   "variation": 2,
+   "seed": "2571891e-a33e-484b-81e1-f894901f7a63:2",
+   "fnvState": "0xacfce222",
+   "draws": [
+    43134,
+    81810,
+    32748,
+    87557,
+    72790,
+    48961
+   ],
+   "petalCount": 4,
+   "shape": 2,
+   "innerRadius": 9.96488,
+   "outerRadius": 21.37785,
+   "twist": 0.25069,
+   "dot": false,
+   "petals": [
+    {
+     "angle": -1.570796,
+     "outerAngle": -1.320106,
+     "thirdAngle": -0.691788
+    },
+    {
+     "angle": 0,
+     "outerAngle": 0.25069,
+     "thirdAngle": 0.879009
+    },
+    {
+     "angle": 1.570796,
+     "outerAngle": 1.821486,
+     "thirdAngle": 2.449805
+    },
+    {
+     "angle": 3.141593,
+     "outerAngle": 3.392283,
+     "thirdAngle": 4.020601
+    }
+   ],
+   "svg": "<circle cx=\"32\" cy=\"32\" r=\"29\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".28\"/><path d=\"M32.00 22.04L37.30 11.29L48.46 18.36\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M41.96 32.00L52.71 37.30L45.64 48.46\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M32.00 41.96L26.70 52.71L15.54 45.64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M22.04 32.00L11.29 26.70L18.36 15.54\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+   "cubeId": "2571891e-a33e-484b-81e1-f894901f7a63",
+   "variation": 17,
+   "seed": "2571891e-a33e-484b-81e1-f894901f7a63:17",
+   "fnvState": "0x7715c1a8",
+   "draws": [
+    53048,
+    21361,
+    27938,
+    77184,
+    57956,
+    77884
+   ],
+   "petalCount": 5,
+   "shape": 0,
+   "innerRadius": 9.67628,
+   "outerRadius": 20.8592,
+   "twist": 0.087516,
+   "dot": true,
+   "petals": [
+    {
+     "angle": -1.570796,
+     "outerAngle": -1.48328
+    },
+    {
+     "angle": -0.314159,
+     "outerAngle": -0.226643
+    },
+    {
+     "angle": 0.942478,
+     "outerAngle": 1.029994
+    },
+    {
+     "angle": 2.199115,
+     "outerAngle": 2.286631
+    },
+    {
+     "angle": 3.455752,
+     "outerAngle": 3.543268
+    }
+   ],
+   "svg": "<circle cx=\"32\" cy=\"32\" r=\"29\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" opacity=\".28\"/><path d=\"M32.00 22.32L33.82 11.22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M41.20 29.01L52.33 27.31\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M37.69 39.83L42.74 49.88\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M26.31 39.83L18.31 47.74\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M22.80 29.01L12.80 23.84\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"32\" cy=\"32\" r=\"3\" fill=\"currentColor\"/>"
+  }
+ ]
+}

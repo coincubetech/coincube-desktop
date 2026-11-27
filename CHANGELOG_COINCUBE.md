@@ -80,6 +80,7 @@ repository's. Internal refactors, test-only work and CI are collapsed at the end
 
 **Cube marks**
 - Cube avatars are now ring marks drawn from the Cube itself; Regenerate and Back in Cube Settings › Display change a Cube's mark and are free on every plan, and the image-model avatar flow (trait questionnaire, generated pictures, Download PNG) is removed.
+- A Cube's owner can draw its mark in one of three styles, Rings (the default), Crest or Grid, from the Style row in Cube Settings › Display. The style rides with the Cube like its mark number, so every member and every computer shows the same mark; switching style keeps the number, and Regenerate and Back work within the chosen style.
 
 **Recipient identity on send (Branta)**
 

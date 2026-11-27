@@ -358,6 +358,9 @@ pub struct RemoteCube {
     /// predates the field. Drawn in the muted colour inside the dashed
     /// treatment, since the Cube lives on another computer.
     pub mark_variation: u32,
+    /// The Cube's mark style as Connect keeps it (master plan D8); 0, Rings,
+    /// when the API predates the field.
+    pub mark_style: u8,
 }
 
 impl RemoteCube {
@@ -365,6 +368,12 @@ impl RemoteCube {
     /// variation Connect keeps. `None` when the UUID is malformed.
     pub fn mark_seed(&self) -> Option<String> {
         coincube_ui::component::ring_mark::seed(&self.uuid, self.mark_variation)
+    }
+
+    /// The style this Cube's mark is drawn in; Rings for a number this
+    /// build does not know.
+    pub fn cube_mark_style(&self) -> coincube_ui::component::cube_mark::CubeMarkStyle {
+        coincube_ui::component::cube_mark::CubeMarkStyle::from_u8(self.mark_style)
     }
 }
 
@@ -3001,6 +3010,7 @@ impl Home {
                     // its mark: the server takes this number when it
                     // creates the row (API CA1).
                     mark_variation: RegisterCubeRequest::mark_variation_for(cube.mark_variation),
+                    mark_style: RegisterCubeRequest::mark_style_for(cube.mark_style),
                 };
                 client
                     .register_cube(req)
@@ -3710,6 +3720,7 @@ impl Home {
                 has_vault: cube.holds_vault().then_some(true),
                 spark_stable_balance: cube.spark_stable_balance,
                 mark_variation: RegisterCubeRequest::mark_variation_for(cube.mark_variation),
+                mark_style: RegisterCubeRequest::mark_style_for(cube.mark_style),
             };
             self.open_after_registration = Some(cube.id.clone());
             let register_task = Task::perform(
@@ -5237,6 +5248,7 @@ impl Home {
                         has_vault: None,
                         spark_stable_balance: None,
                         mark_variation: None,
+                        mark_style: None,
                     })
                     .await
                 {
@@ -8629,9 +8641,9 @@ pub enum Message {
         /// UUIDs of every listed Cube (local ones included) with Connect
         /// features off. Applied only with an `Ok` result.
         connect_off: Vec<String>,
-        /// Every listed Cube's ring-mark variation, local ones included.
-        /// Applied only with an `Ok` result.
-        marks: remote_catalog::MarkVariations,
+        /// Every listed Cube's ring-mark variation and style, local ones
+        /// included. Applied only with an `Ok` result.
+        marks: remote_catalog::ListedMarks,
     },
     /// Another network's Cubes, read without touching its directory.
     NetworkCatalogLoaded {
@@ -9037,6 +9049,7 @@ impl DeleteRemoteCubeModal {
             .spacing(16)
             .align_y(Alignment::Center)
             .push(launcher_presenter::ghost_avatar(
+                self.cube.cube_mark_style(),
                 self.cube.mark_seed().as_deref(),
                 44.0,
             ))
@@ -11187,6 +11200,7 @@ mod tests {
     async fn phone_cube_step_counts_and_shows_other_networks() {
         let remote = |id: u64, name: &str, chain: ChainId| RemoteCube {
             mark_variation: 0,
+            mark_style: 0,
             id,
             uuid: format!("uuid-{id}"),
             name: name.to_string(),
@@ -11697,6 +11711,7 @@ mod tests {
     fn remote_cube(uuid: &str, name: &str, network: Network) -> RemoteCube {
         RemoteCube {
             mark_variation: 0,
+            mark_style: 0,
             id: 42,
             uuid: uuid.to_string(),
             name: name.to_string(),
@@ -13171,6 +13186,7 @@ mod tests {
             vault: None,
             connect_features_disabled: false,
             mark_variation: None,
+            mark_style: None,
             mark_version: None,
         }
     }
@@ -18268,5 +18284,48 @@ mod chain_identity_open_tests {
             .is_err());
         without_mark.assert();
         avatar.assert_hits(0);
+    }
+
+    /// The catch-up registration also sends a locally chosen style (API
+    /// CA6, create-only like the number); Rings, and a number this build does
+    /// not know, send none.
+    #[tokio::test]
+    async fn catch_up_registration_sends_the_cubes_mark_style() {
+        use httpmock::{Method::POST, MockServer};
+        let server = MockServer::start_async().await;
+        let client = crate::services::coincube::CoincubeClient::for_test(server.base_url());
+        let mut cube = CubeSettings::new("Style".into(), crate::chain::ChainId::Bitcoin);
+        cube.mark_style = 2;
+        let mut with_style = server.mock(|when, then| {
+            when.method(POST)
+                .path("/api/v1/connect/cubes")
+                .json_body_partial(r#"{ "markStyle": 2 }"#);
+            then.status(503);
+        });
+        assert!(Home::sync_catch_up_cube(&client, &cube, None)
+            .await
+            .is_err());
+        with_style.assert();
+        with_style.delete();
+
+        for style in [0, 9] {
+            cube.mark_style = style;
+            let mut without_style = server.mock(|when, then| {
+                when.method(POST)
+                    .path("/api/v1/connect/cubes")
+                    .matches(|request| {
+                        request
+                            .body
+                            .as_ref()
+                            .is_none_or(|body| !String::from_utf8_lossy(body).contains("markStyle"))
+                    });
+                then.status(503);
+            });
+            assert!(Home::sync_catch_up_cube(&client, &cube, None)
+                .await
+                .is_err());
+            without_style.assert();
+            without_style.delete();
+        }
     }
 }
