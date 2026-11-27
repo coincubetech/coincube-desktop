@@ -608,7 +608,7 @@ fn deposit_row<'a>(
             .push(action),
     )
     .padding(10)
-    .style(theme::card::simple)
+    .style(inset_card_style)
     .into()
 }
 
@@ -897,7 +897,7 @@ fn phase_body<'a>(
             ),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into(),
 
         SparkReceivePhase::Generating => Container::new(
@@ -906,7 +906,7 @@ fn phase_body<'a>(
                 .push(p1_regular(localized_copy("Creating your invoice…"))),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into(),
 
         SparkReceivePhase::Generated(ok) => {
@@ -931,7 +931,7 @@ fn phase_body<'a>(
                 ),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into(),
     }
 }
@@ -973,6 +973,22 @@ pub(crate) fn conversion_notice_on_page<'a>(
     on_view: Message,
 ) -> Element<'a, Message> {
     conversion_notice_on(option, arrived, on_view, conversion_notice_page_style)
+}
+
+/// A box set inside a panel card: the Receive form's phase bodies and
+/// method forms, and each row of the pending-deposits card. It takes the page
+/// background with no outline, so it reads against the panel card around it
+/// (R4) once cards are fill only. Matches V5's `theme::card::inset`.
+fn inset_card_style(theme: &theme::Theme) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(theme.colors.shell.background)),
+        text_color: Some(theme.colors.shell.ink),
+        border: iced::Border {
+            radius: 16.0.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
 }
 
 /// The Spark page's recent activity. A cross-network receive still running
@@ -1129,7 +1145,7 @@ fn append_bitcoin_receive_rail<'a>(
                 .push(description),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into()
     } else if method == SparkReceiveMethod::OnchainBitcoin {
         // On-chain: nothing to configure. Explain the deposit
@@ -1145,7 +1161,7 @@ fn append_bitcoin_receive_rail<'a>(
                 ))),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into()
     } else {
         // Spark: static, reusable, identity-bound address. No
@@ -1159,7 +1175,7 @@ fn append_bitcoin_receive_rail<'a>(
                 ))),
         )
         .padding(16)
-        .style(theme::card::simple)
+        .style(inset_card_style)
         .into()
     };
     // Spark and on-chain addresses need no input: their generated
@@ -1421,7 +1437,7 @@ fn generated_receive_body<'a>(
             .push_maybe(follow_up),
     )
     .padding(16)
-    .style(theme::card::simple)
+    .style(inset_card_style)
     .into()
 }
 
@@ -1429,6 +1445,31 @@ fn generated_receive_body<'a>(
 mod notice_style_tests {
     use super::*;
     use coincube_ui::theme::tenshu::separation::{delta_e, JUST_NOTICEABLE_DELTA_E};
+
+    /// Boxes inside Receive's panel card (and the pending-deposits card) take
+    /// the page background, visibly apart from the panel, with no outline.
+    #[test]
+    fn nested_boxes_take_the_background_fill() {
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let shell = theme.colors.shell;
+            let inset = inset_card_style(&theme);
+            assert_eq!(inset.border.width, 0.0, "{}", name);
+            assert_eq!(
+                inset.background,
+                Some(Background::Color(shell.background)),
+                "{}",
+                name
+            );
+            assert!(
+                delta_e(shell.background, shell.panel) >= JUST_NOTICEABLE_DELTA_E,
+                "{}",
+                name
+            );
+        }
+    }
 
     /// Screen level: the Spark page's recent section draws the conversion
     /// notice with the panel fill on the page background, with no outline,
