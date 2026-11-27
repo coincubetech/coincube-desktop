@@ -174,22 +174,6 @@ pub fn artwork_thumbnail(mode: WorldviewMode, style: ArtworkStyle) -> Option<Han
         .cloned()
 }
 
-/// Artwork on the live Launcher opening face, fading with the other content.
-pub fn opening_image<'a, M: 'a>(side: f32, opacity: f32) -> Option<Element<'a, M>> {
-    static CUBE: LazyLock<Option<Handle>> =
-        LazyLock::new(|| decode_png(include_bytes!("../static/images/cube/cube-active.png")));
-    Some(Element::new(Illustration {
-        slot: Some(Slot::Opening),
-        incumbent: CUBE.as_ref()?.clone(),
-        width: Length::Fixed(side),
-        height: Length::Fixed(side),
-        fit: ContentFit::ScaleDown,
-        opacity,
-        payment: None,
-        existing_only: false,
-    }))
-}
-
 /// The Overview's worldview art beside the Total balance, `side` square:
 /// the mode's scene in a rounded, hairline frame under
 /// [`ArtworkStyle::Scene`], else its existing cutout contained at the
