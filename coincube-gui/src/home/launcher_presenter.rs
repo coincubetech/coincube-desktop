@@ -806,25 +806,6 @@ fn floor_details<'a>(
     .into()
 }
 
-/// `.btn`: the outlined 36px button, hovering to `--hover`.
-fn face_secondary_style(theme: &theme::Theme, status: iced_button::Status) -> iced_button::Style {
-    let shell = theme.colors.shell;
-    iced_button::Style {
-        background: matches!(
-            status,
-            iced_button::Status::Hovered | iced_button::Status::Pressed
-        )
-        .then_some(iced::Background::Color(shell.hover)),
-        text_color: shell.ink,
-        border: iced::Border {
-            color: shell.line,
-            width: 1.0,
-            radius: 8.0.into(),
-        },
-        ..Default::default()
-    }
-}
-
 /// `.av.ghost`: a dashed ring holding the Cube's ring mark in the muted
 /// colour, for a Cube that lives on another computer.
 pub(super) fn ghost_avatar<'a, M: 'a>(seed: Option<&str>, size: f32) -> Element<'a, M> {
@@ -920,7 +901,7 @@ fn ghost_details<'a>(
         )
         .height(Length::Fixed(36.0))
         .padding([0.0, 16.0])
-        .style(face_secondary_style)
+        .style(outlined_style)
         .on_press(ViewMessage::ImportGhostWithPhrase(cube.uuid.clone()))
         .into(),
     };
@@ -1431,6 +1412,8 @@ fn arrow_chevron<'a, M: 'a>(previous: bool, enabled: bool) -> Element<'a, M> {
 
 /// `.pgbtn`: a 44px square-cornered button with a muted ring and a soft drop shadow.
 fn arrow_style(theme: &theme::Theme, enabled: bool, hovered: bool) -> iced_button::Style {
+    // A content button (`.pgbtn` under `cc-buttons v1`): 1px ink, radius 8,
+    // no shadow. It keeps the panel fill so it reads over the Cube faces.
     let shell = theme.colors.shell;
     let alpha = if enabled { 1.0 } else { 0.3 };
     let fade = |c: iced::Color| iced::Color {
@@ -1439,25 +1422,15 @@ fn arrow_style(theme: &theme::Theme, enabled: bool, hovered: bool) -> iced_butto
     };
     iced_button::Style {
         background: Some(iced::Background::Color(fade(if enabled && hovered {
-            shell.hover
+            theme::tenshu::over(shell.panel, shell.hover)
         } else {
             shell.panel
         }))),
         text_color: shell.ink,
         border: iced::Border {
-            color: fade(shell.muted),
+            color: fade(shell.ink),
             width: 1.0,
             radius: 8.0.into(),
-        },
-        // `box-shadow: 0 6px 18px var(--shadow)`.
-        shadow: iced::Shadow {
-            color: fade(if is_light(theme) {
-                iced::Color::from_rgba8(70, 52, 30, 0.3)
-            } else {
-                iced::Color::from_rgba8(0, 0, 0, 0.6)
-            }),
-            offset: iced::Vector::new(0.0, 6.0),
-            blur_radius: 18.0,
         },
         ..Default::default()
     }
@@ -3041,6 +3014,78 @@ pub(crate) fn opening_body<'a>(
 mod tests {
     use super::*;
     use crate::app::view::shared::landing::capture;
+
+    fn near(a: iced::Color, b: iced::Color) -> bool {
+        (a.r - b.r).abs() < 0.05 && (a.g - b.g).abs() < 0.05 && (a.b - b.b).abs() < 0.05
+    }
+
+    /// Drawn: the page arrows are content buttons, 1px ink and no shadow, in
+    /// both themes.
+    #[test]
+    fn page_arrows_draw_an_ink_edge_and_no_shadow() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let shell = theme.colors.shell;
+            let arrow: Element<'_, ViewMessage> = Container::new(page_arrow(false, Some(1)))
+                .padding(12)
+                .into();
+            let pixels = capture::render_pixels(arrow, (68, 100), &theme, None);
+            let b = pixels.bounds(&Id::from("tenshu.launcher.page.next"));
+            let (x, y) = (b.x as u32, (b.y + b.height / 2.0) as u32);
+            assert!(
+                near(pixels.at(x, y), shell.ink),
+                "edge {:?}, ink {:?}",
+                pixels.at(x, y),
+                shell.ink
+            );
+            // Under the arrow, where `0 6px 18px` would fall, the panel shows.
+            let under = pixels.at((b.x + b.width / 2.0) as u32, (b.y + b.height) as u32 + 6);
+            assert!(
+                near(under, shell.panel),
+                "under {:?}, panel {:?}",
+                under,
+                shell.panel
+            );
+        }
+    }
+
+    /// Drawn: a Connect-only Cube without a Recovery Kit offers "Import with
+    /// recovery phrase…" as an outlined content button with an ink edge.
+    #[test]
+    fn ghost_import_action_draws_an_ink_edge() {
+        let cube = super::super::RemoteCube {
+            mark_variation: 2,
+            id: 9,
+            uuid: "9fb93534-081c-4253-b1e2-73a87984a8ab".into(),
+            name: "Elsewhere".into(),
+            network: "mainnet".into(),
+            has_recovery_kit: false,
+            has_encrypted_seed: false,
+            phone_recoverable: false,
+            phone_full_cube: false,
+            encryption_pubkey: None,
+            has_vault: None,
+        };
+        assert!(launcher_catalog::remote_restore(&cube).action.is_none());
+        let id = launcher_catalog::details_open_id(&launcher_catalog::ghost_key(&cube));
+        for (light, theme) in [(false, theme::Theme::dark()), (true, theme::Theme::light())] {
+            let shell = theme.colors.shell;
+            let face: Element<'_, ViewMessage> =
+                Container::new(ghost_details(&cube, ChainId::Bitcoin, light))
+                    .padding(12)
+                    .into();
+            let pixels = capture::render_pixels(face, (480, 640), &theme, None);
+            let b = pixels.bounds(&id);
+            let (x, y) = (b.x.round() as u32, (b.y + b.height / 2.0) as u32);
+            let edge = (x.saturating_sub(1)..=x + 1).map(|x| pixels.at(x, y));
+            assert!(
+                edge.clone().any(|c| near(c, shell.ink)),
+                "light {}: edge {:?}, ink {:?}",
+                light,
+                edge.collect::<Vec<_>>(),
+                shell.ink
+            );
+        }
+    }
 
     /// A Cube on another computer is its muted mark in the dashed ring in
     /// both List renderers, never the cloud glyph.
