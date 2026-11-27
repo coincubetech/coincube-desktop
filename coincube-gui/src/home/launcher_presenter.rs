@@ -2600,7 +2600,6 @@ fn opening_quotes<'a, M: 'a>(
         .into()
 }
 
-/// `.lhead`, `.lquote`, `.lstage` and `.lslow`: the loading face's content.
 /// The loading face's three progress dots (`P-Opening` `.dots`): 8 px ink
 /// circles 10 px apart, each at its own opacity from `Opening::dots`.
 fn opening_dots<'a, M: 'a>(dots: [f32; 3], alpha: f32) -> Element<'a, M> {
@@ -2630,6 +2629,7 @@ fn opening_dots<'a, M: 'a>(dots: [f32; 3], alpha: f32) -> Element<'a, M> {
         .into()
 }
 
+/// `.lhead`, `.lquote`, `.lstage` and `.lslow`: the loading face's content.
 fn opening_content<'a, M: 'a>(
     face: &OpeningFace<'a, M>,
     light: bool,
