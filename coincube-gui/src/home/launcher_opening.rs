@@ -1,16 +1,15 @@
-//! Opening on the Cube (canvas boards O-Launcher, O-Glow-B, O-Finale-B,
-//! O-Stall and O-List).
+//! Opening on the Cube (canvas boards O-Launcher, O-Glow-B, O-Stall and
+//! O-List).
 //!
 //! After the PIN or passkey the Cube tumbles to its bottom face, the one face
 //! nothing used yet, and grows to the 700px loading face. Its edge glows in
-//! slowly, then breathes, faster and brighter with each loader stage. Once the
-//! Cube is ready the face rushes toward the viewer while the screen washes in
-//! the edge colour, and the App shows as the wash fades.
+//! slowly, then breathes, faster and brighter with each loader stage. The App
+//! shows as soon as the Cube is ready: the O-Finale-B rush and wash that used
+//! to follow only held a ready Cube back (about 1.5 s), so they are gone.
 //!
 //! Without the Launcher floor behind it (List view, which reduced motion
 //! forces) the same content fills the screen inside a glowing frame, with no
-//! tumble and no finale; under reduced motion the frame does not flicker or
-//! breathe either.
+//! tumble; under reduced motion the frame does not flicker or breathe either.
 //!
 //! This is presentation only. The loader's own `Step` decides the stage, and
 //! nothing here starts, stops or retries a load.
@@ -39,14 +38,6 @@ const BREATHE_SLOW: Duration = Duration::from_millis(2600);
 const BREATHE_FAST: Duration = Duration::from_millis(1100);
 /// `::before { transition: opacity 900ms var(--spin) }`.
 const LEVEL_FADE: Duration = Duration::from_millis(900);
-/// "Ready" holds this long at full light before the finale.
-const READY_BEAT: Duration = Duration::from_millis(600);
-/// `.cb.finale .cube { transition: transform 950ms }`.
-const RUSH: Duration = Duration::from_millis(950);
-/// `.flash.flat { animation: flat 1700ms ease-out }`.
-const WASH: Duration = Duration::from_millis(1700);
-/// The App replaces the stage under the wash at its peak.
-const APP_AT: Duration = Duration::from_millis(900);
 /// A stage held this long offers Cancel.
 pub(crate) const STALL: Duration = Duration::from_secs(15);
 /// Waiting on Spark this long offers to go on without it, so a Spark or
@@ -56,9 +47,6 @@ pub(crate) const SPARK_WAIT: Duration = Duration::from_secs(16);
 /// `--lvl` for each stage index.
 const LEVELS: [f32; 6] = [0.35, 0.5, 0.65, 0.8, 0.9, 1.0];
 
-/// `@keyframes flat`, as (offset, opacity), each segment `ease-out`.
-const WASH_KEYS: [(f32, f32); 4] = [(0.0, 0.0), (0.42, 0.92), (0.55, 0.92), (1.0, 0.0)];
-const EASE_OUT: (f32, f32, f32, f32) = (0.0, 0.0, 0.58, 1.0);
 const EASE_IN_OUT: (f32, f32, f32, f32) = (0.42, 0.0, 0.58, 1.0);
 
 /// The stage line, quoted from the loader's own view.
@@ -139,7 +127,6 @@ pub(crate) struct Opening {
     /// so a quicker stage carries on from the same point in the breath.
     breaths: f32,
     breath_since: Instant,
-    ready_since: Option<Instant>,
     /// An error page held the stall wait; the next stage set, even the same
     /// one after a Retry, starts it afresh.
     held: bool,
@@ -152,7 +139,7 @@ impl Opening {
         stage: Stage,
         now: Instant,
     ) -> Self {
-        let mut opening = Self {
+        Self {
             floor,
             reduced,
             started: now,
@@ -163,13 +150,8 @@ impl Opening {
             intensity_from: stage.intensity(),
             breaths: 0.0,
             breath_since: now,
-            ready_since: None,
             held: false,
-        };
-        if stage == Stage::Ready {
-            opening.ready_since = Some(now);
         }
-        opening
     }
 
     pub fn floor(&self) -> Option<&LauncherSceneContext> {
@@ -180,7 +162,7 @@ impl Opening {
         self.stage
     }
 
-    /// The tumble and the finale run only on the floor, with motion allowed.
+    /// The tumble runs only on the floor, with motion allowed.
     fn moving(&self) -> bool {
         self.floor.is_some() && !self.reduced
     }
@@ -202,12 +184,6 @@ impl Opening {
         self.level_since = now;
         self.stage = stage;
         self.stage_since = now;
-        if stage == Stage::Ready {
-            self.ready_since.get_or_insert(now);
-        } else {
-            // A Retry after an error starts the stages over.
-            self.ready_since = None;
-        }
     }
 
     /// Restart the stall wait without changing the stage: while the loader
@@ -240,11 +216,7 @@ impl Opening {
         } else {
             (Duration::ZERO, FRAME_FADE)
         };
-        let shown =
-            launcher_scene::ease(t.saturating_sub(delay).as_secs_f32() / fade.as_secs_f32());
-        // The face's content does not scale with the rush; it gives way to
-        // the wash instead.
-        shown * (1.0 - (self.rush(now) * 6.0).min(1.0))
+        launcher_scene::ease(t.saturating_sub(delay).as_secs_f32() / fade.as_secs_f32())
     }
 
     /// `::before`: the steady light, easing to each stage's `--lvl`.
@@ -324,37 +296,9 @@ impl Opening {
         self.stage != Stage::Ready && self.since(self.stage_since, now) >= self.stage.wait()
     }
 
-    /// Time into the finale, once Ready has held for its beat.
-    fn finale(&self, now: Instant) -> Option<Duration> {
-        let ready = self.ready_since.filter(|_| self.moving())?;
-        let start = ready + READY_BEAT;
-        (now >= start).then(|| now - start)
-    }
-
-    /// The face's rush toward the viewer, eased in.
-    pub fn rush(&self, now: Instant) -> f32 {
-        self.finale(now).map_or(0.0, |t| {
-            launcher_scene::bezier(
-                t.as_secs_f32() / RUSH.as_secs_f32(),
-                launcher_scene::RUSH_EASE,
-            )
-        })
-    }
-
-    /// The edge-colour wash over the whole window, `.flash.flat`.
-    pub fn wash(&self, now: Instant) -> f32 {
-        self.finale(now).filter(|t| *t < WASH).map_or(0.0, |t| {
-            keyframes(
-                &WASH_KEYS,
-                t.as_secs_f32() / WASH.as_secs_f32(),
-                Some(EASE_OUT),
-            )
-        })
-    }
-
     /// The opening Cube's pose.
     pub(super) fn pose(&self, now: Instant) -> Pose {
-        Pose::opening(self.tumble(now), self.rush(now))
+        Pose::opening(self.tumble(now))
     }
 
     /// The other Cubes on the page, stepping further back.
@@ -362,24 +306,21 @@ impl Opening {
         Pose::deep(self.tumble(now))
     }
 
-    /// Whether the App, once it exists, is drawn instead of the stage.
-    pub fn shows_app(&self, now: Instant) -> bool {
-        self.ready_since.is_some()
-            && (!self.moving() || self.finale(now).is_some_and(|t| t >= APP_AT))
+    /// Whether the App, once it exists, is drawn instead of the stage: as
+    /// soon as the Cube is ready, with or without motion.
+    pub fn shows_app(&self) -> bool {
+        self.stage == Stage::Ready
     }
 
-    /// The finale is over, or there is none: the opening can be dropped.
-    pub fn done(&self, now: Instant) -> bool {
-        self.ready_since.is_some()
-            && (!self.moving() || self.finale(now).is_some_and(|t| t >= WASH))
+    /// The Cube is ready and the App shows: the opening can be dropped.
+    pub fn done(&self) -> bool {
+        self.shows_app()
     }
 
     /// Whether the next frame changes position or size, rather than only
-    /// light: the tumble, the Ready beat and the finale need every frame.
+    /// light: the tumble and the content's fade-in need every frame.
     pub fn needs_frames(&self, now: Instant) -> bool {
-        self.moving()
-            && (self.since(self.started, now) < TUMBLE + CONTENT_DELAY + CONTENT_FADE
-                || self.ready_since.is_some())
+        self.moving() && self.since(self.started, now) < TUMBLE + CONTENT_DELAY + CONTENT_FADE
     }
 
     /// The three progress dots under the quote (`P-Opening` `.dots`): each
@@ -474,20 +415,6 @@ impl QuoteCycle {
     pub fn needs_frames(&self, now: Instant) -> bool {
         self.outgoing(now).is_some()
     }
-}
-
-/// Linear (or `ease`d per segment) interpolation of CSS keyframes at `t`.
-fn keyframes(keys: &[(f32, f32)], t: f32, ease: Option<(f32, f32, f32, f32)>) -> f32 {
-    let t = t.clamp(0.0, 1.0);
-    for pair in keys.windows(2) {
-        let ((t0, v0), (t1, v1)) = (pair[0], pair[1]);
-        if t <= t1 {
-            let u = if t1 > t0 { (t - t0) / (t1 - t0) } else { 1.0 };
-            let u = ease.map_or(u, |curve| launcher_scene::bezier(u, curve));
-            return v0 + (v1 - v0) * u;
-        }
-    }
-    keys.last().map_or(0.0, |(_, v)| *v)
 }
 
 #[cfg(test)]
@@ -618,32 +545,24 @@ mod tests {
     }
 
     #[test]
-    fn ready_holds_a_beat_then_the_face_rushes_and_the_wash_hands_over_to_the_app() {
+    fn the_app_shows_as_soon_as_the_cube_is_ready_with_motion_or_without() {
         let t0 = Instant::now();
-        let mut opening = Opening::new(Some(floor()), false, Stage::Syncing, t0);
         let ready = t0 + ms(3000);
-        opening.set_stage(Stage::Ready, ready);
-        assert!(!opening.shows_app(ready));
-        assert_eq!(opening.rush(ready + READY_BEAT), 0.0);
-        assert_eq!(opening.wash(ready + READY_BEAT), 0.0);
-        let finale = ready + READY_BEAT;
-        // Ease-in: barely moving at first, then fast.
-        assert!(opening.rush(finale + ms(300)) < 0.1);
-        assert!((opening.rush(finale + RUSH) - 1.0).abs() < 1e-6);
-        assert!((opening.wash(finale + ms(714)) - 0.92).abs() < 1e-3);
-        assert!(!opening.shows_app(finale + APP_AT - ms(1)));
-        assert!(opening.shows_app(finale + APP_AT));
-        assert!(!opening.done(finale + WASH - ms(1)));
-        assert!(opening.done(finale + WASH));
-        assert_eq!(opening.wash(finale + WASH), 0.0);
-        assert!(
-            opening.pose(finale + RUSH).rush > 0.99 && opening.pose(finale).open > 0.99,
-            "the finale runs on the loading face"
-        );
+        for (floor, reduced) in [(Some(floor()), false), (None, false), (None, true)] {
+            let mut opening = Opening::new(floor, reduced, Stage::Syncing, t0);
+            assert!(!opening.shows_app() && !opening.done());
+            opening.set_stage(Stage::Ready, ready);
+            assert!(opening.shows_app(), "no hold before the App");
+            assert!(opening.done(), "and nothing left to play");
+            assert!(!opening.needs_frames(ready));
+        }
+        // A Cube ready at once (no Vault to load) does not wait either.
+        let instant = Opening::new(Some(floor()), false, Stage::Ready, t0);
+        assert!(instant.shows_app() && instant.done());
     }
 
     #[test]
-    fn without_the_floor_the_content_opens_full_screen_with_no_tumble_or_finale() {
+    fn without_the_floor_the_content_opens_full_screen_with_no_tumble() {
         let t0 = Instant::now();
         let mut opening = Opening::new(None, false, Stage::Connecting, t0);
         assert_eq!(opening.tumble(t0), 1.0);
@@ -651,8 +570,7 @@ mod tests {
         assert_eq!(opening.pulse(t0 + ms(300)), 0.0);
         assert!(opening.pulse(t0 + ms(1000)) > 0.0);
         opening.set_stage(Stage::Ready, t0 + ms(4000));
-        assert!(opening.shows_app(t0 + ms(4000)) && opening.done(t0 + ms(4000)));
-        assert_eq!(opening.wash(t0 + ms(5000)), 0.0);
+        assert!(opening.shows_app() && opening.done());
         assert!(!opening.needs_frames(t0));
 
         let mut reduced = Opening::new(None, true, Stage::Connecting, t0);
@@ -694,10 +612,7 @@ mod tests {
         assert!(!opening.stalled(spark + STALL));
         assert!(!opening.stalled(spark + SPARK_WAIT - ms(1)));
         assert!(opening.stalled(spark + SPARK_WAIT));
-        assert!(
-            !opening.shows_app(spark + ms(60_000)),
-            "the face waits for Spark"
-        );
+        assert!(!opening.shows_app(), "the face waits for Spark");
         assert!(
             opening.level(spark + LEVEL_FADE) > Stage::AlmostThere.level(),
             "Spark is the brightest stage before Ready"
@@ -713,8 +628,7 @@ mod tests {
         let mut opening = Opening::new(Some(floor()), false, Stage::AlmostThere, t0);
         opening.set_stage(Stage::Ready, t0 + ms(100));
         opening.set_stage(Stage::Connecting, t0 + ms(200));
-        assert!(!opening.shows_app(t0 + ms(10_000)));
-        assert_eq!(opening.wash(t0 + ms(1500)), 0.0);
+        assert!(!opening.shows_app() && !opening.done());
     }
 
     /// The time between the first two rises of the breath through its middle

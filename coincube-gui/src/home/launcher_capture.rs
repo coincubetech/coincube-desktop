@@ -610,8 +610,8 @@ fn capture_unlock_frames(
 }
 
 /// O-Launcher's opening: the tumble, the settled loading face as the edge
-/// brightens, a stalled stage with Cancel, the Flash finale, and the List
-/// view's full-screen frame.
+/// brightens, a stalled stage with Cancel, Ready, and the List view's
+/// full-screen frame.
 #[test]
 #[ignore = "writes PNG frames; needs a GPU adapter"]
 fn launcher_capture_opening() {
@@ -673,8 +673,6 @@ fn launcher_capture_opening() {
         );
         opening.set_stage(Stage::Ready, t0 + ms(30_000));
         shot(&opening, t0 + ms(30_300), Stage::Ready, "5-ready");
-        shot(&opening, t0 + ms(31_000), Stage::Ready, "6-finale-rush");
-        shot(&opening, t0 + ms(31_400), Stage::Ready, "7-finale-wash");
         let list = Opening::new(None, false, Stage::Syncing, t0);
         shot(&list, t0 + ms(2400), Stage::Syncing, "8-list-frame");
         let reduced = Opening::new(None, true, Stage::StartingDaemon, t0);
@@ -704,18 +702,9 @@ fn opening_capture_element<'a>(
         cancel: || (),
         without_spark: || (),
     };
-    let base: Element<'_, ()> = match opening.floor() {
+    match opening.floor() {
         Some(floor) => launcher_presenter::opening_on_floor(floor, face, mode, opening, now),
         None => launcher_presenter::opening_full_screen(face, mode, opening, now),
-    };
-    let wash = opening.wash(now);
-    if wash > 0.0 {
-        iced::widget::Stack::new()
-            .push(base)
-            .push(launcher_presenter::opening_wash(cube.network, wash))
-            .into()
-    } else {
-        base
     }
 }
 

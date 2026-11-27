@@ -5853,10 +5853,10 @@ impl Tab {
             State::Loader(loader) if loader.opening_stage().is_some() => {
                 (&loader.cube_settings, false)
             }
-            State::App(app) => (app.cube_settings(), opening.scene.shows_app(now)),
+            State::App(app) => (app.cube_settings(), opening.scene.shows_app()),
             _ => return self.state_view(worldview),
         };
-        let base = if app {
+        if app {
             self.state_view(worldview)
         } else {
             let face = home::launcher_presenter::OpeningFace {
@@ -5883,15 +5883,6 @@ impl Tab {
                     now,
                 ),
             }
-        };
-        let wash = opening.scene.wash(now);
-        if wash > 0.0 {
-            iced::widget::Stack::new()
-                .push(base)
-                .push(home::launcher_presenter::opening_wash(cube.network, wash))
-                .into()
-        } else {
-            base
         }
     }
 
@@ -6086,7 +6077,7 @@ impl Tab {
                     // The Loader or App owns its work now; Cancel uses its routes.
                     opening.loads.clear();
                 }
-                if opening.scene.done(now) {
+                if opening.scene.done() {
                     self.opening = None;
                 }
             }
@@ -6098,7 +6089,7 @@ impl Tab {
     /// Back. Either way the session for this Cube is closed: it is locked.
     fn cancel_opening(&mut self) -> Task<Message> {
         // A press that lands after the Cube is ready changes nothing: the
-        // opening carries on to its finale.
+        // App is already showing.
         let cube_id = match &self.state {
             State::PinEntry(pin) => pin.cube().id.clone(),
             State::PasskeyUnlock(passkey) => passkey.cube().id.clone(),
@@ -10195,15 +10186,14 @@ mod opening_tests {
         std::fs::remove_dir_all(root).unwrap();
     }
 
-    /// The opening waits on Spark inside the App, then must still run its
-    /// finale: the Ready beat, the rush and the edge-colour wash, with the
-    /// App shown only under the wash.
+    /// The opening waits on Spark inside the App, then hands over to the App
+    /// at once: no Ready beat, rush or wash holds a ready Cube back.
     #[test]
-    fn the_finale_washes_once_spark_settles() {
+    fn the_app_shows_as_soon_as_spark_settles() {
         // Keep the finite App/Tab fixture on the same bounded stack used by
         // nearby App tests, including instrumented coverage builds.
         std::thread::Builder::new()
-            .name("opening-finale".into())
+            .name("opening-ready".into())
             .stack_size(8 * 1024 * 1024)
             .spawn(|| {
                 use crate::app::view::{HomeMessage, Message as ViewMessage};
@@ -10258,36 +10248,17 @@ mod opening_tests {
                 };
                 drop(tab.update(home(HomeMessage::SparkSyncedObserved)));
                 drop(tab.update(home(balance())));
-                drop(tab.update(home(balance())));
-                let ready = Instant::now();
-                assert_eq!(stage(&tab), Some(Stage::Ready), "a synced balance is Ready");
-
-                let scene = |tab: &Tab, at| {
-                    tab.opening
-                        .as_ref()
-                        .map(|o| (o.scene.wash(at), o.scene.shows_app(at)))
-                };
-                // The Ready beat holds at full light, App hidden, no wash yet.
-                tab.sync_opening(ready + Duration::from_millis(300));
                 assert_eq!(
-                    scene(&tab, ready + Duration::from_millis(300)),
-                    Some((0.0, false))
+                    stage(&tab),
+                    Some(Stage::Spark),
+                    "a stale balance still waits"
                 );
-                // The rush and wash peak while the face still covers the App.
-                let peak = ready + Duration::from_millis(1400);
-                tab.sync_opening(peak);
-                let (wash, app) = scene(&tab, peak).expect("the finale keeps the opening");
-                assert!(wash > 0.9, "the wash peaks, got {}", wash);
-                assert!(!app);
-                // The App takes over under the wash, which still covers it.
-                let under = ready + Duration::from_millis(1550);
-                tab.sync_opening(under);
-                let (wash, app) = scene(&tab, under).expect("the wash is still fading");
-                assert!(app, "the App shows under the wash");
-                assert!(wash > 0.5, "the wash still covers the App, got {}", wash);
-                // Once the wash has faded, the opening is dropped.
-                tab.sync_opening(ready + Duration::from_secs(3));
-                assert!(tab.opening.is_none());
+                drop(tab.update(home(balance())));
+                // Ready drops the opening on the spot: the App is drawn.
+                assert!(
+                    tab.opening.is_none(),
+                    "a synced balance shows the App at once"
+                );
                 std::fs::remove_dir_all(root).unwrap();
             })
             .unwrap()

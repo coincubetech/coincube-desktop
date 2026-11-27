@@ -2865,23 +2865,6 @@ pub(crate) fn opening_full_screen<'a, M: 'a + 'static>(
         .into()
 }
 
-/// `.flash.flat`: the whole window washed in the edge colour. It takes the
-/// pointer while it shows, so nothing under it is clicked mid-finale.
-pub(crate) fn opening_wash<'a, M: 'a>(network: ChainId, alpha: f32) -> Element<'a, M> {
-    let [r, g, b] = launcher_scene::glow(network);
-    iced::widget::opaque(
-        Container::new(Space::new().width(Length::Fill).height(Length::Fill))
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .style(move |_: &theme::Theme| container::Style {
-                background: Some(iced::Background::Color(
-                    iced::Color::from_rgb8(r, g, b).scale_alpha(alpha),
-                )),
-                ..Default::default()
-            }),
-    )
-}
-
 /// The widest the Opening rail's "Opening <name>" may grow before it wraps.
 const OPENING_RAIL_NAME: f32 = 560.0;
 

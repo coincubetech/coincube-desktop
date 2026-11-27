@@ -31,8 +31,6 @@ pub(super) const PERSPECTIVE: f32 = 1100.0;
 pub(super) const FACE_SIZE: f32 = 420.0;
 /// `.fc.load`: the loading face, 1.67x the credentials face.
 pub(super) const OPEN_FACE_SIZE: f32 = 700.0;
-/// The finale's `scale(x3.6)` of the loading face.
-const RUSH_SCALE: f32 = 3.6;
 /// `.f { border: 1.5px }`, in face-local CSS pixels.
 const BORDER: f32 = 1.5;
 
@@ -224,7 +222,6 @@ impl Motion {
                         shadow: fade,
                         lift: 0.0,
                         open: 0.0,
-                        rush: 0.0,
                     }
                 } else {
                     Pose {
@@ -254,7 +251,6 @@ fn selection_pose(
             shadow: 1.0 - fade,
             lift: 0.0,
             open: 0.0,
-            rush: 0.0,
         }
     } else if previous == Some(key) {
         Pose {
@@ -264,7 +260,6 @@ fn selection_pose(
             shadow: fade,
             lift: 0.0,
             open: 0.0,
-            rush: 0.0,
         }
     } else {
         Pose {
@@ -298,8 +293,6 @@ pub(super) struct Pose {
     /// The tumble from the unlock face to the loading face (0..1, eased).
     /// On a peer it steps the scene further back, `.cb.dim.deep`.
     pub open: f32,
-    /// The finale: the loading face rushing toward the viewer (0..1, eased).
-    pub rush: f32,
 }
 
 impl Pose {
@@ -310,7 +303,6 @@ impl Pose {
         shadow: 1.0,
         lift: 0.0,
         open: 0.0,
-        rush: 0.0,
     };
     pub const DETAILS: Self = Self {
         spin: 1.0,
@@ -319,7 +311,6 @@ impl Pose {
         shadow: 0.0,
         lift: 0.0,
         open: 0.0,
-        rush: 0.0,
     };
     pub const DIMMED: Self = Self {
         spin: 0.0,
@@ -328,7 +319,6 @@ impl Pose {
         shadow: 1.0,
         lift: 0.0,
         open: 0.0,
-        rush: 0.0,
     };
 
     pub fn unlock(second: f32) -> Self {
@@ -343,11 +333,10 @@ impl Pose {
     }
 
     /// The unlocked Cube on its way to, or on, the loading face: `open` is
-    /// the tumble, `rush` the finale.
-    pub fn opening(open: f32, rush: f32) -> Self {
+    /// the tumble.
+    pub fn opening(open: f32) -> Self {
         Self {
             open: open.clamp(0.0, 1.0),
-            rush: rush.clamp(0.0, 1.0),
             ..Self::unlock(1.0)
         }
     }
@@ -418,10 +407,6 @@ pub(super) fn bezier(t: f32, (x1, y1, x2, y2): (f32, f32, f32, f32)) -> f32 {
     }
     curve((lo + hi) * 0.5, y1, y2)
 }
-
-/// `.cb.finale .cube { transition: transform 950ms cubic-bezier(.55,0,.9,.4) }`:
-/// ease-in, so the face accelerates toward the viewer.
-pub(super) const RUSH_EASE: (f32, f32, f32, f32) = (0.55, 0.0, 0.9, 0.4);
 
 /// Stage geometry for a width. The prototype only defines the 1440px board;
 /// narrower windows scale the row and Cube uniformly so a page of Cubes still
@@ -659,12 +644,11 @@ pub(super) fn project_faces(
     // resting Cubes' own bounds (`Layout::rows_top`).
     let (tx, ty) = if p > 0.0 { layout.target() } else { rest };
     // The tumble moves the face to the stage centre and grows it to the
-    // loading face; the finale scales that on toward the viewer.
+    // loading face.
     let open = pose.open.clamp(0.0, 1.0);
     let (ox, oy) = layout.open_target();
     let (tx, ty) = (tx + (ox - tx) * open, ty + (oy - ty) * open);
     let face = layout.face() + (layout.open_face() - layout.face()) * open;
-    let face = face * (1.0 + (RUSH_SCALE - 1.0) * pose.rush.clamp(0.0, 1.0));
     // translate3d(dx, dy, 0) scale(k). CSS `scale(k)` is two-dimensional:
     // it never stretches z, so the zoomed face still sits only s/2 in front
     // of the cube center. The prototype solved k as if z scaled, which makes
