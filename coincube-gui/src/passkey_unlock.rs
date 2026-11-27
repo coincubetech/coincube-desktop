@@ -632,7 +632,14 @@ mod tests {
                     },
                     palette,
                 );
-                assert_eq!(shown.images, Some(1), "only the line Cube, no artwork");
+                assert_eq!(
+                    shown.drawn_images(),
+                    capture::DrawnImages {
+                        raster: 0,
+                        vector: 1
+                    },
+                    "only the line Cube, no artwork"
+                );
                 let quote = render_in(language, || screen.loading_quote.localized_text());
                 assert!(shown.contains(quote));
                 let status = render_in(language, || CopyText::LoadingYourCube.get());

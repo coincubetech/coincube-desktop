@@ -255,16 +255,31 @@ pub(crate) mod capture {
         /// Raster images and SVGs the software renderer drew, when the
         /// inspection drew the screen (the `inspect_rendered_*` helpers or a
         /// capture run); `None` when it only laid it out.
-        pub images: Option<usize>,
+        pub images: Option<DrawnImages>,
+    }
+
+    /// What a drawn screen put on the software renderer's layers.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct DrawnImages {
+        /// Raster pictures (PNG and other bitmaps), such as the retired ink art.
+        pub raster: usize,
+        /// SVGs, such as the line Cube or an icon.
+        pub vector: usize,
     }
 
     impl Inspection {
         /// Whether the drawn screen holds no raster image or SVG. Panics when
         /// the inspection did not draw, so the check can never pass vacuously.
         pub fn draws_no_image(&self) -> bool {
+            let drawn = self.drawn_images();
+            drawn.raster + drawn.vector == 0
+        }
+
+        /// What the drawn screen holds. Panics when the inspection did not draw,
+        /// so a check on it can never pass vacuously.
+        pub fn drawn_images(&self) -> DrawnImages {
             self.images
                 .expect("inspect with an inspect_rendered_* helper")
-                == 0
         }
 
         pub fn contains(&self, needle: &str) -> bool {
@@ -553,16 +568,25 @@ pub(crate) mod capture {
         }
     }
 
-    /// The raster images and SVGs queued on the software renderer's layers.
-    fn drawn_images(renderer: &mut iced::Renderer) -> usize {
-        match renderer {
-            iced::Renderer::Secondary(software) => software
-                .layers()
-                .iter()
-                .map(|layer| layer.images.len())
-                .sum(),
+    /// Counts the raster images and SVGs queued on the software renderer's
+    /// layers by the draw that just ran.
+    fn drawn_images(renderer: &mut iced::Renderer) -> DrawnImages {
+        use iced::advanced::graphics::image::Image;
+        let layers = match renderer {
+            iced::Renderer::Secondary(software) => software.layers(),
             iced::Renderer::Primary(_) => panic!("inspection asked for tiny-skia"),
+        };
+        let mut drawn = DrawnImages {
+            raster: 0,
+            vector: 0,
+        };
+        for image in layers.iter().flat_map(|layer| layer.images.iter()) {
+            match image {
+                Image::Raster { .. } => drawn.raster += 1,
+                Image::Vector { .. } => drawn.vector += 1,
+            }
         }
+        drawn
     }
 
     /// Software-rendered RGBA pixels of `content` at `size`, with the pointer

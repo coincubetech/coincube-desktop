@@ -895,7 +895,10 @@ fn visible_toasts<T>(iter: impl Iterator<Item = T>) -> impl Iterator<Item = T> {
     all.into_iter().skip(hidden)
 }
 
-pub fn toast_overlay<'a, I: Iterator<Item = (usize, log::Level, String)>>(
+pub fn toast_overlay<
+    'a,
+    I: Iterator<Item = (usize, coincube_ui::theme::notification::ToastTone, String)>,
+>(
     iter: I,
 ) -> coincube_ui::widget::Element<'a, Message> {
     let centered = iced::widget::row![
@@ -907,7 +910,7 @@ pub fn toast_overlay<'a, I: Iterator<Item = (usize, log::Level, String)>>(
         // shown changes. iced only matches keys when the count changes; a
         // capped shift that keeps three cards on screen re-pairs state by
         // slot, which is why the dismiss cross acts on press (`toast_card`).
-        iced::widget::keyed_column(visible_toasts(iter).map(|(id, level, content)| {
+        iced::widget::keyed_column(visible_toasts(iter).map(|(id, tone, content)| {
             // `opaque` captures mouse presses on the card. It doesn't capture
             // other events, but it reports an `Idle` interaction over the
             // card, so the overlay's `Stack` hands the layers below a
@@ -917,7 +920,7 @@ pub fn toast_overlay<'a, I: Iterator<Item = (usize, log::Level, String)>>(
             // `event::listen` subscriptions still see every event. Only the
             // cards are wrapped: the rest of the overlay stays click-through.
             let card = iced::widget::opaque(toast_card(
-                level.into(),
+                tone,
                 coincube_ui::locale::notice(content),
                 Some(Message::DismissToast(id)),
             ));
@@ -1014,7 +1017,10 @@ mod toast_overlay_tests {
         .on_scroll(|_| Message::DismissToast(UNDERLAY));
         let stack: coincube_ui::widget::Element<'a, Message> = iced::widget::Stack::new()
             .push(underlay)
-            .push(toast_overlay(list.into_iter()))
+            .push(toast_overlay(
+                list.into_iter()
+                    .map(|(id, level, text)| (id, level.into(), text)),
+            ))
             .into();
         UserInterface::build(stack, WINDOW, cache, renderer)
     }
