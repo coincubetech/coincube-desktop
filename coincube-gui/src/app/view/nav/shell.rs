@@ -898,7 +898,7 @@ fn backup_attention<'a>() -> Element<'a, Message> {
         // translation ("Copia sin confirmar") never pushes "Review" out of
         // the strip at the compact sidebar width.
         text(localized_copy("Backup not confirmed"))
-            .size(12.5)
+            .size(13.0)
             .font(font::MEDIUM)
             .width(Length::Fill)
             .wrapping(iced::widget::text::Wrapping::Word)
@@ -906,7 +906,7 @@ fn backup_attention<'a>() -> Element<'a, Message> {
                 color: Some(t.colors.shell.warn),
             }),
         text(localized_copy("Review"))
-            .size(12.5)
+            .size(13.0)
             .font(font::SEMIBOLD)
             .wrapping(iced::widget::text::Wrapping::None)
             .style(|t: &theme::Theme| iced::widget::text::Style {
@@ -1471,7 +1471,7 @@ mod backup_strip_style_tests {
             // draws past its box (and the strip). Measure the word on its own.
             let natural = {
                 let mut alone: Element<'_, Message> =
-                    text(review_word).size(12.5).font(font::SEMIBOLD).into();
+                    text(review_word).size(13.0).font(font::SEMIBOLD).into();
                 let mut tree = Tree::new(alone.as_widget());
                 alone
                     .as_widget_mut()

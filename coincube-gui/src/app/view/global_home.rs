@@ -1,7 +1,10 @@
 use coincube_ui::locale::copy as localized_copy;
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::localized_format;
-use coincube_ui::{component::tenshu::ActionButton, theme::tenshu::button::ActionKind};
+use coincube_ui::{
+    component::tenshu::{ActionButton, BalanceTier},
+    theme::tenshu::button::ActionKind,
+};
 use std::time::Duration;
 
 use coincube_ui::component::text::Text;
@@ -118,6 +121,17 @@ fn pending_deposit_amount(
     }
 }
 
+/// The dots that stand in for an amount while it loads, at the size of the
+/// amount they stand in for.
+fn hero_placeholder(content: &str, tier: BalanceTier) -> coincube_ui::widget::Text<'_> {
+    text(content)
+        .size(tier.figure_size())
+        .line_height(iced::widget::text::LineHeight::Relative(
+            tier.figure_line_height(),
+        ))
+        .font(coincube_ui::font::SEMIBOLD)
+}
+
 fn wallet_loading_header<'a>(loading_status: Option<String>) -> Element<'a, Message> {
     Column::new()
         .spacing(4)
@@ -125,7 +139,7 @@ fn wallet_loading_header<'a>(loading_status: Option<String>) -> Element<'a, Mess
             "...",
             false,
             Duration::from_millis(400),
-            |content| text(content).size(H2_SIZE).bold(),
+            |content| hero_placeholder(content, BalanceTier::Card),
         ))
         .push(match loading_status {
             Some(status) => Element::from(text(status).size(P1_SIZE).style(theme::text::secondary)),
@@ -2795,7 +2809,9 @@ fn overview_body<'a>(
                 Row::new()
                     .spacing(8)
                     .width(Length::Fill)
-                    .push(h3(localized_copy("Wallets")).bold())
+                    .push(coincube_ui::component::tenshu::heading(localized_copy(
+                        "Wallets",
+                    )))
                     .push(overview_eye(
                         cube_id,
                         coincube_ui::locale::copy("Wallets"),
@@ -3012,7 +3028,7 @@ fn spark_card_header<'a>(
                 "...",
                 false,
                 Duration::from_millis(400),
-                |content| text(content).size(H2_SIZE).bold(),
+                |content| hero_placeholder(content, BalanceTier::Card),
             ))
             .push(spinner::typing_text_carousel(
                 "...",
@@ -3168,7 +3184,9 @@ fn overview_total<'a>(
         .spacing(8)
         .width(Length::Fill)
         .align_y(Alignment::Center)
-        .push(h3(localized_copy("Total balance")).bold())
+        .push(coincube_ui::component::tenshu::heading(localized_copy(
+            "Total balance",
+        )))
         .push(overview_eye(
             cube_id,
             coincube_ui::locale::copy("Total Balance"),
@@ -3188,7 +3206,7 @@ fn overview_total<'a>(
                 "...",
                 false,
                 Duration::from_millis(400),
-                |content| text(content).size(H1_SIZE).bold(),
+                |content| hero_placeholder(content, BalanceTier::Hero),
             ))
             .push(spinner::typing_text_carousel(
                 "...",

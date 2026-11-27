@@ -275,6 +275,9 @@ fn lightning_address_button_style(
     }
 }
 
+/// The share popover's width (`.lnpop { width: 380px }`).
+const SHARE_PANEL_WIDTH: f32 = 380.0;
+
 /// The share popover the address button opens, anchored under it: the
 /// address as a QR code (encoded exactly as Spark › Receive encodes it, the
 /// bare address), copy and save actions and the way to a different name.
@@ -366,7 +369,7 @@ pub fn lightning_share_panel<'a>(
         );
     Container::new(panel)
         .padding(20)
-        .width(Length::Fixed(380.0))
+        .width(Length::Fixed(SHARE_PANEL_WIDTH))
         .style(lightning_share_panel_style)
         .into()
 }
@@ -486,20 +489,17 @@ fn connected_view<'a>(
     // ── Unified portfolio card ─────────────────────────────────────────
     let total_col = Column::new()
         .spacing(4)
-        .push(
-            Row::new()
-                .spacing(8)
-                .align_y(Alignment::Center)
-                .push(h4_bold(localized_copy("Total balance"))),
-        )
+        .push(Row::new().spacing(8).align_y(Alignment::Center).push(
+            coincube_ui::component::tenshu::heading(localized_copy("Total balance")),
+        ))
         .push(if mask_amounts {
-            amount_cell::<SparkOverviewMessage>(AmountCell::masked(), AmountTier::Card)
+            amount_cell::<SparkOverviewMessage>(AmountCell::masked(), AmountTier::Total)
         } else if has_unvalued_usdb {
             amount_cell::<SparkOverviewMessage>(
                 AmountCell::unavailable(coincube_ui::locale::copy(
                     "Combined BTC and USDB valuation needs a BTC/USD quote",
                 )),
-                AmountTier::Card,
+                AmountTier::Total,
             )
         } else {
             wallet_header::<SparkOverviewMessage>(WalletHeaderProps {
@@ -643,27 +643,35 @@ fn overview_lightning_share_row<'a>(
     lightning_address: &SparkLightningAddress,
     lightning_share: Option<(&'a str, Option<&'a qr_code::Data>)>,
 ) -> Element<'a, SparkOverviewMessage> {
-    // The Lightning address sits beside the total while both fit at their
-    // own widths, else on its own line below it (`fit_row`).
-    let total_row: Element<'a, SparkOverviewMessage> =
-        match lightning_address_button(cube_id, lightning_address, lightning_share.is_some()) {
-            Some(button) => fit_row(total_col, button).gap(16.0).into(),
-            None => total_col.into(),
-        };
-    // The share popover hangs from the button's trailing edge and covers the
-    // rows below it rather than pushing them down.
-    match lightning_share {
+    let Some(button) =
+        lightning_address_button(cube_id, lightning_address, lightning_share.is_some())
+    else {
+        return total_col.into();
+    };
+    // The share popover hangs 8px under the button's trailing edge
+    // (`.lnpop { right: 0; top: calc(100% + 8px) }`) and covers the rows
+    // below it rather than pushing them down. It sits in the button's own
+    // column, at the popover's width, so the 46px total beside the button
+    // does not push it further down.
+    let trail: Element<'a, SparkOverviewMessage> = match lightning_share {
         Some((address, qr)) => Column::new()
-            .push(total_row)
+            .align_x(Alignment::End)
+            .push(button)
             .push(
-                Floating::new(lightning_share_panel(cube_id, address, qr))
-                    .align_x(iced::alignment::Horizontal::Right)
-                    .gap(8.0)
-                    .on_dismiss(SparkOverviewMessage::CloseLightningShare),
+                Container::new(
+                    Floating::new(lightning_share_panel(cube_id, address, qr))
+                        .align_x(iced::alignment::Horizontal::Right)
+                        .gap(8.0)
+                        .on_dismiss(SparkOverviewMessage::CloseLightningShare),
+                )
+                .width(Length::Fixed(SHARE_PANEL_WIDTH)),
             )
             .into(),
-        None => total_row,
-    }
+        None => button,
+    };
+    // The Lightning address sits beside the total while both fit at their
+    // own widths, else on its own line below it (`fit_row`).
+    fit_row(total_col, trail).gap(16.0).into()
 }
 
 fn pending_btc_sats(recent: &[SparkRecentTransaction]) -> (u64, u64) {

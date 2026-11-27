@@ -23,8 +23,10 @@ use coincube_ui::{
             unconfirmed_amount_with_size_and_unit, BitcoinDisplayUnit, DisplayAmount,
         },
         spinner,
-        text::{text, Text as TextExt, H1_SIZE, H2_SIZE, H3_SIZE, H4_SIZE, P1_SIZE, P2_SIZE},
+        tenshu::BalanceTier,
+        text::{text, H3_SIZE, H4_SIZE, P1_SIZE, P2_SIZE},
     },
+    font,
     icon::warning_icon,
     theme,
     widget::{action::Action, Column, ColumnExt, Element, Row, RowExt},
@@ -40,16 +42,39 @@ use crate::app::settings::display::DisplayMode;
 use crate::app::view::vault::fiat::FiatAmount;
 use crate::services::fiat::Currency;
 
-/// Typography tier. Jumbo drives the Total Balance block; Card drives
-/// Home wallet cards; Overview drives per-wallet Overview headers.
+/// Typography tier. Jumbo drives the Overview's Total balance; Card drives
+/// the Overview's wallet cards; Landing drives the main amount of the Spark
+/// and Vault pages. The sizes are the Tenshu [`BalanceTier`]'s.
 #[derive(Clone, Copy)]
 pub enum HeaderVariant {
     Jumbo,
     Card,
-    Overview,
-    /// Explicit opt-in for wallet landing balances; payment screens retain
-    /// their existing Overview typography and behavior.
+    /// The main amount of a wallet page: [`BalanceTier::Hero`], as the
+    /// Overview's total.
     Landing,
+}
+
+impl HeaderVariant {
+    /// The Tenshu tier whose size and line height the primary value takes.
+    pub fn tier(self) -> BalanceTier {
+        match self {
+            HeaderVariant::Jumbo | HeaderVariant::Landing => BalanceTier::Hero,
+            HeaderVariant::Card => BalanceTier::Card,
+        }
+    }
+}
+
+/// The primary value's text: the tier's size, line height and semibold.
+fn primary_text<'a>(
+    content: impl iced::widget::text::IntoFragment<'a>,
+    tier: BalanceTier,
+) -> coincube_ui::widget::Text<'a> {
+    text(content)
+        .size(tier.figure_size())
+        .line_height(iced::widget::text::LineHeight::Relative(
+            tier.figure_line_height(),
+        ))
+        .font(font::SEMIBOLD)
 }
 
 /// Balance sync / catch-up state. `Synced` and `Stale` render the amount
@@ -254,10 +279,9 @@ fn balance_rows<'a, M: Clone + 'static>(
     variant: HeaderVariant,
     display_mode: DisplayMode,
 ) -> (Element<'a, M>, Element<'a, M>) {
-    let primary_size = match variant {
-        HeaderVariant::Jumbo => H1_SIZE,
-        HeaderVariant::Card | HeaderVariant::Overview | HeaderVariant::Landing => H2_SIZE,
-    };
+    let tier = variant.tier();
+    // Tenshu sizes are whole pixels; the legacy amount row takes a `u32`.
+    let primary_size = tier.figure_size() as u32;
     let secondary_size = P1_SIZE;
 
     // Build fiat / bitcoin sub-elements once each, then assemble in the
@@ -265,9 +289,9 @@ fn balance_rows<'a, M: Clone + 'static>(
     // fiat data is available keeps the header from going blank.
     let amount_unknown = matches!(sync, SyncState::Unknown { .. });
     let bitcoin_primary: Element<'a, M> = if balance_masked {
-        text("********").size(primary_size).bold().into()
+        primary_text("********", tier).into()
     } else if amount_unknown {
-        text(UNKNOWN_AMOUNT).size(primary_size).bold().into()
+        primary_text(UNKNOWN_AMOUNT, tier).into()
     } else {
         amount_with_size_and_unit::<M>(&sats, primary_size, bitcoin_unit).into()
     };
@@ -303,11 +327,11 @@ fn balance_rows<'a, M: Clone + 'static>(
         }
     };
     let fiat_primary: Option<Element<'a, M>> = if balance_masked {
-        Some(text("********").size(primary_size).bold().into())
+        Some(primary_text("********", tier).into())
     } else if amount_unknown {
-        Some(text(UNKNOWN_AMOUNT).size(primary_size).bold().into())
+        Some(primary_text(UNKNOWN_AMOUNT, tier).into())
     } else {
-        fiat.map(|f| fiat_amount_row::<M>(f, primary_size, FiatStyle::Primary).into())
+        fiat.map(|f| fiat_amount_row::<M>(f, FiatStyle::Primary(tier)).into())
     };
     let fiat_secondary: Option<Element<'a, M>> = if balance_masked {
         Some(
@@ -324,7 +348,7 @@ fn balance_rows<'a, M: Clone + 'static>(
                 .into(),
         )
     } else {
-        fiat.map(|f| fiat_amount_row::<M>(f, secondary_size, FiatStyle::Secondary).into())
+        fiat.map(|f| fiat_amount_row::<M>(f, FiatStyle::Secondary(secondary_size)).into())
     };
 
     order_balance_rows(
@@ -434,12 +458,12 @@ fn balance_progress_row<'a, M: Clone + 'static>(sync: &SyncState) -> Option<Elem
     }
 }
 
-/// Whether the fiat row is the Primary (large + bold value, dimmed
-/// annotations) or Secondary (everything dimmed at the smaller size).
+/// Whether the fiat row is the Primary (the tier's semibold figure, dimmed
+/// annotations) or Secondary (everything dimmed at the given size).
 #[derive(Clone, Copy)]
 enum FiatStyle {
-    Primary,
-    Secondary,
+    Primary(BalanceTier),
+    Secondary(u32),
 }
 
 /// Render a fiat amount as a styled Row:
@@ -449,11 +473,20 @@ enum FiatStyle {
 /// - For other currencies, the trailing currency code (e.g. " EUR",
 ///   " NGN") renders at `value_size` in `color::GREY_3` — same look as
 ///   the SATS suffix that follows the satoshi balance.
-fn fiat_amount_row<'a, M: 'a>(fiat: &FiatAmount, value_size: u32, style: FiatStyle) -> Row<'a, M> {
+fn fiat_amount_row<'a, M: 'a>(fiat: &FiatAmount, style: FiatStyle) -> Row<'a, M> {
     let value_str = fiat.to_formatted_string();
     let value_text = match style {
-        FiatStyle::Primary => text(value_str).size(value_size).bold(),
-        FiatStyle::Secondary => text(value_str).size(value_size).color(color::GREY_3),
+        FiatStyle::Primary(tier) => primary_text(value_str, tier),
+        FiatStyle::Secondary(size) => text(value_str).size(size).color(color::GREY_3),
+    };
+    let annotation = |content: String| match style {
+        FiatStyle::Primary(tier) => text(content)
+            .size(tier.figure_size())
+            .line_height(iced::widget::text::LineHeight::Relative(
+                tier.figure_line_height(),
+            ))
+            .color(color::GREY_3),
+        FiatStyle::Secondary(size) => text(content).size(size).color(color::GREY_3),
     };
 
     let row = Row::<'a, M>::new().spacing(8).align_y(Alignment::Center);
@@ -461,8 +494,8 @@ fn fiat_amount_row<'a, M: 'a>(fiat: &FiatAmount, value_size: u32, style: FiatSty
     match fiat.currency() {
         Currency::USD => {
             let prefix = match style {
-                FiatStyle::Primary => text("$").size(value_size).bold(),
-                FiatStyle::Secondary => text("$").size(value_size).color(color::GREY_3),
+                FiatStyle::Primary(tier) => primary_text("$", tier),
+                FiatStyle::Secondary(size) => text("$").size(size).color(color::GREY_3),
             };
             // Joined "$X.XX" — group prefix + value in an inner row with
             // zero spacing so the sigil sits flush against the number.
@@ -474,11 +507,7 @@ fn fiat_amount_row<'a, M: 'a>(fiat: &FiatAmount, value_size: u32, style: FiatSty
                     .push(value_text),
             )
         }
-        other => row.push(value_text).push(
-            text(other.to_string())
-                .size(value_size)
-                .color(color::GREY_3),
-        ),
+        other => row.push(value_text).push(annotation(other.to_string())),
     }
 }
 

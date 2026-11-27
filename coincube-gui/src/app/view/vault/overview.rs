@@ -419,7 +419,9 @@ pub fn vault_overview_view<'a>(
                     .push(
                         Column::new()
                             .spacing(8)
-                            .push(h4_bold(localized_copy("Total balance")))
+                            .push(coincube_ui::component::tenshu::heading(localized_copy(
+                                "Total balance",
+                            )))
                             .push(wallet_header::<Message>(WalletHeaderProps {
                                 sats: total_balance,
                                 fiat: fiat_balance,

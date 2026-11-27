@@ -9,6 +9,7 @@ use coincube_ui::localized_format;
 use coincube_ui::{
     component::tenshu::{self, page_head, FieldSize, PageWidth},
     font, theme,
+    theme::tenshu::type_size,
     widget::{action::Action, Column, ColumnExt, Element, Row},
 };
 #[allow(deprecated)]
@@ -905,7 +906,7 @@ fn status_cell<'a>(entry: &Entry, size: f32, note: bool) -> Element<'a, Message>
 /// `.dl > div`: a 116px muted key beside its value, over a rule.
 fn fact<'a>(key: &'static str, value: String, mono: bool) -> Element<'a, Message> {
     let value = text(value)
-        .size(if mono { 12.5 } else { 13.5 })
+        .size(if mono { 13.0 } else { 13.5 })
         .font(if mono {
             font::MONO_REGULAR
         } else {
@@ -1173,7 +1174,7 @@ fn header<'a>(
 ) -> Element<'a, Message> {
     let count = activity.filters.count();
     let title = column![
-        words("Activity", 22.0, font::SEMIBOLD, glyph::ink).line_height(
+        words("Activity", type_size::TITLE, font::SEMIBOLD, glyph::ink).line_height(
             iced::widget::text::LineHeight::Relative(page_head::TITLE_LINE_HEIGHT)
         ),
         row![
@@ -1813,7 +1814,7 @@ fn identifier_row<'a>(index: usize, name: &'static str, value: &str) -> Element<
                 words(name, 12.0, font::REGULAR, glyph::muted),
                 one_line(
                     text(short_identifier(value))
-                        .size(12.5)
+                        .size(13.0)
                         .font(font::MONO_REGULAR)
                 ),
             ]
