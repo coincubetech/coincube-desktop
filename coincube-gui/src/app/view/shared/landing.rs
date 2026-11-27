@@ -252,9 +252,29 @@ pub(crate) mod capture {
     pub struct Inspection {
         pub text: Vec<(String, Rectangle)>,
         pub focus: Vec<(Id, Rectangle)>,
+        /// Raster images and SVGs the software renderer drew, when the
+        /// inspection drew the screen (the `inspect_rendered_*` helpers or a
+        /// capture run); `None` when it only laid it out.
+        pub images: Option<DrawnImages>,
+    }
+
+    /// What a drawn screen put on the software renderer's layers.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct DrawnImages {
+        /// Raster pictures (PNG and other bitmaps), such as the retired ink art.
+        pub raster: usize,
+        /// SVGs, such as the line Cube or an icon.
+        pub vector: usize,
     }
 
     impl Inspection {
+        /// What the drawn screen holds. Panics when the inspection did not draw,
+        /// so a check on it can never pass vacuously.
+        pub fn drawn_images(&self) -> DrawnImages {
+            self.images
+                .expect("inspect with an inspect_rendered_* helper")
+        }
+
         pub fn contains(&self, needle: &str) -> bool {
             self.text.iter().any(|(value, _)| value.contains(needle))
         }
@@ -476,6 +496,7 @@ pub(crate) mod capture {
             );
         }
         let capture_directory = std::env::var("R06A_CAPTURE_DIR").ok();
+        let mut images = None;
         if matches!(mode, InspectionMode::DrawScroll | InspectionMode::DrawFill)
             || capture_directory.is_some()
         {
@@ -503,6 +524,7 @@ pub(crate) mod capture {
                 mouse::Cursor::Unavailable,
                 &viewport,
             );
+            images = Some(drawn_images(&mut renderer));
             let pixels = renderer.screenshot(
                 Size::new(width, height),
                 1.0,
@@ -535,7 +557,29 @@ pub(crate) mod capture {
         Inspection {
             text: probe.entries,
             focus: probe.focus,
+            images,
         }
+    }
+
+    /// Counts the raster images and SVGs queued on the software renderer's
+    /// layers by the draw that just ran.
+    fn drawn_images(renderer: &mut iced::Renderer) -> DrawnImages {
+        use iced::advanced::graphics::image::Image;
+        let layers = match renderer {
+            iced::Renderer::Secondary(software) => software.layers(),
+            iced::Renderer::Primary(_) => panic!("inspection asked for tiny-skia"),
+        };
+        let mut drawn = DrawnImages {
+            raster: 0,
+            vector: 0,
+        };
+        for image in layers.iter().flat_map(|layer| layer.images.iter()) {
+            match image {
+                Image::Raster { .. } => drawn.raster += 1,
+                Image::Vector { .. } => drawn.vector += 1,
+            }
+        }
+        drawn
     }
 
     /// Exercise a real presenter tree with the shell's focus operation and
