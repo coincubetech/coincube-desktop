@@ -135,6 +135,20 @@ pub fn anchored_dropdown<'a, M>(
 where
     M: Clone + 'a,
 {
+    anchored_dropdown_min(tile, menu, on_dismiss, 0.0)
+}
+
+/// [`anchored_dropdown`] whose menu is at least `min_width` wide, as the
+/// boards' `.nmenu { min-width }` sets it, while staying inside the window.
+pub fn anchored_dropdown_min<'a, M>(
+    tile: impl Into<Element<'a, M>>,
+    menu: Option<Element<'a, M>>,
+    on_dismiss: M,
+    min_width: f32,
+) -> Element<'a, M>
+where
+    M: Clone + 'a,
+{
     let column = UiColumn::new().width(Length::Fill).push(tile);
     match menu {
         Some(menu) => column
@@ -142,15 +156,24 @@ where
                 coincube_ui::widget::floating::Floating::new(menu)
                     .gap(DROPDOWN_GAP)
                     .on_dismiss(on_dismiss)
-                    .fit_height_to_window(DROPDOWN_MIN_HEIGHT),
+                    .fit_height_to_window(DROPDOWN_MIN_HEIGHT)
+                    .min_width(min_width),
             )
             .into(),
         None => column.into(),
     }
 }
 
-/// The menu's surface: the route tile's panel fill and a rule line, 12px
-/// corners and a shadow to lift it off the page. `content` scrolls when the window caps the
+/// P-Receive's THEY SEND menu minimum (`.ndd:first-child .nmenu`): wide
+/// enough for USDt's five network chips on one line.
+pub const THEY_SEND_MENU_MIN: f32 = 440.0;
+/// P-Receive's YOU RECEIVE menu minimum (`.ndd:last-child .nmenu`).
+pub const YOU_RECEIVE_MENU_MIN: f32 = 400.0;
+/// P-Send's menu minimum (`.rx .ndd .nmenu`), for both of Send's menus.
+pub const SEND_MENU_MIN: f32 = 380.0;
+
+/// The menu's surface: the panel fill and a rule line, 12px corners and a
+/// shadow to lift it off what it opens over. `content` scrolls when the window caps the
 /// menu's height.
 pub fn dropdown_menu<'a, M>(content: UiColumn<'a, M>) -> Element<'a, M>
 where
@@ -181,9 +204,10 @@ where
 }
 
 /// A dropdown's floating list (`.nmenu`): the panel fill, 12px corners, a
-/// 1px rule line and a shadow. The route tiles it opens under share the panel
-/// fill, so it keeps the line beside the shadow (R4: a shadow alone does not
-/// separate same-fill boxes).
+/// 1px rule line and a shadow. Send's and Receive's route tiles share the
+/// panel fill, and Transfer's tiles (the page fill, with a line) sit on a
+/// panel card, so the menu keeps the line beside the shadow (R4: a shadow
+/// alone does not separate same-fill boxes).
 pub fn dropdown_menu_style(theme: &theme::Theme) -> container::Style {
     let shell = &theme.colors.shell;
     container::Style {

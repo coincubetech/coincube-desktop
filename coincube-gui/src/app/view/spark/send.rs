@@ -2286,7 +2286,7 @@ fn spark_send_cards<'a>(
     pay_from: coincube_spark_protocol::WalletAsset,
     menus: SendMenus<'a>,
 ) -> Element<'a, Message> {
-    use crate::app::view::shared::picker::anchored_dropdown;
+    use crate::app::view::shared::picker::anchored_dropdown_min as anchored_dropdown;
     // A stablecoin send is BTC-funded cross-chain and US Dollar over Spark
     // moves US Dollar, so only bitcoin rails offer a choice of balance (S4).
     let choose = target.fixed_pay_from().is_none();
@@ -2325,6 +2325,7 @@ fn spark_send_cards<'a>(
             pay_from_open
                 .then(|| pay_from_picker_menu(pay_from, menus.usdb_unavailable, menus.balances)),
             Message::SparkSend(SparkSendMessage::ClosePayFromPicker),
+            crate::app::view::shared::picker::SEND_MENU_MIN,
         )
     } else {
         Container::new(you_send_body)
@@ -2361,6 +2362,7 @@ fn spark_send_cards<'a>(
         .on_press(Message::SparkSend(SparkSendMessage::OpenReceivePicker)),
         receive_open.then(|| send_target_picker_menu(target, menus.network)),
         Message::SparkSend(SparkSendMessage::CloseReceivePicker),
+        crate::app::view::shared::picker::SEND_MENU_MIN,
     );
 
     // An open menu floats under its tile and takes no room, so the pair keeps
@@ -3245,6 +3247,30 @@ mod tests {
                     .as_overlay_mut()
                     .operate(Layout::new(&node), &self.renderer, operation);
             }
+        }
+
+        /// Where the open menu's overlay is laid out in the window, if one
+        /// is open.
+        fn overlay_bounds(&mut self) -> Option<Rectangle> {
+            let viewport = Rectangle::with_size(self.size);
+            let mut overlay = self.element.as_widget_mut().overlay(
+                &mut self.tree,
+                Layout::new(&self.node),
+                &self.renderer,
+                &viewport,
+                Vector::ZERO,
+            )?;
+            let node = overlay.as_overlay_mut().layout(&self.renderer, self.size);
+            // The runtime groups overlays in a window-sized node; the menu is
+            // the first node inside it narrower than the window.
+            fn menu(layout: Layout<'_>, window: f32) -> Option<Rectangle> {
+                let bounds = layout.bounds();
+                if bounds.width < window - 1.0 && bounds.height > 40.0 {
+                    return Some(bounds);
+                }
+                layout.children().find_map(|child| menu(child, window))
+            }
+            menu(Layout::new(&node), self.size.width)
         }
 
         fn probe(&mut self) -> Probe {
@@ -4835,6 +4861,28 @@ mod tests {
         )
     }
 
+    /// An open menu is at least the board's minimum width and stays inside
+    /// the window.
+    fn assert_menu_fits(menu: Rectangle, min: f32, outer: (u32, u32), scenario: &str, theme: &str) {
+        assert!(
+            menu.width >= min,
+            "{} {} {:?}: the menu is narrower than {}: {:?}",
+            scenario,
+            theme,
+            outer,
+            min,
+            menu
+        );
+        assert!(
+            menu.x >= 8.0 && menu.x + menu.width <= outer.0 as f32 - 8.0,
+            "{} {} {:?}: the menu runs out of the window: {:?}",
+            scenario,
+            theme,
+            outer,
+            menu
+        );
+    }
+
     /// Receive and Send with each route list open, in both themes at
     /// 1440×900 and 1024×768, on the real dashboard and the software
     /// renderer. Each list must be drawn over the form (its rows read on the
@@ -4913,6 +4961,25 @@ mod tests {
                             appearance(mode),
                             row
                         );
+                        let min = if open == Some(ReceiveMenu::YouReceive) {
+                            crate::app::view::shared::picker::YOU_RECEIVE_MENU_MIN
+                        } else {
+                            crate::app::view::shared::picker::THEY_SEND_MENU_MIN
+                        };
+                        let menu = harness.overlay_bounds().expect("the open menu");
+                        assert_menu_fits(menu, min, outer, scenario, appearance(mode));
+                        if open == Some(ReceiveMenu::TheySend) {
+                            // P-Receive: USDt's five network chips on one line.
+                            let first = probe.text_bounds("Ethereum").expect("USDt's first chip");
+                            let last = probe.text_bounds("Liquid").expect("USDt's last chip");
+                            assert!(
+                                (first.y - last.y).abs() < 1.0,
+                                "{} {} {:?}: the USDt chips wrap",
+                                scenario,
+                                appearance(mode),
+                                outer
+                            );
+                        }
                     }
                     frames.push((scenario.to_owned(), pixels, harness.size));
                 }
@@ -4966,6 +5033,14 @@ mod tests {
                             scenario,
                             appearance(mode),
                             row
+                        );
+                        let menu = harness.overlay_bounds().expect("the open menu");
+                        assert_menu_fits(
+                            menu,
+                            crate::app::view::shared::picker::SEND_MENU_MIN,
+                            outer,
+                            scenario,
+                            appearance(mode),
                         );
                     }
                     frames.push((scenario.to_owned(), pixels, harness.size));

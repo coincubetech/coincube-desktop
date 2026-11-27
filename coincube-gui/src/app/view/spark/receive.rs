@@ -137,7 +137,9 @@ impl<'a> SparkReceiveView<'a> {
         );
 
         if let Some((option, arrived)) = self.parked_conversion {
-            form = form.push(conversion_notice(
+            // The form has no card around it, so the notice sits on the page
+            // and takes the panel fill (R4).
+            form = form.push(conversion_notice_on_page(
                 option,
                 arrived,
                 Message::SparkReceive(SparkReceiveMessage::ShowConversion),
@@ -984,19 +986,10 @@ fn kv_row<'a>(label: &'a str, value: String) -> Element<'a, Message> {
 
 /// The way back to a cross-network conversion that isn't on screen: it keeps
 /// running while the user is elsewhere, and its page (Shift ID, refund
-/// address, progress) is one click away. This one is shown inside Receive's
-/// panel card, when the conversion is set aside for another rail, so it takes
-/// the page background. The Spark page uses [`conversion_notice_on_page`].
-pub(crate) fn conversion_notice<'a>(
-    option: DepositOption,
-    arrived: bool,
-    on_view: Message,
-) -> Element<'a, Message> {
-    conversion_notice_on(option, arrived, on_view, conversion_notice_style)
-}
-
-/// On the Spark page the notice sits on the page background, so it takes the
-/// panel fill: fill only, no outline (V4).
+/// address, progress) is one click away. It is shown on Receive's page, when
+/// the conversion is set aside for another rail, and on the Spark page. Both
+/// are the page background, so it takes the panel fill: fill only, no
+/// outline (V4, R4).
 pub(crate) fn conversion_notice_on_page<'a>(
     option: DepositOption,
     arrived: bool,
@@ -1062,24 +1055,15 @@ fn conversion_notice_on<'a>(
     .into()
 }
 
-/// A neutral notice strip inside the panel card: the page background, fill
-/// only (V4).
-fn conversion_notice_style(theme: &theme::Theme) -> container::Style {
+/// The notice strip on the page background: the panel fill, fill only.
+fn conversion_notice_page_style(theme: &theme::Theme) -> container::Style {
     container::Style {
-        background: Some(Background::Color(theme.colors.shell.background)),
+        background: Some(Background::Color(theme.colors.shell.panel)),
         border: iced::Border {
             radius: 10.0.into(),
             ..Default::default()
         },
         ..Default::default()
-    }
-}
-
-/// The same strip on the page background: the panel fill, fill only.
-fn conversion_notice_page_style(theme: &theme::Theme) -> container::Style {
-    container::Style {
-        background: Some(Background::Color(theme.colors.shell.panel)),
-        ..conversion_notice_style(theme)
     }
 }
 
@@ -1200,7 +1184,7 @@ fn receiver_route_tile<'a>(
     receiver_open: bool,
     receive_usd: bool,
 ) -> Element<'a, Message> {
-    use crate::app::view::shared::picker::anchored_dropdown;
+    use crate::app::view::shared::picker::anchored_dropdown_min as anchored_dropdown;
     use crate::app::view::spark::send::{
         page_tile_button_style, page_tile_fixed_style, page_tile_open_style, PAGE_TILE_RADIUS,
     };
@@ -1243,6 +1227,7 @@ fn receiver_route_tile<'a>(
             )),
             receiver_open.then(|| receiver_picker_menu(receive_usd)),
             Message::SparkReceive(SparkReceiveMessage::CloseReceiverPicker),
+            crate::app::view::shared::picker::YOU_RECEIVE_MENU_MIN,
         )
     } else {
         you_receive_body.style(page_tile_fixed_style).into()
@@ -1255,7 +1240,7 @@ fn sender_route_tile<'a>(
     sender_open: bool,
     network: Network,
 ) -> Element<'a, Message> {
-    use crate::app::view::shared::picker::anchored_dropdown;
+    use crate::app::view::shared::picker::anchored_dropdown_min as anchored_dropdown;
     use crate::app::view::spark::send::{
         page_tile_button_style, page_tile_open_style, PAGE_TILE_RADIUS,
     };
@@ -1306,6 +1291,7 @@ fn sender_route_tile<'a>(
         .on_press(Message::SparkReceive(SparkReceiveMessage::OpenSenderPicker)),
         sender_open.then(|| sender_picker_menu(method, cross, network)),
         Message::SparkReceive(SparkReceiveMessage::CloseSenderPicker),
+        crate::app::view::shared::picker::THEY_SEND_MENU_MIN,
     )
 }
 
@@ -1446,23 +1432,40 @@ mod notice_style_tests {
     use super::*;
     use coincube_ui::theme::tenshu::separation::{delta_e, JUST_NOTICEABLE_DELTA_E};
 
-    /// Boxes inside Receive's panel card (and the pending-deposits card) take
-    /// the page background, visibly apart from the panel, with no outline.
+    /// Receive has no card around its form, so its own boxes (the generated
+    /// request, an error, the SideShift refund and disclosure boxes, the
+    /// parked conversion notice) take the panel fill on the page, with no
+    /// outline. Only the deposit rows inside the panel-filled pending
+    /// deposits card take the page background (`card::inset`).
     #[test]
-    fn nested_boxes_take_the_background_fill() {
+    fn page_boxes_take_the_panel_fill_and_nested_rows_the_page_fill() {
         for (name, theme) in [
             ("dark", theme::Theme::dark()),
             ("light", theme::Theme::light()),
         ] {
             let shell = theme.colors.shell;
-            let inset = theme::card::inset(&theme);
-            assert_eq!(inset.border.width, 0.0, "{}", name);
-            assert_eq!(
-                inset.background,
-                Some(Background::Color(shell.background)),
-                "{}",
-                name
-            );
+            for (what, style) in [
+                ("phase box", phase_box_style(&theme)),
+                (
+                    "sideshift box",
+                    crate::app::view::spark::sideshift_receive::panel_box_style(&theme),
+                ),
+                ("conversion notice", conversion_notice_page_style(&theme)),
+            ] {
+                assert_eq!(style.border.width, 0.0, "{} {}", name, what);
+                assert_eq!(
+                    style.background,
+                    Some(Background::Color(shell.panel)),
+                    "{} {}",
+                    name,
+                    what
+                );
+            }
+            let pending = theme::card::simple(&theme);
+            let row = theme::card::inset(&theme);
+            assert_eq!(row.border.width, 0.0, "{}", name);
+            assert_eq!(row.background, Some(Background::Color(shell.background)));
+            assert_ne!(pending.background, row.background, "{}", name);
             assert!(
                 delta_e(shell.background, shell.panel) >= JUST_NOTICEABLE_DELTA_E,
                 "{}",
@@ -1531,34 +1534,6 @@ mod notice_style_tests {
         );
         assert!(without.contains("Recent activity"));
         assert!(!without.contains("conversion"));
-    }
-
-    /// The conversion notice is fill only. Inside Receive's card it takes the
-    /// page background; on the Spark page it takes the panel fill, so in
-    /// either place its fill differs from what is behind it.
-    #[test]
-    fn conversion_notice_is_fill_only_on_either_surface() {
-        for (name, theme) in [
-            ("dark", theme::Theme::dark()),
-            ("light", theme::Theme::light()),
-        ] {
-            let shell = theme.colors.shell;
-            let in_card = conversion_notice_style(&theme);
-            let on_page = conversion_notice_page_style(&theme);
-            assert_eq!(in_card.border.width, 0.0, "{name}");
-            assert_eq!(on_page.border.width, 0.0, "{name}");
-            assert_eq!(
-                in_card.background,
-                Some(Background::Color(shell.background))
-            );
-            assert_eq!(on_page.background, Some(Background::Color(shell.panel)));
-            // Each reads against what is behind it: the card, or the page.
-            assert!(
-                delta_e(shell.background, shell.panel) >= JUST_NOTICEABLE_DELTA_E,
-                "{}",
-                name
-            );
-        }
     }
 }
 
@@ -1715,6 +1690,177 @@ mod tests {
             !regtest.contains("USDB"),
             "USDB exists where conversions run"
         );
+    }
+
+    /// Runs of rows, down the column at `x`, that are the panel fill: each
+    /// run is a box that stands apart from the page.
+    fn panel_runs(pixels: &capture::Pixels, x: u32, height: u32, panel: iced::Color) -> usize {
+        use coincube_ui::theme::tenshu::separation::delta_e;
+        let mut runs = 0;
+        let mut length = 0;
+        for y in 0..height {
+            if delta_e(pixels.at(x, y), panel) < 1.5 {
+                length += 1;
+            } else {
+                if length >= 6 {
+                    runs += 1;
+                }
+                length = 0;
+            }
+        }
+        runs + usize::from(length >= 6)
+    }
+
+    /// Receive's page with a SideShift body or a parked conversion, drawn on
+    /// the page background at a width that keeps the rail beside the form.
+    fn drawn_receive_page(
+        theme: &theme::Theme,
+        method: SparkReceiveMethod,
+        sideshift_body: Option<Element<'static, Message>>,
+        cross: Option<DepositOption>,
+        parked: Option<(DepositOption, bool)>,
+    ) -> capture::Pixels {
+        let quote: &'static _ = Box::leak(Box::new(
+            coincube_ui::component::quote_display::random_quote("spark-receive"),
+        ));
+        let empty_claims: &'static HashSet<(String, u32)> = Box::leak(Box::default());
+        let empty_notices: &'static HashMap<(String, u32), String> = Box::leak(Box::default());
+        let empty_confs: &'static HashMap<(String, u32), u32> = Box::leak(Box::default());
+        let phase: &'static SparkReceivePhase = Box::leak(Box::new(SparkReceivePhase::Idle));
+        let view = SparkReceiveView {
+            backend_available: true,
+            method,
+            amount_input: "",
+            description_input: "",
+            phase,
+            qr_data: None,
+            connect_signed_in: false,
+            lightning_address: None,
+            lightning_address_qr: None,
+            pending_deposits: &[],
+            claiming: empty_claims,
+            claim_error: None,
+            claim_notices: empty_notices,
+            pending_deposit_confirmations: empty_confs,
+            network: Network::Bitcoin,
+            cube_name: "Everyday",
+            received_amount_display: "",
+            received_payment_id: None,
+            received_quote: quote,
+            recent_transactions: &[],
+            balance_sats: 42_000,
+            balances: crate::app::view::spark::SparkBalances {
+                btc_sats: 42_000,
+                stable: None,
+                fiat_converter: None,
+                btc_usd_price: None,
+                bitcoin_unit: BitcoinDisplayUnit::Sats,
+                masked: false,
+            },
+            bitcoin_unit: BitcoinDisplayUnit::Sats,
+            show_direction_badges: false,
+            mask_amounts: false,
+            sideshift_body,
+            cross_network_selected: cross,
+            parked_conversion: parked,
+            open_menu: None,
+            swap_deposit: None,
+            receive_usd: false,
+            lightning_address_setup: &crate::app::cache::LightningAddressSetup::Idle,
+        };
+        capture::render_pixels(
+            Container::new(view.render())
+                .padding(20)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .style(theme::tenshu::surface::page)
+                .into(),
+            (1100, 900),
+            theme,
+            None,
+        )
+    }
+
+    /// R4 on the page: with no card around Receive's form, the SideShift
+    /// refund and disclosure boxes take the panel fill, so each stands apart
+    /// from the page under the tiles. A column just inside the form's left
+    /// edge crosses the tiles, then each box, as runs of the panel fill.
+    #[test]
+    fn the_sideshift_boxes_stand_apart_on_the_page() {
+        let tron = *deposit_options()
+            .iter()
+            .find(|o| o.key() == "usdt:tron")
+            .unwrap();
+        let backend = std::sync::Arc::new(crate::app::wallets::SparkBackend::new(
+            std::sync::Arc::new(crate::app::breez_spark::SparkClient::disconnected_for_test()),
+        ));
+        let flow: &'static _ = Box::leak(Box::new(
+            crate::app::state::spark::sideshift_receive::SparkSideshiftReceiveFlow::new_preselected(
+                backend, tron,
+            ),
+        ));
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let body = crate::app::view::spark::spark_sideshift_receive_view(
+                flow,
+                BitcoinDisplayUnit::Sats,
+                false,
+                None,
+                true,
+            )
+            .map(Message::SparkSideshiftReceive);
+            let pixels = drawn_receive_page(
+                &theme,
+                SparkReceiveMethod::Bolt11,
+                Some(body),
+                Some(tron),
+                None,
+            );
+            let runs = panel_runs(&pixels, 23, 900, theme.colors.shell.panel);
+            assert!(
+                runs >= 3,
+                "{}: the tiles, the refund box and the disclosure should each be a panel \
+                 run on the page, found {}",
+                name,
+                runs
+            );
+        }
+    }
+
+    /// R4 on the page: a conversion set aside for another rail shows its
+    /// notice under the tiles in the panel fill, apart from the page.
+    #[test]
+    fn the_parked_conversion_notice_stands_apart_on_the_page() {
+        let tron = *deposit_options()
+            .iter()
+            .find(|o| o.key() == "usdt:tron")
+            .unwrap();
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let without = drawn_receive_page(&theme, SparkReceiveMethod::Spark, None, None, None);
+            let with = drawn_receive_page(
+                &theme,
+                SparkReceiveMethod::Spark,
+                None,
+                None,
+                Some((tron, false)),
+            );
+            let panel = theme.colors.shell.panel;
+            let (before, after) = (
+                panel_runs(&without, 23, 900, panel),
+                panel_runs(&with, 23, 900, panel),
+            );
+            assert_eq!(
+                after,
+                before + 1,
+                "{}: the parked notice should add one panel run on the page",
+                name
+            );
+        }
     }
 
     /// Every SideShift deposit option is still reachable, now as one chip in

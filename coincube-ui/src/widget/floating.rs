@@ -35,6 +35,7 @@ pub struct Floating<'a, Message> {
     fit_to_window: bool,
     fit_height: Option<f32>,
     dismiss_on_escape: bool,
+    min_width: f32,
 }
 
 impl<'a, Message> Floating<'a, Message> {
@@ -48,7 +49,16 @@ impl<'a, Message> Floating<'a, Message> {
             fit_to_window: false,
             fit_height: None,
             dismiss_on_escape: false,
+            min_width: 0.0,
         }
+    }
+
+    /// Lets the content be wider than the row it is anchored under: at least
+    /// `min_width`, as a board's `min-width` on a menu does. The overlay
+    /// keeps it inside the window, sliding it left from the anchor if it
+    /// would run off the right edge, and never wider than the window allows.
+    pub fn min_width(self, min_width: f32) -> Self {
+        Self { min_width, ..self }
     }
 
     /// Lays the content out at its own width, placed across the width it is
@@ -168,7 +178,7 @@ impl<Message: Clone> Widget<Message, Theme, Renderer> for Floating<'_, Message> 
         let content = self.content.as_widget_mut().layout(
             &mut tree.children[0],
             renderer,
-            &content_limits(width),
+            &content_limits(width.max(self.min_width)),
         );
         let offset = content_offset(self.align_x, self.gap, width, content.size());
         layout::Node::with_children(Size::new(width, 0.0), vec![content.translate(offset)])
@@ -229,12 +239,15 @@ impl<Message: Clone> Widget<Message, Theme, Renderer> for Floating<'_, Message> 
             content: &mut self.content,
             tree: &mut tree.children[0],
             position: bounds.position() + translation,
-            width: bounds.width,
+            // The row's width, not the content's: the content may have been
+            // laid out wider in place, and the overlay widens it itself.
+            width: layout.bounds().width.min(bounds.width),
             on_dismiss: self.on_dismiss.as_ref(),
             on_escape: self.on_escape.as_ref(),
             fit_to_window: self.fit_to_window,
             fit_height: self.fit_height,
             dismiss_on_escape: self.dismiss_on_escape,
+            min_width: self.min_width,
         })))
     }
 }
@@ -249,16 +262,36 @@ struct Overlay<'a, 'b, Message> {
     fit_to_window: bool,
     fit_height: Option<f32>,
     dismiss_on_escape: bool,
+    min_width: f32,
+}
+
+/// The width and left edge of content anchored at `x` over a row `width`
+/// wide, at least `min_width` wide, kept inside a window `window_width`
+/// wide: wider than the row only as far as the window allows, and slid left
+/// from the anchor when it would run off the right edge.
+fn widened(x: f32, width: f32, min_width: f32, window_width: f32) -> (f32, f32) {
+    if min_width <= width {
+        return (x, width);
+    }
+    let room = (window_width - 2.0 * WINDOW_MARGIN).max(width);
+    let wide = min_width.min(room);
+    let right = window_width - WINDOW_MARGIN;
+    let left = if x + wide > right {
+        (right - wide).max(WINDOW_MARGIN)
+    } else {
+        x
+    };
+    (left, wide)
 }
 
 impl<Message: Clone> overlay::Overlay<Message, Theme, Renderer> for Overlay<'_, '_, Message> {
     fn layout(&mut self, renderer: &Renderer, bounds: Size) -> layout::Node {
+        let (x, width) = widened(self.position.x, self.width, self.min_width, bounds.width);
         let limits = match self.fit_height {
-            Some(min) => content_limits_within(
-                self.width,
-                fitted_height(bounds.height, self.position.y, min),
-            ),
-            None => content_limits(self.width),
+            Some(min) => {
+                content_limits_within(width, fitted_height(bounds.height, self.position.y, min))
+            }
+            None => content_limits(width),
         };
         let content = self
             .content
@@ -277,11 +310,11 @@ impl<Message: Clone> overlay::Overlay<Message, Theme, Renderer> for Overlay<'_, 
             // Near the window's bottom edge the minimum height is taller than
             // the room below, so slide the content up to keep it on screen.
             Point::new(
-                self.position.x,
+                x,
                 fitted_top(bounds.height, self.position.y, content.size().height),
             )
         } else {
-            self.position
+            Point::new(x, self.position.y)
         };
         content.move_to(position)
     }
@@ -406,6 +439,18 @@ impl<'a, Message: Clone + 'a> From<Floating<'a, Message>> for Element<'a, Messag
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn widened_content_keeps_the_anchor_until_the_window_edge() {
+        // Narrower minimum than the row: the row's width.
+        assert_eq!(widened(300.0, 340.0, 200.0, 1440.0), (300.0, 340.0));
+        // Room to the right: as wide as the minimum, at the anchor.
+        assert_eq!(widened(300.0, 340.0, 440.0, 1440.0), (300.0, 440.0));
+        // It would run off the right edge: slid left to end at the margin.
+        assert_eq!(widened(1100.0, 340.0, 400.0, 1440.0), (1032.0, 400.0));
+        // A window narrower than the minimum: the window less its margins.
+        assert_eq!(widened(10.0, 200.0, 440.0, 300.0), (8.0, 284.0));
+    }
 
     #[test]
     fn fitted_height_takes_the_room_below_but_never_less_than_min() {
