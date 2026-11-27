@@ -34,7 +34,7 @@ jobs:
     name: Check for new commits
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.repository == 'coincubetech/coincube'
+    if: github.repository == 'coincubetech/coincube-desktop'
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
