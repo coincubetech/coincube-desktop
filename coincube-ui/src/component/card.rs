@@ -17,6 +17,21 @@ pub fn simple<'a, T: 'a, C: Into<Element<'a, T>>>(content: C) -> Container<'a, T
         .style(theme::card::simple)
 }
 
+/// A card inside a panel-filled card: background fill, no outline (R4).
+pub fn inset<'a, T: 'a, C: Into<Element<'a, T>>>(content: C) -> Container<'a, T> {
+    Container::new(content)
+        .padding(15)
+        .style(theme::card::inset)
+}
+
+/// A card that keeps its line outline because its parent fill varies by
+/// context or theme (R4).
+pub fn outlined<'a, T: 'a, C: Into<Element<'a, T>>>(content: C) -> Container<'a, T> {
+    Container::new(content)
+        .padding(15)
+        .style(theme::card::outlined)
+}
+
 pub fn invalid<'a, T: 'a, C: Into<Element<'a, T>>>(content: C) -> Container<'a, T> {
     Container::new(content)
         .padding(15)

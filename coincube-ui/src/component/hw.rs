@@ -176,7 +176,7 @@ pub fn warning_hardware_wallet<'a, T: 'static, K: Display, V: Display, F: Displa
                 iced::widget::text!("{}", warning),
                 tooltip::Position::Bottom,
             )
-            .style(theme::card::simple)
+            .style(theme::card::tooltip)
             .into()])
             .into(),
         ])
@@ -209,7 +209,7 @@ pub fn unimplemented_method_hardware_wallet<'a, T: 'a, K: Display, V: Display, F
             message,
             tooltip::Position::Bottom,
         )
-        .style(theme::card::simple),
+        .style(theme::card::tooltip),
     )
     .width(Length::Fill)
 }
@@ -336,7 +336,7 @@ pub fn selected_hardware_wallet<'a, T: 'a, K: Display, V: Display, F: Display>(
                     iced::widget::text!("{}", w),
                     tooltip::Position::Bottom,
                 )
-                .style(theme::card::simple)
+                .style(theme::card::tooltip)
             }))
             .push(image::success_mark_icon().width(Length::Fixed(50.0))),
     )
@@ -438,7 +438,7 @@ pub fn wrong_network_hardware_wallet<'a, T: 'static, K: Display, V: Display>(
                 "The wrong bitcoin application is open or the device was initialized with the wrong network",
                 tooltip::Position::Bottom,
             )
-            .style(theme::card::simple)
+            .style(theme::card::tooltip)
             .into(),
         ])
         .align_y(Alignment::Center),
@@ -471,7 +471,7 @@ pub fn unsupported_hardware_wallet<'a, T: 'static, K: Display, V: Display>(
                 "Make sure your device is unlocked and a supported Bitcoin application is opened.",
                 tooltip::Position::Bottom,
             )
-            .style(theme::card::simple)
+            .style(theme::card::tooltip)
             .into(),
         ])
         .align_y(Alignment::Center),
@@ -505,7 +505,7 @@ pub fn unsupported_version_hardware_wallet<'a, T: 'static, K: Display, V: Displa
                 "Please upgrade firmware",
                 tooltip::Position::Bottom,
             )
-            .style(theme::card::simple)
+            .style(theme::card::tooltip)
             .into(),
         ])
         .align_y(Alignment::Center),
@@ -785,12 +785,10 @@ pub fn advisory_badge<'a, T: 'a>(label: &'static str, tip: &'static str) -> Cont
             Container::new(text::caption(localized_copy(label)))
                 .padding([4, 10])
                 .style(theme::pill::warning),
-            Container::new(text::p2_regular(localized_copy(tip)))
-                .padding(10)
-                .style(theme::card::simple),
+            Container::new(text::p2_regular(localized_copy(tip))).padding(10),
             tooltip::Position::Top,
         )
-        .style(theme::card::simple),
+        .style(theme::card::tooltip),
     )
 }
 
