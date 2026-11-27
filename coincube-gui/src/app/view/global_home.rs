@@ -1044,8 +1044,8 @@ fn append_other_cube_options<'a>(
     list
 }
 
-/// A route tile that opens its menu: the Send tile's surface, the accent
-/// line while open.
+/// A route tile that opens its menu, in the Send tile's styles: one border,
+/// line grey at rest and ink with the hover fill while hovered or open.
 fn route_tile<'a>(
     id: &'static str,
     body: Element<'a, Message>,

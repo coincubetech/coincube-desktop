@@ -862,8 +862,35 @@ fn marketplace_children<'a>(menu: &Menu, ctx: &NavContext<'a>) -> Vec<Element<'a
 
 pub const BACKUP_ATTENTION_ID: &str = "tenshu.shell.backup-attention";
 
-/// `.attn`: a bordered panel card above the foot, a warning mark and
-/// "Backup not confirmed" in the warning ink, with "Review" in the accent.
+/// The sidebar's backup strip: the panel fill on the rail, with no outline
+/// (V4). Hover takes the selected fill. Phase 2 redesigns the strip.
+fn backup_attention_style(
+    t: &theme::Theme,
+    status: iced::widget::button::Status,
+) -> iced::widget::button::Style {
+    let shell = t.colors.shell;
+    let hovered = matches!(
+        status,
+        iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed
+    );
+    iced::widget::button::Style {
+        background: Some(iced::Background::Color(if hovered {
+            shell.selected
+        } else {
+            shell.panel
+        })),
+        text_color: shell.ink,
+        border: iced::Border {
+            radius: 8.0.into(),
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+/// `.attn`: a fill-only strip above the foot (see [`backup_attention_style`]),
+/// a warning mark and "Backup not confirmed" in the warning ink, with
+/// "Review" in the accent.
 fn backup_attention<'a>() -> Element<'a, Message> {
     let body = row![
         glyph::glyph(glyph::WARNING, 16.0, glyph::warn),
@@ -887,27 +914,7 @@ fn backup_attention<'a>() -> Element<'a, Message> {
         Action::new(BACKUP_ATTENTION_ID, body, Message::FocusAction)
             .width(Length::Fill)
             .padding([9, 8])
-            .style(|t: &theme::Theme, status| {
-                let shell = t.colors.shell;
-                let hovered = matches!(
-                    status,
-                    iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed
-                );
-                iced::widget::button::Style {
-                    background: Some(iced::Background::Color(if hovered {
-                        shell.selected
-                    } else {
-                        shell.panel
-                    })),
-                    text_color: shell.ink,
-                    border: iced::Border {
-                        color: shell.line,
-                        width: 1.0,
-                        radius: 8.0.into(),
-                    },
-                    ..Default::default()
-                }
-            })
+            .style(backup_attention_style)
             .on_press(Message::Menu(Menu::Cube(CubeSubMenu::Settings(
                 CubeSettingsOption::Recovery,
             )))),
@@ -1341,6 +1348,40 @@ mod settings_selection_tests {
             Menu::Cube(CubeSubMenu::Overview),
         ] {
             assert!(!is_settings(&menu), "{:?}", menu);
+        }
+    }
+}
+
+#[cfg(test)]
+mod backup_strip_style_tests {
+    use super::*;
+    use iced::widget::button::Status;
+
+    /// The backup strip is a fill with no outline, and its fill differs from
+    /// the rail it sits on in both themes, at rest and hovered.
+    #[test]
+    fn backup_strip_is_fill_only_and_reads_on_the_rail() {
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            for status in [Status::Active, Status::Hovered] {
+                let style = backup_attention_style(&theme, status);
+                assert_eq!(style.border.width, 0.0, "{name} {status:?}");
+                let fill = match style.background {
+                    Some(iced::Background::Color(color)) => color,
+                    other => panic!("{:?}", other),
+                };
+                let separation =
+                    coincube_ui::theme::tenshu::separation::delta_e(fill, theme.colors.shell.rail);
+                assert!(
+                    separation >= coincube_ui::theme::tenshu::separation::JUST_NOTICEABLE_DELTA_E,
+                    "{} {:?}: the strip is only {} from the rail",
+                    name,
+                    status,
+                    separation
+                );
+            }
         }
     }
 }

@@ -367,14 +367,21 @@ pub fn lightning_share_panel<'a>(
     Container::new(panel)
         .padding(20)
         .width(Length::Fixed(380.0))
-        .style(|theme: &theme::Theme| iced::widget::container::Style {
-            border: iced::Border {
-                radius: 12.0.into(),
-                ..landing_card_style(theme).border
-            },
-            ..landing_card_style(theme)
-        })
+        .style(lightning_share_panel_style)
         .into()
+}
+
+/// The share popover floats over the page without a shadow, so it keeps a
+/// 1px line where the cards around it have none (R4).
+pub(crate) fn lightning_share_panel_style(theme: &theme::Theme) -> iced::widget::container::Style {
+    iced::widget::container::Style {
+        border: iced::Border {
+            color: theme.colors.shell.line,
+            width: 1.0,
+            radius: 12.0.into(),
+        },
+        ..landing_card_style(theme)
+    }
 }
 
 /// The balances the Spark page lists, in order. Bitcoin always, unless the
@@ -680,6 +687,22 @@ fn pending_btc_sats(recent: &[SparkRecentTransaction]) -> (u64, u64) {
         .sum();
 
     (pending_outgoing_sats, pending_incoming_sats)
+}
+
+#[cfg(test)]
+mod share_panel_style_tests {
+    use super::*;
+
+    /// The Lightning-address share popover has no shadow, so it keeps its
+    /// 1px line while the cards lose theirs.
+    #[test]
+    fn share_popover_keeps_its_border() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let style = lightning_share_panel_style(&theme);
+            assert_eq!(style.border.width, 1.0);
+            assert_eq!(style.border.color, theme.colors.shell.line);
+        }
+    }
 }
 
 #[cfg(test)]
