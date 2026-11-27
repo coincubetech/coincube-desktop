@@ -246,6 +246,80 @@ fn launcher_capture_sizes() {
     }
 }
 
+/// The Launcher bar (W2) against P-Launcher: 1, 9 and 30 Cubes with the
+/// count at the foot, the Network menu open in Developer mode, the List's
+/// bottom-left count and the no-match state, at both window sizes.
+#[test]
+#[ignore = "writes PNG frames; needs a GPU adapter"]
+fn launcher_capture_bar() {
+    use super::launcher_catalog::NetworkFilter;
+    let Ok(directory) = std::env::var("LAUNCHER_CAPTURE_DIR") else {
+        return;
+    };
+    let directory = PathBuf::from(directory);
+    std::fs::create_dir_all(&directory).unwrap();
+    let mut renderer = renderer().expect("wgpu headless renderer");
+    let with = |light: bool, count: usize| {
+        let mut home = home(light);
+        if let State::Cubes { cubes, .. } = &mut home.state {
+            cubes.truncate(count);
+            for i in cubes.len()..count {
+                cubes.push(CubeSettings::new_with_raw_id(
+                    fixture_id(i),
+                    format!("Cube {}", i + 1),
+                    ChainId::Bitcoin,
+                ));
+            }
+        }
+        // Two Cubes in Connect only, as on the canvas.
+        home.remote_cubes = vec![
+            ghost("c-1", "Cloud copy", true),
+            ghost("c-2", "Old laptop", false),
+        ];
+        home
+    };
+    for light in [false, true] {
+        let (appearance, palette) = capture_appearance(light);
+        for (width, height) in [(1440.0, 900.0), (1024.0, 768.0)] {
+            let size = Size::new(width, height);
+            let shot = |home: &Home, name: &str, renderer: &mut iced::Renderer| {
+                save(
+                    renderer,
+                    super::launcher_catalog::launcher_view(home),
+                    size,
+                    &palette,
+                    directory.join(format!("{appearance}-20-bar-{name}-{width}x{height}.png")),
+                );
+            };
+            for count in [1, 9, 30] {
+                shot(&with(light, count), &format!("{count}"), &mut renderer);
+            }
+            let mut menu = with(light, 9);
+            menu.developer_mode = true;
+            menu.displayed_networks = vec![ChainId::Bitcoin, ChainId::Testnet4, ChainId::Signet];
+            menu.network_catalog_requested = vec![ChainId::Testnet4, ChainId::Signet];
+            menu.network_catalog = vec![(
+                ChainId::Testnet4,
+                vec![CubeSettings::new_with_raw_id(
+                    "t-1".into(),
+                    "Lab bench".into(),
+                    ChainId::Testnet4,
+                )],
+            )];
+            menu.catalog.network_menu = true;
+            shot(&menu, "menu", &mut renderer);
+            menu.catalog.filter = NetworkFilter::Network(ChainId::Bitcoin);
+            shot(&menu, "menu-bitcoin", &mut renderer);
+            menu.catalog.network_menu = false;
+            menu.catalog.filter = NetworkFilter::Network(ChainId::Signet);
+            shot(&menu, "no-match", &mut renderer);
+            let mut list = with(light, 9);
+            list.catalog.mode = LauncherMode::List;
+            shot(&list, "list", &mut renderer);
+        }
+    }
+}
+
 fn ghost(uuid: &str, name: &str, kit: bool) -> super::RemoteCube {
     super::RemoteCube {
         mark_variation: 0,
@@ -351,9 +425,9 @@ fn launcher_capture() {
         home.catalog.network_menu = true;
         shot(&home, "01-floor-menu", &mut renderer);
         home.catalog.network_menu = false;
-        // Every network at once (Developer mode), as on the canvas: All /
-        // Live / Test chips, the Network menu with counts, a filtered count
-        // with Clear filters, and the empty state when nothing matches.
+        // Every network at once (Developer mode), as on the canvas: the one
+        // Network button, its menu with the scopes and counts, a filtered
+        // floor, and the no-match state with Show all networks.
         {
             use super::launcher_catalog::NetworkFilter;
             let mut all = self::home(light);
