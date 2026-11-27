@@ -894,17 +894,19 @@ fn phase_body<'a>(
         )
         // The button stands on the form card as `P-Receive` draws it: an
         // inset box sized to the button read as a frame around it (found in
-        // the Desktop V3 acceptance walk).
-        .padding(16)
+        // the Desktop V3 acceptance walk). No side padding, so it lines up
+        // with the Invoice details box above.
+        .padding([16, 0])
         .into(),
 
+        // Like the Idle button and "Getting your address…", the status line
+        // stands on the card; a box here only flashed between the two.
         SparkReceivePhase::Generating => Container::new(
             Column::new()
                 .spacing(10)
                 .push(p1_regular(localized_copy("Creating your invoice…"))),
         )
-        .padding(16)
-        .style(theme::card::inset)
+        .padding([16, 0])
         .into(),
 
         SparkReceivePhase::Generated(ok) => {

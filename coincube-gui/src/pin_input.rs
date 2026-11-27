@@ -235,7 +235,8 @@ impl PinInput {
 
 /// The PIN reveal toggle (`.pineye`): an icon with no box at rest, a line
 /// edge while hovered or while the digits are shown. Both PIN rows use it, so
-/// the delete and settings rows no longer fall back to the theme's filled
+/// the [`PinInput::view`] rows (Delete Cube, the installer's Restore PIN
+/// setup) no longer fall back to the theme's filled
 /// orange default (found in the Desktop V3 acceptance walk).
 fn eye_style(
     theme: &coincube_ui::theme::Theme,
@@ -263,8 +264,8 @@ fn eye_style(
 
 impl PinInput {
     /// The Launcher unlock face's `.pinrow`: four 48px `.dg` boxes 10px
-    /// apart and the 40px `.pineye` toggle 4px after them. The installer and
-    /// settings keep [`PinInput::view`].
+    /// apart and the 40px `.pineye` toggle 4px after them. The Delete Cube
+    /// dialog and the installer's Restore PIN setup keep [`PinInput::view`].
     pub fn face_view(&self) -> Element<Message> {
         use iced::widget::{button, text_input};
         let mut row = Row::new().spacing(10).align_y(Alignment::Center);
@@ -442,30 +443,72 @@ mod tests {
 #[cfg(test)]
 mod eye_style_tests {
     use super::*;
-    use iced::widget::button::Status;
+    use crate::app::view::shared::landing::capture;
 
-    /// The reveal toggle is never a filled button: no background in any
-    /// state, no edge at rest, and a line edge when hovered or shown, in both
-    /// themes.
+    /// Whether `color` is the theme's accent orange (within rounding).
+    fn is_accent(color: iced::Color, accent: iced::Color) -> bool {
+        (color.r - accent.r).abs() < 0.04
+            && (color.g - accent.g).abs() < 0.04
+            && (color.b - accent.b).abs() < 0.04
+    }
+
+    /// Neither PIN row draws any accent-orange pixel: the reveal eye is never
+    /// a filled button, at rest or under the pointer, in either theme. This is
+    /// drawn, so it fails if a row stops styling its eye and falls back to
+    /// the theme's filled default.
     #[test]
-    fn the_reveal_eye_is_never_filled() {
+    fn no_pin_row_draws_an_orange_eye() {
+        let input = PinInput::new();
         for theme in [
             coincube_ui::theme::Theme::dark(),
             coincube_ui::theme::Theme::light(),
         ] {
-            for status in [Status::Active, Status::Hovered, Status::Pressed] {
-                for shown in [false, true] {
-                    let style = eye_style(&theme, status, shown);
-                    assert!(style.background.is_none(), "{:?} {}", status, shown);
-                    let edged = shown || !matches!(status, Status::Active);
-                    let expected = if edged {
-                        theme.colors.shell.line
+            let accent = theme.colors.shell.accent;
+            for (row, size) in [("view", (520u32, 120u32)), ("face_view", (300, 80))] {
+                for pointer in [
+                    None,
+                    Some(iced::Point::new(size.0 as f32 - 25.0, size.1 as f32 / 2.0)),
+                ] {
+                    let element: coincube_ui::widget::Element<'_, Message> = if row == "view" {
+                        input.view()
                     } else {
-                        iced::Color::TRANSPARENT
+                        input.face_view()
                     };
-                    assert_eq!(style.border.color, expected, "{:?} {}", status, shown);
+                    let pixels = capture::render_pixels(element, size, &theme, pointer);
+                    let orange = (0..size.1)
+                        .flat_map(|y| (0..size.0).map(move |x| (x, y)))
+                        .filter(|&(x, y)| is_accent(pixels.at(x, y), accent))
+                        .count();
+                    assert_eq!(
+                        orange, 0,
+                        "{}: {:?} drew {} orange pixels",
+                        row, pointer, orange
+                    );
                 }
             }
         }
+    }
+
+    /// The probe: a filled default button does draw orange, so the test above
+    /// can catch the regression it guards against.
+    #[test]
+    fn a_filled_default_button_draws_orange() {
+        let theme = coincube_ui::theme::Theme::dark();
+        let filled: coincube_ui::widget::Element<'_, Message> =
+            iced::widget::button(coincube_ui::icon::eye_icon())
+                .on_press(Message::ToggleShow)
+                .width(Length::Fixed(50.0))
+                .padding(15)
+                .into();
+        let pixels = capture::render_pixels(filled, (80, 80), &theme, None);
+        let orange = (0..80u32)
+            .flat_map(|y| (0..80u32).map(move |x| (x, y)))
+            .filter(|&(x, y)| is_accent(pixels.at(x, y), theme.colors.shell.accent))
+            .count();
+        assert!(
+            orange > 100,
+            "a default button drew only {} orange pixels",
+            orange
+        );
     }
 }
