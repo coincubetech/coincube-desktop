@@ -26,7 +26,8 @@ fn msg(m: DuressMessage) -> ConnectAccountMessage {
 
 fn card(content: Column<'_, ConnectAccountMessage>) -> Element<'_, ConnectAccountMessage> {
     Container::new(content.padding(20).spacing(8))
-        .style(theme::card::simple)
+        // Drawn on the Connect page and inside the panel-filled Connect sheet: keeps its outline (R4).
+        .style(theme::card::outlined)
         .width(Length::Fill)
         .into()
 }
