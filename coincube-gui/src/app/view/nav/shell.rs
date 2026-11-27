@@ -894,16 +894,21 @@ fn backup_attention_style(
 fn backup_attention<'a>() -> Element<'a, Message> {
     let body = row![
         glyph::glyph(glyph::WARNING, 16.0, glyph::warn),
+        // The label takes the room that is left and wraps there, so a long
+        // translation ("Copia sin confirmar") never pushes "Review" out of
+        // the strip at the compact sidebar width.
         text(localized_copy("Backup not confirmed"))
             .size(12.5)
             .font(font::MEDIUM)
+            .width(Length::Fill)
+            .wrapping(iced::widget::text::Wrapping::Word)
             .style(|t: &theme::Theme| iced::widget::text::Style {
                 color: Some(t.colors.shell.warn),
             }),
-        Space::new().width(Length::Fill),
         text(localized_copy("Review"))
             .size(12.5)
             .font(font::SEMIBOLD)
+            .wrapping(iced::widget::text::Wrapping::None)
             .style(|t: &theme::Theme| iced::widget::text::Style {
                 color: Some(t.colors.shell.accent_ink),
             }),
@@ -1382,6 +1387,124 @@ mod backup_strip_style_tests {
                     separation
                 );
             }
+        }
+    }
+
+    /// At the compact sidebar width, a long translation of "Backup not
+    /// confirmed" ("Copia sin confirmar") wraps instead of pushing "Review"
+    /// ("Revisar") out of the strip. Found in the Desktop V3 acceptance walk.
+    #[tokio::test]
+    async fn review_stays_inside_the_strip_in_spanish_at_the_compact_width() {
+        use iced::advanced::{
+            layout,
+            renderer::Headless,
+            widget::{Operation, Tree},
+            Layout,
+        };
+
+        #[derive(Default)]
+        struct Texts(Vec<(String, iced::Rectangle)>);
+        impl Operation for Texts {
+            fn traverse(&mut self, operate: &mut dyn FnMut(&mut dyn Operation)) {
+                operate(self);
+            }
+            fn text(&mut self, _: Option<&iced::widget::Id>, bounds: iced::Rectangle, value: &str) {
+                self.0.push((value.to_owned(), bounds));
+            }
+        }
+
+        // Measure with the app's own fonts, as the window does; without them
+        // the text measures narrower and the overflow does not show.
+        for bytes in coincube_ui::font::load() {
+            iced::advanced::graphics::text::font_system()
+                .write()
+                .unwrap()
+                .load_font(bytes);
+        }
+        let renderer = <iced::Renderer as Headless>::new(
+            coincube_ui::font::REGULAR,
+            iced::Pixels(14.0),
+            Some("tiny-skia"),
+        )
+        .await
+        .expect("software renderer");
+        for (language, label, review) in [
+            (
+                coincube_ui::locale::Language::English,
+                "Backup not confirmed",
+                "Review",
+            ),
+            (
+                coincube_ui::locale::Language::Spanish,
+                "Copia sin confirmar",
+                "Revisar",
+            ),
+        ] {
+            let texts = coincube_ui::locale::render_in(language, || {
+                let mut element = backup_attention();
+                let mut tree = Tree::new(element.as_widget());
+                let node = element.as_widget_mut().layout(
+                    &mut tree,
+                    &renderer,
+                    &layout::Limits::new(iced::Size::ZERO, iced::Size::new(COMPACT_WIDTH, 200.0)),
+                );
+                let mut texts = Texts::default();
+                element.as_widget_mut().operate(
+                    &mut tree,
+                    Layout::new(&node),
+                    &renderer,
+                    &mut texts,
+                );
+                texts.0
+            });
+            let find = |needle: &str| {
+                texts
+                    .iter()
+                    .find(|(value, _)| value == needle)
+                    .unwrap_or_else(|| panic!("{:?} missing from {:?}", needle, texts))
+                    .1
+            };
+            let label = find(label);
+            let review_word = review;
+            let review = find(review);
+            // "Review" never wraps, so a slot narrower than the word means it
+            // draws past its box (and the strip). Measure the word on its own.
+            let natural = {
+                let mut alone: Element<'_, Message> =
+                    text(review_word).size(12.5).font(font::SEMIBOLD).into();
+                let mut tree = Tree::new(alone.as_widget());
+                alone
+                    .as_widget_mut()
+                    .layout(
+                        &mut tree,
+                        &renderer,
+                        &layout::Limits::new(iced::Size::ZERO, iced::Size::new(1000.0, 100.0)),
+                    )
+                    .size()
+                    .width
+            };
+            assert!(
+                review.width + 0.5 >= natural,
+                "{:?}: Review gets {} of the {} it needs",
+                language,
+                review.width,
+                natural
+            );
+            // The strip's own content edge: the sidebar width less the outer
+            // padding (16) and the strip's inner padding (8).
+            let inner_right = COMPACT_WIDTH - 16.0 - 8.0;
+            assert!(
+                review.x + review.width <= inner_right + 0.5,
+                "{:?}: Review ends at {} past the strip's edge {}",
+                language,
+                review.x + review.width,
+                inner_right
+            );
+            assert!(
+                label.x + label.width <= review.x,
+                "{:?}: the label overlaps Review",
+                language
+            );
         }
     }
 }
