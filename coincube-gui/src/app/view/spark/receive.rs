@@ -7,7 +7,6 @@ use std::collections::{HashMap, HashSet};
 
 use coincube_core::miniscript::bitcoin::Network;
 use coincube_ui::{
-    color,
     component::{amount::BitcoinDisplayUnit, button, text::*},
     image::{asset_network_logo, network_logo, usdt_network_logo},
     theme,
@@ -201,7 +200,7 @@ impl<'a> SparkReceiveView<'a> {
         let mut main = Column::new().spacing(20).width(Length::Fill).push(
             Container::new(form)
                 .width(Length::Fill)
-                .style(payment_card_style),
+                .style(super::send::payment_card_style),
         );
 
         // ── Phase 4f: pending on-chain deposits card ──────────────────
@@ -458,19 +457,6 @@ fn lightning_address_body<'a>(
     ready
 }
 
-fn payment_card_style(theme: &theme::Theme) -> container::Style {
-    let shell = &theme.colors.shell;
-    container::Style {
-        background: Some(Background::Color(shell.panel)),
-        border: iced::Border {
-            color: shell.line,
-            width: 1.0,
-            radius: 16.0.into(),
-        },
-        ..Default::default()
-    }
-}
-
 #[allow(clippy::too_many_arguments)]
 fn pending_deposits_card<'a>(
     deposits: &'a [DepositInfo],
@@ -651,26 +637,6 @@ fn rail_display(method: SparkReceiveMethod) -> (&'static str, &'static str) {
     }
 }
 
-/// Hover-highlight style shared by the tappable selector cards.
-fn card_button_style(
-    _: &theme::Theme,
-    status: iced::widget::button::Status,
-) -> iced::widget::button::Style {
-    iced::widget::button::Style {
-        background: Some(Background::Color(color::TRANSPARENT)),
-        border: iced::Border {
-            color: if matches!(status, iced::widget::button::Status::Hovered) {
-                color::ORANGE
-            } else {
-                color::TRANSPARENT
-            },
-            width: 1.0,
-            radius: 8.0.into(),
-        },
-        ..Default::default()
-    }
-}
-
 /// The "THEY SEND → YOU RECEIVE" pair. Each tile opens a menu anchored under
 /// it: THEY SEND for what the payer sends (Bitcoin rail or stablecoin), YOU
 /// RECEIVE (where conversions run) for keeping bitcoin or converting it to US
@@ -788,28 +754,6 @@ fn rail_picker_label(method: SparkReceiveMethod) -> (&'static str, &'static str)
         SparkReceiveMethod::LightningAddress => ("lightning", "Lightning address"),
         SparkReceiveMethod::Spark | SparkReceiveMethod::UsdbSpark => ("spark", "Spark address"),
         SparkReceiveMethod::OnchainBitcoin => ("bitcoin", "On-chain address"),
-    }
-}
-
-/// A route tile whose menu is open: the accent line marks the menu's owner.
-fn open_route_card_style(theme: &theme::Theme) -> container::Style {
-    let mut style = route_card_style(theme);
-    style.border.color = theme.colors.shell.accent;
-    style
-}
-
-fn route_card_style(theme: &theme::Theme) -> container::Style {
-    let shell = &theme.colors.shell;
-    container::Style {
-        background: Some(Background::Color(shell.background)),
-        border: iced::Border {
-            color: shell.line,
-            width: 1.0,
-            // The THEY SEND tile is a button, so the pair takes the square
-            // 8px corner (canvas v122), matching its hover outline.
-            radius: 8.0.into(),
-        },
-        ..Default::default()
     }
 }
 
@@ -1012,10 +956,30 @@ fn kv_row<'a>(label: &'a str, value: String) -> Element<'a, Message> {
 /// running while the user is elsewhere, and its page (Shift ID, refund
 /// address, progress) is one click away. Shown on Spark's Receive when the
 /// conversion is set aside for another rail, and on Spark's Overview.
+/// Inside Receive's panel card, the notice takes the page background.
 pub(crate) fn conversion_notice<'a>(
     option: DepositOption,
     arrived: bool,
     on_view: Message,
+) -> Element<'a, Message> {
+    conversion_notice_on(option, arrived, on_view, conversion_notice_style)
+}
+
+/// On the Spark page the notice sits on the page background, so it takes the
+/// panel fill: fill only, no outline (V4).
+pub(crate) fn conversion_notice_on_page<'a>(
+    option: DepositOption,
+    arrived: bool,
+    on_view: Message,
+) -> Element<'a, Message> {
+    conversion_notice_on(option, arrived, on_view, conversion_notice_page_style)
+}
+
+fn conversion_notice_on<'a>(
+    option: DepositOption,
+    arrived: bool,
+    on_view: Message,
+    style: fn(&theme::Theme) -> container::Style,
 ) -> Element<'a, Message> {
     let copy = if arrived {
         localized_format!(
@@ -1042,20 +1006,28 @@ pub(crate) fn conversion_notice<'a>(
     )
     .padding([10, 12])
     .width(Length::Fill)
-    .style(conversion_notice_style)
+    .style(style)
     .into()
 }
 
+/// A neutral notice strip inside the panel card: the page background, fill
+/// only (V4).
 fn conversion_notice_style(theme: &theme::Theme) -> container::Style {
-    let shell = &theme.colors.shell;
     container::Style {
-        background: Some(Background::Color(shell.background)),
+        background: Some(Background::Color(theme.colors.shell.background)),
         border: iced::Border {
-            color: shell.line,
-            width: 1.0,
             radius: 10.0.into(),
+            ..Default::default()
         },
         ..Default::default()
+    }
+}
+
+/// The same strip on the page background: the panel fill, fill only.
+fn conversion_notice_page_style(theme: &theme::Theme) -> container::Style {
+    container::Style {
+        background: Some(Background::Color(theme.colors.shell.panel)),
+        ..conversion_notice_style(theme)
     }
 }
 
@@ -1195,7 +1167,12 @@ fn receiver_route_tile<'a>(
     receiver_open: bool,
     receive_usd: bool,
 ) -> Element<'a, Message> {
-    use crate::app::view::shared::picker::{anchored_dropdown, open_tile_style};
+    use crate::app::view::shared::picker::anchored_dropdown;
+    use crate::app::view::spark::send::{
+        fixed_tile_style, open_tile_button_style, receive_tile_button_style,
+    };
+    // The button draws the tile when it is a choice, as on Send, so hover and
+    // an open menu change its one border instead of adding a second.
     let you_receive_body = Container::new(super::route_tile_body(
         if receive_usd {
             asset_network_logo("usdb", "spark", 36.0)
@@ -1212,12 +1189,7 @@ fn receiver_route_tile<'a>(
         localized_copy("in Spark").to_string(),
         choosable.then_some(receiver_open),
     ))
-    .width(Length::Fill)
-    .style(if receiver_open {
-        open_route_card_style
-    } else {
-        route_card_style
-    });
+    .width(Length::Fill);
     if choosable {
         anchored_dropdown(
             coincube_ui::widget::action::Action::new(
@@ -1229,9 +1201,9 @@ fn receiver_route_tile<'a>(
             .width(Length::Fill)
             .focus_radius(8.0)
             .style(if receiver_open {
-                open_tile_style
+                open_tile_button_style
             } else {
-                card_button_style
+                receive_tile_button_style
             })
             .on_press(Message::SparkReceive(
                 SparkReceiveMessage::OpenReceiverPicker,
@@ -1240,7 +1212,7 @@ fn receiver_route_tile<'a>(
             Message::SparkReceive(SparkReceiveMessage::CloseReceiverPicker),
         )
     } else {
-        you_receive_body.into()
+        you_receive_body.style(fixed_tile_style).into()
     }
 }
 
@@ -1250,7 +1222,8 @@ fn sender_route_tile<'a>(
     sender_open: bool,
     network: Network,
 ) -> Element<'a, Message> {
-    use crate::app::view::shared::picker::{anchored_dropdown, open_tile_style};
+    use crate::app::view::shared::picker::anchored_dropdown;
+    use crate::app::view::spark::send::{open_tile_button_style, receive_tile_button_style};
     // THEY SEND reflects the current pick: a Bitcoin rail, or a cross-network
     // asset while the SideShift flow is active.
     let they_send_body = match cross {
@@ -1282,22 +1255,16 @@ fn sender_route_tile<'a>(
     anchored_dropdown(
         coincube_ui::widget::action::Action::new(
             iced::advanced::widget::Id::new(SENDER_PICKER_ACTION_ID),
-            Container::new(they_send_body)
-                .width(Length::Fill)
-                .style(if sender_open {
-                    open_route_card_style
-                } else {
-                    route_card_style
-                }),
+            Container::new(they_send_body).width(Length::Fill),
             Message::FocusAction,
         )
         .padding(0)
         .width(Length::Fill)
         .focus_radius(8.0)
         .style(if sender_open {
-            open_tile_style
+            open_tile_button_style
         } else {
-            card_button_style
+            receive_tile_button_style
         })
         .on_press(Message::SparkReceive(SparkReceiveMessage::OpenSenderPicker)),
         sender_open.then(|| sender_picker_menu(method, cross, network)),
@@ -1434,6 +1401,33 @@ fn generated_receive_body<'a>(
     .padding(16)
     .style(theme::card::simple)
     .into()
+}
+
+#[cfg(test)]
+mod notice_style_tests {
+    use super::*;
+
+    /// The conversion notice is fill only. Inside Receive's card it takes the
+    /// page background; on the Spark page it takes the panel fill, so in
+    /// either place its fill differs from what is behind it.
+    #[test]
+    fn conversion_notice_is_fill_only_on_either_surface() {
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let shell = theme.colors.shell;
+            let in_card = conversion_notice_style(&theme);
+            let on_page = conversion_notice_page_style(&theme);
+            assert_eq!(in_card.border.width, 0.0, "{name}");
+            assert_eq!(on_page.border.width, 0.0, "{name}");
+            assert_eq!(
+                in_card.background,
+                Some(Background::Color(shell.background))
+            );
+            assert_eq!(on_page.background, Some(Background::Color(shell.panel)));
+        }
+    }
 }
 
 #[cfg(test)]
@@ -2464,15 +2458,5 @@ mod tests {
         assert_eq!(asset_display_name("sol"), "Solana");
         assert_eq!(asset_display_name("trx"), "Tron");
         assert_eq!(asset_display_name("doge"), "doge");
-    }
-
-    #[test]
-    fn selector_card_border_only_highlights_on_hover() {
-        let theme = theme::Theme::default();
-        let active = card_button_style(&theme, iced::widget::button::Status::Active);
-        let hovered = card_button_style(&theme, iced::widget::button::Status::Hovered);
-
-        assert_eq!(active.border.color, color::TRANSPARENT);
-        assert_eq!(hovered.border.color, color::ORANGE);
     }
 }

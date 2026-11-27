@@ -1241,15 +1241,15 @@ fn review_quote<'a>(
         .into()
 }
 
-/// The quiet inset for the price-move notice and the identity card.
-fn notice_style(theme: &theme::Theme) -> container::Style {
+/// The quiet inset for the price-move notice and the identity card: the page
+/// background inside the panel card, fill only (V4).
+pub(crate) fn notice_style(theme: &theme::Theme) -> container::Style {
     let shell = &theme.colors.shell;
     container::Style {
         background: Some(Background::Color(shell.background)),
         border: iced::Border {
-            color: shell.line,
-            width: 1.0,
             radius: 10.0.into(),
+            ..Default::default()
         },
         ..Default::default()
     }
@@ -2119,32 +2119,36 @@ fn card_section<'a>(content: impl Into<Element<'a, Message>>) -> Element<'a, Mes
         .into()
 }
 
-/// The Payment details surface: the shell panel with a hairline border.
-fn payment_card_style(theme: &theme::Theme) -> container::Style {
+/// The Payment details surface: the shell panel, with no outline (V4). Its
+/// tiles take the page background so they still read against it (R4).
+pub(crate) fn payment_card_style(theme: &theme::Theme) -> container::Style {
     let shell = &theme.colors.shell;
     container::Style {
         background: Some(Background::Color(shell.panel)),
         text_color: Some(shell.ink),
         border: iced::Border {
-            color: shell.line,
-            width: 1.0,
             radius: 16.0.into(),
+            ..Default::default()
         },
         ..Default::default()
     }
 }
 
-/// A route tile. Hover only changes the outline; selection never applies here.
-fn route_tile_style(theme: &theme::Theme, hovered: bool) -> (Background, iced::Border) {
+/// A route tile: the page background inside the panel card, with one 1px
+/// border. At rest the border is the line grey; hovered, or while its menu is
+/// open, the tile takes the light hover fill and an ink border, as a content
+/// button does (the button rule, `cc-buttons v1`). The tile is one widget, so
+/// there is never a second border around it.
+fn route_tile_style(theme: &theme::Theme, engaged: bool) -> (Background, iced::Border) {
     let shell = &theme.colors.shell;
     (
-        Background::Color(shell.background),
+        Background::Color(if engaged {
+            coincube_ui::theme::tenshu::over(shell.background, shell.hover)
+        } else {
+            shell.background
+        }),
         iced::Border {
-            color: if hovered {
-                shell.accent_ink
-            } else {
-                shell.line
-            },
+            color: if engaged { shell.ink } else { shell.line },
             width: 1.0,
             radius: 8.0.into(),
         },
@@ -2328,14 +2332,14 @@ pub struct SendMenus<'a> {
     pub network: Network,
 }
 
-/// A route tile while its menu is open: the hovered tile's surface with the
-/// accent line, so the tile reads as the menu's owner.
+/// A route tile while its menu is open: it keeps the hovered tile's fill and
+/// ink border (an open menu keeps the hover, per the button rule), so the
+/// tile reads as the menu's owner.
 pub(crate) fn open_tile_button_style(
     theme: &theme::Theme,
     _: iced::widget::button::Status,
 ) -> iced::widget::button::Style {
-    let (background, mut border) = route_tile_style(theme, true);
-    border.color = theme.colors.shell.accent;
+    let (background, border) = route_tile_style(theme, true);
     iced::widget::button::Style {
         background: Some(background),
         text_color: theme.colors.shell.ink,
@@ -2395,6 +2399,100 @@ pub fn send_target_picker_menu<'a>(
     }
 
     dropdown_menu(list)
+}
+
+#[cfg(test)]
+mod surface_style_tests {
+    use super::*;
+    use iced::widget::button::Status;
+
+    fn themes() -> [(&'static str, theme::Theme); 2] {
+        [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ]
+    }
+
+    fn fill(background: Option<Background>) -> iced::Color {
+        match background {
+            Some(Background::Color(color)) => color,
+            other => panic!("expected a colour fill, got {:?}", other),
+        }
+    }
+
+    /// The Send and Receive form card has no outline (V4).
+    #[test]
+    fn payment_card_has_no_border() {
+        for (name, theme) in themes() {
+            let card = payment_card_style(&theme);
+            assert_eq!(card.border.width, 0.0, "{name}");
+            assert_eq!(fill(card.background), theme.colors.shell.panel, "{name}");
+            assert_ne!(
+                fill(card.background),
+                theme.colors.shell.background,
+                "{name}: the card vanishes into the page"
+            );
+        }
+    }
+
+    /// Every tile inside the card has a fill that differs from the card's, at
+    /// rest, hovered and open, so it still reads without the card's outline
+    /// (R4). This matters most in light theme, where panel and background
+    /// are closest.
+    #[test]
+    fn tiles_fill_differs_from_the_card_fill() {
+        for (name, theme) in themes() {
+            let card = fill(payment_card_style(&theme).background);
+            let fixed = fill(fixed_tile_style(&theme).background);
+            assert_ne!(fixed, card, "{name}: fixed tile");
+            for status in [Status::Active, Status::Hovered, Status::Pressed] {
+                let tile = fill(receive_tile_button_style(&theme, status).background);
+                assert_ne!(tile, card, "{name} {status:?}: tile");
+                let open = fill(open_tile_button_style(&theme, status).background);
+                assert_ne!(open, card, "{name} {status:?}: open tile");
+            }
+        }
+    }
+
+    /// One border, never two: a tile is a single widget with a 1px border.
+    /// At rest it is the line grey; hovered or open it is ink, as the button
+    /// rule has it, never the hard-coded orange.
+    #[test]
+    fn hovered_and_open_tiles_draw_one_ink_border() {
+        for (name, theme) in themes() {
+            let shell = theme.colors.shell;
+            let rest = receive_tile_button_style(&theme, Status::Active);
+            assert_eq!(rest.border.width, 1.0, "{name}");
+            assert_eq!(rest.border.color, shell.line, "{name}");
+            for style in [
+                receive_tile_button_style(&theme, Status::Hovered),
+                open_tile_button_style(&theme, Status::Active),
+                open_tile_button_style(&theme, Status::Hovered),
+            ] {
+                assert_eq!(style.border.width, 1.0, "{name}");
+                assert_eq!(style.border.color, shell.ink, "{name}");
+                assert_ne!(style.border.color, coincube_ui::color::ORANGE, "{name}");
+            }
+            let fixed = fixed_tile_style(&theme);
+            assert_eq!(fixed.border.width, 1.0, "{name}");
+            assert_eq!(fixed.border.color, shell.line, "{name}");
+        }
+    }
+
+    /// Neutral notice strips inside the card are fill only, and their fill
+    /// is not the card's.
+    #[test]
+    fn neutral_notices_are_fill_only() {
+        for (name, theme) in themes() {
+            let notice = notice_style(&theme);
+            assert_eq!(notice.border.width, 0.0, "{name}");
+            assert_ne!(
+                fill(notice.background),
+                fill(payment_card_style(&theme).background),
+                "{name}"
+            );
+        }
+    }
 }
 
 #[cfg(test)]

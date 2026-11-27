@@ -10516,7 +10516,7 @@ impl App {
                     match conversion {
                         Some((option, arrived)) => iced::widget::Column::new()
                             .spacing(16)
-                            .push(view::spark::receive::conversion_notice(
+                            .push(view::spark::receive::conversion_notice_on_page(
                                 option,
                                 arrived,
                                 view::Message::SparkOverview(
