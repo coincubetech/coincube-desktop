@@ -1,7 +1,8 @@
 //! Desktop V3 Phase 1 (V6): the screens that used to draw Worldview artwork
 //! now show text only. Each is mounted in every worldview, both themes and
 //! both languages (invariant R8): the quote stays (R7), the worldview's
-//! wording stays (R2), and nothing else replaces the picture.
+//! wording stays (R2), and nothing else replaces the picture: every screen
+//! is drawn with the software renderer and must queue no image or SVG.
 
 use coincube_ui::component::{
     amount::BitcoinDisplayUnit,
@@ -51,7 +52,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 let scenario =
                     |screen: &str| format!("v6-{language:?}-{name}-{appearance}-{screen}");
 
-                let opened = capture::inspect_filled(
+                let opened = capture::inspect_rendered_filled(
                     &scenario("opening"),
                     render_in(language, || {
                         coincube_ui::worldview_copy::render_in(mode, || {
@@ -66,23 +67,46 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                     (1024, 768),
                     appearance,
                     theme,
-                    (1024, 768),
                 );
                 assert!(opened.contains(&loading.text), "{}", scenario("opening"));
                 assert!(opened.contains("— Author, Source"));
+                // The Opening rail above the stage draws the brand mark and
+                // the network coin, which are not artwork (R9); the loading
+                // stage under it draws no picture.
+                let stage = capture::inspect_rendered_filled(
+                    &scenario("opening-stage"),
+                    render_in(language, || {
+                        coincube_ui::worldview_copy::render_in(mode, || {
+                            crate::loader::view(&crate::loader::Step::Connecting, &loading)
+                        })
+                    }),
+                    (1024, 768),
+                    appearance,
+                    theme,
+                );
+                assert!(
+                    stage.contains(&loading.text),
+                    "{}",
+                    scenario("opening-stage")
+                );
+                assert!(stage.draws_no_image(), "{}", scenario("opening-stage"));
 
-                let failed = capture::inspect_filled(
+                let failed = capture::inspect_rendered_filled(
                     &scenario("startup-error"),
                     render_in(language, || crate::loader::view(&startup_error, &error)),
                     (1024, 768),
                     appearance,
                     theme,
-                    (1024, 768),
                 );
+                let headline = render_in(language, || {
+                    coincube_ui::locale::Text::TenshuFailedToStart.get()
+                });
+                assert!(failed.contains(headline), "{}", scenario("startup-error"));
                 assert!(failed.contains(&error.text));
                 assert!(failed.contains("Fixture startup error"));
+                assert!(failed.draws_no_image(), "{}", scenario("startup-error"));
 
-                let history = capture::inspect(
+                let history = capture::inspect_rendered_full_window(
                     &scenario("empty-history"),
                     render_in(language, || {
                         SparkTransactionsView {
@@ -108,6 +132,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                     coincube_ui::locale::Text::SparkHistoryEmpty.get()
                 });
                 assert!(history.contains(sentence), "{}", scenario("empty-history"));
+                assert!(history.draws_no_image(), "{}", scenario("empty-history"));
 
                 use coincube_ui::worldview_copy::VoiceLine;
                 for (screen, outcome, quote, voice) in [
@@ -122,7 +147,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                     let line = render_in(language, || {
                         coincube_ui::worldview_copy::render_in(mode, || voice.get())
                     });
-                    let page = capture::inspect(
+                    let page = capture::inspect_rendered_full_window(
                         &scenario(screen),
                         render_in(language, || {
                             coincube_ui::worldview_copy::render_in(mode, || {
@@ -137,12 +162,13 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                     );
                     assert!(page.contains("50,000"), "{}", scenario(screen));
                     assert!(page.contains(&quote.text), "{}", scenario(screen));
+                    assert!(page.draws_no_image(), "{}", scenario(screen));
                     if let Some(line) = line {
                         assert!(page.contains(line), "{}: {}", scenario(screen), line);
                     }
                 }
 
-                let restored = capture::inspect(
+                let restored = capture::inspect_rendered_full_window(
                     &scenario("restored"),
                     done_mark::<()>(),
                     (1024, 768),
@@ -151,8 +177,9 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 );
                 // The plain check is one glyph, and nothing else is drawn.
                 assert_eq!(restored.text.len(), 1, "{}", scenario("restored"));
+                assert!(restored.draws_no_image(), "{}", scenario("restored"));
 
-                let flow = capture::inspect(
+                let flow = capture::inspect_rendered_full_window(
                     &scenario("recovery-kit"),
                     flow_intro::<()>("Protect your Cube", "Set up a Recovery Kit.").into(),
                     (1024, 768),
@@ -162,9 +189,28 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 assert!(flow.contains("Protect your Cube"));
                 assert!(flow.contains("Set up a Recovery Kit."));
                 assert_eq!(flow.text.len(), 2, "{}", scenario("recovery-kit"));
+                assert!(flow.draws_no_image(), "{}", scenario("recovery-kit"));
             }
         }
     }
+}
+
+/// The probe behind `draws_no_image` sees a picture when there is one, so the
+/// text-only test above cannot pass by not looking.
+#[test]
+fn the_image_probe_counts_a_drawn_picture() {
+    let picture = iced::widget::image(iced::widget::image::Handle::from_rgba(2, 2, vec![255; 16]))
+        .width(iced::Length::Fixed(40.0))
+        .height(iced::Length::Fixed(40.0));
+    let drawn = capture::inspect_rendered_full_window::<()>(
+        "image-probe",
+        coincube_ui::widget::Container::new(picture).into(),
+        (1024, 768),
+        "dark",
+        Theme::dark(),
+    );
+    assert_eq!(drawn.images, Some(1));
+    assert!(!drawn.draws_no_image());
 }
 
 #[test]

@@ -252,9 +252,21 @@ pub(crate) mod capture {
     pub struct Inspection {
         pub text: Vec<(String, Rectangle)>,
         pub focus: Vec<(Id, Rectangle)>,
+        /// Raster images and SVGs the software renderer drew, when the
+        /// inspection drew the screen (the `inspect_rendered_*` helpers or a
+        /// capture run); `None` when it only laid it out.
+        pub images: Option<usize>,
     }
 
     impl Inspection {
+        /// Whether the drawn screen holds no raster image or SVG. Panics when
+        /// the inspection did not draw, so the check can never pass vacuously.
+        pub fn draws_no_image(&self) -> bool {
+            self.images
+                .expect("inspect with an inspect_rendered_* helper")
+                == 0
+        }
+
         pub fn contains(&self, needle: &str) -> bool {
             self.text.iter().any(|(value, _)| value.contains(needle))
         }
@@ -476,6 +488,7 @@ pub(crate) mod capture {
             );
         }
         let capture_directory = std::env::var("R06A_CAPTURE_DIR").ok();
+        let mut images = None;
         if matches!(mode, InspectionMode::DrawScroll | InspectionMode::DrawFill)
             || capture_directory.is_some()
         {
@@ -503,6 +516,7 @@ pub(crate) mod capture {
                 mouse::Cursor::Unavailable,
                 &viewport,
             );
+            images = Some(drawn_images(&mut renderer));
             let pixels = renderer.screenshot(
                 Size::new(width, height),
                 1.0,
@@ -535,6 +549,19 @@ pub(crate) mod capture {
         Inspection {
             text: probe.entries,
             focus: probe.focus,
+            images,
+        }
+    }
+
+    /// The raster images and SVGs queued on the software renderer's layers.
+    fn drawn_images(renderer: &mut iced::Renderer) -> usize {
+        match renderer {
+            iced::Renderer::Secondary(software) => software
+                .layers()
+                .iter()
+                .map(|layer| layer.images.len())
+                .sum(),
+            iced::Renderer::Primary(_) => panic!("inspection asked for tiny-skia"),
         }
     }
 
