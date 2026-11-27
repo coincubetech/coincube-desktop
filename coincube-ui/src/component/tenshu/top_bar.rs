@@ -164,9 +164,10 @@ fn mark<'a, M: 'a>(
         .into()
 }
 
-/// The line Cube alone, `side` square, in the shell's ink at `opacity`: the
-/// Opening's mark, where the ink artwork used to be. Its line lightens as it
-/// grows, so it never reads heavier than the bar's 20 px Cube.
+/// The line Cube alone, `side` square, in the shell's ink at `opacity`, for
+/// a large still Cube. The Cube loader no longer shows one (Robert,
+/// 2026-11-27); the passkey Opening uses the turning Cube instead. Its line
+/// lightens as it grows, so it never reads heavier than the bar's 20 px Cube.
 pub fn display_cube<'a, M: 'a>(side: f32, opacity: f32) -> Element<'a, M> {
     mark(display_cube_source(side), side, move |theme| {
         theme.colors.shell.ink.scale_alpha(opacity)
