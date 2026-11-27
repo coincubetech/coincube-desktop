@@ -250,17 +250,12 @@ fn payment_methods_filter<'a>(
     } else {
         let chips = row(available_payment_methods.iter().map(|method| {
             let is_selected = !deselected_payment_methods.contains(method);
-            let style: fn(&_, _) -> _ = if is_selected {
-                theme::button::primary
-            } else {
-                theme::button::transparent_border
-            };
             button(
                 container(p2_regular(method.clone()))
                     .padding([4, 12])
                     .align_x(iced::alignment::Horizontal::Center),
             )
-            .style(style)
+            .style(move |theme, status| filter_chip_style(theme, status, is_selected))
             .on_press(view::Message::P2P(P2PMessage::FilterPaymentMethodToggled(
                 method.clone(),
             )))
@@ -284,18 +279,12 @@ pub fn trade_status_filter<'a>(
 ) -> Container<'a, view::Message> {
     let chips = row(ALL_TRADE_FILTERS.iter().map(|filter| {
         let is_active = active_filters.contains(filter);
-        let style: fn(&_, _) -> _ = if is_active {
-            theme::button::primary
-        } else {
-            theme::button::transparent_border
-        };
-
         button(
             container(p2_regular(filter.to_string()))
                 .padding([4, 12])
                 .align_x(iced::alignment::Horizontal::Center),
         )
-        .style(style)
+        .style(move |theme, status| filter_chip_style(theme, status, is_active))
         .on_press(view::Message::P2P(P2PMessage::TradeFilterChanged(*filter)))
         .into()
     }))
@@ -308,4 +297,68 @@ pub fn trade_status_filter<'a>(
             .style(theme::pill::simple);
 
     container(column![chips, count_pill].spacing(12).width(Length::Fill)).width(Length::Fill)
+}
+
+/// A filter chip (`.tg`): the content rule's ink outline; a chip that is on
+/// takes the selected fill rather than the primary's orange, so the view
+/// keeps one primary.
+fn filter_chip_style(
+    theme: &theme::Theme,
+    status: iced::widget::button::Status,
+    on: bool,
+) -> iced::widget::button::Style {
+    theme::tenshu::button::outline(
+        theme,
+        status,
+        if on {
+            theme::tenshu::button::OutlineState::On
+        } else {
+            theme::tenshu::button::OutlineState::Rest
+        },
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::app::view::shared::landing::capture;
+
+    fn near(a: iced::Color, b: iced::Color) -> bool {
+        (a.r - b.r).abs() < 0.06 && (a.g - b.g).abs() < 0.06 && (a.b - b.b).abs() < 0.06
+    }
+
+    /// Drawn: every payment-method and status chip has an ink edge, and none
+    /// is filled orange, on or off, in both themes.
+    #[test]
+    fn filter_chips_draw_an_ink_outline_and_no_orange() {
+        let methods = vec!["SEPA".to_string(), "Revolut".to_string()];
+        let mut deselected = HashSet::new();
+        deselected.insert("Revolut".to_string());
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let shell = theme.colors.shell;
+            let views: Vec<(&str, Element<'_, view::Message>)> = vec![
+                ("methods", payment_methods_filter(&methods, &deselected)),
+                ("status", trade_status_filter(&[TradeFilter::All], 3).into()),
+            ];
+            for (name, element) in views {
+                let (w, h) = (900u32, 160u32);
+                let pixels = capture::render_pixels(element, (w, h), &theme, None);
+                let light = theme.colors.shell.background.r > 0.5;
+                pixels.save_if(
+                    "W1_CAPTURE_DIR",
+                    &format!("p2p-{}-{}", name, if light { "light" } else { "dark" }),
+                );
+                let all = (0..h).flat_map(|y| (0..w).map(move |x| (x, y)));
+                let orange = all
+                    .clone()
+                    .filter(|&(x, y)| near(pixels.at(x, y), shell.accent))
+                    .count();
+                assert_eq!(orange, 0, "{} drew {} orange pixels", name, orange);
+                let ink = all
+                    .filter(|&(x, y)| near(pixels.at(x, y), shell.ink))
+                    .count();
+                assert!(ink > 60, "{} drew only {} ink pixels", name, ink);
+            }
+        }
+    }
 }
