@@ -34,8 +34,8 @@ pub mod worldview_hero;
 mod gallery;
 
 pub use action::{
-    chip_action, eye_action, icon_action, receive_action, send_action, transfer_action,
-    ActionButton,
+    chip_action, eye_action, icon_action, outline_icon_action, receive_action, send_action,
+    transfer_action, ActionButton,
 };
 pub use arranged::{arranged, Arrange, Arranged};
 pub use asset_row::asset_row;
