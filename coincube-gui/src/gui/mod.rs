@@ -1535,6 +1535,21 @@ impl GUI {
     /// A single resolved device theme drives the window and every retained tab.
     /// A System choice follows the latest theme reported by iced; until that
     /// arrives it uses the model's documented dark fallback.
+    /// Record the system's reduce-motion setting. When it changes, every tab
+    /// takes the newly resolved motion preference too.
+    fn observe_system_motion(&mut self, observed: Option<bool>) {
+        let changed = self.system_reduces_motion != observed;
+        self.system_reduces_motion = observed;
+        for (_, pane) in self.panes.iter_mut() {
+            for tab in &mut pane.tabs {
+                tab.set_system_reduces_motion(observed);
+            }
+        }
+        if changed {
+            self.publish_appearance();
+        }
+    }
+
     fn publish_appearance(&mut self) {
         let Some(accepted) = self.preferences.accepted() else {
             return;
@@ -3866,13 +3881,7 @@ impl GUI {
         {
             self.zoom.notice_until = None;
         }
-        let system_reduces_motion = crate::app::settings::system_accessibility::reduces_motion();
-        self.system_reduces_motion = system_reduces_motion;
-        for (_, pane) in self.panes.iter_mut() {
-            for tab in &mut pane.tabs {
-                tab.set_system_reduces_motion(system_reduces_motion);
-            }
-        }
+        self.observe_system_motion(crate::app::settings::system_accessibility::reduces_motion());
         let privacy_refresh = self
             .preferences
             .begin_refresh_if_due()
@@ -4028,7 +4037,11 @@ impl GUI {
                 .preferences
                 .accepted()
                 .map(|accepted| accepted.preferences);
-            if before.map(|prefs| prefs.theme) != after.map(|prefs| prefs.theme) {
+            // The resolved appearance follows the theme and the motion
+            // preference; each tab carries both.
+            if before.map(|prefs| (prefs.theme, prefs.motion))
+                != after.map(|prefs| (prefs.theme, prefs.motion))
+            {
                 self.publish_appearance();
             }
             if let (
@@ -5741,6 +5754,62 @@ mod app_preferences_sheet_tests {
         assert_eq!(gui.preferences_view_model().worldview_changed, None);
         drop(gui);
         std::fs::remove_dir_all(directory).ok();
+    }
+
+    /// The turning Cube follows each tab's motion preference, so every tab,
+    /// and every tab opened later, must hear when it changes: from the saved
+    /// Motion preference or from the system's setting, not only from a
+    /// theme change.
+    #[test]
+    fn the_motion_preference_reaches_every_tab_and_new_ones() {
+        let _guard = crate::app::session::test_guard();
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let _enter = runtime.enter();
+        let path = std::env::temp_dir().join(format!(
+            "tenshu-preferences-motion-{}",
+            uuid::Uuid::new_v4()
+        ));
+        std::fs::create_dir_all(&path).unwrap();
+        let root = CoincubeDirectory::new(path.clone());
+        let mut gui = launcher_gui(&root);
+        let pane_id = gui.focus.unwrap();
+        let request = gui.preferences.begin_initialize().unwrap();
+        let receipt = GlobalSettings::load_or_initialize_preferences(&root).unwrap();
+        drop(gui.update(Message::Preferences(request, Ok(receipt))));
+        let tabs = |gui: &GUI| -> Vec<bool> {
+            gui.panes
+                .iter()
+                .flat_map(|(_, pane)| pane.tabs.iter().map(|tab| tab.reduce_motion))
+                .collect()
+        };
+        assert_eq!(tabs(&gui), [false]);
+
+        // Following the system (the default), its setting decides.
+        gui.observe_system_motion(Some(true));
+        assert_eq!(tabs(&gui), [true], "the system asked for reduced motion");
+        gui.observe_system_motion(Some(false));
+        assert_eq!(tabs(&gui), [false]);
+
+        // The saved preference, with no theme change.
+        let change = PreferenceChange::Motion(MotionPreference::Reduced);
+        let request = gui.preferences.begin_save(change).unwrap();
+        let receipt = GlobalSettings::save_preference(&request.root, change).unwrap();
+        drop(gui.update(Message::Preferences(request, Ok(receipt))));
+        assert_eq!(tabs(&gui), [true], "the Motion preference reached the tab");
+
+        // A tab added afterwards starts with it.
+        let (home, startup) = home::Home::new_for_chain(root.clone(), None);
+        drop(startup);
+        gui.panes
+            .get_mut(pane_id)
+            .unwrap()
+            .add_tabs(vec![tab::Tab::new(9, tab::State::Home(home))], 0);
+        assert_eq!(tabs(&gui), [true, true], "a new tab carries the preference");
+        drop(gui);
+        std::fs::remove_dir_all(path).ok();
     }
 
     #[test]

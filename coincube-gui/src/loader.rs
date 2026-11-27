@@ -1410,20 +1410,70 @@ pub fn view<'a>(step: &'a Step, quote: &'a Quote) -> Element<'a, ViewMessage> {
     view_with_retry(step, quote, true)
 }
 
-/// The line Cube is a brand mark, not artwork (V3 R9). Keep the quote
-/// beneath it on every loader and passkey Opening path.
-pub(crate) fn cube_and_quote<'a, M: 'a>(quote: &'a Quote) -> Element<'a, M> {
-    Container::new(
-        Column::new()
-            .align_x(Alignment::Center)
-            .push(coincube_ui::component::tenshu::top_bar::display_cube(
-                128.0, 1.0,
-            ))
-            .push(quote_display::display(&QuoteDisplayProps::new(quote))),
+/// The turning Cube on a full-window Cube loader. 120 px is 5 px to each
+/// unit of the logo's 24-unit grid, so its resting pose and its 1-unit line
+/// (the brief's weight up to 128 px) land on whole pixels; it reads as the
+/// screen's mark without pushing the quote and status off a short window.
+pub(crate) const CUBE_LOADER_SIZE: f32 = 120.0;
+/// The Cube loader's Cube where the room is short (a small opening face or a
+/// window under about 640 px of stage): 4 px to each grid unit.
+pub(crate) const CUBE_LOADER_COMPACT_SIZE: f32 = 96.0;
+/// The space between the Cube, the quote and the status on every Cube loader.
+pub(crate) const CUBE_LOADER_GAP: f32 = 32.0;
+/// `quote_display::display` pads its quote by 24 px on every side.
+const QUOTE_DISPLAY_PADDING: f32 = 24.0;
+
+/// The Cube loader (Robert, 2026-11-27): "spinning Cube, then the quote below
+/// that, then the status text", one group the caller centres. Lines pushed
+/// after the status (scan guidance, node logs, actions) follow it closely.
+pub(crate) fn cube_loader<'a, M: 'a>(
+    quote: &'a Quote,
+    status: impl Into<Element<'a, M>>,
+) -> Column<'a, M> {
+    cube_group(
+        coincube_ui::component::tenshu::turning_cube::loading_cube(CUBE_LOADER_SIZE),
+        quote,
+        status,
     )
-    .center_x(Length::Fill)
-    .max_width(448)
-    .into()
+}
+
+/// [`cube_loader`]'s layout for a screen that is not loading (the startup
+/// error): the Cube holds the logo pose.
+pub(crate) fn still_cube_loader<'a, M: 'a>(
+    quote: &'a Quote,
+    status: impl Into<Element<'a, M>>,
+) -> Column<'a, M> {
+    cube_group(
+        coincube_ui::component::tenshu::turning_cube::turning_cube(CUBE_LOADER_SIZE, true),
+        quote,
+        status,
+    )
+}
+
+fn cube_group<'a, M: 'a>(
+    cube: Element<'a, M>,
+    quote: &'a Quote,
+    status: impl Into<Element<'a, M>>,
+) -> Column<'a, M> {
+    Column::new()
+        .width(Length::Fill)
+        // The quote's own padding makes up the rest of each gap.
+        .spacing(CUBE_LOADER_GAP - QUOTE_DISPLAY_PADDING)
+        .align_x(Alignment::Center)
+        .push(cube)
+        .push(quote_display::display(&QuoteDisplayProps::new(quote)))
+        .push(status)
+}
+
+/// The id of the container that holds a Cube loader's group (the Cube, the
+/// quote, the status and what follows it), so tests can check it is centred.
+pub(crate) fn cube_loader_group_id() -> iced::advanced::widget::Id {
+    iced::advanced::widget::Id::new("cube-loader-group")
+}
+
+/// The id of the frame a Cube loader's group is centred in.
+pub(crate) fn cube_loader_frame_id() -> iced::advanced::widget::Id {
+    iced::advanced::widget::Id::new("cube-loader-frame")
 }
 
 pub(crate) fn view_with_retry<'a>(
@@ -1434,39 +1484,30 @@ pub(crate) fn view_with_retry<'a>(
     match &step {
         Step::StartingDaemon { .. } => cover(
             None,
-            Column::new()
-                .width(Length::Fill)
-                .spacing(20)
-                .align_x(Alignment::Center)
-                .push(cube_and_quote(quote))
-                .push(crate::loading::loading_indicator(None))
-                .push(text(CopyText::StartingDaemon.get()).style(theme::text::secondary)),
+            cube_loader(
+                quote,
+                text(CopyText::StartingDaemon.get()).style(theme::text::secondary),
+            ),
         ),
         Step::FullScan { .. } => cover(
             None,
-            Column::new()
-                .width(Length::Fill)
-                .spacing(10)
-                .align_x(Alignment::Center)
-                .push(cube_and_quote(quote))
-                .push(crate::loading::loading_indicator(None))
-                .push(text(CopyText::ScanningTheBlockchain.get()).style(theme::text::secondary))
-                .push_maybe(
-                    coincube_ui::worldview_copy::VoiceLine::Syncing
-                        .get()
-                        .map(|line| p2_regular(line).style(theme::text::secondary)),
-                )
-                .push(p2_regular(CopyText::InitialEsploraScan.get()).style(theme::text::secondary)),
+            cube_loader(
+                quote,
+                text(CopyText::ScanningTheBlockchain.get()).style(theme::text::secondary),
+            )
+            .push_maybe(
+                coincube_ui::worldview_copy::VoiceLine::Syncing
+                    .get()
+                    .map(|line| p2_regular(line).style(theme::text::secondary)),
+            )
+            .push(p2_regular(CopyText::InitialEsploraScan.get()).style(theme::text::secondary)),
         ),
         Step::Connecting => cover(
             None,
-            Column::new()
-                .width(Length::Fill)
-                .spacing(20)
-                .align_x(Alignment::Center)
-                .push(cube_and_quote(quote))
-                .push(crate::loading::loading_indicator(None))
-                .push(text(CopyText::ConnectingToDaemon.get()).style(theme::text::secondary)),
+            cube_loader(
+                quote,
+                text(CopyText::ConnectingToDaemon.get()).style(theme::text::secondary),
+            ),
         ),
         Step::Syncing {
             progress,
@@ -1474,26 +1515,21 @@ pub(crate) fn view_with_retry<'a>(
             ..
         } => cover(
             None,
-            Column::new()
-                .width(Length::Fill)
-                .spacing(5)
-                .align_x(Alignment::Center)
-                .push(cube_and_quote(quote))
-                .push(crate::loading::loading_indicator(None))
-                .push(
-                    text(if *progress > 0.98 {
-                        CopyText::AlmostThere.get()
-                    } else {
-                        CopyText::SyncingBlockchain.get()
-                    })
-                    .style(theme::text::secondary),
-                )
-                .push_maybe(
-                    coincube_ui::worldview_copy::VoiceLine::Syncing
-                        .get()
-                        .map(|line| p2_regular(line).style(theme::text::secondary)),
-                )
-                .push(p2_regular(bitcoind_logs).style(theme::text::secondary)),
+            cube_loader(
+                quote,
+                text(if *progress > 0.98 {
+                    CopyText::AlmostThere.get()
+                } else {
+                    CopyText::SyncingBlockchain.get()
+                })
+                .style(theme::text::secondary),
+            )
+            .push_maybe(
+                coincube_ui::worldview_copy::VoiceLine::Syncing
+                    .get()
+                    .map(|line| p2_regular(line).style(theme::text::secondary)),
+            )
+            .push(p2_regular(bitcoind_logs).style(theme::text::secondary)),
         ),
         Step::Error(error) => {
             let headline = match error.as_ref() {
@@ -1510,12 +1546,9 @@ pub(crate) fn view_with_retry<'a>(
             };
             cover(
                 Some((CopyText::ErrorWhileStartingTenshu.get(), error)),
-                Column::new()
-                    .spacing(20)
-                    .width(Length::Fill)
-                    .align_x(Alignment::Center)
-                    .push(cube_and_quote(quote))
-                    .push(text(headline))
+                // An error is not loading: the Cube holds still.
+                still_cube_loader(quote, text(headline))
+                    .push(iced::widget::Space::new().height(Length::Fixed(12.0)))
                     .push({
                         let actions = Row::new().spacing(10).push(
                             button::secondary(None, CopyText::Back.get())
@@ -1550,10 +1583,11 @@ pub fn cover<'a, T: 'a + Clone, C: Into<Element<'a, T>>>(
     Column::new()
         .push(warn.map(|w| notification::warning(w.0.to_string(), w.1.to_string())))
         .push(
-            Container::new(content)
+            Container::new(Container::new(content).id(cube_loader_group_id()))
                 .center_x(iced::Length::Fill)
                 .center_y(iced::Length::Fill)
-                .padding(50),
+                .padding(50)
+                .id(cube_loader_frame_id()),
         )
         .into()
 }

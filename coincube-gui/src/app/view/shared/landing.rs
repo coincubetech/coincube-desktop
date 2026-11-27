@@ -231,6 +231,7 @@ pub(crate) mod capture {
     struct TextProbe {
         entries: Vec<(String, Rectangle)>,
         focus: Vec<(Id, Rectangle)>,
+        containers: Vec<(Id, Rectangle)>,
     }
 
     impl Operation for TextProbe {
@@ -240,6 +241,12 @@ pub(crate) mod capture {
 
         fn text(&mut self, _id: Option<&Id>, bounds: Rectangle, value: &str) {
             self.entries.push((value.to_owned(), bounds));
+        }
+
+        fn container(&mut self, id: Option<&Id>, bounds: Rectangle) {
+            if let Some(id) = id {
+                self.containers.push((id.clone(), bounds));
+            }
         }
 
         fn focusable(&mut self, id: Option<&Id>, bounds: Rectangle, _: &mut dyn Focusable) {
@@ -252,6 +259,8 @@ pub(crate) mod capture {
     pub struct Inspection {
         pub text: Vec<(String, Rectangle)>,
         pub focus: Vec<(Id, Rectangle)>,
+        /// Containers that carry an id, where they were laid out.
+        pub containers: Vec<(Id, Rectangle)>,
         /// Raster images and SVGs the software renderer drew, when the
         /// inspection drew the screen (the `inspect_rendered_*` helpers or a
         /// capture run); `None` when it only laid it out.
@@ -297,6 +306,117 @@ pub(crate) mod capture {
                  locale::copy / localized_format! and add it to desktop.es.json:\n  {}",
                 leaks.join("\n  ")
             );
+        }
+
+        /// Where each turning Cube was laid out. Its canvas reports nothing
+        /// to widget operations and is not counted by [`Self::drawn_images`],
+        /// so the Cube is found by its container's id.
+        /// Turning and still alike: [`Self::still_cubes`] tells them apart.
+        pub fn turning_cubes(&self) -> Vec<Rectangle> {
+            use coincube_ui::component::tenshu::turning_cube;
+            let (turning, still) = (turning_cube::id(), turning_cube::still_id());
+            self.containers
+                .iter()
+                .filter_map(|(id, bounds)| (*id == turning || *id == still).then_some(*bounds))
+                .collect()
+        }
+
+        /// The Cubes held still on the logo pose (reduced motion, or a
+        /// screen that is not loading).
+        pub fn still_cubes(&self) -> Vec<Rectangle> {
+            self.containers_with(coincube_ui::component::tenshu::turning_cube::still_id())
+        }
+
+        /// Where each container carrying `id` was laid out.
+        pub fn containers_with(&self, id: Id) -> Vec<Rectangle> {
+            self.containers
+                .iter()
+                .filter_map(|(actual, bounds)| (*actual == id).then_some(*bounds))
+                .collect()
+        }
+
+        /// The bounds of the first text that contains `needle`.
+        pub fn text_bounds(&self, needle: &str) -> Option<Rectangle> {
+            self.text
+                .iter()
+                .find_map(|(value, bounds)| value.contains(needle).then_some(*bounds))
+        }
+
+        /// The Cube loader (Robert, 2026-11-27), read top to bottom: one
+        /// turning Cube `side` px square, then the quote (`quote`, and its
+        /// `attribution` line), then the status, centred on one axis, with
+        /// the same gap above and below the quote, and the whole group
+        /// (`loader::cube_loader_group_id`) vertically centred in its frame
+        /// (`loader::cube_loader_frame_id`).
+        pub fn assert_cube_loader(
+            &self,
+            scenario: &str,
+            side: f32,
+            quote: &str,
+            attribution: &str,
+            status: &str,
+        ) {
+            let cubes = self.turning_cubes();
+            assert_eq!(cubes.len(), 1, "{scenario}: one turning Cube, {cubes:?}");
+            let cube = cubes[0];
+            assert_eq!(
+                (cube.width, cube.height),
+                (side, side),
+                "{scenario}: the Cube's size"
+            );
+            let find = |needle: &str| {
+                self.text_bounds(needle)
+                    .unwrap_or_else(|| panic!("{}", format!("{scenario}: no {needle:?}")))
+            };
+            let (said, by, state) = (find(quote), find(attribution), find(status));
+            assert!(
+                cube.y + cube.height <= said.y,
+                "{}",
+                format!("{scenario}: the Cube {cube:?} must sit above the quote {said:?}")
+            );
+            assert!(
+                said.y + said.height <= by.y && by.y + by.height <= state.y,
+                "{}",
+                format!(
+                    "{scenario}: the quote {said:?} and its attribution {by:?} must sit above \
+                 the status {state:?}"
+                )
+            );
+            let above = said.y - (cube.y + cube.height);
+            let below = state.y - (by.y + by.height);
+            assert!(
+                (above - below).abs() <= 1.0,
+                "{}",
+                format!("{scenario}: {above} px above the quote but {below} px below it")
+            );
+            let one = |id: Id, what: &str| {
+                let found = self.containers_with(id);
+                assert_eq!(found.len(), 1, "{scenario}: one {what}, {found:?}");
+                found[0]
+            };
+            let group = one(crate::loader::cube_loader_group_id(), "Cube loader group");
+            let frame = one(crate::loader::cube_loader_frame_id(), "Cube loader frame");
+            assert!(
+                group.y <= cube.y && state.y + state.height <= group.y + group.height,
+                "{}",
+                format!("{scenario}: the group {group:?} holds the Cube and the status")
+            );
+            let middle = |r: Rectangle| r.y + r.height / 2.0;
+            assert!(
+                (middle(group) - middle(frame)).abs() <= 1.0,
+                "{}",
+                format!("{scenario}: the group {group:?} is centred in its frame {frame:?}")
+            );
+            let centre = |r: Rectangle| r.x + r.width / 2.0;
+            for (what, bounds) in [("quote", said), ("status", state)] {
+                assert!(
+                    (centre(cube) - centre(bounds)).abs() <= 1.0,
+                    "{}",
+                    format!(
+                        "{scenario}: the Cube {cube:?} and the {what} {bounds:?} share a centre"
+                    )
+                );
+            }
         }
 
         pub fn has_focus(&self, id: Id) -> bool {
@@ -564,6 +684,7 @@ pub(crate) mod capture {
         Inspection {
             text: probe.entries,
             focus: probe.focus,
+            containers: probe.containers,
             images,
         }
     }

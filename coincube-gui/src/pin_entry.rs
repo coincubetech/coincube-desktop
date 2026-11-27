@@ -57,6 +57,25 @@ pub enum PinEntrySuccess {
     },
 }
 
+impl PinEntrySuccess {
+    /// The stage a Cube opening starts on once this unlock is verified. The
+    /// unlock routes past its screen (to the Loader, or back to the Launcher
+    /// for a legacy Liana Connect Vault) exactly when it carries Bitcoin
+    /// wallet settings: a Vault or an imported wallet. Without them there is
+    /// no daemon to start: the wallets load and the Cube is almost there.
+    pub(crate) fn opening_stage(&self) -> crate::home::launcher_opening::Stage {
+        use crate::home::launcher_opening::Stage;
+        let Self::LoadApp {
+            wallet_settings, ..
+        } = self;
+        if wallet_settings.is_some() {
+            Stage::Connecting
+        } else {
+            Stage::AlmostThere
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Message {
     PinInput(pin_input::Message),
