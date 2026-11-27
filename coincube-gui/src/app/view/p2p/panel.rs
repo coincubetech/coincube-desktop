@@ -7153,7 +7153,7 @@ mod book_filter_tests {
         let mut tree = Tree::new(element.as_widget());
         let (node, before) = frame(&mut tree, &renderer, &mut element);
         let title = before.text("Order Details");
-        let line = before.text("Everyday · Bitcoin mainnet");
+        let line = before.text("Everyday");
         let lead = before.text("View order information");
         let (viewport, offset) = before.scroller_of(lead);
         assert_eq!(offset, Vector::ZERO);
@@ -7183,7 +7183,7 @@ mod book_filter_tests {
             title,
             "the title does not move"
         );
-        assert_eq!(after.text("Everyday · Bitcoin mainnet"), line);
+        assert_eq!(after.text("Everyday"), line);
     }
 
     /// Order details under its pinned head, at the top and scrolled (Tenshu

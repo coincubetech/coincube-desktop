@@ -189,14 +189,20 @@ fn dock_button(
 /// A network's full name (`CH.full`), for a Cube's face and its unlock.
 pub(crate) fn network_name(chain: ChainId) -> &'static str {
     match chain {
-        ChainId::Bitcoin => "Bitcoin mainnet",
-        ChainId::BitcoinBlake2b => "Bitcoin Blake2b mainnet",
+        ChainId::Bitcoin | ChainId::BitcoinBlake2b => mainnet_name(chain),
         ChainId::Testnet => "Bitcoin Testnet",
         ChainId::Testnet4 => "Bitcoin Testnet4",
         ChainId::Signet => "Bitcoin Signet",
         ChainId::Regtest => "Bitcoin Regtest",
         ChainId::BitcoinBlake2bTestnet4 => "Bitcoin Blake2b Testnet4",
     }
+}
+
+/// A mainnet's name in the reader's language. The test networks' names
+/// (Testnet4, Signet, Regtest) are proper names and stay as they are.
+/// Shared with the Cube's own shell (`nav::shell::network_label`).
+fn mainnet_name(chain: ChainId) -> &'static str {
+    crate::app::view::nav::shell::network_label(chain)
 }
 
 /// A Network menu row's count: this device's Cubes, then the network's
@@ -242,8 +248,7 @@ fn scope_menu_count(projection: &Projection<'_>, scope: NetworkFilter) -> String
 /// A network's menu name (`CH.menu`), for the Network chip and menu.
 pub(super) fn network_menu_name(chain: ChainId) -> &'static str {
     match chain {
-        ChainId::Bitcoin => "Bitcoin mainnet",
-        ChainId::BitcoinBlake2b => "Bitcoin Blake2b mainnet",
+        ChainId::Bitcoin | ChainId::BitcoinBlake2b => mainnet_name(chain),
         ChainId::BitcoinBlake2bTestnet4 => "Blake2b Testnet4",
         other => other.label(),
     }
@@ -1798,13 +1803,11 @@ pub(super) fn network_layer<'a>(
             filter_label(scope),
             scope_menu_count(projection, scope),
             on,
-            // As for a network: a scope that still has to move the current
-            // network can be chosen again to retry.
-            if on && home.filter_target(scope).is_none() {
-                close.clone()
-            } else {
-                pick(scope)
-            },
+            // Choosing the stored filter again applies it again: that closes
+            // the menu, returns focus to the Network button and retries a
+            // network switch. Under a stored Live or Test filter that
+            // Developer mode off has hidden, All networks really sets All.
+            pick(scope),
         ));
     }
     rows = rows.push(menu_divider());
@@ -1816,12 +1819,9 @@ pub(super) fn network_layer<'a>(
             network_menu_name(chain).to_string(),
             network_menu_count(projection, chain, *count),
             on,
-            // Retry is possible while the filtered network is not yet current.
-            if on && chain == home.network {
-                close.clone()
-            } else {
-                pick(NetworkFilter::Network(chain))
-            },
+            // As for a scope: choosing it again closes the menu with focus
+            // on the button, and retries while it is not yet current.
+            pick(NetworkFilter::Network(chain)),
         ));
     }
     let menu = Container::new(rows)

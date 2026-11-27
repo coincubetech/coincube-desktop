@@ -39,8 +39,7 @@ use coincube_ui::component::tenshu::{
 };
 use coincube_ui::component::text::Text;
 use coincube_ui::{
-    color,
-    component::{button, text, text::*},
+    component::{button, text::*},
     icon::cross_icon,
     theme,
     widget::*,
@@ -78,83 +77,25 @@ pub fn spark_notice_text(notice: &SparkNotice) -> String {
     }
 }
 
-/// A warning strip for a Spark Stable Balance condition, rendered by the
-/// `dashboard` wrapper when `cache.spark_notice` is set.
-/// "Spark Settings" routes to the page with the
-/// toggle; × dismisses for the session.
+/// A warning notice for a Spark Stable Balance condition, rendered by the
+/// `dashboard` wrapper when `cache.spark_notice` is set. It takes the one
+/// notice anatomy (option D): the feature's name as the title, the sentence
+/// as its line, "Spark Settings" as the outlined action that routes to the
+/// page with the toggle, and a quiet × that dismisses for the session.
 pub fn spark_notice_banner(notice: &SparkNotice) -> Element<'_, Message> {
-    let body = container(
-        row![
-            coincube_ui::icon::warning_icon().color(color::BLACK),
-            // `Fill`, not the default `Shrink`: a shrink text is laid out
-            // first with the whole row available, wraps into all of it, and
-            // pushes the buttons off the edge. A fill child is sized after
-            // the fixed ones, so it wraps within what's actually left.
-            text::p2_regular(spark_notice_text(notice))
-                .color(color::BLACK)
-                .width(Length::Fill),
-            button::secondary(None, "Spark Settings")
-                .style(on_warning_button(true))
-                .padding([6, 14])
-                .width(Length::Fixed(140.0))
-                .on_press(Message::Menu(Menu::Spark(
-                    crate::app::menu::SparkSubMenu::Settings(None),
-                ))),
-            iced::widget::Button::new(
-                cross_icon()
-                    .align_x(Alignment::Center)
-                    .align_y(Alignment::Center),
-            )
-            .padding([8, 10])
-            .style(on_warning_button(false))
-            .on_press(Message::DismissSparkNotice),
-        ]
-        .spacing(10)
-        .align_y(Alignment::Center),
+    let body = coincube_ui::component::notice::notice(
+        coincube_ui::component::notice::NoticeTone::Warning,
+        localized_copy("Stable Balance"),
     )
-    .padding([8, 16])
-    .width(Length::Fill)
-    .style(theme::notification::warning);
+    .detail(spark_notice_text(notice))
+    .action(
+        localized_copy("Spark Settings"),
+        Message::Menu(Menu::Spark(crate::app::menu::SparkSubMenu::Settings(None))),
+    )
+    .dismiss(Message::DismissSparkNotice)
+    .into_container();
 
     page(body, PageWidth::Reading).vertical(8.0, 8.0).into()
-}
-
-/// A button on the warning banner's orange, in the banner's own dark text
-/// rather than the shell ink (ink on the orange is about 3.4:1 in dark).
-/// `boxed` adds the content rule's 1px outline in that colour; the close ×
-/// has no box. Hover darkens the orange slightly.
-fn on_warning_button(
-    boxed: bool,
-) -> impl Fn(&theme::Theme, iced::widget::button::Status) -> iced::widget::button::Style {
-    move |_theme, status| {
-        use iced::widget::button::Status;
-        let fade = |c: iced::Color| {
-            if status == Status::Disabled {
-                coincube_ui::theme::tenshu::faded(c, coincube_ui::theme::tenshu::DISABLED_ALPHA)
-            } else {
-                c
-            }
-        };
-        iced::widget::button::Style {
-            background: matches!(status, Status::Hovered | Status::Pressed).then(|| {
-                iced::Background::Color(iced::Color {
-                    a: 0.08,
-                    ..color::BLACK
-                })
-            }),
-            text_color: fade(color::BLACK),
-            border: iced::Border {
-                color: if boxed {
-                    fade(color::BLACK)
-                } else {
-                    iced::Color::TRANSPARENT
-                },
-                width: if boxed { 1.0 } else { 0.0 },
-                radius: coincube_ui::theme::tenshu::radius::CONTROL.into(),
-            },
-            ..Default::default()
-        }
-    }
 }
 
 /// A Cube page with no head of its own. Settings and the Vault's Tools still
@@ -206,11 +147,6 @@ pub fn cube_coin<'a>(cache: &Cache) -> Element<'a, Message> {
     .into()
 }
 
-/// "‹name› · ‹network›", the line under a page title.
-pub fn network_line(cache: &Cache, name: &str) -> String {
-    format!("{name} · {}", nav::shell::network_label(cache.chain()))
-}
-
 /// The Cube's name as the side panel shows it, or "Cube" while it has none.
 /// Names are saved without a length limit and may hold line breaks, and a
 /// pinned head doesn't scroll, so heads get the same one-line, 16-character
@@ -223,16 +159,16 @@ pub fn cube_display_name(cache: &Cache) -> String {
     }
 }
 
-/// A pinned page head: `title`, then the Cube's coin and "‹Cube› · ‹network›".
+/// A pinned page head: `title`, then the Cube's coin and its name. The line
+/// names no network: the coin says which chain, and a test network has the
+/// tag beside the wordmark (S1).
 /// Add the page's actions and its back target with the [`PageHead`] builders.
 pub fn page_head<'a>(
     cache: &Cache,
     title: impl iced::widget::text::IntoFragment<'a>,
 ) -> PageHead<'a, Message> {
-    coincube_ui::component::tenshu::page_head(title, Message::FocusAction).context(
-        cube_coin(cache),
-        network_line(cache, &cube_display_name(cache)),
-    )
+    coincube_ui::component::tenshu::page_head(title, Message::FocusAction)
+        .context(cube_coin(cache), cube_display_name(cache))
 }
 
 /// A wallet page's head: "Spark · ‹nickname›" or "Vault · ‹alias›" as the
@@ -246,7 +182,7 @@ pub fn wallet_page_head<'a>(
 }
 
 /// The head of a page inside a wallet (Send, Receive, its activity, a
-/// transaction): `title`, then the coin and "‹wallet› · ‹Cube› · ‹network›",
+/// transaction): `title`, then the coin and "‹wallet› · ‹Cube›",
 /// so the page still says which wallet it belongs to (the H-Send boards).
 pub fn wallet_sub_page_head<'a>(
     cache: &Cache,
@@ -259,7 +195,7 @@ pub fn wallet_sub_page_head<'a>(
         format!(
             "{} · {}",
             nav::shell::wallet_label(wallet, name),
-            network_line(cache, &cube_display_name(cache))
+            cube_display_name(cache)
         ),
     )
 }
@@ -984,6 +920,9 @@ pub fn toast_overlay<
     )
     .into()
 }
+
+#[cfg(test)]
+mod notice_tests;
 
 #[cfg(test)]
 mod toast_overlay_tests {
@@ -1727,7 +1666,7 @@ mod page_head_tests {
         let mut tree = Tree::new(element.as_widget());
         let (node, before) = frame(&mut tree, &renderer, &mut element);
         let title = before.text(TITLE);
-        let line = before.text("Everyday · Bitcoin mainnet");
+        let line = before.text("Everyday");
         let first_row = before.text("Row 0");
         let (viewport, offset) = before.scroller_of(first_row);
         assert_eq!(offset, Vector::ZERO);
@@ -1759,11 +1698,7 @@ mod page_head_tests {
         let mut element = long_page(&menu, &cache);
         let (_, after) = frame(&mut tree, &renderer, &mut element);
         assert_eq!(after.text(TITLE), title, "the title does not move");
-        assert_eq!(
-            after.text("Everyday · Bitcoin mainnet"),
-            line,
-            "the Cube line does not move"
-        );
+        assert_eq!(after.text("Everyday"), line, "the Cube line does not move");
         let (_, offset) = after.scroller_of(after.text("Row 0"));
         assert_eq!(offset.y, scrolled, "the body moved by the reported offset");
         // Content draws at its layout position less the translation.
@@ -1804,38 +1739,38 @@ mod page_head_tests {
                 &named,
                 |cache| vault_page_head(cache, "Send"),
                 "Send",
-                "Vault · Family savings · Everyday · Bitcoin mainnet",
+                "Vault · Family savings · Everyday",
             ),
             (
                 &named,
                 |cache| spark_page_head(cache, "Receive"),
                 "Receive",
-                "Spark · Daily spending · Everyday · Bitcoin mainnet",
+                "Spark · Daily spending · Everyday",
             ),
             (
                 &unnamed,
                 |cache| vault_page_head(cache, "Send"),
                 "Send",
-                "Vault · Everyday · Bitcoin mainnet",
+                "Vault · Everyday",
             ),
             (
                 &unnamed,
                 |cache| spark_page_head(cache, "Receive"),
                 "Receive",
-                "Spark · Everyday · Bitcoin mainnet",
+                "Spark · Everyday",
             ),
             // A wallet's own page is titled with its name.
             (
                 &named,
                 |cache| wallet_page_head(cache, "Vault", cache.wallet_names.vault.as_deref()),
                 "Vault · Family savings",
-                "Everyday · Bitcoin mainnet",
+                "Everyday",
             ),
             (
                 &named,
                 |cache| wallet_page_head(cache, "Spark", cache.wallet_names.spark.as_deref()),
                 "Spark · Daily spending",
-                "Everyday · Bitcoin mainnet",
+                "Everyday",
             ),
         ];
         for (cache, head, title, line) in cases {
@@ -1873,22 +1808,22 @@ mod page_head_tests {
             (
                 &overview,
                 |menu, cache| dashboard_headed(menu, cache, page_head(cache, "Overview"), rows()),
-                "A very long Cube… · Bitcoin mainnet",
+                "A very long Cube…",
             ),
             (
                 &settings,
                 |menu, cache| dashboard(menu, cache, rows()),
-                "Cube · A very long Cube… · Bitcoin mainnet",
+                "Cube · A very long Cube…",
             ),
             (
                 &tools,
                 |menu, cache| dashboard(menu, cache, rows()),
-                "A very long Cube… · Bitcoin mainnet",
+                "A very long Cube…",
             ),
             (
                 &send,
                 |menu, cache| dashboard_headed(menu, cache, vault_page_head(cache, "Send"), rows()),
-                "Vault · A very long Cube… · Bitcoin mainnet",
+                "Vault · A very long Cube…",
             ),
         ];
         for (menu, page, line) in cases {
@@ -1955,43 +1890,6 @@ mod page_head_tests {
                 "{:?}",
                 menu
             );
-        }
-    }
-}
-
-#[cfg(test)]
-mod spark_notice_button_tests {
-    use super::on_warning_button;
-    use coincube_ui::{
-        color,
-        theme::{self, tenshu::contrast},
-    };
-    use iced::widget::button::Status;
-
-    /// The banner's buttons use its own dark text, which reads on the
-    /// warning orange where the shell ink does not; Spark Settings keeps the
-    /// content rule's 1px outline in that colour and the close × has no box.
-    #[test]
-    fn warning_banner_buttons_read_on_the_orange() {
-        for t in [theme::Theme::dark(), theme::Theme::light()] {
-            let orange = t.colors.notifications.warning.background;
-            assert!(contrast(color::BLACK, orange) >= 4.5);
-            for status in [Status::Active, Status::Hovered, Status::Pressed] {
-                let boxed = on_warning_button(true)(&t, status);
-                assert_eq!(boxed.text_color, color::BLACK);
-                assert_eq!(boxed.border.width, 1.0);
-                assert_eq!(boxed.border.color, color::BLACK);
-                let close = on_warning_button(false)(&t, status);
-                assert_eq!(close.text_color, color::BLACK);
-                assert_eq!(close.border.width, 0.0);
-            }
-            assert_eq!(
-                on_warning_button(false)(&t, Status::Active).background,
-                None
-            );
-            assert!(on_warning_button(false)(&t, Status::Hovered)
-                .background
-                .is_some());
         }
     }
 }

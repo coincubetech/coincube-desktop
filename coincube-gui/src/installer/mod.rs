@@ -413,12 +413,11 @@ pub(crate) fn connect_esplora_config<C: Into<crate::chain::ChainId>>(
     }
 }
 
-use coincube_core::miniscript::bitcoin::{self, Network};
+use coincube_core::miniscript::bitcoin;
+#[cfg(test)]
+use coincube_core::miniscript::bitcoin::Network;
 use coincube_ui::locale::Text as CopyText;
-use coincube_ui::{
-    component::network_banner,
-    widget::{Column, ColumnExt, Element},
-};
+use coincube_ui::widget::{Column, ColumnExt, Element};
 use coincubed::config::EsploraConfig;
 use coincubed::config::{BitcoinBackend, BitcoindConfig, BitcoindRpcAuth, Config};
 pub use context::{Context, RestoreSource};
@@ -1707,11 +1706,22 @@ impl Installer {
             content
         };
 
-        if self.network != Network::Bitcoin {
-            Column::with_children(vec![network_banner(self.network).into(), content]).into()
+        // On a test network the brand bar carries the test-network tag
+        // (S1). Import or restore draws its own, with the tag, so it gets
+        // no second one.
+        if self.restore.is_none() && crate::chain::test_network_name(self.chain()).is_some() {
+            Column::new()
+                .push(crate::home::restore_frame::brand_bar(self.chain()))
+                .push(content)
+                .into()
         } else {
             content
         }
+    }
+
+    /// The chain this installer sets a Cube up on.
+    fn chain(&self) -> crate::chain::ChainId {
+        self.context.bitcoin_config.chain
     }
 
     /// The step's view, without the installer's own title row when
@@ -1879,11 +1889,10 @@ impl Installer {
             body,
             footer,
         );
-        restore_frame::standalone(restore_frame::sheet(
-            header,
-            restore_frame::with_nav(nav.into(), region),
-            None,
-        ))
+        restore_frame::standalone(
+            chain,
+            restore_frame::sheet(header, restore_frame::with_nav(nav.into(), region), None),
+        )
     }
 }
 
@@ -4971,6 +4980,91 @@ mod create_vault_frame_tests {
             "{:?}",
             shown
         );
+    }
+
+    /// S1, S2: on every test network, every installer step carries the
+    /// test-network tag in its brand bar; on a mainnet there is no tag. Every
+    /// chain renders without a panic.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn every_installer_step_names_a_test_network() {
+        for chain in ChainId::ALL {
+            let mut vault = {
+                let _guard = crate::app::session::test_guard();
+                in_cube(chain)
+            };
+            // The steps after Keys need the policy it would build.
+            vault.context.descriptor = Some(
+                std::str::FromStr::from_str("wsh(or_d(pk([8a550171/48'/1'/0'/2']tpubDFnCs5ZaCqopaNhgLCiXAwbkaBdcnuMt1VFoPsRpUrpidyvzG67MYjkfxw6HnTBhHqeU3xw2ioNBVcWY3jXwGhSyppEQvtn38GsL7RH1eef/<0;1>/*),and_v(v:pkh([8a550171/48'/1'/0'/2']tpubDFnCs5ZaCqopaNhgLCiXAwbkaBdcnuMt1VFoPsRpUrpidyvzG67MYjkfxw6HnTBhHqeU3xw2ioNBVcWY3jXwGhSyppEQvtn38GsL7RH1eef/<2;3>/*),older(52596))))#jz5sm0xn")
+                    .unwrap(),
+            );
+            for index in 0..vault.steps.len() {
+                if vault.steps[index].skip(&vault.context) {
+                    continue;
+                }
+                vault.current = index;
+                vault.steps[index].load_context(&vault.context);
+                let shown = rendered_labels(vault.view()).await;
+                let tagged = shown.iter().any(|t| t == "Test coins, no value");
+                match crate::chain::test_network_name(chain) {
+                    Some(name) => assert!(
+                        tagged && shown.iter().any(|t| t == name),
+                        "{:?} step {} has no tag: {:?}",
+                        chain,
+                        index,
+                        shown
+                    ),
+                    None => assert!(!tagged, "{:?} step {} is tagged", chain, index),
+                }
+            }
+        }
+    }
+
+    /// Import or restore draws its own brand bar, which carries the tag on a
+    /// test network, so the installer adds no second bar under it.
+    #[tokio::test]
+    async fn the_restore_frames_brand_bar_names_a_test_network() {
+        for chain in ChainId::ALL {
+            let shown = rendered_labels(crate::home::restore_frame::brand_bar::<()>(chain)).await;
+            assert_eq!(
+                shown.iter().any(|t| t == "Test coins, no value"),
+                crate::chain::test_network_name(chain).is_some(),
+                "{:?}: {:?}",
+                chain,
+                shown
+            );
+        }
+    }
+
+    /// Opt-in look check: the installer's first step on Signet in both
+    /// themes. `W3_CAPTURE_DIR=<dir> cargo test -p coincube-gui --lib
+    /// w3_installer_capture -- --ignored`.
+    #[test]
+    #[ignore = "writes PNG frames"]
+    fn w3_installer_capture() {
+        use crate::app::view::shared::landing::capture::render_pixels;
+        let Some(directory) = std::env::var_os("W3_CAPTURE_DIR") else {
+            return;
+        };
+        let directory = std::path::PathBuf::from(directory);
+        std::fs::create_dir_all(&directory).unwrap();
+        let vault = {
+            let _guard = crate::app::session::test_guard();
+            in_cube(ChainId::Signet)
+        };
+        for (name, theme) in [
+            ("dark", coincube_ui::theme::Theme::dark()),
+            ("light", coincube_ui::theme::Theme::light()),
+        ] {
+            let pixels = render_pixels(vault.view(), (1440, 900), &theme, None);
+            image::save_buffer(
+                directory.join(format!("installer-signet-{}.png", name)),
+                &pixels.rgba,
+                1440,
+                900,
+                image::ColorType::Rgba8,
+            )
+            .unwrap();
+        }
     }
 
     /// Opt-in frames of every Create Vault step: `LAUNCHER_CAPTURE_DIR=<dir>

@@ -1129,7 +1129,7 @@ fn controls_page() -> Element<'static, Msg> {
             Column::new()
                 .spacing(2)
                 .push(title("Settings"))
-                .push(caption("Cube · Everyday · Bitcoin mainnet")),
+                .push(caption("Cube · Everyday")),
         )
         .push(amounts)
         .push(appearance)

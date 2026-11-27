@@ -66,7 +66,7 @@ pub fn page_head(menu: &Menu, cache: &Cache) -> Option<PageHead<'static, Message
             cache,
             coincube_ui::component::tenshu::page_head("Tools", Message::FocusAction).context(
                 crate::app::view::cube_coin(cache),
-                crate::app::view::network_line(cache, &crate::app::view::cube_display_name(cache)),
+                crate::app::view::cube_display_name(cache),
             ),
         )
     })

@@ -265,21 +265,21 @@ fn spark_section_routes(menu: &Menu) -> Vec<RouteChoice> {
 }
 
 /// The line under the title (`.idl`): the scope, the wallet's nickname when
-/// it has one, the Cube's name and the network, as in "Spark · Daily
-/// spending · Everyday · Bitcoin mainnet". Names get the side panel's
-/// one-line cut, because the head doesn't scroll.
+/// it has one and the Cube's name, as in "Spark · Daily spending ·
+/// Everyday". The network is not named: the coin before the line says
+/// which chain, and a test network has the tag beside the wordmark (S1).
+/// Names get the side panel's one-line cut, because the head doesn't scroll.
 fn head_line(scope: RouteScope, cache: &Cache) -> String {
     let wallet = match scope {
         RouteScope::Cube => RouteScope::Cube.label().to_owned(),
         RouteScope::Vault => wallet_label("Vault", cache.wallet_names.vault.as_deref()),
         RouteScope::Spark => wallet_label("Spark", cache.wallet_names.spark.as_deref()),
     };
-    let name = if cache.cube_name.is_empty() {
+    if cache.cube_name.is_empty() {
         wallet
     } else {
         format!("{wallet} · {}", crate::app::view::cube_display_name(cache))
-    };
-    crate::app::view::network_line(cache, &name)
+    }
 }
 
 /// The Settings head: "Settings" and its scope line, the scope switch on the
@@ -655,39 +655,34 @@ mod tests {
     }
 
     #[test]
-    fn head_line_names_the_scope_nickname_cube_and_network() {
+    fn head_line_names_the_scope_nickname_and_cube_but_no_network() {
         let mut cache = Cache {
             cube_name: "Everyday".to_owned(),
             ..spark_cache()
         };
-        assert_eq!(
-            head_line(RouteScope::Cube, &cache),
-            "Cube · Everyday · Bitcoin mainnet"
-        );
-        assert_eq!(
-            head_line(RouteScope::Spark, &cache),
-            "Spark · Everyday · Bitcoin mainnet"
-        );
+        assert_eq!(head_line(RouteScope::Cube, &cache), "Cube · Everyday");
+        assert_eq!(head_line(RouteScope::Spark, &cache), "Spark · Everyday");
         cache.wallet_names.spark = Some("Daily spending".to_owned());
         cache.wallet_names.vault = Some("Family savings".to_owned());
         assert_eq!(
             head_line(RouteScope::Spark, &cache),
-            "Spark · Daily spending · Everyday · Bitcoin mainnet"
+            "Spark · Daily spending · Everyday"
         );
         assert_eq!(
             head_line(RouteScope::Vault, &cache),
-            "Vault · Family savings · Everyday · Bitcoin mainnet"
+            "Vault · Family savings · Everyday"
         );
         // A Cube without a name leaves it out rather than repeating "Cube".
         cache.cube_name.clear();
-        assert_eq!(
-            head_line(RouteScope::Cube, &cache),
-            "Cube · Bitcoin mainnet"
-        );
+        assert_eq!(head_line(RouteScope::Cube, &cache), "Cube");
         assert_eq!(
             head_line(RouteScope::Vault, &cache),
-            "Vault · Family savings · Bitcoin mainnet"
+            "Vault · Family savings"
         );
+        // On a test network the tag names it (S1); the line still doesn't.
+        cache.cube_name = "Everyday".to_owned();
+        cache.fiat_chain = crate::chain::ChainId::Testnet4;
+        assert_eq!(head_line(RouteScope::Cube, &cache), "Cube · Everyday");
     }
 
     #[test]

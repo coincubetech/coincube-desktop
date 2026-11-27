@@ -1,46 +1,29 @@
 use iced::widget::container::Style;
 use iced::{Background, Border};
 
-use super::palette::ContainerPalette;
 use super::Theme;
 
-fn notification(palette: &ContainerPalette) -> Style {
-    Style {
-        background: Some(Background::Color(palette.background)),
-        text_color: palette.text,
-        border: if let Some(color) = palette.border {
-            Border {
-                width: 1.0,
-                color,
-                radius: 25.0.into(),
-            }
-        } else {
-            Border {
-                ..Default::default()
-            }
-        },
-        ..Default::default()
-    }
-}
-
+/// The legacy notification styles now draw the one notice surface
+/// ([`notice`]): a filled row with the line border, washed 8% in the tone
+/// for a warning or an error. Pending reads as info.
 pub fn pending(theme: &Theme) -> Style {
-    notification(&theme.colors.notifications.pending)
+    notice(theme, ToastTone::Info)
 }
 
 pub fn error(theme: &Theme) -> Style {
-    notification(&theme.colors.notifications.error)
+    notice(theme, ToastTone::Error)
 }
 
 pub fn success(theme: &Theme) -> Style {
-    notification(&theme.colors.notifications.success)
+    notice(theme, ToastTone::Success)
 }
 
 pub fn warning(theme: &Theme) -> Style {
-    notification(&theme.colors.notifications.warning)
+    notice(theme, ToastTone::Warning)
 }
 
 pub fn info(theme: &Theme) -> Style {
-    notification(&theme.colors.notifications.info)
+    notice(theme, ToastTone::Info)
 }
 
 /// Severity of a toast. Sets the icon, its tint and whether the panel is
@@ -129,6 +112,44 @@ pub fn toast_icon_tile(theme: &Theme, tone: ToastTone) -> Style {
         ))),
         border: Border {
             radius: super::tenshu::radius::ROW.into(),
+            ..Border::default()
+        },
+        ..Style::default()
+    }
+}
+
+/// `.nt { border-radius: 12px }`.
+pub const NOTICE_RADIUS: f32 = 12.0;
+/// `.nt .ti { background: color-mix(in srgb, var(--tone) 16%, transparent) }`.
+const NOTICE_TILE_ALPHA: f32 = 0.16;
+
+/// A standing notice's surface (`.nt`, option D): the panel with a 1px line
+/// border on every tone, the panel washed [`ATTENTION_WASH`] in the tone for
+/// a warning or an error (the toasts' [`toast_fill`]). No tone edge, no
+/// shadow: a notice sits in the page, not over it.
+pub fn notice(theme: &Theme, tone: ToastTone) -> Style {
+    Style {
+        text_color: Some(theme.colors.shell.ink),
+        background: Some(Background::Color(toast_fill(theme, tone))),
+        border: Border {
+            width: 1.0,
+            color: theme.colors.shell.line,
+            radius: NOTICE_RADIUS.into(),
+        },
+        ..Style::default()
+    }
+}
+
+/// The 28px tile behind a notice's icon: the tone at 16%, radius 8.
+pub fn notice_icon_tile(theme: &Theme, tone: ToastTone) -> Style {
+    Style {
+        text_color: Some(tone.color(theme)),
+        background: Some(Background::Color(super::tenshu::faded(
+            tone.color(theme),
+            NOTICE_TILE_ALPHA,
+        ))),
+        border: Border {
+            radius: super::tenshu::radius::CONTROL.into(),
             ..Border::default()
         },
         ..Style::default()

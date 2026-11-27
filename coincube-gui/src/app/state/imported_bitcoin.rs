@@ -3104,11 +3104,10 @@ impl ImportedBitcoinPanel {
             restore_frame::network_chip(self.chain(), light),
             close,
         );
-        restore_frame::standalone(restore_frame::sheet(
-            header,
-            restore_frame::with_nav(nav.into(), region),
-            None,
-        ))
+        restore_frame::standalone(
+            self.chain(),
+            restore_frame::sheet(header, restore_frame::with_nav(nav.into(), region), None),
+        )
     }
 
     /// Done: a plain check mark, "[Cube] is ready" and one short line. Only

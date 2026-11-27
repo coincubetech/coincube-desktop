@@ -182,14 +182,18 @@ pub(crate) fn network_control<'a, M: Clone + 'static>(
     );
     FocusableAction::new(Id::new(NETWORK_CONTROL_ID), chip, focus)
         .padding([6, 10])
+        // A dropdown in content (`.mx-chip`): the ink outline, and the light
+        // fill while hovered or while its menu is open.
         .style(move |theme: &theme::Theme, status| {
-            let mut style = theme::button::transparent(theme, status);
-            if open {
-                style.background = Some(iced::Background::Color(theme.colors.shell.selected));
-            }
-            style.text_color = theme.colors.shell.ink;
-            style.border.radius = 8.0.into();
-            style
+            theme::tenshu::button::outline(
+                theme,
+                status,
+                if open {
+                    theme::tenshu::button::OutlineState::Open
+                } else {
+                    theme::tenshu::button::OutlineState::Rest
+                },
+            )
         })
         .on_press_maybe(toggle)
         .into()
@@ -294,21 +298,36 @@ pub(crate) fn nav_action<'a, M: Clone + 'a>(
         .into()
 }
 
-/// The wizard sheet over a plain backdrop, for screens with no Launcher
-/// behind them (the installer's restores, an open Cube's import): the same
-/// dimmed modal presentation, under a bar with the brand.
-pub(crate) fn standalone<'a, M: 'a>(sheet: Element<'a, M>) -> Element<'a, M> {
+/// The 64px bar with the brand, and on a test network the test-network tag
+/// beside the wordmark (S1), for screens drawn without the Cube's top bar.
+pub(crate) fn brand_bar<'a, M: 'a>(chain: ChainId) -> Element<'a, M> {
     let bar = Container::new(
         Row::new()
             .spacing(8)
             .align_y(Alignment::Center)
             .push(coincube_ui::icon::cube_outline_icon())
-            .push(coincube_ui::image::coincube_wordmark(15.0)),
+            .push(coincube_ui::image::coincube_wordmark(15.0))
+            .push_maybe(
+                crate::chain::test_network_tag(chain)
+                    .map(|tag| Container::new(tag).padding(iced::Padding::ZERO.left(8))),
+            ),
     )
     .center_y(Length::Fixed(64.0))
     .padding([0, 24])
     .width(Length::Fill)
-    .style(theme::container::shell_rail);
+    .style(theme::container::shell_sidebar);
+    // The quiet rule under the bar, as under the Cube's and the Launcher's.
+    Column::new()
+        .push(bar)
+        .push(coincube_ui::component::tenshu::top_bar::rule())
+        .into()
+}
+
+/// The wizard sheet over a plain backdrop, for screens with no Launcher
+/// behind them (the installer's restores, an open Cube's import): the same
+/// dimmed modal presentation, under a bar with the brand.
+pub(crate) fn standalone<'a, M: 'a>(chain: ChainId, sheet: Element<'a, M>) -> Element<'a, M> {
+    let bar = brand_bar(chain);
     let backdrop = Container::new(
         Column::new()
             .width(Length::Fill)
@@ -563,6 +582,58 @@ pub(crate) fn full_rule<'a, M: 'a>() -> Element<'a, M> {
         .into()
 }
 
+/// The bounds of the first text equal to `needle` in a view laid out at
+/// 1440×900.
+#[cfg(test)]
+pub(crate) async fn rendered_bounds<M>(
+    element: Element<'_, M>,
+    needle: &str,
+) -> Option<iced::Rectangle> {
+    use iced::advanced::{
+        layout,
+        renderer::Headless,
+        widget::{Id, Operation, Tree},
+        Layout,
+    };
+
+    struct Find<'n>(&'n str, Option<iced::Rectangle>);
+    impl Operation for Find<'_> {
+        fn traverse(&mut self, operate: &mut dyn FnMut(&mut dyn Operation)) {
+            operate(self);
+        }
+        fn text(&mut self, _: Option<&Id>, bounds: iced::Rectangle, text: &str) {
+            if self.1.is_none() && text == self.0 {
+                self.1 = Some(bounds);
+            }
+        }
+    }
+    for bytes in coincube_ui::font::load() {
+        iced::advanced::graphics::text::font_system()
+            .write()
+            .unwrap()
+            .load_font(bytes);
+    }
+    let renderer = <iced::Renderer as Headless>::new(
+        coincube_ui::font::REGULAR,
+        iced::Pixels(16.0),
+        Some("tiny-skia"),
+    )
+    .await
+    .expect("software renderer");
+    let mut element = element;
+    let mut tree = Tree::new(element.as_widget());
+    let node = element.as_widget_mut().layout(
+        &mut tree,
+        &renderer,
+        &layout::Limits::new(iced::Size::ZERO, iced::Size::new(1440.0, 900.0)),
+    );
+    let mut find = Find(needle, None);
+    element
+        .as_widget_mut()
+        .operate(&mut tree, Layout::new(&node), &renderer, &mut find);
+    find.1
+}
+
 /// Every text a view lays out at 1440×900, in tree order.
 #[cfg(test)]
 pub(crate) async fn rendered_labels<M>(element: Element<'_, M>) -> Vec<String> {
@@ -602,4 +673,64 @@ pub(crate) async fn rendered_labels<M>(element: Element<'_, M>) -> Vec<String> {
         .as_widget_mut()
         .operate(&mut tree, Layout::new(&node), &renderer, &mut labels);
     labels.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::app::view::shared::landing::capture;
+
+    #[derive(Debug, Clone)]
+    enum Probe {
+        Toggle,
+        Focus,
+    }
+
+    fn near(a: iced::Color, b: iced::Color) -> bool {
+        (a.r - b.r).abs() < 0.05 && (a.g - b.g).abs() < 0.05 && (a.b - b.b).abs() < 0.05
+    }
+
+    /// Drawn: the wizards' network dropdown is a content button with a 1px ink
+    /// edge, closed or open, in both themes; open, it keeps the light fill.
+    #[test]
+    fn network_dropdown_draws_an_ink_edge() {
+        for (light, theme) in [(false, theme::Theme::dark()), (true, theme::Theme::light())] {
+            let shell = theme.colors.shell;
+            for open in [false, true] {
+                let control: Element<'_, Probe> = iced::widget::Container::new(network_control(
+                    ChainId::Bitcoin,
+                    light,
+                    Some(Probe::Toggle),
+                    open,
+                    |_| Probe::Focus,
+                ))
+                .padding(12)
+                .into();
+                let pixels = capture::render_pixels(control, (420, 80), &theme, None);
+                let b = pixels.bounds(&Id::new(NETWORK_CONTROL_ID));
+                let (x, y) = (b.x as u32, (b.y + b.height / 2.0) as u32);
+                assert!(
+                    near(pixels.at(x, y), shell.ink),
+                    "light {} open {}: edge {:?}",
+                    light,
+                    open,
+                    pixels.at(x, y)
+                );
+                let inside = pixels.at(x + 4, y);
+                let fill = if open {
+                    theme::tenshu::over(shell.panel, shell.hover)
+                } else {
+                    shell.panel
+                };
+                assert!(
+                    near(inside, fill),
+                    "light {} open {}: inside {:?}, want {:?}",
+                    light,
+                    open,
+                    inside,
+                    fill
+                );
+            }
+        }
+    }
 }
