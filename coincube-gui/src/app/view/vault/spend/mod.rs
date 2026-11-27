@@ -2439,7 +2439,7 @@ mod tests {
                 present: &[
                     "Send",
                     // The pinned head's wallet line.
-                    "Vault · Synthetic Cube · Bitcoin mainnet",
+                    "Vault · Synthetic Cube",
                     "Payment details",
                     "Recipients",
                     "Fee rate (sat/vB)",

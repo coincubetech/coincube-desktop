@@ -1556,7 +1556,7 @@ mod tests {
     ) {
         // The title, the Cube line and the back link are in the page
         // head now, not the body.
-        for moved in ["‹ Spark", "Back to Spark", "Everyday · Bitcoin mainnet"] {
+        for moved in ["‹ Spark", "Back to Spark", "Spark · Everyday"] {
             assert!(!mounted.contains(moved), "{} left in the body", moved);
         }
         for label in [
