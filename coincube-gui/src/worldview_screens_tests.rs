@@ -80,7 +80,8 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                 assert!(opened.contains("— Author, Source"));
                 // The Opening rail above the stage draws the brand mark and
                 // the network coin, which are not artwork (R9); the loading
-                // stage under it draws the line Cube and no raster art.
+                // stage under it is the Cube loader: the quote and no picture,
+                // not even the line Cube (Robert, 2026-11-27).
                 let stage = capture::inspect_rendered_filled(
                     &scenario("opening-stage"),
                     render_in(language, || {
@@ -101,7 +102,7 @@ fn quote_screens_show_text_only_in_every_worldview_theme_and_language() {
                     stage.drawn_images(),
                     capture::DrawnImages {
                         raster: 0,
-                        vector: 1
+                        vector: 0
                     },
                     "{}",
                     scenario("opening-stage")
