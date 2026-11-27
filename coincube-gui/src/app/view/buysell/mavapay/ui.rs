@@ -392,8 +392,14 @@ fn sell_input_form<'a>(
         widget::Space::new().height(12),
         widget::row![
             widget::row![
-                // A 5 px marker bar: only its outline draws it (R4).
-                card::outlined(widget::space().height(iced::Length::Fill).width(5)).padding(1),
+                // A solid 5 px marker bar in the line colour, not a box.
+                widget::container(widget::space().height(iced::Length::Fill).width(5))
+                    .padding(1)
+                    .style(|th: &coincube_ui::theme::Theme| widget::container::Style {
+                        background: Some(iced::Background::Color(th.colors.shell.line)),
+                        border: iced::Border::default().rounded(3),
+                        ..Default::default()
+                    }),
                 widget::space().width(10),
                 text::p2_medium(localized_copy("Sell Bitcoin to Fiat Money")).center(),
             ]
