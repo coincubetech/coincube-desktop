@@ -892,8 +892,10 @@ fn phase_body<'a>(
                     .width(Length::Fixed(160.0)),
             ),
         )
+        // The button stands on the form card as `P-Receive` draws it: an
+        // inset box sized to the button read as a frame around it (found in
+        // the Desktop V3 acceptance walk).
         .padding(16)
-        .style(theme::card::inset)
         .into(),
 
         SparkReceivePhase::Generating => Container::new(
