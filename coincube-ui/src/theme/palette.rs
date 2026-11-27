@@ -1,3 +1,4 @@
+use super::tenshu::ACCENT_HOVER;
 use crate::color;
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -135,14 +136,6 @@ pub struct Buttons {
     pub menu: Button,
     pub tab: Button,
     pub link: Button,
-    /// Orange-on-transparent outline button: transparent background
-    /// with orange text + orange border in the idle state, flipping
-    /// to a solid `DARK_ORANGE` fill with black text on hover /
-    /// press. Used for the secondary "Receive" chip on wallet cards
-    /// and similar orange-outline shapes throughout the app — the
-    /// hover flip matches the `hover:bg-orange-dark` behavior of the
-    /// coincube.io landing page.
-    pub orange_outline: Button,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -307,10 +300,8 @@ impl std::default::Default for Palette {
                 error: ShellPalette::dark().bad,
             },
             buttons: Buttons {
-                // Primary: ORANGE on idle, DARK_ORANGE on hover/press.
-                // Mirrors the `bg-orange hover:bg-orange-dark` pattern
-                // on the coincube.io landing page so the app and the
-                // website feel like the same product.
+                // Primary: ORANGE on idle, the app's one primary hover
+                // (`tenshu::ACCENT_HOVER`) on hover and press.
                 primary: Button {
                     active: ButtonPalette {
                         background: color::ORANGE,
@@ -318,14 +309,14 @@ impl std::default::Default for Palette {
                         border: Some(color::ORANGE),
                     },
                     hovered: ButtonPalette {
-                        background: color::DARK_ORANGE,
+                        background: ACCENT_HOVER,
                         text: color::LIGHT_BLACK,
-                        border: Some(color::DARK_ORANGE),
+                        border: Some(ACCENT_HOVER),
                     },
                     pressed: Some(ButtonPalette {
-                        background: color::DARK_ORANGE,
+                        background: ACCENT_HOVER,
                         text: color::LIGHT_BLACK,
-                        border: Some(color::DARK_ORANGE),
+                        border: Some(ACCENT_HOVER),
                     }),
                     disabled: Some(ButtonPalette {
                         background: color::GREY_6,
@@ -529,28 +520,6 @@ impl std::default::Default for Palette {
                         background: color::TRANSPARENT,
                         text: color::GREY_2,
                         border: color::TRANSPARENT.into(),
-                    }),
-                },
-                orange_outline: Button {
-                    active: ButtonPalette {
-                        background: color::TRANSPARENT,
-                        text: color::ORANGE,
-                        border: Some(color::ORANGE),
-                    },
-                    hovered: ButtonPalette {
-                        background: color::DARK_ORANGE,
-                        text: color::LIGHT_BLACK,
-                        border: Some(color::DARK_ORANGE),
-                    },
-                    pressed: Some(ButtonPalette {
-                        background: color::DARK_ORANGE,
-                        text: color::LIGHT_BLACK,
-                        border: Some(color::DARK_ORANGE),
-                    }),
-                    disabled: Some(ButtonPalette {
-                        background: color::TRANSPARENT,
-                        text: color::GREY_3,
-                        border: Some(color::TRANSPARENT_ORANGE),
                     }),
                 },
             },
@@ -793,14 +762,14 @@ impl Palette {
                         border: Some(color::ORANGE),
                     },
                     hovered: ButtonPalette {
-                        background: color::DARK_ORANGE,
+                        background: ACCENT_HOVER,
                         text: color::BLACK,
-                        border: Some(color::DARK_ORANGE),
+                        border: Some(ACCENT_HOVER),
                     },
                     pressed: Some(ButtonPalette {
-                        background: color::DARK_ORANGE,
+                        background: ACCENT_HOVER,
                         text: color::BLACK,
-                        border: Some(color::DARK_ORANGE),
+                        border: Some(ACCENT_HOVER),
                     }),
                     disabled: Some(ButtonPalette {
                         background: color::LIGHT_CARD_BG,
@@ -1004,28 +973,6 @@ impl Palette {
                         background: color::TRANSPARENT,
                         text: color::GREY_3,
                         border: color::TRANSPARENT.into(),
-                    }),
-                },
-                orange_outline: Button {
-                    active: ButtonPalette {
-                        background: color::TRANSPARENT,
-                        text: color::ORANGE,
-                        border: Some(color::ORANGE),
-                    },
-                    hovered: ButtonPalette {
-                        background: color::DARK_ORANGE,
-                        text: color::BLACK,
-                        border: Some(color::DARK_ORANGE),
-                    },
-                    pressed: Some(ButtonPalette {
-                        background: color::DARK_ORANGE,
-                        text: color::BLACK,
-                        border: Some(color::DARK_ORANGE),
-                    }),
-                    disabled: Some(ButtonPalette {
-                        background: color::TRANSPARENT,
-                        text: color::GREY_3,
-                        border: Some(color::TRANSPARENT_ORANGE),
                     }),
                 },
             },
@@ -1275,10 +1222,10 @@ mod tests {
         assert_eq!(dark.text.primary, dark.shell.ink);
         assert_eq!(dark.buttons.primary.active.background, color::ORANGE);
         assert_eq!(dark.buttons.primary.active.text, color::LIGHT_BLACK);
-        assert_eq!(dark.buttons.primary.hovered.background, color::DARK_ORANGE);
+        assert_eq!(dark.buttons.primary.hovered.background, ACCENT_HOVER);
         assert_eq!(
-            dark.buttons.orange_outline.active.background,
-            color::TRANSPARENT
+            dark.buttons.primary.pressed.unwrap().background,
+            ACCENT_HOVER
         );
         assert_eq!(dark.text_inputs.invalid.active.border, Some(color::RED));
         assert_eq!(dark.togglers.off.background, color::GREY_2);
@@ -1295,6 +1242,7 @@ mod tests {
         assert_eq!(light.text.primary, light.shell.ink);
         assert_eq!(light.text.success, light.shell.good);
         assert_eq!(light.buttons.menu.hovered.background, color::LIGHT_HOVER);
+        assert_eq!(light.buttons.primary.hovered.background, ACCENT_HOVER);
         assert_eq!(light.cards.simple.background, light.shell.panel);
         assert_eq!(light.notifications.debug.text, Some(color::DARK_GRAY));
         assert_eq!(

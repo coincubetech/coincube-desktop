@@ -2811,10 +2811,14 @@ fn restore_cube_choice<'a>(
     )
     .width(Length::Fill)
     .padding([10, 18])
-    .style(if chosen {
-        theme::button::orange_outline
-    } else {
-        theme::button::secondary
+    // A selectable row: the chosen Cube keeps the outline and takes the
+    // selected fill (`.tg[aria-pressed="true"]`).
+    .style(move |t: &theme::Theme, status| {
+        let mut style = theme::button::secondary(t, status);
+        if chosen {
+            style.background = Some(t.colors.shell.selected.into());
+        }
+        style
     })
     .on_press_maybe(available.then_some(Message::RecoveryKitRestore(
         RecoveryKitRestoreMsg::SelectCube(id),

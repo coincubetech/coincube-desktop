@@ -805,7 +805,7 @@ impl Pane {
 
             let focus_button = Button::new(title_row)
                 .style(if i == self.focused_tab {
-                    theme::button::tab_liquid
+                    theme::button::tab_active
                 } else {
                     theme::button::tab
                 })
