@@ -238,7 +238,19 @@ jobs:
 
           mv target/${{ matrix.target }}/minimal/coincube COINCUBE.app/Contents/MacOS/Coincube
           mv target/${{ matrix.target }}/minimal/coincube-mcp COINCUBE.app/Contents/MacOS/coincube-mcp
-          mv contrib/release/macos/Coincube.icns COINCUBE.app/Contents/Resources/Coincube.icns
+          # The macOS app icon. Assets.car holds the light, dark and tinted icons that
+          # macOS 26 picks from the system appearance; AppIcon.icns is actool's fallback
+          # for older macOS. Both are compiled from the Icon Composer file that
+          # design/icons/app/build_icons.py writes (Xcode 26's actool) and committed,
+          # so this job needs no Xcode 26. CFBundleIconName is what makes macOS read
+          # the icon from Assets.car.
+          cp contrib/release/macos/appicon/Assets.car COINCUBE.app/Contents/Resources/Assets.car
+          cp contrib/release/macos/appicon/AppIcon.icns COINCUBE.app/Contents/Resources/AppIcon.icns
+          /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$plist"
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleIconName" "$plist" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIconName string AppIcon" "$plist"
+          [ "$(/usr/libexec/PlistBuddy -c "Print :CFBundleIconName" "$plist")" = "AppIcon" ] \
+            || { echo "CFBundleIconName not set"; exit 1; }
 
           # The gui resolves the Spark bridge as a sibling of its own
           # executable, under that literal filename — see resolve_bridge_path()

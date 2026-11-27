@@ -161,12 +161,14 @@ cargo build --release -p coincube-gui
 unzip contrib/release/macos/_coincube.zip
 cp target/release/coincube COINCUBE.app/Contents/MacOS/Coincube
 cp contrib/release/macos/embedded.provisionprofile COINCUBE.app/Contents/embedded.provisionprofile
-#    The template's Resources/ is empty and Coincube.icns is gitignored, so
-#    generate the icon as CI does. Skip it and the app shows the generic icon;
-#    it is sealed by the signature too, so adding it after step 3 breaks it.
-pip install pillow icnsutil
-python contrib/release/macos/icns-creator.py
-cp contrib/release/macos/Coincube.icns COINCUBE.app/Contents/Resources/Coincube.icns
+#    The template's Resources/ is empty, so add the app icon as CI does: the
+#    compiled light/dark icon and its fallback, then point the plist at them
+#    (contrib/release/macos/README.md, "App icon"). Skip it and the app shows
+#    the generic icon; it is sealed by the signature too, so adding it after
+#    step 3 breaks it.
+cp contrib/release/macos/appicon/Assets.car contrib/release/macos/appicon/AppIcon.icns COINCUBE.app/Contents/Resources/
+/usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" COINCUBE.app/Contents/Info.plist
+/usr/libexec/PlistBuddy -c "Add :CFBundleIconName string AppIcon" COINCUBE.app/Contents/Info.plist
 
 # 3. Sign with the real Developer ID cert. On a Mac with the cert in the login
 #    keychain, native codesign is enough — no rcodesign install needed.

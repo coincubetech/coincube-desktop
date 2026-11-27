@@ -6,6 +6,8 @@ import shutil
 from PIL import Image
 from icnsutil import IcnsFile
 
+# The macOS release no longer bundles Coincube.icns: the app icon comes from appicon/ (light
+# and dark, see README.md). This script still makes the Windows .ico for the MSI.
 # Input PNGs (should be at least 1024x1024)
 # macOS: Big-Sur-style tile (squircle + margin + shadow), the Ember block on the paper tile.
 input_file = "coincube-ui/static/logos/coincube-macos-1024.png"
