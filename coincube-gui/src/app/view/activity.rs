@@ -9,6 +9,7 @@ use coincube_ui::localized_format;
 use coincube_ui::{
     component::tenshu::{self, page_head, FieldSize, PageWidth},
     font, theme,
+    theme::tenshu::type_size,
     widget::{action::Action, Column, ColumnExt, Element, Row},
 };
 #[allow(deprecated)]
@@ -905,7 +906,7 @@ fn status_cell<'a>(entry: &Entry, size: f32, note: bool) -> Element<'a, Message>
 /// `.dl > div`: a 116px muted key beside its value, over a rule.
 fn fact<'a>(key: &'static str, value: String, mono: bool) -> Element<'a, Message> {
     let value = text(value)
-        .size(if mono { 12.5 } else { 13.5 })
+        .size(if mono { 13.0 } else { 13.5 })
         .font(if mono {
             font::MONO_REGULAR
         } else {
@@ -1159,7 +1160,7 @@ fn header<'a>(
 ) -> Element<'a, Message> {
     let count = activity.filters.count();
     let title = column![
-        words("Activity", 22.0, font::SEMIBOLD, glyph::ink).line_height(
+        words("Activity", type_size::TITLE, font::SEMIBOLD, glyph::ink).line_height(
             iced::widget::text::LineHeight::Relative(page_head::TITLE_LINE_HEIGHT)
         ),
         row![
@@ -1793,7 +1794,7 @@ fn identifier_row<'a>(index: usize, name: &'static str, value: &str) -> Element<
                 words(name, 12.0, font::REGULAR, glyph::muted),
                 one_line(
                     text(short_identifier(value))
-                        .size(12.5)
+                        .size(13.0)
                         .font(font::MONO_REGULAR)
                 ),
             ]
@@ -3002,6 +3003,82 @@ mod tests {
             .find(|width| detail_beside_list(*width))
             .unwrap();
         assert!(column_frame(first, true).column + 2.0 * ROW_INSET >= MIN_ACTIVITY_ROWS_WIDTH);
+    }
+
+    /// Every page title is 26px semibold (`MV-Type-Scale`, "Desktop
+    /// proposed"): the shared page head on Overview, Spark, Vault and
+    /// Settings, and the head Activity draws itself. A 26px line at the
+    /// head's 1.25 line height is 32.5px tall; the old 22px title was 27.5.
+    #[test]
+    fn every_page_title_is_26px() {
+        use crate::app::menu::{CubeSettingsOption, CubeSubMenu};
+        use crate::app::view::nav::shell::capture_tests;
+        let expected = 26.0 * page_head::TITLE_LINE_HEIGHT;
+        let cache = capture_tests::cache(false, BalancePrivacy::Shown);
+        let settings = Menu::Cube(CubeSubMenu::Settings(CubeSettingsOption::General));
+        let activity = Activity::new(None);
+        for (appearance, theme) in [
+            ("dark", coincube_ui::theme::Theme::dark()),
+            ("light", coincube_ui::theme::Theme::light()),
+        ] {
+            for outer in [(1024_u32, 768_u32), (1440, 900)] {
+                let pane = outer.0 - 248;
+                let heads: Vec<(&str, &str, Element<'_, Message>)> = vec![
+                    (
+                        "Overview",
+                        "Overview",
+                        crate::app::view::page_head(&cache, "Overview")
+                            .view(crate::app::view::page_gutter),
+                    ),
+                    (
+                        "Spark",
+                        "Spark",
+                        crate::app::state::spark::overview::SparkOverview::page_head_for_tests(
+                            &cache, None,
+                        )
+                        .view(crate::app::view::page_gutter),
+                    ),
+                    (
+                        "Vault",
+                        "Vault",
+                        crate::app::state::vault::overview::VaultOverview::page_head_for_tests(
+                            &cache, None,
+                        )
+                        .view(crate::app::view::page_gutter),
+                    ),
+                    (
+                        "Settings",
+                        "Settings",
+                        crate::app::view::settings::frame::page_head(&settings, &cache)
+                            .expect("a Settings route has a head")
+                            .view(crate::app::view::page_gutter),
+                    ),
+                    (
+                        "Activity",
+                        "Activity",
+                        render_at_width(&activity, &cache, pane as f32),
+                    ),
+                ];
+                for (page, title, element) in heads {
+                    let mounted =
+                        mount("type-scale-title", element, outer, appearance, theme, pane);
+                    let bounds = mounted
+                        .text
+                        .iter()
+                        .find_map(|(text, bounds)| (text == title).then_some(*bounds))
+                        .unwrap_or_else(|| panic!("{} draws its title", page));
+                    assert!(
+                        (bounds.height - expected).abs() < 0.01,
+                        "{} title is {}px tall, want {} ({} {:?})",
+                        page,
+                        bounds.height,
+                        expected,
+                        appearance,
+                        outer
+                    );
+                }
+            }
+        }
     }
 
     #[test]

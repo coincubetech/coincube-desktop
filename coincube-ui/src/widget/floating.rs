@@ -35,6 +35,7 @@ pub struct Floating<'a, Message> {
     fit_to_window: bool,
     fit_height: Option<f32>,
     dismiss_on_escape: bool,
+    hang: bool,
     min_width: f32,
 }
 
@@ -49,6 +50,7 @@ impl<'a, Message> Floating<'a, Message> {
             fit_to_window: false,
             fit_height: None,
             dismiss_on_escape: false,
+            hang: false,
             min_width: 0.0,
         }
     }
@@ -112,6 +114,16 @@ impl<'a, Message> Floating<'a, Message> {
         }
     }
 
+    /// Takes no room at all, across or down, so it never widens the group it
+    /// hangs from: the content keeps its own width (up to what the parent
+    /// offers) and hangs from this widget's place. Aligned right, the
+    /// content's right edge is on that place, so in a column aligned to its
+    /// end it hangs under the trailing edge of the control above it, however
+    /// narrow that control is.
+    pub fn hang(self) -> Self {
+        Self { hang: true, ..self }
+    }
+
     /// Dismiss on the first Escape, even while an editor has input focus.
     pub fn dismiss_on_escape(self) -> Self {
         Self {
@@ -155,6 +167,17 @@ fn content_offset(align_x: Option<Horizontal>, gap: f32, width: f32, content: Si
     Vector::new(x, gap)
 }
 
+/// Where hanging content (see [`Floating::hang`]) sits from its zero-size
+/// anchor: its left edge, centre or right edge on the anchor.
+fn hang_offset(align_x: Option<Horizontal>, gap: f32, content: Size) -> Vector {
+    let x = match align_x {
+        None | Some(Horizontal::Left) => 0.0,
+        Some(Horizontal::Center) => -content.width / 2.0,
+        Some(Horizontal::Right) => -content.width,
+    };
+    Vector::new(x, gap)
+}
+
 impl<Message: Clone> Widget<Message, Theme, Renderer> for Floating<'_, Message> {
     fn children(&self) -> Vec<Tree> {
         vec![Tree::new(&self.content)]
@@ -165,7 +188,11 @@ impl<Message: Clone> Widget<Message, Theme, Renderer> for Floating<'_, Message> 
     }
 
     fn size(&self) -> Size<Length> {
-        Size::new(Length::Fill, Length::Shrink)
+        if self.hang {
+            Size::new(Length::Shrink, Length::Shrink)
+        } else {
+            Size::new(Length::Fill, Length::Shrink)
+        }
     }
 
     fn layout(
@@ -180,6 +207,10 @@ impl<Message: Clone> Widget<Message, Theme, Renderer> for Floating<'_, Message> 
             renderer,
             &content_limits(width.max(self.min_width)),
         );
+        if self.hang {
+            let offset = hang_offset(self.align_x, self.gap, content.size());
+            return layout::Node::with_children(Size::ZERO, vec![content.translate(offset)]);
+        }
         let offset = content_offset(self.align_x, self.gap, width, content.size());
         layout::Node::with_children(Size::new(width, 0.0), vec![content.translate(offset)])
     }
@@ -239,9 +270,15 @@ impl<Message: Clone> Widget<Message, Theme, Renderer> for Floating<'_, Message> 
             content: &mut self.content,
             tree: &mut tree.children[0],
             position: bounds.position() + translation,
-            // The row's width, not the content's: the content may have been
-            // laid out wider in place, and the overlay widens it itself.
-            width: layout.bounds().width.min(bounds.width),
+            // A hanging popover reports no size, so the overlay uses the
+            // content's own width. Otherwise this is the row's width: the
+            // content may have been laid out wider in place, and the overlay
+            // widens it itself from `min_width`.
+            width: if self.hang {
+                bounds.width
+            } else {
+                layout.bounds().width.min(bounds.width)
+            },
             on_dismiss: self.on_dismiss.as_ref(),
             on_escape: self.on_escape.as_ref(),
             fit_to_window: self.fit_to_window,

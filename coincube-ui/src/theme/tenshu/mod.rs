@@ -104,10 +104,14 @@ pub mod type_size {
     /// In-page headings: the Settings lead block (`.lead h2`) and the
     /// sheet sections (`.sec h2`, `.sec h3`).
     pub const HEADING: f32 = 20.0;
-    /// Page title (`.phead h1`), 22px since canvas v175.
-    pub const TITLE: f32 = 22.0;
+    /// Page title (`.phead h1`), 26px on Mobile's step since Desktop V3
+    /// Phase 2 (`MV-Type-Scale`, "Desktop proposed").
+    pub const TITLE: f32 = 26.0;
+    /// An amount on a wallet card (`.amt`).
     pub const AMOUNT_CARD: f32 = 26.0;
-    pub const AMOUNT_HERO: f32 = 40.0;
+    /// The main amount of Overview, Spark and Vault (`.big`), and the
+    /// amount a PSBT moves.
+    pub const AMOUNT_HERO: f32 = 46.0;
     pub const LINE_HEIGHT: f32 = 1.45;
 }
 

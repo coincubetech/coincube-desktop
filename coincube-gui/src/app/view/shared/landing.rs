@@ -4,8 +4,11 @@
 //! an `AmountCell`. This module never reads preferences or interprets token units.
 
 use coincube_ui::{
-    component::text::{text, Text as _, H2_SIZE, P1_SIZE, P2_SIZE},
-    font::MEDIUM,
+    component::{
+        tenshu::BalanceTier,
+        text::{text, Text as _, P1_SIZE, P2_SIZE},
+    },
+    font::{MEDIUM, SEMIBOLD},
     theme,
     widget::{action::Action, Column, ColumnExt, Element, Row, RowExt, Text},
 };
@@ -115,6 +118,9 @@ pub struct AmountCell {
     /// Nonmonetary status only. A masked cell discards this so callers cannot
     /// accidentally retain an amount-bearing tooltip or accessibility label.
     pub explanation: Option<String>,
+    /// The primary is a status word ("Unavailable"), not a figure: drawn at
+    /// a quieter size than an amount would be.
+    pub status: bool,
 }
 
 impl AmountCell {
@@ -123,6 +129,7 @@ impl AmountCell {
             primary: primary.into(),
             secondary,
             explanation: None,
+            status: false,
         }
     }
 
@@ -131,14 +138,16 @@ impl AmountCell {
             primary: "—".into(),
             secondary: None,
             explanation: Some(explanation.into()),
+            status: false,
         }
     }
 
     pub fn unavailable(explanation: impl Into<String>) -> Self {
         Self {
-            primary: "Unavailable".into(),
+            primary: coincube_ui::locale::copy("Unavailable").to_owned(),
             secondary: None,
             explanation: Some(explanation.into()),
+            status: true,
         }
     }
 
@@ -147,6 +156,7 @@ impl AmountCell {
             primary: "••••••".into(),
             secondary: None,
             explanation: None,
+            status: false,
         }
     }
 
@@ -161,6 +171,9 @@ impl AmountCell {
     }
 }
 
+/// Where an amount cell sits. `Total` is a page's main amount (46px, the
+/// Tenshu [`BalanceTier::Hero`]), `Card` an amount on a wallet card (26px,
+/// [`BalanceTier::Card`]), `Row` an amount in a list row.
 #[derive(Clone, Copy)]
 pub enum AmountTier {
     Total,
@@ -169,10 +182,27 @@ pub enum AmountTier {
 }
 
 pub fn amount_cell<'a, M: 'a>(cell: AmountCell, tier: AmountTier) -> Element<'a, M> {
-    let size = match tier {
-        AmountTier::Total => H2_SIZE + 8,
-        AmountTier::Card => H2_SIZE,
-        AmountTier::Row => P1_SIZE,
+    let primary = match tier {
+        // A status word in the amount's place reads as a heading, not a
+        // figure: 20px semibold muted rather than 46 or 26.
+        AmountTier::Total | AmountTier::Card if cell.status => {
+            coincube_ui::component::tenshu::heading(cell.primary).style(theme::tenshu::text::muted)
+        }
+        AmountTier::Total | AmountTier::Card => {
+            let tier = if matches!(tier, AmountTier::Total) {
+                BalanceTier::Hero
+            } else {
+                BalanceTier::Card
+            };
+            text(cell.primary)
+                .size(tier.figure_size())
+                .line_height(iced::widget::text::LineHeight::Relative(
+                    tier.figure_line_height(),
+                ))
+                .font(SEMIBOLD)
+                .style(theme::tenshu::text::ink)
+        }
+        AmountTier::Row => text(cell.primary).size(P1_SIZE).bold(),
     };
     Column::new()
         .align_x(if matches!(tier, AmountTier::Row) {
@@ -181,12 +211,7 @@ pub fn amount_cell<'a, M: 'a>(cell: AmountCell, tier: AmountTier) -> Element<'a,
             Alignment::Start
         })
         .spacing(3)
-        .push(
-            text(cell.primary)
-                .size(size)
-                .bold()
-                .wrapping(Wrapping::WordOrGlyph),
-        )
+        .push(primary.wrapping(Wrapping::WordOrGlyph))
         .push_maybe(cell.secondary.map(|s| {
             text(s)
                 .size(P2_SIZE)
@@ -202,6 +227,18 @@ pub fn amount_cell<'a, M: 'a>(cell: AmountCell, tier: AmountTier) -> Element<'a,
         .into()
 }
 
+/// The small muted label over a balance (`.kbal { font-size: 13px; color:
+/// var(--muted) }`): "Total balance" on Overview, Spark and Vault. A label,
+/// not a section title; "Wallets" is the section title.
+pub fn balance_label<'a>(content: impl iced::widget::text::IntoFragment<'a>) -> Text<'a> {
+    coincube_ui::component::tenshu::body(content)
+        .size(BALANCE_LABEL_SIZE)
+        .style(theme::tenshu::text::muted)
+}
+
+/// `.kbal { font-size: 13px }`.
+pub const BALANCE_LABEL_SIZE: f32 = 13.0;
+
 pub fn section_heading<'a, M: 'a>(
     title: &'static str,
     action: Option<Element<'a, M>>,
@@ -210,7 +247,7 @@ pub fn section_heading<'a, M: 'a>(
         .spacing(12)
         .align_y(Alignment::Center)
         .width(Length::Fill)
-        .push(text(title).size(H2_SIZE).bold())
+        .push(coincube_ui::component::tenshu::text::heading(title))
         .push(iced::widget::Space::new().width(Length::Fill))
         .push_maybe(action)
 }
