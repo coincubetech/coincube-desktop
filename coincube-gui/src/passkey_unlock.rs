@@ -37,15 +37,15 @@
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::locale::{copy as localized_copy, notice as localized_notice};
 use iced::widget::Space;
-use iced::{Alignment, Length, Task};
+use iced::{Length, Task};
 
 use coincube_ui::{
     component::{
         quote_display::{self, Quote},
-        text::{p1_regular, text},
+        text::p1_regular,
     },
     theme,
-    widget::{action::Action, Column, Container, Element},
+    widget::{action::Action, Column, Element},
 };
 
 use coincube_core::miniscript::bitcoin::bip32::Fingerprint;
@@ -138,7 +138,10 @@ enum Phase {
     Authenticating,
     /// The assertion succeeded and the wallets are loading. Stays up until
     /// `gui::tab` swaps this screen out, so the window never flashes back to
-    /// the Unlock button in between.
+    /// the Unlock button in between. `gui::tab` starts the Cube opening in
+    /// the same update that enters this phase and draws its opening face
+    /// over this screen, as it does for a verified PIN: this phase has no
+    /// loading view of its own.
     ///
     /// Constructed only by `poll`'s `#[cfg(target_os = "macos")]` arm; see
     /// [`Phase::Authenticating`] for why the allow is per-variant.
@@ -410,6 +413,18 @@ impl PasskeyUnlock {
             )
     }
 
+    /// Stand in for a verified assertion, which needs a live system prompt.
+    #[cfg(test)]
+    pub(crate) fn enter_opening_for_test(&mut self) {
+        self.phase = Phase::Opening;
+    }
+
+    /// Stand in for a raised system prompt.
+    #[cfg(test)]
+    pub(crate) fn enter_authenticating_for_test(&mut self) {
+        self.phase = Phase::Authenticating;
+    }
+
     /// The reason shown on the idle screen, if any.
     #[cfg(test)]
     pub(crate) fn error_for_test(&self) -> Option<&str> {
@@ -455,7 +470,8 @@ impl PasskeyUnlock {
         matches!(self.phase, Phase::Opening)
     }
 
-    /// The quote this screen's opening view shows.
+    /// The quote that seeds the Launcher opening face's quote cycle once this
+    /// unlock succeeds, as the PIN screen's does.
     pub(crate) fn loading_quote(&self) -> &Quote {
         &self.loading_quote
     }
@@ -473,24 +489,20 @@ impl PasskeyUnlock {
         floor: Option<&'a crate::home::LauncherSceneContext>,
     ) -> Element<'a, Message> {
         if matches!(self.phase, Phase::Opening) {
-            // Same full-screen loading treatment the PIN path uses once its
-            // seed is in hand, so the two unlock paths look identical from the
-            // moment they succeed.
-            return Container::new(
-                Column::new()
-                    .width(Length::Fill)
-                    .spacing(20)
-                    .align_x(Alignment::Center)
-                    .push(Space::new().height(Length::Fill))
-                    .push(crate::loader::cube_and_quote(&self.loading_quote))
-                    .push(crate::loading::loading_indicator(None))
-                    .push(text(CopyText::LoadingYourCube.get()).style(theme::text::secondary))
-                    .push(Space::new().height(Length::Fill)),
-            )
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .padding(50)
-            .into();
+            // `gui::tab` covers this phase with the opening face, as it does
+            // a verified PIN (Robert, 2026-11-27: the passkey path "uses the
+            // same loading screen as the PIN one"). Drawn on its own (a
+            // capture, or a frame after the tab dropped its opening), it is
+            // the same Cube loader the full-page loader shows, at the stage
+            // the opening face starts on.
+            return crate::loader::cover(
+                None,
+                crate::loader::cube_loader(
+                    &self.loading_quote,
+                    coincube_ui::component::text::text(self.on_success.opening_stage().text())
+                        .style(theme::text::secondary),
+                ),
+            );
         }
 
         if let Some(floor) = floor {
@@ -522,7 +534,12 @@ impl PasskeyUnlock {
                         true,
                     ))
                     .push(Space::new().height(Length::Fixed(12.0)))
-                    .push(crate::loading::loading_indicator(None));
+                    // The app's loading mark at the size of the face's
+                    // controls: 24 px is the logo's own grid, one pixel a
+                    // unit, aligned with the face's left-aligned line.
+                    .push(coincube_ui::component::tenshu::turning_cube::loading_cube(
+                        24.0,
+                    ));
             }
             Phase::Idle { error } => {
                 // Deliberately no explanatory line here.
@@ -613,39 +630,88 @@ mod tests {
         assert!(shown.contains("Se canceló la comprobación con Touch ID"));
     }
 
+    fn fixture_quote() -> Quote {
+        Quote {
+            id: "fixture".into(),
+            text: "A fixture loading quote".into(),
+            author: "Author".into(),
+            source: "Source".into(),
+            category: "loading".into(),
+            length: "short".into(),
+            contexts: Vec::new(),
+        }
+    }
+
+    /// The passkey's Opening phase has no loading view of its own: `gui::tab`
+    /// covers it with the opening face (see `gui::tab`'s
+    /// `a_verified_passkey_opens_through_the_same_face_as_a_pin`). Drawn on
+    /// its own, it is the shared Cube loader the full-page loader shows (the
+    /// turning Cube, the quote, the status), at the stage the face starts on,
+    /// in both themes and languages.
     #[test]
-    fn passkey_opening_keeps_the_line_cube_and_quote() {
+    fn the_opening_phase_draws_the_shared_cube_loader() {
         use crate::app::view::shared::landing::capture;
         use coincube_ui::locale::{render_in, Language};
         for language in [Language::English, Language::Spanish] {
             for palette in [theme::Theme::dark(), theme::Theme::light()] {
-                let mut screen = screen();
-                screen.phase = Phase::Opening;
+                let mut passkey = screen();
+                passkey.phase = Phase::Opening;
+                passkey.loading_quote = fixture_quote();
+                let appearance = if palette.mode == theme::palette::ThemeMode::Light {
+                    "light"
+                } else {
+                    "dark"
+                };
+                let at = format!("passkey-opening-{language:?}-{appearance}");
                 let shown = capture::inspect_rendered_filled(
-                    "passkey-opening-brand",
-                    render_in(language, || screen.view_with_theme(palette.mode)),
+                    &at,
+                    render_in(language, || passkey.view_with_theme(palette.mode)),
                     (1024, 768),
-                    if palette.mode == theme::palette::ThemeMode::Light {
-                        "light"
-                    } else {
-                        "dark"
-                    },
+                    appearance,
                     palette,
                 );
-                assert_eq!(
-                    shown.drawn_images(),
-                    capture::DrawnImages {
-                        raster: 0,
-                        vector: 1
-                    },
-                    "only the line Cube, no artwork"
+                // No Vault: the wallets load, and the face starts on
+                // "Almost there".
+                let status = render_in(language, || {
+                    crate::home::launcher_opening::Stage::AlmostThere.text()
+                });
+                shown.assert_cube_loader(
+                    &at,
+                    crate::loader::CUBE_LOADER_SIZE,
+                    "A fixture loading quote",
+                    "\u{2014} Author, Source",
+                    status,
                 );
-                let quote = render_in(language, || screen.loading_quote.localized_text());
-                assert!(shown.contains(quote));
-                let status = render_in(language, || CopyText::LoadingYourCube.get());
-                assert!(shown.contains(status));
+                assert!(
+                    shown.draws_no_image(),
+                    "{}",
+                    format!("{at}: no picture beyond the Cube")
+                );
             }
         }
+    }
+
+    /// While the system prompt is up, the face shows the app's loading mark
+    /// (the turning Cube, at the face controls' 24 px) under its line.
+    #[test]
+    fn the_prompt_waits_with_the_turning_cube() {
+        use crate::app::view::shared::landing::capture;
+        let mut passkey = screen();
+        passkey.phase = Phase::Authenticating;
+        let shown = capture::inspect(
+            "passkey-authenticating",
+            passkey.unlock_controls(),
+            (1024, 768),
+            "dark",
+            theme::Theme::dark(),
+        );
+        let line = shown
+            .text_bounds("Confirm with Touch ID")
+            .expect("the prompt's line");
+        let cubes = shown.turning_cubes();
+        assert_eq!(cubes.len(), 1, "{cubes:?}");
+        assert_eq!((cubes[0].width, cubes[0].height), (24.0, 24.0));
+        assert!(line.y + line.height <= cubes[0].y);
     }
 
     /// Losing the session between a successful assertion and the wallet load

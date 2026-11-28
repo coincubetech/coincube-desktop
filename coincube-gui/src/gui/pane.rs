@@ -281,6 +281,8 @@ pub struct Pane {
 
     // current theme mode — applied to new tabs on creation
     theme_mode: coincube_ui::theme::palette::ThemeMode,
+    // the effective reduce-motion preference — applied to new tabs on creation
+    reduce_motion: bool,
     balance_privacy: Option<crate::app::state::preferences::BalancePrivacyChrome>,
     // the signed-out-by-Connect notice — applied to new tabs on creation
     connect_signed_out_by: Option<crate::app::SignedOutBy>,
@@ -378,6 +380,7 @@ impl Pane {
         let mut tab = tab::Tab::new(id, tab::State::Installer(Box::new(installer)));
         tab.set_copy_owner(owner);
         tab.set_theme_mode(self.theme_mode);
+        tab.set_reduce_motion(self.reduce_motion);
         tab.set_balance_privacy(self.balance_privacy);
         tab.set_connect_signed_out_by(self.connect_signed_out_by);
         self.tabs.push(tab);
@@ -393,6 +396,7 @@ impl Pane {
                 focused_tab: 0,
                 tabs_created: 1,
                 theme_mode: coincube_ui::theme::palette::ThemeMode::default(),
+                reduce_motion: false,
                 balance_privacy: None,
                 connect_signed_out_by: None,
             },
@@ -406,6 +410,7 @@ impl Pane {
             focused_tab: 0,
             tabs_created: 1,
             theme_mode: coincube_ui::theme::palette::ThemeMode::default(),
+            reduce_motion: false,
             balance_privacy: None,
             connect_signed_out_by: None,
         }
@@ -417,6 +422,7 @@ impl Pane {
         let id = self.tabs_created;
         let mut tab = tab::Tab::new(id, state);
         tab.set_theme_mode(self.theme_mode);
+        tab.set_reduce_motion(self.reduce_motion);
         tab.set_balance_privacy(self.balance_privacy);
         tab.set_connect_signed_out_by(self.connect_signed_out_by);
         self.tabs.push(tab);
@@ -573,6 +579,7 @@ impl Pane {
             let id = self.tabs_created;
             let mut new_tab = tab::Tab::new(id, tab.state);
             new_tab.set_theme_mode(self.theme_mode);
+            new_tab.set_reduce_motion(self.reduce_motion);
             new_tab.set_balance_privacy(self.balance_privacy);
             new_tab.set_connect_signed_out_by(self.connect_signed_out_by);
             self.tabs.push(new_tab);
@@ -590,6 +597,7 @@ impl Pane {
     }
 
     pub fn set_reduce_motion(&mut self, reduce: bool) {
+        self.reduce_motion = reduce;
         for tab in &mut self.tabs {
             tab.set_reduce_motion(reduce);
         }

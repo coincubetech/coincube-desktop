@@ -737,19 +737,15 @@ impl CoincubeClient {
     }
 
     /// PUT /api/v1/connect/cubes/{cubeId}/mark — the owner sets the Cube's
-    /// ring-mark variation (API CA1). Returns the number the server kept.
+    /// ring-mark variation (API CA1) and/or its style (API CA6). Returns
+    /// the mark the server kept.
     pub async fn set_cube_mark(
         &self,
         cube_id: &str,
-        mark_variation: u32,
+        request: SetCubeMarkRequest,
     ) -> Result<CubeMarkResponse, CoincubeError> {
         let url = format!("{}/api/v1/connect/cubes/{}/mark", self.base_url, cube_id);
-        let res = self
-            .client
-            .put(&url)
-            .json(&SetCubeMarkRequest { mark_variation })
-            .send()
-            .await?;
+        let res = self.client.put(&url).json(&request).send().await?;
         let res = res.check_success().await?;
         let resp: ApiResponse<CubeMarkResponse> = res.json().await?;
         Ok(resp.data)
@@ -3533,6 +3529,7 @@ mod cube_member_tests {
                 has_vault: None,
                 spark_stable_balance: None,
                 mark_variation: None,
+                mark_style: None,
             })
             .await
             .expect_err("expected 409");
@@ -4746,7 +4743,11 @@ mod transport_identity_tests {
                 // Only verify the real request reached the local fixture.
                 then.status(503);
             });
-            assert!(client.set_cube_mark("7", 1).await.is_err());
+            let request = SetCubeMarkRequest {
+                mark_variation: Some(1),
+                mark_style: None,
+            };
+            assert!(client.set_cube_mark("7", request).await.is_err());
             mark.assert();
             mark.delete();
             let mut normal = normal;

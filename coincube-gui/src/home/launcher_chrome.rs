@@ -2491,6 +2491,7 @@ mod top_bar_tests {
             .iter()
             .map(|uuid| super::super::RemoteCube {
                 mark_variation: 0,
+                mark_style: 0,
                 id: 42,
                 uuid: (*uuid).to_string(),
                 name: format!("Remote {uuid}"),

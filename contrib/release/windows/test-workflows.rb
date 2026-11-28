@@ -48,10 +48,15 @@ LOGOUT = "az logout\naz account clear\nexit 0\n"
     check.call(platforms.none? { |leg| leg['platform'] == 'windows' }, prefix + 'unsigned Windows matrix leg')
   end
 
+  # Every job guard must name the same repository: a guard left on a former
+  # repository name skips its job silently instead of failing.
+  guards = File.read(File.join(root, '.github/workflows', "#{workflow}.yml")).scan(/github\.repository == '([^']*)'/).flatten
+  check.call(!guards.empty? && guards.uniq == ['coincubetech/coincube-desktop'], prefix + "repository guards #{guards.uniq.inspect}")
+
   expected_guard = if workflow == 'releases'
-    "github.repository == 'coincubetech/coincube' && startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')"
+    "github.repository == 'coincubetech/coincube-desktop' && startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')"
   else
-    "github.repository == 'coincubetech/coincube' && github.ref == 'refs/heads/master' && needs.check.outputs.should_run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')"
+    "github.repository == 'coincubetech/coincube-desktop' && github.ref == 'refs/heads/master' && needs.check.outputs.should_run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')"
   end
   check.call(jobs.fetch('windows_build').fetch('if') == expected_guard, prefix + 'trusted source/event guard')
   # Later jobs inherit the guard by depending on the build; their own `if` could override it.

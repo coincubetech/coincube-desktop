@@ -289,7 +289,7 @@ fn person_ring_is_thin_and_translucent() {
 }
 
 /// Draws `element` on the software renderer and returns its RGBA pixels.
-fn render(element: Element<'_, ()>, theme: &Theme, side: u32) -> Vec<u8> {
+pub(crate) fn render(element: Element<'_, ()>, theme: &Theme, side: u32) -> Vec<u8> {
     use iced::advanced::renderer::{self, Headless};
     use iced::advanced::widget::Tree;
     use iced::advanced::{layout, mouse, Layout};
@@ -330,7 +330,7 @@ fn render(element: Element<'_, ()>, theme: &Theme, side: u32) -> Vec<u8> {
 }
 
 /// Pixels close to `color`, ignoring anti-aliased edges.
-fn count_near(pixels: &[u8], color: Color) -> usize {
+pub(crate) fn count_near(pixels: &[u8], color: Color) -> usize {
     let [r, g, b, _] = color.into_rgba8();
     pixels
         .chunks_exact(4)

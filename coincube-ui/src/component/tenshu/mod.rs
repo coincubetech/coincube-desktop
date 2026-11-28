@@ -28,6 +28,7 @@ pub mod surface;
 pub mod text;
 pub mod toggle;
 pub mod top_bar;
+pub mod turning_cube;
 pub mod worldview_hero;
 
 #[cfg(test)]

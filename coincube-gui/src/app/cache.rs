@@ -460,6 +460,10 @@ pub struct Cache {
     /// ([`crate::app::settings::CubeSettings::mark_variation`]), kept in step
     /// with [`Self::cube_mark_seed`]. Back shows only above 0.
     pub cube_mark_variation: u32,
+    /// The style the open Cube's mark is drawn in
+    /// ([`crate::app::settings::CubeSettings::cube_mark_style`]), kept in
+    /// step with [`Self::cube_mark_seed`].
+    pub cube_mark_style: coincube_ui::component::cube_mark::CubeMarkStyle,
     /// Whether, and how, this account may change the open Cube's mark.
     pub cube_mark_access: CubeMarkAccess,
     /// The last Regenerate or Back, for the Display row's buttons and line.
@@ -656,6 +660,7 @@ impl std::default::Default for Cache {
             lightning_address: None,
             cube_mark_seed: None,
             cube_mark_variation: 0,
+            cube_mark_style: Default::default(),
             cube_mark_access: CubeMarkAccess::Waiting,
             cube_mark_change: CubeMarkChange::Idle,
             cube_id: String::new(),

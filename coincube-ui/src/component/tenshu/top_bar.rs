@@ -164,9 +164,12 @@ fn mark<'a, M: 'a>(
         .into()
 }
 
-/// The line Cube alone, `side` square, in the shell's ink at `opacity`: the
-/// Opening's mark, where the ink artwork used to be. Its line lightens as it
-/// grows, so it never reads heavier than the bar's 20 px Cube.
+/// The line Cube alone, `side` square, in the shell's ink at `opacity`. No
+/// product screen draws it: the Cube loader and every loading wait turn the
+/// Cube instead (`turning_cube`, Robert, 2026-11-27). It is kept only as the
+/// known SVG the drawn-image probe in coincube-gui's `worldview_screens_tests`
+/// counts. Its line lightens as it grows, so it never reads heavier than the
+/// bar's 20 px Cube.
 pub fn display_cube<'a, M: 'a>(side: f32, opacity: f32) -> Element<'a, M> {
     // SVG tint alpha is ignored by Iced's renderers; fade the widget itself.
     svg(svg::Handle::from_memory(

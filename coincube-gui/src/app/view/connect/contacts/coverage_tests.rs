@@ -460,6 +460,7 @@ fn invite_cube(id: u64, name: &str, uuid: Option<&str>, variation: u32) -> Recei
         cube_uuid: uuid.map(str::to_string),
         mark_variation: Some(variation),
         mark_version: Some(1),
+        mark_style: None,
     }
 }
 

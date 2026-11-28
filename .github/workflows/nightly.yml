@@ -515,7 +515,7 @@ jobs:
   windows_build:
     name: Build unsigned Windows executables
     needs: check
-    if: github.repository == 'coincubetech/coincube' && github.ref == 'refs/heads/master' && needs.check.outputs.should_run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    if: github.repository == 'coincubetech/coincube-desktop' && github.ref == 'refs/heads/master' && needs.check.outputs.should_run == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     runs-on: windows-latest
     timeout-minutes: 120
     permissions:

@@ -25,6 +25,7 @@ fn fixture_context() -> NavContext<'static> {
         vault_alias: Some("Family savings"),
         lightning_address: None,
         mark_seed: None,
+        mark_style: Default::default(),
         theme_mode: coincube_ui::theme::palette::ThemeMode::Dark,
         connect_authenticated: false,
         connect_email: None,
