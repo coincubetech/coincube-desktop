@@ -278,6 +278,20 @@ impl ChainIdExt for ChainId {
     }
 }
 
+/// Esplora identity for chains admitted by Connect's recovery-monitoring contract.
+/// Do not project through bitcoin::Network: fork chains share Bitcoin encodings.
+pub(crate) fn recovery_monitoring_network(chain: ChainId) -> Option<&'static str> {
+    match chain {
+        ChainId::Bitcoin => Some("bitcoin-mainnet"),
+        ChainId::Testnet => Some("bitcoin-testnet"),
+        ChainId::Testnet4 => Some("bitcoin-testnet4"),
+        ChainId::Signet
+        | ChainId::Regtest
+        | ChainId::BitcoinBlake2b
+        | ChainId::BitcoinBlake2bTestnet4 => None,
+    }
+}
+
 /// Stable technical identity for transaction, signing, and address review.
 pub(crate) fn canonical_network_name(chain: ChainId) -> &'static str {
     match chain {
@@ -312,6 +326,21 @@ pub(crate) fn worldview_chain_label(
 mod tests {
     use super::*;
     use coincube_core::miniscript::bitcoin::Network;
+
+    #[test]
+    fn recovery_monitoring_uses_exact_chain_identity() {
+        for (chain, expected) in [
+            (ChainId::Bitcoin, Some("bitcoin-mainnet")),
+            (ChainId::Testnet, Some("bitcoin-testnet")),
+            (ChainId::Testnet4, Some("bitcoin-testnet4")),
+            (ChainId::Signet, None),
+            (ChainId::Regtest, None),
+            (ChainId::BitcoinBlake2b, None),
+            (ChainId::BitcoinBlake2bTestnet4, None),
+        ] {
+            assert_eq!(recovery_monitoring_network(chain), expected, "{chain:?}");
+        }
+    }
 
     #[test]
     fn worldview_aliases_and_canonical_identity_are_distinct() {

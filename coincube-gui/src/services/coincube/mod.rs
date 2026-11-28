@@ -4131,10 +4131,13 @@ pub struct VaultHeartbeatRequest {
     pub earliest_recovery_height: u32,
     pub computed_at: chrono::DateTime<chrono::Utc>,
     /// Chain whose tip the server's sweep compares the reported height against,
-    /// in the Esplora-proxy id form the API expects (`bitcoin-mainnet` /
-    /// `bitcoin-testnet`). REQUIRED: an omitted/empty value makes the server
-    /// assume mainnet, which would key a testnet vault's recovery height against
-    /// the wrong tip and fire (or suppress) alerts incorrectly.
+    /// in the Esplora-proxy id form the API expects: `bitcoin-mainnet`,
+    /// `bitcoin-testnet` or `bitcoin-testnet4`
+    /// (`crate::chain::recovery_monitoring_network`). These are not the
+    /// `ChainId::api_str()` values used for Cube registration. REQUIRED: an
+    /// omitted/empty value makes the server assume mainnet, which would key a
+    /// test-network vault's recovery height against the wrong tip and fire (or
+    /// suppress) alerts incorrectly.
     pub network: String,
 }
 
@@ -4693,9 +4696,9 @@ mod vault_monitoring_tests {
     #[test]
     fn heartbeat_request_carries_network_id() {
         // The server requires the Esplora-proxy network id and rejects any value
-        // outside `bitcoin-mainnet` / `bitcoin-testnet`; a missing field would
-        // silently default it to mainnet server-side. Lock the wire field name
-        // (`network`) and a representative value.
+        // outside `bitcoin-mainnet` / `bitcoin-testnet` / `bitcoin-testnet4`; a
+        // missing field would silently default it to mainnet server-side. Lock
+        // the wire field name (`network`) and a representative value.
         let req = VaultHeartbeatRequest {
             earliest_recovery_height: 850_000,
             computed_at: chrono::Utc::now(),
