@@ -4663,9 +4663,17 @@ impl App {
             None => tip as i64 + timelock,
         };
         let earliest = earliest.max(0) as u32;
-        // Use the Vault's full chain identity, as Cube registration does. A
-        // Testnet4 recovery height must never be compared to Testnet3's tip.
+        // Derive the network from the Vault's full chain identity so a
+        // Testnet4 recovery height is never compared to Testnet3's tip. The
+        // heartbeat takes Esplora-proxy ids (`bitcoin-mainnet`,
+        // `bitcoin-testnet`, `bitcoin-testnet4`), a different vocabulary from
+        // the `ChainId::api_str()` values Cube registration sends (`mainnet`,
+        // `testnet4`, ...); Connect rejects an `api_str()` value here.
         let Some(network) = crate::chain::recovery_monitoring_network(wallet.chain) else {
+            log::debug!(
+                "[RECOVERY] heartbeat skipped: {:?} is not a recovery-monitoring network",
+                wallet.chain
+            );
             return Task::none();
         };
         let req = VaultHeartbeatRequest {
