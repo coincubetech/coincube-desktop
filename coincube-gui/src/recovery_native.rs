@@ -374,7 +374,8 @@ pub async fn create_export(
             network: chain.api_str().into(),
             has_vault: None,
             spark_stable_balance: None,
-            mark_variation: None,
+            mark_variation: RegisterCubeRequest::mark_variation_for(cube.mark_variation),
+            mark_style: RegisterCubeRequest::mark_style_for(cube.mark_style),
         })
         .await
         .map_err(|_| "native_registration_uncertain")?;

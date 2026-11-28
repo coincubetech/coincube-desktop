@@ -673,6 +673,8 @@ mod run {
                     network: "testnet4".into(),
                     has_vault: None,
                     spark_stable_balance: None,
+                    mark_variation: RegisterCubeRequest::mark_variation_for(cube.mark_variation),
+                    mark_style: RegisterCubeRequest::mark_style_for(cube.mark_style),
                 })
                 .await
                 .map_err(rest_error)?;
@@ -986,6 +988,8 @@ mod run {
                     }],
                     Some((RECOVERY_BLOCKS as u32).div_ceil(144) as i32),
                     Some(descriptor_id.clone()),
+                    RegisterCubeRequest::mark_variation_for(local.mark_variation),
+                    RegisterCubeRequest::mark_style_for(local.mark_style),
                 )
                 .await
                 .map_err(|_| "connect_vault_create_failed")?;
