@@ -90,24 +90,11 @@ pub struct ShellState {
 
 pub(crate) fn network_label(network: ChainId) -> &'static str {
     match network {
-        ChainId::Bitcoin => "Bitcoin mainnet",
-        ChainId::BitcoinBlake2b => "Bitcoin Blake2b mainnet",
+        // The mainnets' names are words; the test networks' are proper names.
+        ChainId::Bitcoin => coincube_ui::locale::copy("Bitcoin mainnet"),
+        ChainId::BitcoinBlake2b => coincube_ui::locale::copy("Bitcoin Blake2b mainnet"),
         other => other.label(),
     }
-}
-
-/// The Launcher's coin for the Cube's chain, beside its network name.
-fn network_coin<'a>(ctx: &NavContext<'a>) -> Element<'a, Message> {
-    let light = matches!(
-        ctx.theme_mode,
-        coincube_ui::theme::palette::ThemeMode::Light
-    );
-    iced::widget::Svg::new(iced::widget::svg::Handle::from_memory(
-        crate::home::launcher_coin::widget_source(ctx.network, 14.0, 1.0, light).into_bytes(),
-    ))
-    .width(Length::Fixed(14.0))
-    .height(Length::Fixed(14.0))
-    .into()
 }
 
 pub(crate) fn short_cube_name(name: &str) -> String {
@@ -200,7 +187,7 @@ pub fn top_bar_with_privacy<'a>(
     privacy: Option<BalancePrivacyChrome>,
 ) -> Element<'a, Message> {
     let connect = connect_control(ctx);
-    let top: Element<'a, Message> = bar::top_bar(
+    let mut top = bar::top_bar(
         bar::brand_action(
             LAUNCHER_RETURN_ID,
             Message::FocusAction,
@@ -211,19 +198,29 @@ pub fn top_bar_with_privacy<'a>(
             Message::FocusAction,
             Message::OpenAppPreferences,
         ),
-    )
-    .eye(privacy.map(|chrome| {
-        balance_privacy_eye(
-            BALANCE_PRIVACY_ID,
-            chrome,
-            Message::FocusAction,
-            Message::ChangeDevicePreference,
-        )
-    }))
-    .chip(connect)
-    .into();
+    );
+    // The test-network tag beside the wordmark (S1). The bar is pinned
+    // above the page, so the tag can't be scrolled away.
+    if let Some(tag) = crate::chain::test_network_tag(ctx.network) {
+        top = top.lead(tag);
+    }
+    let top: Element<'a, Message> = top
+        .eye(privacy.map(|chrome| {
+            balance_privacy_eye(
+                BALANCE_PRIVACY_ID,
+                chrome,
+                Message::FocusAction,
+                Message::ChangeDevicePreference,
+            )
+        }))
+        .chip(connect)
+        .into();
     // The quiet rule under the bar, as on the Launcher.
-    let mut bar = column![top, bar::rule()];
+    // A dialog over the page leaves this bar undimmed: it carries the
+    // test-network tag (S1), which a scrim would make unreadable.
+    let mut bar =
+        column![container(column![top, bar::rule()])
+            .id(Id::new(coincube_ui::widget::modal::UNDIMMED_ID))];
     // The panel hangs from the control's trailing edge, clear of App
     // preferences, and covers the page rather than pushing it down.
     if ctx.connect.panel_open {
@@ -740,33 +737,16 @@ fn section(label: &'static str) -> Element<'static, Message> {
 }
 
 fn identity<'a>(ctx: &NavContext<'a>) -> Element<'a, Message> {
-    // The Cube's mark, in the style its owner chose: decoration beside its
-    // name, which the switcher always shows.
+    // `.cubeid` with `.cubeidt.cid1`: the Cube's mark, in the style its owner
+    // chose, and its name on one line. The network is not named here: a test
+    // network has the tag beside the wordmark (S1), and the page subtitle
+    // starts with the coin.
     let avatar: Element<'a, Message> = cube_mark::cube_mark(ctx.mark_style, ctx.mark_seed, 36.0);
-    let title = if ctx.cube_name.is_empty() {
-        "Cube".to_owned()
-    } else {
-        short_cube_name(ctx.cube_name)
-    };
     let control = Action::new(
         CUBE_SWITCHER_ID,
         row![
             avatar,
-            column![
-                text(title)
-                    .size(14)
-                    .wrapping(iced::widget::text::Wrapping::WordOrGlyph),
-                // `.net { white-space: nowrap }`: the coin and the name stay on one line.
-                row![
-                    network_coin(ctx),
-                    muted(network_label(ctx.network), 12)
-                        .wrapping(iced::widget::text::Wrapping::None)
-                ]
-                .spacing(5)
-                .align_y(Alignment::Center)
-            ]
-            .spacing(1)
-            .width(Length::Fill),
+            switcher_name(ctx.cube_name),
             // `.side .cv`: one muted 16px chevron; the open menu shows the state.
             glyph::glyph(glyph::CHEVRON_DOWN, 16.0, glyph::muted),
         ]
@@ -779,6 +759,39 @@ fn identity<'a>(ctx: &NavContext<'a>) -> Element<'a, Message> {
     .style(theme::button::shell_nav)
     .on_press(Message::ToggleCubeSwitcher);
     container(control).padding([4, 8]).into()
+}
+
+/// Graphemes of a Cube name the switcher lays out before cutting it to its
+/// width. Names have no length limit; no sidebar width shows more than this.
+const SWITCHER_NAME_GRAPHEMES: usize = 64;
+
+/// The switcher's name (`.cubeidt.cid1 b`): 15px semibold ink, one line,
+/// cut with an ellipsis where it meets the chevron at either sidebar width.
+fn switcher_name<'a>(cube_name: &str) -> Element<'a, Message> {
+    use unicode_segmentation::UnicodeSegmentation;
+    let name = if cube_name.trim().is_empty() {
+        "Cube".to_owned()
+    } else {
+        // One line: breaks and other whitespace read as spaces, as in
+        // [`short_cube_name`].
+        cube_name
+            .chars()
+            .map(|ch| {
+                if ch.is_whitespace() || ch.is_control() {
+                    ' '
+                } else {
+                    ch
+                }
+            })
+            .collect::<String>()
+            .graphemes(true)
+            .take(SWITCHER_NAME_GRAPHEMES)
+            .collect()
+    };
+    coincube_ui::widget::one_line::one_line(name)
+        .size(15)
+        .font(font::SEMIBOLD)
+        .into()
 }
 
 /// The Cube menu's surface: the floating panel, shadowed and unoutlined.
@@ -862,8 +875,13 @@ fn marketplace_children<'a>(menu: &Menu, ctx: &NavContext<'a>) -> Vec<Element<'a
 
 pub const BACKUP_ATTENTION_ID: &str = "tenshu.shell.backup-attention";
 
-/// The sidebar's backup strip: the panel fill on the rail, with no outline
-/// (V4). Hover takes the selected fill. Phase 2 redesigns the strip.
+/// `.attn` text size: the 13px step (Phase 2 W3), not 12.5.
+const BACKUP_ATTENTION_SIZE: f32 = 13.0;
+/// `.attn::before { width: 8px }`: the warn dot.
+const BACKUP_ATTENTION_DOT: f32 = 8.0;
+
+/// The sidebar's backup reminder (`.attn`, Phase 2): no box and no fill at
+/// rest, like the nav rows around it. Hover takes the light hover fill.
 fn backup_attention_style(
     t: &theme::Theme,
     status: iced::widget::button::Status,
@@ -874,11 +892,7 @@ fn backup_attention_style(
         iced::widget::button::Status::Hovered | iced::widget::button::Status::Pressed
     );
     iced::widget::button::Style {
-        background: Some(iced::Background::Color(if hovered {
-            shell.selected
-        } else {
-            shell.panel
-        })),
+        background: hovered.then_some(iced::Background::Color(shell.hover)),
         text_color: shell.ink,
         border: iced::Border {
             radius: 8.0.into(),
@@ -888,47 +902,58 @@ fn backup_attention_style(
     }
 }
 
-/// `.attn`: a fill-only strip above the foot (see [`backup_attention_style`]),
-/// a warning mark and "Backup not confirmed" in the warning ink, with
-/// "Review" in the accent.
+/// `.attn`: one line in the sidebar, a warn dot, "Backup not confirmed" in
+/// the ink and "Review" in the muted ink, on the 13px step. The warning
+/// lives in the dot; the row has no box (see [`backup_attention_style`]).
 fn backup_attention<'a>() -> Element<'a, Message> {
+    let dot = container(Space::new())
+        .width(BACKUP_ATTENTION_DOT)
+        .height(BACKUP_ATTENTION_DOT)
+        .style(|t: &theme::Theme| container::Style {
+            background: Some(t.colors.shell.warn.into()),
+            border: iced::Border {
+                radius: (BACKUP_ATTENTION_DOT / 2.0).into(),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
     let body = row![
-        glyph::glyph(glyph::WARNING, 16.0, glyph::warn),
-        // The label takes the room that is left and wraps there, so a long
-        // translation ("Copia sin confirmar") never pushes "Review" out of
-        // the strip at the compact sidebar width.
+        dot,
+        // The label takes the room that is left and wraps there only when it
+        // must, so a long translation ("Copia sin confirmar") never pushes
+        // "Review" out of the row at the compact sidebar width.
         text(localized_copy("Backup not confirmed"))
-            .size(12.5)
+            .size(BACKUP_ATTENTION_SIZE)
             .font(font::MEDIUM)
             .width(Length::Fill)
             .wrapping(iced::widget::text::Wrapping::Word)
             .style(|t: &theme::Theme| iced::widget::text::Style {
-                color: Some(t.colors.shell.warn),
+                color: Some(t.colors.shell.ink),
             }),
         text(localized_copy("Review"))
-            .size(12.5)
-            .font(font::SEMIBOLD)
+            .size(BACKUP_ATTENTION_SIZE)
             .wrapping(iced::widget::text::Wrapping::None)
             .style(|t: &theme::Theme| iced::widget::text::Style {
-                color: Some(t.colors.shell.accent_ink),
+                color: Some(t.colors.shell.muted),
             }),
     ]
-    .spacing(6)
+    .spacing(9)
     .align_y(Alignment::Center);
     container(
         Action::new(BACKUP_ATTENTION_ID, body, Message::FocusAction)
             .width(Length::Fill)
-            .padding([9, 8])
+            .padding([8, 10])
             .style(backup_attention_style)
             .on_press(Message::Menu(Menu::Cube(CubeSubMenu::Settings(
                 CubeSettingsOption::Recovery,
             )))),
     )
+    // The nav column's 10px inset, so the dot lines up with the nav icons.
     .padding(iced::Padding {
         top: 0.0,
-        right: 16.0,
-        bottom: 8.0,
-        left: 16.0,
+        right: 10.0,
+        bottom: 4.0,
+        left: 10.0,
     })
     .into()
 }
@@ -1362,37 +1387,79 @@ mod backup_strip_style_tests {
     use super::*;
     use iced::widget::button::Status;
 
-    /// The backup strip is a fill with no outline, and its fill differs from
-    /// the rail it sits on in both themes, at rest and hovered.
+    /// The backup reminder has no box: no fill and no outline at rest, like
+    /// the nav rows. Hover takes the light hover fill, which reads on the
+    /// rail in both themes.
     #[test]
-    fn backup_strip_is_fill_only_and_reads_on_the_rail() {
+    fn backup_reminder_has_no_box_and_a_hover_fill() {
         for (name, theme) in [
             ("dark", theme::Theme::dark()),
             ("light", theme::Theme::light()),
         ] {
-            for status in [Status::Active, Status::Hovered] {
-                let style = backup_attention_style(&theme, status);
-                assert_eq!(style.border.width, 0.0, "{name} {status:?}");
-                let fill = match style.background {
-                    Some(iced::Background::Color(color)) => color,
-                    other => panic!("{:?}", other),
-                };
-                let separation =
-                    coincube_ui::theme::tenshu::separation::delta_e(fill, theme.colors.shell.rail);
-                assert!(
-                    separation >= coincube_ui::theme::tenshu::separation::JUST_NOTICEABLE_DELTA_E,
-                    "{} {:?}: the strip is only {} from the rail",
-                    name,
-                    status,
-                    separation
-                );
-            }
+            let rest = backup_attention_style(&theme, Status::Active);
+            assert_eq!(rest.border.width, 0.0, "{}", name);
+            assert_eq!(rest.background, None, "{}: a fill at rest is a box", name);
+            let hover = backup_attention_style(&theme, Status::Hovered);
+            assert_eq!(hover.border.width, 0.0, "{}", name);
+            assert_eq!(
+                hover.background,
+                Some(iced::Background::Color(theme.colors.shell.hover)),
+                "{}",
+                name
+            );
         }
     }
 
-    /// At the compact sidebar width, a long translation of "Backup not
-    /// confirmed" ("Copia sin confirmar") wraps instead of pushing "Review"
-    /// ("Revisar") out of the strip. Found in the Desktop V3 acceptance walk.
+    /// The reminder is drawn, not boxed: across the row only the dot and the
+    /// glyphs leave the rail, with no panel fill behind the words.
+    #[test]
+    fn backup_reminder_draws_no_panel_on_the_rail() {
+        use crate::app::view::shared::landing::capture::render_pixels;
+        for (name, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let rail = theme.colors.shell.rail;
+            let view: Element<'_, Message> = container(backup_attention())
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .style(|t: &theme::Theme| container::Style {
+                    background: Some(t.colors.shell.rail.into()),
+                    ..Default::default()
+                })
+                .into();
+            let pixels = render_pixels(view, (FULL_WIDTH as u32, 60), &theme, None);
+            // Inside the row (inset 10, inner padding 10), left of the dot,
+            // above and below the words, the rail shows through.
+            for (x, y) in [(14u32, 3u32), (14, 30), (120, 2), (200, 3), (200, 31)] {
+                let drawn = pixels.at(x, y);
+                assert!(
+                    coincube_ui::theme::tenshu::separation::delta_e(drawn, rail) < 1.0,
+                    "{}: ({}, {}) is {:?}, not the rail {:?}",
+                    name,
+                    x,
+                    y,
+                    drawn,
+                    rail
+                );
+            }
+            // The warn dot is drawn: 10 + 10 + 4 is its centre, half way down
+            // the 8 + 17 + 8 row.
+            let dot = pixels.at(24, 16);
+            assert!(
+                coincube_ui::theme::tenshu::separation::delta_e(dot, theme.colors.shell.warn) < 3.0,
+                "{}: the dot is {:?}, not the warn {:?}",
+                name,
+                dot,
+                theme.colors.shell.warn
+            );
+        }
+    }
+
+    /// The reminder is one line at the full sidebar width, in English and in
+    /// Spanish. At the compact width the label ("Backup not confirmed",
+    /// "Copia sin confirmar") wraps instead of pushing "Review" ("Revisar")
+    /// out of the row (Phase 1 acceptance walk).
     #[tokio::test]
     async fn review_stays_inside_the_strip_in_spanish_at_the_compact_width() {
         use iced::advanced::{
@@ -1428,7 +1495,7 @@ mod backup_strip_style_tests {
         )
         .await
         .expect("software renderer");
-        for (language, label, review) in [
+        let cases = [
             (
                 coincube_ui::locale::Language::English,
                 "Backup not confirmed",
@@ -1439,14 +1506,19 @@ mod backup_strip_style_tests {
                 "Copia sin confirmar",
                 "Revisar",
             ),
-        ] {
+        ];
+        for (width, (language, label, review)) in [FULL_WIDTH, COMPACT_WIDTH]
+            .iter()
+            .copied()
+            .flat_map(|width| cases.iter().copied().map(move |case| (width, case)))
+        {
             let texts = coincube_ui::locale::render_in(language, || {
                 let mut element = backup_attention();
                 let mut tree = Tree::new(element.as_widget());
                 let node = element.as_widget_mut().layout(
                     &mut tree,
                     &renderer,
-                    &layout::Limits::new(iced::Size::ZERO, iced::Size::new(COMPACT_WIDTH, 200.0)),
+                    &layout::Limits::new(iced::Size::ZERO, iced::Size::new(width, 200.0)),
                 );
                 let mut texts = Texts::default();
                 element.as_widget_mut().operate(
@@ -1471,7 +1543,7 @@ mod backup_strip_style_tests {
             // draws past its box (and the strip). Measure the word on its own.
             let natural = {
                 let mut alone: Element<'_, Message> =
-                    text(review_word).size(12.5).font(font::SEMIBOLD).into();
+                    text(review_word).size(BACKUP_ATTENTION_SIZE).into();
                 let mut tree = Tree::new(alone.as_widget());
                 alone
                     .as_widget_mut()
@@ -1490,9 +1562,9 @@ mod backup_strip_style_tests {
                 review.width,
                 natural
             );
-            // The strip's own content edge: the sidebar width less the outer
-            // padding (16) and the strip's inner padding (8).
-            let inner_right = COMPACT_WIDTH - 16.0 - 8.0;
+            // The row's own content edge: the sidebar width less the outer
+            // padding (16) and the row's inner padding (10).
+            let inner_right = width - 10.0 - 10.0;
             assert!(
                 review.x + review.width <= inner_right + 0.5,
                 "{:?}: Review ends at {} past the strip's edge {}",
@@ -1505,6 +1577,21 @@ mod backup_strip_style_tests {
                 "{:?}: the label overlaps Review",
                 language
             );
+            // One line: the label is no taller than "Review" beside it.
+            let one_line = label.height <= review.height + 0.5;
+            eprintln!(
+                "backup reminder {:?} at {}: label {}x{}, review {}x{}",
+                language, width, label.width, label.height, review.width, review.height
+            );
+            // At the compact width neither language fits on one line beside
+            // "Review"; the label wraps and "Review" stays inside.
+            if width == FULL_WIDTH {
+                assert!(
+                    one_line,
+                    "{:?} at {}: the label wraps to {} tall",
+                    language, width, label.height
+                );
+            }
         }
     }
 }

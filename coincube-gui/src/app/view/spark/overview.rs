@@ -275,6 +275,9 @@ fn lightning_address_button_style(
     }
 }
 
+/// The share popover's width (`.lnpop { width: 380px }`).
+const SHARE_PANEL_WIDTH: f32 = 380.0;
+
 /// The share popover the address button opens, anchored under it: the
 /// address as a QR code (encoded exactly as Spark › Receive encodes it, the
 /// bare address), copy and save actions and the way to a different name.
@@ -366,7 +369,7 @@ pub fn lightning_share_panel<'a>(
         );
     Container::new(panel)
         .padding(20)
-        .width(Length::Fixed(380.0))
+        .width(Length::Fixed(SHARE_PANEL_WIDTH))
         .style(lightning_share_panel_style)
         .into()
 }
@@ -486,20 +489,17 @@ fn connected_view<'a>(
     // ── Unified portfolio card ─────────────────────────────────────────
     let total_col = Column::new()
         .spacing(4)
-        .push(
-            Row::new()
-                .spacing(8)
-                .align_y(Alignment::Center)
-                .push(h4_bold(localized_copy("Total balance"))),
-        )
+        .push(Row::new().spacing(8).align_y(Alignment::Center).push(
+            crate::app::view::shared::landing::balance_label(localized_copy("Total balance")),
+        ))
         .push(if mask_amounts {
-            amount_cell::<SparkOverviewMessage>(AmountCell::masked(), AmountTier::Card)
+            amount_cell::<SparkOverviewMessage>(AmountCell::masked(), AmountTier::Total)
         } else if has_unvalued_usdb {
             amount_cell::<SparkOverviewMessage>(
                 AmountCell::unavailable(coincube_ui::locale::copy(
                     "Combined BTC and USDB valuation needs a BTC/USD quote",
                 )),
-                AmountTier::Card,
+                AmountTier::Total,
             )
         } else {
             wallet_header::<SparkOverviewMessage>(WalletHeaderProps {
@@ -643,26 +643,41 @@ fn overview_lightning_share_row<'a>(
     lightning_address: &SparkLightningAddress,
     lightning_share: Option<(&'a str, Option<&'a qr_code::Data>)>,
 ) -> Element<'a, SparkOverviewMessage> {
+    let Some(button) =
+        lightning_address_button(cube_id, lightning_address, lightning_share.is_some())
+    else {
+        return total_col.into();
+    };
+    let panel = lightning_share.map(|(address, qr)| lightning_share_panel(cube_id, address, qr));
     // The Lightning address sits beside the total while both fit at their
     // own widths, else on its own line below it (`fit_row`).
-    let total_row: Element<'a, SparkOverviewMessage> =
-        match lightning_address_button(cube_id, lightning_address, lightning_share.is_some()) {
-            Some(button) => fit_row(total_col, button).gap(16.0).into(),
-            None => total_col.into(),
-        };
-    // The share popover hangs from the button's trailing edge and covers the
-    // rows below it rather than pushing them down.
-    match lightning_share {
-        Some((address, qr)) => Column::new()
-            .push(total_row)
+    fit_row(total_col, share_trail(button, panel))
+        .gap(16.0)
+        .into()
+}
+
+/// The address button, and while it is open the share popover hanging 8px
+/// under its trailing edge (`.lnpop { right: 0; top: calc(100% + 8px) }`),
+/// covering the rows below rather than pushing them down. The popover takes
+/// no room in the group, so opening it never changes how wide the button's
+/// side of the row measures, and `fit_row` keeps the button where it was.
+fn share_trail<'a>(
+    button: Element<'a, SparkOverviewMessage>,
+    panel: Option<Element<'a, SparkOverviewMessage>>,
+) -> Element<'a, SparkOverviewMessage> {
+    match panel {
+        Some(panel) => Column::new()
+            .align_x(Alignment::End)
+            .push(button)
             .push(
-                Floating::new(lightning_share_panel(cube_id, address, qr))
+                Floating::new(panel)
+                    .hang()
                     .align_x(iced::alignment::Horizontal::Right)
                     .gap(8.0)
                     .on_dismiss(SparkOverviewMessage::CloseLightningShare),
             )
             .into(),
-        None => total_row,
+        None => button,
     }
 }
 
@@ -1113,7 +1128,12 @@ mod tests {
         assert_eq!(panel.width, 380.0, "the popover keeps its own width");
         assert!(panel.height < size.height / 1.2, "not a whole-page scrim");
         assert!(panel.y > button.y + button.height, "hangs below the button");
-        assert!(panel.y < button.y + button.height + 40.0, "close under it");
+        assert!(
+            panel.y < button.y + button.height + 40.0,
+            "close under it {:?} {:?}",
+            panel,
+            button
+        );
         assert!(
             (panel.x + panel.width) > button.x + button.width
                 && (panel.x + panel.width) <= size.width,
@@ -1542,6 +1562,236 @@ mod tests {
                     theme,
                 );
                 assert!(unavailable.contains("not configured"));
+            }
+        }
+    }
+
+    /// The share popover takes no room beside the total. A button narrower
+    /// than the 380px popover, beside a total it fits next to, stays on the
+    /// total's line when the popover opens (it used to measure as wide as
+    /// the popover and drop below), and the popover's right edge stays
+    /// under the button's.
+    #[test]
+    fn an_open_share_popover_keeps_a_narrow_button_beside_the_total() {
+        let qr = qr_code::Data::new(ADDRESS).expect("address fits a QR code");
+        let button_id = iced::advanced::widget::Id::from("synthetic.narrow-share");
+        let row = |open: bool| -> Element<'_, SparkOverviewMessage> {
+            let button: Element<'_, SparkOverviewMessage> = Action::new(
+                button_id.clone(),
+                Container::new(text("Share"))
+                    .width(Length::Fixed(120.0))
+                    .height(Length::Fixed(40.0)),
+                SparkOverviewMessage::FocusAction,
+            )
+            .on_press(SparkOverviewMessage::CloseLightningShare)
+            .into();
+            let total = Column::new().push(
+                Container::new(text("total"))
+                    .width(Length::Fixed(300.0))
+                    .height(Length::Fixed(80.0)),
+            );
+            let panel = open.then(|| lightning_share_panel("synthetic-cube", ADDRESS, Some(&qr)));
+            Column::new()
+                .push(fit_row(total, share_trail(button, panel)).gap(16.0))
+                .push(text("below"))
+                .into()
+        };
+        // 300 + 16 + 120 fits in 600; 300 + 16 + 380 would not.
+        let inspect = |open: bool| {
+            capture::inspect_wide_content(
+                "share-trail-narrow",
+                row(open),
+                (1024, 768),
+                "dark",
+                theme::Theme::dark(),
+                600,
+            )
+        };
+        let (closed, open) = (inspect(false), inspect(true));
+        let place = |mounted: &capture::Inspection, needle: &str| {
+            mounted
+                .text
+                .iter()
+                .find_map(|(text, bounds)| (text == needle).then_some(*bounds))
+                .unwrap_or_else(|| panic!("{:?} is drawn", needle))
+        };
+        for needle in ["Share", "below"] {
+            assert_eq!(
+                place(&closed, needle),
+                place(&open, needle),
+                "{} stays",
+                needle
+            );
+        }
+        assert!(
+            place(&closed, "Share").y < 80.0,
+            "the button sits beside the total"
+        );
+    }
+
+    /// Opening Share moves nothing on the page: at the Spark page's own pane
+    /// width (`capture::inspect`'s), the button and every line of the page
+    /// keep their places, in both languages, as sats and as dollars, shown
+    /// and hidden.
+    #[test]
+    fn opening_share_moves_nothing_at_the_pane_width() {
+        let qr = qr_code::Data::new(ADDRESS).expect("address fits a QR code");
+        let button = landing_control_id("synthetic-cube", "Spark", "ln-share");
+        let windows: Vec<(u32, u32)> = vec![(1024, 768), (1440, 900)];
+        for balance_sats in [125_000_u64, 2_099_999_997_690_000] {
+            for (display_mode, price) in [
+                (DisplayMode::BitcoinNative, None),
+                (DisplayMode::FiatNative, Some(50_000.0)),
+            ] {
+                for mask_amounts in [false, true] {
+                    let view = |share: bool| SparkOverviewView {
+                        lightning_share: share.then_some((ADDRESS, Some(&qr))),
+                        display_mode,
+                        mask_amounts,
+                        ..synthetic_view(
+                            SparkStatus::Connected(SparkBalanceSnapshot {
+                                balance_sats,
+                                usdb_balance: None,
+                            }),
+                            &[],
+                            price,
+                            None,
+                            ready(),
+                        )
+                    };
+                    let check =
+                        |closed: capture::Inspection, open: capture::Inspection, at: String| {
+                            let scenario = format!(
+                                "{} sats={} {:?} masked={}",
+                                at, balance_sats, display_mode, mask_amounts
+                            );
+                            let place = |mounted: &capture::Inspection| {
+                                mounted
+                                    .focus
+                                    .iter()
+                                    .find_map(|(id, bounds)| (*id == button).then_some(*bounds))
+                                    .unwrap_or_else(|| panic!("{}: the address button", scenario))
+                            };
+                            assert_eq!(
+                                place(&closed),
+                                place(&open),
+                                "{}: the button stays",
+                                scenario
+                            );
+                            for entry in &closed.text {
+                                assert!(
+                                    open.text.contains(entry),
+                                    "{}: opening Share moves {:?}",
+                                    scenario,
+                                    entry
+                                );
+                            }
+                        };
+                    for language in [
+                        coincube_ui::locale::Language::English,
+                        coincube_ui::locale::Language::Spanish,
+                    ] {
+                        coincube_ui::locale::render_in(language, || {
+                            for outer in &windows {
+                                let inspect = |share: bool| {
+                                    capture::inspect(
+                                        "spark-share-moves-nothing",
+                                        view(share).render(),
+                                        *outer,
+                                        "dark",
+                                        theme::Theme::dark(),
+                                    )
+                                };
+                                check(
+                                    inspect(false),
+                                    inspect(true),
+                                    format!("{:?} {:?}", language, outer),
+                                );
+                            }
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    /// The tallest line drawn for `needle`, failing if it is missing.
+    fn tallest(mounted: &capture::Inspection, needle: &str, scenario: &str) -> f32 {
+        mounted
+            .text
+            .iter()
+            .filter(|(text, _)| text == needle)
+            .map(|(_, bounds)| bounds.height)
+            .fold(None, |tallest: Option<f32>, height| {
+                Some(tallest.map_or(height, |t| t.max(height)))
+            })
+            .unwrap_or_else(|| panic!("{}: {:?} is drawn", scenario, needle))
+    }
+
+    /// The Spark page on the type scale (`MV-Type-Scale`, "Desktop
+    /// proposed"; `P-Overview`): "Total balance" is the board's 13px label
+    /// (`.kbal`, an 18.85px line at 1.45)
+    /// and the main amount is 46px, like the Overview's total, shown and
+    /// hidden, on `.big`'s 1.15 line.
+    /// Before, it was a 20px bold title and the amount 29px.
+    #[test]
+    fn spark_main_amount_is_46px_under_a_13px_label() {
+        let snapshot = SparkBalanceSnapshot {
+            balance_sats: 125_000,
+            usdb_balance: None,
+        };
+        for (appearance, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            for outer in [(1024, 768), (1440, 900)] {
+                let scenario = format!("spark {} {:?}", appearance, outer);
+                let shown = capture::inspect(
+                    "spark-type-scale",
+                    synthetic_overview(SparkStatus::Connected(snapshot.clone()), &[], None, None),
+                    outer,
+                    appearance,
+                    theme,
+                );
+                let title = tallest(&shown, "Total balance", &scenario);
+                assert!(
+                    (title - 13.0 * 1.45).abs() < 0.01,
+                    "{}: label {}",
+                    scenario,
+                    title
+                );
+                let amount = tallest(&shown, "125,000", &scenario);
+                assert!(
+                    (amount - 46.0 * 1.15).abs() < 0.01,
+                    "{}: main amount {}",
+                    scenario,
+                    amount
+                );
+
+                let hidden = capture::inspect(
+                    "spark-type-scale-hidden",
+                    SparkOverviewView {
+                        mask_amounts: true,
+                        ..synthetic_view(
+                            SparkStatus::Connected(snapshot.clone()),
+                            &[],
+                            None,
+                            None,
+                            SparkLightningAddress::Unknown,
+                        )
+                    }
+                    .render(),
+                    outer,
+                    appearance,
+                    theme,
+                );
+                let mask = tallest(&hidden, "••••••", &scenario);
+                assert!(
+                    (mask - 46.0 * 1.15).abs() < 0.01,
+                    "{}: hidden main amount {}",
+                    scenario,
+                    mask
+                );
             }
         }
     }

@@ -91,17 +91,8 @@ fn action<'a>(
     .height(36)
     .padding([0, 14])
     .focus_radius(8.0)
-    .style(move |theme, status| {
-        let mut appearance = button::action(theme, status, kind, ActionShape::Compact);
-        if kind == ActionKind::Primary && status == iced::widget::button::Status::Disabled {
-            appearance.background = None;
-            appearance.border.color = theme.colors.shell.line;
-            appearance.text_color = theme.colors.shell.muted;
-        } else if kind == ActionKind::Secondary && status == iced::widget::button::Status::Active {
-            appearance.background = None;
-        }
-        appearance
-    })
+    // A disabled Save is the primary at 0.45, as everywhere (`cc-buttons v1`).
+    .style(move |theme, status| button::action(theme, status, kind, ActionShape::Compact))
     .on_press_maybe(on_press)
 }
 
@@ -486,6 +477,35 @@ mod tests {
             lightning_address: Some(a.into()),
         });
         connect
+    }
+
+    /// Drawn: a disabled Save is the accent fill at 0.45, as every disabled
+    /// primary, not an empty line box, in both themes.
+    #[test]
+    fn a_disabled_save_is_the_faded_primary() {
+        use coincube_ui::theme::tenshu::{faded, over, DISABLED_ALPHA};
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let shell = theme.colors.shell;
+            let save: Element<'_, ConnectCubeMessage> = Container::new(action(
+                SAVE_ID,
+                "Save new address",
+                ActionKind::Primary,
+                None,
+            ))
+            .padding(12)
+            .into();
+            let pixels = capture::render_pixels(save, (240, 60), &theme, None);
+            let inside = pixels.at(17, 30);
+            let want = over(shell.panel, faded(shell.accent, DISABLED_ALPHA));
+            assert!(
+                (inside.r - want.r).abs() < 0.04
+                    && (inside.g - want.g).abs() < 0.04
+                    && (inside.b - want.b).abs() < 0.04,
+                "inside {:?}, want {:?}",
+                inside,
+                want
+            );
+        }
     }
 
     fn inspect(state: &ConnectCubePanel) -> capture::Inspection {

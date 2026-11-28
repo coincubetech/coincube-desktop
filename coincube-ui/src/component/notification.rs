@@ -1,32 +1,25 @@
-use crate::localized_format;
 use std::fmt::Display;
 
 use crate::{
-    color,
     component::{collapse, text},
     icon, theme,
-    widget::{Button, Column, Container, Element, Row},
+    widget::{Button, Container, Element, Row},
 };
 use iced::{
     widget::{column, container, row},
     Alignment, Length,
 };
 
+/// A warning notice: `message` as the title and `error` as its line (left
+/// out when it only repeats the title). Draws the one notice anatomy
+/// ([`super::notice`]).
 pub fn warning<'a, T: 'a + Clone>(message: String, error: String) -> Container<'a, T> {
-    // Always show both the title and the error string, stacked. Earlier
-    // versions of this component used a `Collapse` widget built on the
-    // deprecated `iced::widget::Component` API, which on some themes rendered
-    // as a blank orange rectangle with no clickable element. A simple Column
-    // is more reliable and self-explanatory.
-    Container::new(
-        Column::new()
-            .spacing(4)
-            .push(text::p1_bold(crate::locale::notice(message)).color(color::LIGHT_BLACK))
-            .push(text::p2_regular(crate::locale::notice(error)).color(color::LIGHT_BLACK)),
-    )
-    .padding(15)
-    .style(theme::banner::warning)
-    .width(Length::Fill)
+    let title = crate::locale::notice(message.clone());
+    let mut notice = super::notice::notice(super::notice::NoticeTone::Warning, title);
+    if error != message {
+        notice = notice.detail(crate::locale::notice(error));
+    }
+    notice.into_container()
 }
 
 pub fn processing_hardware_wallet<'a, T: 'a, K: Display, V: Display, F: Display>(
@@ -76,17 +69,15 @@ pub fn processing_hardware_wallet_error<'a, T: 'a + Clone>(
             Button::new(
                 Row::new()
                     .push(
-                        Container::new(
-                            text::p1_bold(message_clone.to_string()).color(color::LIGHT_BLACK),
-                        )
-                        .width(Length::Fill),
+                        Container::new(text::p1_bold(message_clone.to_string()))
+                            .width(Length::Fill),
                     )
                     .push(
                         Row::new()
                             .align_y(Alignment::Center)
                             .spacing(10)
-                            .push(text::p1_bold(learn_more).color(color::LIGHT_BLACK))
-                            .push(icon::collapse_icon().color(color::LIGHT_BLACK)),
+                            .push(text::p1_bold(learn_more))
+                            .push(icon::collapse_icon()),
                     ),
             )
             .style(theme::button::transparent)
@@ -94,16 +85,13 @@ pub fn processing_hardware_wallet_error<'a, T: 'a + Clone>(
         move || {
             Button::new(
                 Row::new()
-                    .push(
-                        Container::new(text::p1_bold(message.to_owned()).color(color::LIGHT_BLACK))
-                            .width(Length::Fill),
-                    )
+                    .push(Container::new(text::p1_bold(message.to_owned())).width(Length::Fill))
                     .push(
                         Row::new()
                             .align_y(Alignment::Center)
                             .spacing(10)
-                            .push(text::p1_bold(learn_more).color(color::LIGHT_BLACK))
-                            .push(icon::collapsed_icon().color(color::LIGHT_BLACK)),
+                            .push(text::p1_bold(learn_more))
+                            .push(icon::collapsed_icon()),
                     ),
             )
             .style(theme::button::transparent)
@@ -122,45 +110,24 @@ pub fn processing_hardware_wallet_error<'a, T: 'a + Clone>(
 /// raw technical detail (a `reqwest::Error`, an SDK string, an HTTP body)
 /// deliberately has no parameter here — it belongs in the log file, not on
 /// screen. `reference` is the opaque code that ties what the user sees to the
-/// logged detail, so support can triage without asking for a log dump.
+/// logged detail, so support can triage without asking for a log dump (S7).
 ///
-/// Built from a plain `Column` for the same reason [`warning`] is: the
-/// `collapse::Collapse` widget rides the deprecated `iced::widget::Component`
-/// API and renders as a blank rectangle on some themes.
+/// Draws the one notice anatomy ([`super::notice`]) in the error tone: the
+/// panel washed in the tone, the action an outlined content button.
 pub fn error_card<'a, T: 'a + Clone>(
     title: impl Into<String>,
     guidance: impl Into<String>,
     reference: impl Into<String>,
     action: Option<(&'static str, T)>,
 ) -> Container<'a, T> {
-    let mut col = Column::new()
-        .spacing(6)
-        .push(
-            Row::new()
-                .spacing(10)
-                .align_y(Alignment::Center)
-                .push(icon::warning_icon().color(color::RED))
-                .push(text::p1_bold(crate::locale::notice(title.into())).color(color::RED)),
-        )
-        .push(text::p2_regular(crate::locale::notice(guidance.into())).color(color::GREY_3));
-
-    if let Some((label, message)) = action {
-        col = col
-            .push(iced::widget::Space::new().height(Length::Fixed(6.0)))
-            .push(
-                Button::new(text::p2_regular(crate::locale::copy(label)))
-                    .style(theme::button::primary)
-                    .on_press(message),
-            );
-    }
-
-    Container::new(
-        col.push(
-            text::caption(localized_format!("Ref: {}", "Ref.: {}", reference.into()))
-                .color(color::GREY_3),
-        ),
+    let mut notice = super::notice::notice(
+        super::notice::NoticeTone::Error,
+        crate::locale::notice(title.into()),
     )
-    .padding(15)
-    .style(theme::card::error)
-    .width(Length::Fill)
+    .detail(crate::locale::notice(guidance.into()))
+    .reference(reference);
+    if let Some((label, message)) = action {
+        notice = notice.action(crate::locale::copy(label), message);
+    }
+    notice.into_container()
 }

@@ -434,6 +434,7 @@ fn detail_head<'a>(
 ) -> Element<'a, Message> {
     use coincube_ui::component::tenshu::text as tt;
     use coincube_ui::theme::tenshu::text as tone_text;
+    use coincube_ui::theme::tenshu::type_size;
     let txid = tx.psbt.unsigned_tx.compute_txid().to_string();
     let short_txid: String = txid.chars().take(8).collect();
     let label_keys = match tx.is_single_payment() {
@@ -472,9 +473,10 @@ fn detail_head<'a>(
     }
     let (moved, to_line) = headline_amount(tx);
     let amount: Element<'a, Message> = if mask_amounts {
-        tt::title("••••").size(34).into()
+        tt::title("••••").size(type_size::AMOUNT_HERO).into()
     } else {
-        amount_with_size_and_unit(&moved, 34, bitcoin_unit).into()
+        // Tenshu sizes are whole pixels; the legacy amount row takes a `u32`.
+        amount_with_size_and_unit(&moved, type_size::AMOUNT_HERO as u32, bitcoin_unit).into()
     };
     let fee: Option<Element<'a, Message>> = tx.fee_amount.map(|fee| {
         Row::new()

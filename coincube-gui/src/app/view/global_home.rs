@@ -1,7 +1,10 @@
 use coincube_ui::locale::copy as localized_copy;
 use coincube_ui::locale::Text as CopyText;
 use coincube_ui::localized_format;
-use coincube_ui::{component::tenshu::ActionButton, theme::tenshu::button::ActionKind};
+use coincube_ui::{
+    component::tenshu::{ActionButton, BalanceTier},
+    theme::tenshu::button::ActionKind,
+};
 use std::time::Duration;
 
 use coincube_ui::component::text::Text;
@@ -118,6 +121,17 @@ fn pending_deposit_amount(
     }
 }
 
+/// The dots that stand in for an amount while it loads, at the size of the
+/// amount they stand in for.
+fn amount_placeholder(content: &str, tier: BalanceTier) -> coincube_ui::widget::Text<'_> {
+    text(content)
+        .size(tier.figure_size())
+        .line_height(iced::widget::text::LineHeight::Relative(
+            tier.figure_line_height(),
+        ))
+        .font(coincube_ui::font::SEMIBOLD)
+}
+
 fn wallet_loading_header<'a>(loading_status: Option<String>) -> Element<'a, Message> {
     Column::new()
         .spacing(4)
@@ -125,7 +139,7 @@ fn wallet_loading_header<'a>(loading_status: Option<String>) -> Element<'a, Mess
             "...",
             false,
             Duration::from_millis(400),
-            |content| text(content).size(H2_SIZE).bold(),
+            |content| amount_placeholder(content, BalanceTier::Card),
         ))
         .push(match loading_status {
             Some(status) => Element::from(text(status).size(P1_SIZE).style(theme::text::secondary)),
@@ -2795,7 +2809,9 @@ fn overview_body<'a>(
                 Row::new()
                     .spacing(8)
                     .width(Length::Fill)
-                    .push(h3(localized_copy("Wallets")).bold())
+                    .push(coincube_ui::component::tenshu::heading(localized_copy(
+                        "Wallets",
+                    )))
                     .push(overview_eye(
                         cube_id,
                         coincube_ui::locale::copy("Wallets"),
@@ -3012,7 +3028,7 @@ fn spark_card_header<'a>(
                 "...",
                 false,
                 Duration::from_millis(400),
-                |content| text(content).size(H2_SIZE).bold(),
+                |content| amount_placeholder(content, BalanceTier::Card),
             ))
             .push(spinner::typing_text_carousel(
                 "...",
@@ -3168,7 +3184,9 @@ fn overview_total<'a>(
         .spacing(8)
         .width(Length::Fill)
         .align_y(Alignment::Center)
-        .push(h3(localized_copy("Total balance")).bold())
+        .push(crate::app::view::shared::landing::balance_label(
+            localized_copy("Total balance"),
+        ))
         .push(overview_eye(
             cube_id,
             coincube_ui::locale::copy("Total Balance"),
@@ -3188,7 +3206,7 @@ fn overview_total<'a>(
                 "...",
                 false,
                 Duration::from_millis(400),
-                |content| text(content).size(H1_SIZE).bold(),
+                |content| amount_placeholder(content, BalanceTier::Hero),
             ))
             .push(spinner::typing_text_carousel(
                 "...",
@@ -3431,7 +3449,7 @@ mod tests {
     /// A transfer step as the shell shows it: the page head (as
     /// [`transfer_page_head`] builds it from the Cube) above the body.
     fn transfer_dialog_for(config: GlobalViewConfig<'_>) -> Element<'_, Message> {
-        let context = format!("{} · {}", config.cube_name, network_name(config.chain));
+        let context = config.cube_name.to_owned();
         let screen = global_home_view(config)
             .1
             .expect("a transfer step renders its page");
@@ -5258,29 +5276,370 @@ mod tests {
         let fixture = ViewFixture::new();
         let activity = overview_activity();
         let menu = Menu::Cube(crate::app::menu::CubeSubMenu::Overview);
+        // Each appearance in English, then in Spanish (`overview-es`) so the
+        // longer labels beside the type scale's sizes can be checked by eye.
         for (appearance, palette) in capture_tests::themes() {
             let light = appearance == "light";
             let cache = capture_tests::cache(light, BalancePrivacy::Shown);
-            capture_tests::save_page_head_frames(
-                &mut renderer,
-                &directory,
-                "overview",
-                appearance,
-                &palette,
-                || {
-                    let mut config = fixture.config(0, None, None);
-                    config.light_theme = light;
-                    config.pending_spark_incoming = None;
-                    let transfer = transfer_head_action(&config);
-                    overview_page(
-                        &menu,
-                        &cache,
-                        transfer,
-                        overview(config),
-                        Some(recent_activity(&activity, &cache, RecentScope::Cube, None)),
+            for (name, language) in [
+                ("overview", coincube_ui::locale::Language::English),
+                ("overview-es", coincube_ui::locale::Language::Spanish),
+            ] {
+                coincube_ui::locale::render_in(language, || {
+                    capture_tests::save_page_head_frames(
+                        &mut renderer,
+                        &directory,
+                        name,
+                        appearance,
+                        &palette,
+                        || {
+                            let mut config = fixture.config(0, None, None);
+                            config.light_theme = light;
+                            config.pending_spark_incoming = None;
+                            let transfer = transfer_head_action(&config);
+                            overview_page(
+                                &menu,
+                                &cache,
+                                transfer,
+                                overview(config),
+                                Some(recent_activity(&activity, &cache, RecentScope::Cube, None)),
+                            )
+                        },
                     )
-                },
-            );
+                });
+            }
+        }
+    }
+
+    /// The height of the one line `needle` is drawn on, failing if it is
+    /// missing.
+    fn line_height_of(shown: &capture::Inspection, needle: &str, scenario: &str) -> f32 {
+        shown
+            .text
+            .iter()
+            .find_map(|(text, bounds)| (text == needle).then_some(bounds.height))
+            .unwrap_or_else(|| panic!("{}: {:?} is drawn", scenario, needle))
+    }
+
+    fn assert_height(actual: f32, expected: f32, what: &str, scenario: &str) {
+        assert!(
+            (actual - expected).abs() < 0.01,
+            "{}: {} is {}px tall, want {}",
+            scenario,
+            what,
+            actual,
+            expected
+        );
+    }
+
+    /// The Overview on the type scale (`MV-Type-Scale`, "Desktop proposed";
+    /// `P-Overview`): "Total balance" is the board's 13px label (`.kbal`,
+    /// an 18.85px line at 1.45), "Wallets" a 20px section title (29px), the
+    /// total a 46px figure (`.big`, line 1.15) and each wallet card's amount
+    /// 26px (`.amt`, line 1.2), shown and hidden, in both themes at both
+    /// sizes. Before, both headings were 24px, the total 40px and the cards
+    /// 29px.
+    #[test]
+    fn overview_amounts_and_section_titles_take_the_type_scale() {
+        let hero = 46.0 * 1.15;
+        let card = 26.0 * 1.2;
+        let section = 20.0 * coincube_ui::theme::tenshu::type_size::LINE_HEIGHT;
+        let label = 13.0 * coincube_ui::theme::tenshu::type_size::LINE_HEIGHT;
+        let fixture = ViewFixture::new();
+        for (appearance, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            for outer in [(1024, 768), (1440, 900)] {
+                let scenario = format!("overview {} {:?}", appearance, outer);
+                let shown = capture::inspect(
+                    "overview-type-scale",
+                    overview(fixture.config(0, None, None)),
+                    outer,
+                    appearance,
+                    theme,
+                );
+                assert_height(
+                    line_height_of(&shown, "Total balance", &scenario),
+                    label,
+                    "the Total balance label",
+                    &scenario,
+                );
+                assert_height(
+                    line_height_of(&shown, "Wallets", &scenario),
+                    section,
+                    "the Wallets title",
+                    &scenario,
+                );
+                // $312.50 in total, $125.00 on Spark and $187.50 on the Vault.
+                assert_height(
+                    line_height_of(&shown, "312.50", &scenario),
+                    hero,
+                    "the total",
+                    &scenario,
+                );
+                for amount in ["125.00", "187.50"] {
+                    assert_height(
+                        line_height_of(&shown, amount, &scenario),
+                        card,
+                        amount,
+                        &scenario,
+                    );
+                }
+
+                let mut hidden = fixture.config(0, None, None);
+                hidden.balance_masked = true;
+                let hidden = capture::inspect(
+                    "overview-type-scale-hidden",
+                    overview(hidden),
+                    outer,
+                    appearance,
+                    theme,
+                );
+                let mut masks: Vec<f32> = hidden
+                    .text
+                    .iter()
+                    .filter(|(text, _)| text == "********")
+                    .map(|(_, bounds)| bounds.height)
+                    .filter(|height| *height > 25.0)
+                    .collect();
+                masks.sort_by(f32::total_cmp);
+                assert_eq!(masks.len(), 3, "{}: the total and two card masks", scenario);
+                assert_height(masks[0], card, "a card mask", &scenario);
+                assert_height(masks[1], card, "a card mask", &scenario);
+                assert_height(masks[2], hero, "the total mask", &scenario);
+            }
+        }
+    }
+
+    /// The strongest pixel of the figure drawn inside the flip control `id`:
+    /// the one furthest from the panel the screenshot is taken on.
+    fn figure_core(
+        pixels: &capture::Pixels,
+        id: &iced::advanced::widget::Id,
+        panel: iced::Color,
+    ) -> iced::Color {
+        let bounds = pixels.bounds(id);
+        let distance =
+            |c: iced::Color| (c.r - panel.r).abs() + (c.g - panel.g).abs() + (c.b - panel.b).abs();
+        let mut core = panel;
+        for y in bounds.y.ceil() as u32..(bounds.y + bounds.height).floor() as u32 {
+            for x in bounds.x.ceil() as u32..(bounds.x + bounds.width).floor() as u32 {
+                let colour = pixels.at(x, y);
+                if distance(colour) > distance(core) {
+                    core = colour;
+                }
+            }
+        }
+        core
+    }
+
+    /// The Overview's total and both wallet-card amounts draw in ink, as on
+    /// `P-Overview`, in both themes and as dollars or sats. They sit in the
+    /// click-to-swap control, a transparent button whose grey palette text
+    /// used to colour them.
+    #[test]
+    fn overview_amounts_draw_in_ink() {
+        let fixture = ViewFixture::new();
+        for (appearance, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            let ink = theme.colors.shell.ink;
+            let panel = theme.colors.shell.panel;
+            for display_mode in [DisplayMode::FiatNative, DisplayMode::BitcoinNative] {
+                let mut config = fixture.config(0, None, None);
+                config.display_mode = display_mode;
+                let pixels = capture::render_pixels(overview(config), (952, 900), &theme, None);
+                for (wallet, control) in [
+                    ("Hub", "total-flip-balance"),
+                    ("Spark", "flip-balance"),
+                    ("Vault", "flip-balance"),
+                ] {
+                    let core = figure_core(
+                        &pixels,
+                        &landing_control_id("test-cube", wallet, control),
+                        panel,
+                    );
+                    let off =
+                        (core.r - ink.r).abs() + (core.g - ink.g).abs() + (core.b - ink.b).abs();
+                    assert!(
+                        off < 0.06,
+                        "{} {:?} {} amount draws in ink {:?}, got {:?}",
+                        appearance,
+                        display_mode,
+                        wallet,
+                        ink,
+                        core
+                    );
+                }
+            }
+        }
+    }
+
+    /// Flipping between dollars and sats never changes the height of the
+    /// total or a card amount, so nothing below them moves: the flip
+    /// controls keep their size and "Wallets" and each card's BTC row keep
+    /// their places, in both themes at both sizes.
+    #[test]
+    fn flipping_units_keeps_the_amount_heights() {
+        let fixture = ViewFixture::new();
+        let controls = [
+            landing_control_id("test-cube", "Hub", "total-flip-balance"),
+            landing_control_id("test-cube", "Spark", "flip-balance"),
+            landing_control_id("test-cube", "Vault", "flip-balance"),
+        ];
+        for (appearance, theme) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            for outer in [(1024, 768), (1440, 900)] {
+                let inspect = |display_mode: DisplayMode| {
+                    let mut config = fixture.config(0, None, None);
+                    config.display_mode = display_mode;
+                    capture::inspect(
+                        "overview-flip-heights",
+                        overview(config),
+                        outer,
+                        appearance,
+                        theme,
+                    )
+                };
+                let (fiat, sats) = (
+                    inspect(DisplayMode::FiatNative),
+                    inspect(DisplayMode::BitcoinNative),
+                );
+                let scenario = format!("{} {:?}", appearance, outer);
+                let bounds = |mounted: &capture::Inspection, id: &iced::advanced::widget::Id| {
+                    mounted
+                        .focus
+                        .iter()
+                        .find_map(|(actual, bounds)| (actual == id).then_some(*bounds))
+                        .unwrap_or_else(|| panic!("{}: {:?}", scenario, id))
+                };
+                for id in &controls {
+                    assert!(
+                        (bounds(&fiat, id).height - bounds(&sats, id).height).abs() < 0.01,
+                        "{}: {:?} is {} tall in dollars and {} in sats",
+                        scenario,
+                        id,
+                        bounds(&fiat, id).height,
+                        bounds(&sats, id).height
+                    );
+                }
+                let ys = |mounted: &capture::Inspection, needle: &str| -> Vec<f32> {
+                    mounted
+                        .text
+                        .iter()
+                        .filter(|(text, _)| text == needle)
+                        .map(|(_, bounds)| bounds.y)
+                        .collect()
+                };
+                for needle in ["Wallets", "BTC"] {
+                    assert_eq!(
+                        ys(&fiat, needle),
+                        ys(&sats, needle),
+                        "{}: {} stays",
+                        scenario,
+                        needle
+                    );
+                }
+            }
+        }
+    }
+
+    /// The largest amounts the Overview can show still sit on one line inside
+    /// their card at the 1024×768 minimum window, the study's warning case:
+    /// the whole bitcoin supply on each wallet, as dollars and as sats, shown
+    /// and hidden.
+    #[test]
+    fn overview_long_amounts_stay_on_one_line_at_1024() {
+        let fixture = ViewFixture::new();
+        // The dashboard's 8/10 pane at 1024 is 652px; the cards stack and
+        // keep 20px of padding.
+        let card_right = (((1024.0_f32 - 208.0) * 0.8).floor()) - 20.0;
+        let supply = Amount::from_sat(2_099_999_997_690_000);
+        for display_mode in [DisplayMode::FiatNative, DisplayMode::BitcoinNative] {
+            for masked in [false, true] {
+                for (appearance, theme) in [
+                    ("dark", theme::Theme::dark()),
+                    ("light", theme::Theme::light()),
+                ] {
+                    let scenario = format!("{:?} masked={} {}", display_mode, masked, appearance);
+                    let mut config = fixture.config(0, None, None);
+                    config.spark_balance = supply;
+                    config.spark_btc_balance = supply;
+                    config.vault_balance = supply;
+                    config.display_mode = display_mode;
+                    config.balance_masked = masked;
+                    let shown = capture::inspect(
+                        "overview-long-amounts",
+                        overview(config),
+                        (1024, 768),
+                        appearance,
+                        theme,
+                    );
+                    // Every amount line in a card (26px and up, below the
+                    // total): one line, inside the card.
+                    let wallets_y = shown
+                        .text
+                        .iter()
+                        .find_map(|(text, bounds)| (text == "Wallets").then_some(bounds.y))
+                        .expect("Wallets");
+                    // The total above them: one 46px line inside the pane.
+                    let pane = card_right + 20.0;
+                    let totals: Vec<_> = shown
+                        .text
+                        .iter()
+                        .filter(|(text, bounds)| {
+                            !text.is_empty() && bounds.y < wallets_y && bounds.height > 40.0
+                        })
+                        .collect();
+                    assert!(!totals.is_empty(), "{}: the total is drawn", scenario);
+                    for (text, bounds) in totals {
+                        assert!(
+                            (bounds.height - 46.0 * 1.15).abs() < 0.01
+                                && bounds.x + bounds.width <= pane + 0.5,
+                            "{}: the total {:?} is one line inside the pane: {:?}",
+                            scenario,
+                            text,
+                            bounds
+                        );
+                    }
+                    let lines: Vec<_> = shown
+                        .text
+                        .iter()
+                        .filter(|(text, bounds)| {
+                            !text.is_empty() && bounds.y > wallets_y && bounds.height > 30.0
+                        })
+                        .collect();
+                    assert!(
+                        lines.len() >= 2,
+                        "{}: card amounts drawn {:?}",
+                        scenario,
+                        lines
+                    );
+                    for (text, bounds) in lines {
+                        // One 26px line at 1.2; a wrapped line would be twice
+                        // that.
+                        assert!(
+                            (bounds.height - 26.0 * 1.2).abs() < 0.01,
+                            "{}: {:?} is on one 26px line: {:?}",
+                            scenario,
+                            text,
+                            bounds
+                        );
+                        assert!(
+                            bounds.x + bounds.width <= card_right + 0.5,
+                            "{}: {:?} ends inside its card at {}: {:?}",
+                            scenario,
+                            text,
+                            card_right,
+                            bounds
+                        );
+                    }
+                }
+            }
         }
     }
 
@@ -5653,7 +6012,7 @@ mod tests {
         let amount = inspect_dialog("transfer-details", amount);
         for label in [
             "Transfer",
-            "Everyday · Bitcoin mainnet",
+            "Everyday",
             "Transfer details",
             "From",
             "Available 250,000 SATS",

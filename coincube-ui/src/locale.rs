@@ -278,7 +278,7 @@ mod tests {
             "Backup not confirmed",                     // keyed, copy skipped
             "Copia sin confirmar",                      // already Spanish
             "This screen was never translated at all.", // no entry, English prose
-            "Bitcoin mainnet",                          // product name
+            "Testnet4",                                 // network name
             "Allen Family",                             // user data
             "975,147",
         ]);

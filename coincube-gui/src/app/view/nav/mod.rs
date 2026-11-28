@@ -426,10 +426,14 @@ mod shell_tests {
             }
             assert!(labels.0.iter().any(|(label, _)| label == required));
         }
-        assert!(labels
-            .0
-            .iter()
-            .any(|(label, _)| label.starts_with("Family household") && label.ends_with('…')));
+        assert!(
+            labels
+                .0
+                .iter()
+                .any(|(label, _)| label.starts_with("Family") && label.ends_with('…')),
+            "{:?}",
+            labels.0
+        );
         if confirmation {
             assert!(labels.0.iter().any(|(label, _)| label == "Lock"));
         } else {

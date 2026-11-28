@@ -9,6 +9,7 @@ use coincube_ui::localized_format;
 use coincube_ui::{
     component::tenshu::{self, page_head, FieldSize, PageWidth},
     font, theme,
+    theme::tenshu::type_size,
     widget::{action::Action, Column, ColumnExt, Element, Row},
 };
 #[allow(deprecated)]
@@ -905,7 +906,7 @@ fn status_cell<'a>(entry: &Entry, size: f32, note: bool) -> Element<'a, Message>
 /// `.dl > div`: a 116px muted key beside its value, over a rule.
 fn fact<'a>(key: &'static str, value: String, mono: bool) -> Element<'a, Message> {
     let value = text(value)
-        .size(if mono { 12.5 } else { 13.5 })
+        .size(if mono { 13.0 } else { 13.5 })
         .font(if mono {
             font::MONO_REGULAR
         } else {
@@ -1026,20 +1027,6 @@ pub fn render<'a>(activity: &'a Activity, cache: &'a Cache) -> Element<'a, Messa
     crate::app::view::responsive(move |size: iced::Size| {
         render_at_width(activity, cache, size.width)
     })
-    .into()
-}
-
-/// The Cube's coin before its name (`.idl > img`).
-fn network_coin<'a>(cache: &Cache) -> Element<'a, Message> {
-    let light = matches!(
-        cache.theme_mode,
-        coincube_ui::theme::palette::ThemeMode::Light
-    );
-    iced::widget::Svg::new(iced::widget::svg::Handle::from_memory(
-        crate::home::launcher_coin::widget_source(cache.chain(), 16.0, 1.0, light).into_bytes(),
-    ))
-    .width(Length::Fixed(16.0))
-    .height(Length::Fixed(16.0))
     .into()
 }
 
@@ -1173,21 +1160,15 @@ fn header<'a>(
 ) -> Element<'a, Message> {
     let count = activity.filters.count();
     let title = column![
-        words("Activity", 22.0, font::SEMIBOLD, glyph::ink).line_height(
+        words("Activity", type_size::TITLE, font::SEMIBOLD, glyph::ink).line_height(
             iced::widget::text::LineHeight::Relative(page_head::TITLE_LINE_HEIGHT)
         ),
         row![
-            network_coin(cache),
+            // `.idl`: the coin, then the Cube's name as every page head
+            // shows it, cut short; no network (S1: the tag names a test one).
+            super::cube_coin(cache),
             words(
-                format!(
-                    "{} · {}",
-                    if cache.cube_name.is_empty() {
-                        "Cube"
-                    } else {
-                        cache.cube_name.as_str()
-                    },
-                    super::nav::shell::network_label(cache.chain())
-                ),
+                super::cube_display_name(cache),
                 13.0,
                 font::REGULAR,
                 glyph::muted
@@ -1813,7 +1794,7 @@ fn identifier_row<'a>(index: usize, name: &'static str, value: &str) -> Element<
                 words(name, 12.0, font::REGULAR, glyph::muted),
                 one_line(
                     text(short_identifier(value))
-                        .size(12.5)
+                        .size(13.0)
                         .font(font::MONO_REGULAR)
                 ),
             ]
@@ -2876,7 +2857,10 @@ mod tests {
 
     #[test]
     fn activity_title_sits_where_every_page_head_puts_it() {
-        let cache = Cache::default();
+        let cache = Cache {
+            cube_name: "Everyday".into(),
+            ..Cache::default()
+        };
         let activity = Activity::new(None);
         let line = |inspection: &capture::Inspection, value: &str| {
             inspection
@@ -2896,7 +2880,7 @@ mod tests {
         let cube_line = activity_page
             .text
             .iter()
-            .find(|(text, _)| text.contains(" · "))
+            .find(|(text, _)| text == "Everyday")
             .expect("rendered Cube line")
             .clone();
         let shared = mount(
@@ -2914,6 +2898,47 @@ mod tests {
         assert_eq!(activity_title.y, overview_title.y);
         assert_eq!(activity_title.height, overview_title.height);
         assert_eq!(cube_line.1.y, line(&shared, &cube_line.0).y);
+    }
+
+    /// W6: Activity's Cube line is the short name every page head uses,
+    /// with no network after it, on mainnet and on a test network.
+    #[test]
+    fn activity_head_shows_the_short_cube_name_and_no_network() {
+        for chain in [
+            crate::chain::ChainId::Bitcoin,
+            crate::chain::ChainId::Testnet4,
+        ] {
+            let cache = Cache {
+                cube_name: "A very long Cube name\nthat goes on and on".into(),
+                fiat_chain: chain,
+                ..Cache::default()
+            };
+            let activity = Activity::new(None);
+            let shown = mount(
+                "activity-head-short-name",
+                render_at_width(&activity, &cache, 1192.0),
+                (1440, 900),
+                "dark",
+                coincube_ui::theme::Theme::dark(),
+                1192,
+            );
+            assert!(
+                shown
+                    .text
+                    .iter()
+                    .any(|(text, _)| text == "A very long Cube…"),
+                "{:?}: {:?}",
+                chain,
+                shown.text
+            );
+            let network = crate::app::view::nav::shell::network_label(chain);
+            assert!(
+                !shown.text.iter().any(|(text, _)| text.contains(network)),
+                "{:?} named in {:?}",
+                network,
+                shown.text
+            );
+        }
     }
 
     #[test]
@@ -2978,6 +3003,82 @@ mod tests {
             .find(|width| detail_beside_list(*width))
             .unwrap();
         assert!(column_frame(first, true).column + 2.0 * ROW_INSET >= MIN_ACTIVITY_ROWS_WIDTH);
+    }
+
+    /// Every page title is 26px semibold (`MV-Type-Scale`, "Desktop
+    /// proposed"): the shared page head on Overview, Spark, Vault and
+    /// Settings, and the head Activity draws itself. A 26px line at the
+    /// head's 1.25 line height is 32.5px tall; the old 22px title was 27.5.
+    #[test]
+    fn every_page_title_is_26px() {
+        use crate::app::menu::{CubeSettingsOption, CubeSubMenu};
+        use crate::app::view::nav::shell::capture_tests;
+        let expected = 26.0 * page_head::TITLE_LINE_HEIGHT;
+        let cache = capture_tests::cache(false, BalancePrivacy::Shown);
+        let settings = Menu::Cube(CubeSubMenu::Settings(CubeSettingsOption::General));
+        let activity = Activity::new(None);
+        for (appearance, theme) in [
+            ("dark", coincube_ui::theme::Theme::dark()),
+            ("light", coincube_ui::theme::Theme::light()),
+        ] {
+            for outer in [(1024_u32, 768_u32), (1440, 900)] {
+                let pane = outer.0 - 248;
+                let heads: Vec<(&str, &str, Element<'_, Message>)> = vec![
+                    (
+                        "Overview",
+                        "Overview",
+                        crate::app::view::page_head(&cache, "Overview")
+                            .view(crate::app::view::page_gutter),
+                    ),
+                    (
+                        "Spark",
+                        "Spark",
+                        crate::app::state::spark::overview::SparkOverview::page_head_for_tests(
+                            &cache, None,
+                        )
+                        .view(crate::app::view::page_gutter),
+                    ),
+                    (
+                        "Vault",
+                        "Vault",
+                        crate::app::state::vault::overview::VaultOverview::page_head_for_tests(
+                            &cache, None,
+                        )
+                        .view(crate::app::view::page_gutter),
+                    ),
+                    (
+                        "Settings",
+                        "Settings",
+                        crate::app::view::settings::frame::page_head(&settings, &cache)
+                            .expect("a Settings route has a head")
+                            .view(crate::app::view::page_gutter),
+                    ),
+                    (
+                        "Activity",
+                        "Activity",
+                        render_at_width(&activity, &cache, pane as f32),
+                    ),
+                ];
+                for (page, title, element) in heads {
+                    let mounted =
+                        mount("type-scale-title", element, outer, appearance, theme, pane);
+                    let bounds = mounted
+                        .text
+                        .iter()
+                        .find_map(|(text, bounds)| (text == title).then_some(*bounds))
+                        .unwrap_or_else(|| panic!("{} draws its title", page));
+                    assert!(
+                        (bounds.height - expected).abs() < 0.01,
+                        "{} title is {}px tall, want {} ({} {:?})",
+                        page,
+                        bounds.height,
+                        expected,
+                        appearance,
+                        outer
+                    );
+                }
+            }
+        }
     }
 
     #[test]
@@ -3142,7 +3243,9 @@ mod tests {
                     assert!(mounted.contains("Search label or id"));
                     assert!(mounted.contains("−4,200"));
                     assert!(mounted.contains("SATS"));
-                    assert!(mounted.contains("Cube · Bitcoin Blake2b mainnet"));
+                    // The Cube line names no network (W6, S1).
+                    assert!(mounted.text.iter().any(|(text, _)| text == "Cube"));
+                    assert!(!mounted.contains("Bitcoin Blake2b mainnet"));
                     assert!(mounted.has_focus(row_focus_id(&id)));
                     assert_eq!(mounted.has_focus(Id::from(DETAIL_CLOSE_ID)), selected);
                     assert_eq!(

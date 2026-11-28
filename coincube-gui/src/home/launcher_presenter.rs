@@ -558,46 +558,75 @@ fn face_fact<'a>(label: &'static str, value: Element<'a, ViewMessage>) -> Elemen
         .into()
 }
 
-/// "No Cubes match these filters", the hidden count and Clear filters.
-fn filtered_out<'a>(hidden: usize) -> Element<'a, ViewMessage> {
+/// P-Launcher's no-match state: the filter shows no Cube. It names what it
+/// filters to, and "Show all networks" clears it. Search's own no-match is
+/// separate.
+fn no_match<'a>(filter: launcher_catalog::NetworkFilter) -> Element<'a, ViewMessage> {
     use coincube_ui::font;
     Column::new()
-        .spacing(8)
+        .spacing(16)
         .align_x(Alignment::Center)
         .push(face_words(
-            localized_copy("No Cubes match these filters"),
+            no_match_heading(filter),
             20.0,
             font::SEMIBOLD,
             false,
         ))
         .push(
-            Row::new()
-                .spacing(4)
-                .align_y(Alignment::Center)
-                .push(face_words(
-                    format!(
-                        "{} {} hidden.",
-                        hidden,
-                        if hidden == 1 { "Cube" } else { "Cubes" }
-                    ),
+            Action::new(
+                launcher_catalog::show_all_networks_id(),
+                Container::new(face_words(
+                    localized_copy("Show all networks"),
                     14.0,
-                    font::REGULAR,
-                    true,
+                    font::MEDIUM,
+                    false,
                 ))
-                .push(
-                    Action::new(
-                        launcher_catalog::clear_filters_empty_id(),
-                        face_link_label(localized_copy("Clear filters")),
-                        focus,
-                    )
-                    .padding([2.0, 4.0])
-                    .style(face_link_style)
-                    .on_press(ViewMessage::Catalog(CatalogMessage::Filter(
-                        launcher_catalog::NetworkFilter::All,
-                    ))),
-                ),
+                .center_y(Length::Fill),
+                focus,
+            )
+            .height(Length::Fixed(36.0))
+            .padding([0.0, 16.0])
+            .style(outlined_style)
+            .on_press(ViewMessage::Catalog(CatalogMessage::Filter(
+                launcher_catalog::NetworkFilter::All,
+            ))),
         )
         .into()
+}
+
+/// "No Cubes on {network}", or on the live or test networks.
+pub(super) fn no_match_heading(filter: launcher_catalog::NetworkFilter) -> String {
+    use launcher_catalog::NetworkFilter;
+    match filter {
+        NetworkFilter::Network(chain) => localized_format!(
+            "No Cubes on {}",
+            "No hay Cubes en {}",
+            launcher_chrome::network_menu_name(chain)
+        ),
+        NetworkFilter::Live => localized_copy("No Cubes on live networks").to_string(),
+        NetworkFilter::Test => localized_copy("No Cubes on test networks").to_string(),
+        NetworkFilter::All => localized_copy("No Cubes on any network").to_string(),
+    }
+}
+
+/// A button in page content: a 1px ink outline, radius 8 and ink text; the
+/// hover adds the light fill and the outline stays ink.
+fn outlined_style(theme: &theme::Theme, status: iced_button::Status) -> iced_button::Style {
+    let shell = theme.colors.shell;
+    iced_button::Style {
+        background: matches!(
+            status,
+            iced_button::Status::Hovered | iced_button::Status::Pressed
+        )
+        .then_some(iced::Background::Color(shell.hover)),
+        text_color: shell.ink,
+        border: iced::Border {
+            color: shell.ink,
+            width: 1.0,
+            radius: 8.0.into(),
+        },
+        ..Default::default()
+    }
 }
 
 /// `.linkbtn`: ink text with a 1px accent underline 3px below it. A Stack
@@ -790,25 +819,6 @@ fn floor_details<'a>(
     .into()
 }
 
-/// `.btn`: the outlined 36px button, hovering to `--hover`.
-fn face_secondary_style(theme: &theme::Theme, status: iced_button::Status) -> iced_button::Style {
-    let shell = theme.colors.shell;
-    iced_button::Style {
-        background: matches!(
-            status,
-            iced_button::Status::Hovered | iced_button::Status::Pressed
-        )
-        .then_some(iced::Background::Color(shell.hover)),
-        text_color: shell.ink,
-        border: iced::Border {
-            color: shell.line,
-            width: 1.0,
-            radius: 8.0.into(),
-        },
-        ..Default::default()
-    }
-}
-
 /// `.av.ghost`: a dashed ring holding the Cube's mark, in its chosen style,
 /// in the muted colour, for a Cube that lives on another computer.
 pub(super) fn ghost_avatar<'a, M: 'a>(
@@ -908,7 +918,7 @@ fn ghost_details<'a>(
         )
         .height(Length::Fixed(36.0))
         .padding([0.0, 16.0])
-        .style(face_secondary_style)
+        .style(outlined_style)
         .on_press(ViewMessage::ImportGhostWithPhrase(cube.uuid.clone()))
         .into(),
     };
@@ -1233,7 +1243,7 @@ fn append_list_search_feedback<'a>(
     scene: &LauncherScene,
 ) -> Column<'a, ViewMessage> {
     if projection.no_matches() && projection.query.trim().is_empty() {
-        list = list.push(tenshu::card(filtered_out(projection.hidden)));
+        list = list.push(tenshu::card(no_match(projection.filter)));
     } else if projection.no_matches() {
         list = list.push(tenshu::card(
             Column::new()
@@ -1436,6 +1446,8 @@ fn arrow_chevron<'a, M: 'a>(previous: bool, enabled: bool) -> Element<'a, M> {
 
 /// `.pgbtn`: a 44px square-cornered button with a muted ring and a soft drop shadow.
 fn arrow_style(theme: &theme::Theme, enabled: bool, hovered: bool) -> iced_button::Style {
+    // A content button (`.pgbtn` under `cc-buttons v1`): 1px ink, radius 8,
+    // no shadow. It keeps the panel fill so it reads over the Cube faces.
     let shell = theme.colors.shell;
     let alpha = if enabled { 1.0 } else { 0.3 };
     let fade = |c: iced::Color| iced::Color {
@@ -1444,25 +1456,15 @@ fn arrow_style(theme: &theme::Theme, enabled: bool, hovered: bool) -> iced_butto
     };
     iced_button::Style {
         background: Some(iced::Background::Color(fade(if enabled && hovered {
-            shell.hover
+            theme::tenshu::over(shell.panel, shell.hover)
         } else {
             shell.panel
         }))),
         text_color: shell.ink,
         border: iced::Border {
-            color: fade(shell.muted),
+            color: fade(shell.ink),
             width: 1.0,
             radius: 8.0.into(),
-        },
-        // `box-shadow: 0 6px 18px var(--shadow)`.
-        shadow: iced::Shadow {
-            color: fade(if is_light(theme) {
-                iced::Color::from_rgba8(70, 52, 30, 0.3)
-            } else {
-                iced::Color::from_rgba8(0, 0, 0, 0.6)
-            }),
-            offset: iced::Vector::new(0.0, 6.0),
-            blur_radius: 18.0,
         },
         ..Default::default()
     }
@@ -1534,54 +1536,106 @@ fn dot_style(active: bool) -> impl Fn(&theme::Theme) -> container::Style {
     }
 }
 
-/// The paging arrows and dots over a stage, live on the floor and at rest
-/// under the unlock face.
-fn paging_layers<'a, M: 'a>(
+/// The paging arrows over a stage, live on the floor and at rest under the
+/// unlock face: 44px, centered on the resting Cubes' line.
+fn paging_arrows<'a, M: 'a>(
     stage: Stack<'a, M, theme::Theme>,
     stage_height: f32,
     arrow_line: f32,
     arrows: [Element<'a, M>; 2],
-    dots: Vec<Element<'a, M>>,
-    caption: Element<'a, M>,
 ) -> Stack<'a, M, theme::Theme> {
     let [previous, next] = arrows;
-    let mut pager = Row::new().spacing(0).align_y(Alignment::Center);
-    for dot in dots {
-        pager = pager.push(dot);
-    }
-    stage
-        .push(
-            // `.pgbtn`: 44px arrows centered on the resting Cubes' line.
-            Container::new(
-                Row::new()
-                    .width(Length::Fill)
-                    .align_y(Alignment::Center)
-                    .push(previous)
-                    .push(Space::new().width(Length::Fill))
-                    .push(next),
-            )
-            .width(Length::Fill)
-            .height(Length::Fixed(stage_height))
-            .padding(iced::Padding {
-                top: (arrow_line - 22.0).max(0.0),
-                right: 18.0,
-                bottom: 0.0,
-                left: 18.0,
-            }),
+    stage.push(
+        Container::new(
+            Row::new()
+                .width(Length::Fill)
+                .align_y(Alignment::Center)
+                .push(previous)
+                .push(Space::new().width(Length::Fill))
+                .push(next),
         )
-        .push(
-            Container::new(
-                Column::new()
-                    .height(Length::Fill)
-                    .push(Space::new().height(Length::Fill))
-                    .push(pager.push(caption))
-                    .push(Space::new().height(Length::Fixed(PAGER_BOTTOM))),
-            )
-            .width(Length::Fill)
-            .height(Length::Fixed(stage_height))
-            .center_x(Length::Fill),
-        )
+        .width(Length::Fill)
+        .height(Length::Fixed(stage_height))
+        .padding(iced::Padding {
+            top: (arrow_line - 22.0).max(0.0),
+            right: 18.0,
+            bottom: 0.0,
+            left: 18.0,
+        }),
+    )
 }
+
+/// `.pgfoot .pgsep`: the 1px rule between the count and the page dots.
+fn foot_rule<'a, M: 'a>() -> Element<'a, M> {
+    Container::new(Space::new())
+        .width(Length::Fixed(1.0))
+        .height(Length::Fixed(14.0))
+        .style(|theme: &theme::Theme| container::Style {
+            background: Some(iced::Background::Color(theme.colors.shell.line)),
+            ..Default::default()
+        })
+        .into()
+}
+
+/// `.pgfoot`: the Cube count, then, when the floor pages, the rule, the
+/// page dots and their caption (Robert, 2026-11-26).
+pub(super) fn stage_foot<'a, M: 'a>(
+    count: String,
+    pager: Option<(Vec<Element<'a, M>>, Element<'a, M>)>,
+) -> Row<'a, M> {
+    let mut foot = Row::new()
+        .align_y(Alignment::Center)
+        .push(tenshu::caption(count));
+    if let Some((dots, caption)) = pager {
+        // `gap: 16px`, less the 4px hit padding before the first dot.
+        foot = foot
+            .push(Space::new().width(Length::Fixed(16.0)))
+            .push(foot_rule())
+            .push(Space::new().width(Length::Fixed(12.0)));
+        for dot in dots {
+            foot = foot.push(dot);
+        }
+        foot = foot.push(caption);
+    }
+    foot
+}
+
+/// The foot over a stage: centered, `PAGER_BOTTOM` above its bottom edge.
+fn stage_foot_layer<'a, M: 'a>(
+    stage: Stack<'a, M, theme::Theme>,
+    stage_height: f32,
+    foot: Row<'a, M>,
+) -> Stack<'a, M, theme::Theme> {
+    stage.push(
+        Container::new(
+            Column::new()
+                .height(Length::Fill)
+                .push(Space::new().height(Length::Fill))
+                .push(foot)
+                .push(Space::new().height(Length::Fixed(PAGER_BOTTOM))),
+        )
+        .width(Length::Fill)
+        .height(Length::Fixed(stage_height))
+        .center_x(Length::Fill),
+    )
+}
+
+/// `.pgfoot.list`: the List's count, bottom-left under its rows at the
+/// pager's height (`left: 24px; bottom: 14px`).
+pub(super) fn list_foot<'a, M: 'a>(count: String) -> Element<'a, M> {
+    Container::new(stage_foot(count, None))
+        .width(Length::Fill)
+        .padding(iced::Padding {
+            top: 8.0,
+            right: launcher_chrome::GUTTER,
+            bottom: LIST_FOOT_BOTTOM,
+            left: launcher_chrome::GUTTER,
+        })
+        .into()
+}
+
+/// `.pgfoot.list { bottom: 14px }`.
+const LIST_FOOT_BOTTOM: f32 = 14.0;
 
 fn is_light(theme: &theme::Theme) -> bool {
     theme.colors.shell.background.r > 0.5
@@ -1767,6 +1821,7 @@ fn floor_layout<'a>(
     motion: Option<&launcher_scene::Motion>,
     hover: &[launcher_catalog::FloorHover],
     activity: Option<&super::launcher_activity::Band>,
+    count_line: String,
 ) -> Element<'a, ViewMessage> {
     debug_assert!(projection.floor_len() > 0);
     use launcher_catalog::FloorEntry;
@@ -1905,9 +1960,9 @@ fn floor_layout<'a>(
     );
 
     stage = append_floor_details(stage, &layout, selected, selected_key, &pose, light);
-    // `.pgbtn` and `.pgdots` stay up under an open face, as in the prototype.
+    // `.pgbtn` and `.pgfoot` stay up under an open face, as in the prototype.
     if pages > 1 {
-        stage = paging_layers(
+        stage = paging_arrows(
             stage,
             stage_height,
             layout.horizon(),
@@ -1915,12 +1970,17 @@ fn floor_layout<'a>(
                 page_arrow(true, page.checked_sub(1)),
                 page_arrow(false, (page + 1 < pages).then_some(page + 1)),
             ],
+        );
+    }
+    let pager = (pages > 1).then(|| {
+        (
             (0..pages)
                 .map(|index| page_dot(index, index == page))
                 .collect(),
             page_caption(page, pages),
-        );
-    }
+        )
+    });
+    stage = stage_foot_layer(stage, stage_height, stage_foot(count_line, pager));
     // `.gintro`: a new device with nothing local yet, but Connect has Cubes.
     // The ghosts stand in the row; this line says what they are.
     if projection.locals.is_empty() && selected.is_none() && motion.is_none() {
@@ -2066,6 +2126,9 @@ pub(super) fn floor_body_in(home: &Home, available: f32) -> Element<'_, ViewMess
     floor_body_with_worldview(home, available, Default::default())
 }
 
+/// Narrower than this, the floor gives way to the List.
+pub(super) const FLOOR_MIN_WIDTH: f32 = 840.0;
+
 /// The floor in a body `available` pixels tall, so the stage meets the dock.
 pub(super) fn floor_body_with_worldview(
     home: &Home,
@@ -2089,7 +2152,7 @@ pub(super) fn floor_body_with_worldview(
         } else {
             launcher_scene::DESIGN_STAGE_HEIGHT
         };
-        return Container::new(filtered_out(projection.floor_hidden()))
+        return Container::new(no_match(projection.filter))
             .width(Length::Fill)
             .height(Length::Fixed(height))
             .padding(iced::Padding {
@@ -2108,8 +2171,9 @@ pub(super) fn floor_body_with_worldview(
     let hover = home.catalog.hover.clone();
     let activity = home.activity_band(light);
     let scene = project_catalog(&projection);
+    let count = launcher_chrome::count_text(&projection, home.catalog.mode);
     let floor = responsive(move |size: Size| {
-        if size.width < 840.0 {
+        if size.width < FLOOR_MIN_WIDTH {
             list_layout(&projection, &scene, size.width, light, worldview)
         } else {
             floor_layout(
@@ -2121,6 +2185,7 @@ pub(super) fn floor_body_with_worldview(
                 motion.as_ref(),
                 &hover,
                 activity.as_ref(),
+                count.clone(),
             )
         }
     })
@@ -2430,19 +2495,30 @@ fn floor_stage<'a, M: 'a + 'static>(
                 ),
         );
     }
-    if lead.paging && context.pages > 1 {
+    if lead.paging {
         let page = context.page;
         let pages = context.pages;
-        stage = paging_layers(
+        if pages > 1 {
+            stage = paging_arrows(
+                stage,
+                stage_height,
+                layout.horizon(),
+                [
+                    resting_arrow(true, page > 0),
+                    resting_arrow(false, page + 1 < pages),
+                ],
+            );
+        }
+        let pager = (pages > 1).then(|| {
+            (
+                (0..pages).map(|index| resting_dot(index == page)).collect(),
+                page_caption(page, pages),
+            )
+        });
+        stage = stage_foot_layer(
             stage,
             stage_height,
-            layout.horizon(),
-            [
-                resting_arrow(true, page > 0),
-                resting_arrow(false, page + 1 < pages),
-            ],
-            (0..pages).map(|index| resting_dot(index == page)).collect(),
-            page_caption(page, pages),
+            stage_foot(context.chrome.count.clone(), pager),
         );
     }
     // `.top.quiet` and `.bottom.quiet`: the Launcher's own bars, at rest.
@@ -2939,6 +3015,79 @@ pub(crate) fn opening_body<'a>(
 mod tests {
     use super::*;
     use crate::app::view::shared::landing::capture;
+
+    fn near(a: iced::Color, b: iced::Color) -> bool {
+        (a.r - b.r).abs() < 0.05 && (a.g - b.g).abs() < 0.05 && (a.b - b.b).abs() < 0.05
+    }
+
+    /// Drawn: the page arrows are content buttons, 1px ink and no shadow, in
+    /// both themes.
+    #[test]
+    fn page_arrows_draw_an_ink_edge_and_no_shadow() {
+        for theme in [theme::Theme::dark(), theme::Theme::light()] {
+            let shell = theme.colors.shell;
+            let arrow: Element<'_, ViewMessage> = Container::new(page_arrow(false, Some(1)))
+                .padding(12)
+                .into();
+            let pixels = capture::render_pixels(arrow, (68, 100), &theme, None);
+            let b = pixels.bounds(&Id::from("tenshu.launcher.page.next"));
+            let (x, y) = (b.x as u32, (b.y + b.height / 2.0) as u32);
+            assert!(
+                near(pixels.at(x, y), shell.ink),
+                "edge {:?}, ink {:?}",
+                pixels.at(x, y),
+                shell.ink
+            );
+            // Under the arrow, where `0 6px 18px` would fall, the panel shows.
+            let under = pixels.at((b.x + b.width / 2.0) as u32, (b.y + b.height) as u32 + 6);
+            assert!(
+                near(under, shell.panel),
+                "under {:?}, panel {:?}",
+                under,
+                shell.panel
+            );
+        }
+    }
+
+    /// Drawn: a Connect-only Cube without a Recovery Kit offers "Import with
+    /// recovery phrase…" as an outlined content button with an ink edge.
+    #[test]
+    fn ghost_import_action_draws_an_ink_edge() {
+        let cube = super::super::RemoteCube {
+            mark_variation: 2,
+            mark_style: 0,
+            id: 9,
+            uuid: "9fb93534-081c-4253-b1e2-73a87984a8ab".into(),
+            name: "Elsewhere".into(),
+            network: "mainnet".into(),
+            has_recovery_kit: false,
+            has_encrypted_seed: false,
+            phone_recoverable: false,
+            phone_full_cube: false,
+            encryption_pubkey: None,
+            has_vault: None,
+        };
+        assert!(launcher_catalog::remote_restore(&cube).action.is_none());
+        let id = launcher_catalog::details_open_id(&launcher_catalog::ghost_key(&cube));
+        for (light, theme) in [(false, theme::Theme::dark()), (true, theme::Theme::light())] {
+            let shell = theme.colors.shell;
+            let face: Element<'_, ViewMessage> =
+                Container::new(ghost_details(&cube, ChainId::Bitcoin, light))
+                    .padding(12)
+                    .into();
+            let pixels = capture::render_pixels(face, (480, 640), &theme, None);
+            let b = pixels.bounds(&id);
+            let (x, y) = (b.x.round() as u32, (b.y + b.height / 2.0) as u32);
+            let edge = (x.saturating_sub(1)..=x + 1).map(|x| pixels.at(x, y));
+            assert!(
+                edge.clone().any(|c| near(c, shell.ink)),
+                "light {}: edge {:?}, ink {:?}",
+                light,
+                edge.collect::<Vec<_>>(),
+                shell.ink
+            );
+        }
+    }
 
     /// A Cube on another computer is its muted mark in the dashed ring in
     /// both List renderers, never the cloud glyph.

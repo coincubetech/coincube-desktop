@@ -66,7 +66,7 @@ pub struct PageHead<'a, M> {
     focus_intent: fn(Id) -> M,
 }
 
-/// A head titled `title` (22px semibold). `focus_intent` must apply Iced's
+/// A head titled `title` (26px semibold). `focus_intent` must apply Iced's
 /// whole-tree focus operation for the given `Id`, as [`Action::new`] requires;
 /// the head uses it for [`PageHead::back`].
 pub fn page_head<'a, M>(

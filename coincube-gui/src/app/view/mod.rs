@@ -39,8 +39,7 @@ use coincube_ui::component::tenshu::{
 };
 use coincube_ui::component::text::Text;
 use coincube_ui::{
-    color,
-    component::{button, text, text::*},
+    component::{button, text::*},
     icon::cross_icon,
     theme,
     widget::*,
@@ -78,83 +77,25 @@ pub fn spark_notice_text(notice: &SparkNotice) -> String {
     }
 }
 
-/// A warning strip for a Spark Stable Balance condition, rendered by the
-/// `dashboard` wrapper when `cache.spark_notice` is set.
-/// "Spark Settings" routes to the page with the
-/// toggle; × dismisses for the session.
+/// A warning notice for a Spark Stable Balance condition, rendered by the
+/// `dashboard` wrapper when `cache.spark_notice` is set. It takes the one
+/// notice anatomy (option D): the feature's name as the title, the sentence
+/// as its line, "Spark Settings" as the outlined action that routes to the
+/// page with the toggle, and a quiet × that dismisses for the session.
 pub fn spark_notice_banner(notice: &SparkNotice) -> Element<'_, Message> {
-    let body = container(
-        row![
-            coincube_ui::icon::warning_icon().color(color::BLACK),
-            // `Fill`, not the default `Shrink`: a shrink text is laid out
-            // first with the whole row available, wraps into all of it, and
-            // pushes the buttons off the edge. A fill child is sized after
-            // the fixed ones, so it wraps within what's actually left.
-            text::p2_regular(spark_notice_text(notice))
-                .color(color::BLACK)
-                .width(Length::Fill),
-            button::secondary(None, "Spark Settings")
-                .style(on_warning_button(true))
-                .padding([6, 14])
-                .width(Length::Fixed(140.0))
-                .on_press(Message::Menu(Menu::Spark(
-                    crate::app::menu::SparkSubMenu::Settings(None),
-                ))),
-            iced::widget::Button::new(
-                cross_icon()
-                    .align_x(Alignment::Center)
-                    .align_y(Alignment::Center),
-            )
-            .padding([8, 10])
-            .style(on_warning_button(false))
-            .on_press(Message::DismissSparkNotice),
-        ]
-        .spacing(10)
-        .align_y(Alignment::Center),
+    let body = coincube_ui::component::notice::notice(
+        coincube_ui::component::notice::NoticeTone::Warning,
+        localized_copy("Stable Balance"),
     )
-    .padding([8, 16])
-    .width(Length::Fill)
-    .style(theme::notification::warning);
+    .detail(spark_notice_text(notice))
+    .action(
+        localized_copy("Spark Settings"),
+        Message::Menu(Menu::Spark(crate::app::menu::SparkSubMenu::Settings(None))),
+    )
+    .dismiss(Message::DismissSparkNotice)
+    .into_container();
 
     page(body, PageWidth::Reading).vertical(8.0, 8.0).into()
-}
-
-/// A button on the warning banner's orange, in the banner's own dark text
-/// rather than the shell ink (ink on the orange is about 3.4:1 in dark).
-/// `boxed` adds the content rule's 1px outline in that colour; the close ×
-/// has no box. Hover darkens the orange slightly.
-fn on_warning_button(
-    boxed: bool,
-) -> impl Fn(&theme::Theme, iced::widget::button::Status) -> iced::widget::button::Style {
-    move |_theme, status| {
-        use iced::widget::button::Status;
-        let fade = |c: iced::Color| {
-            if status == Status::Disabled {
-                coincube_ui::theme::tenshu::faded(c, coincube_ui::theme::tenshu::DISABLED_ALPHA)
-            } else {
-                c
-            }
-        };
-        iced::widget::button::Style {
-            background: matches!(status, Status::Hovered | Status::Pressed).then(|| {
-                iced::Background::Color(iced::Color {
-                    a: 0.08,
-                    ..color::BLACK
-                })
-            }),
-            text_color: fade(color::BLACK),
-            border: iced::Border {
-                color: if boxed {
-                    fade(color::BLACK)
-                } else {
-                    iced::Color::TRANSPARENT
-                },
-                width: if boxed { 1.0 } else { 0.0 },
-                radius: coincube_ui::theme::tenshu::radius::CONTROL.into(),
-            },
-            ..Default::default()
-        }
-    }
 }
 
 /// A Cube page with no head of its own. Settings and the Vault's Tools still
@@ -206,11 +147,6 @@ pub fn cube_coin<'a>(cache: &Cache) -> Element<'a, Message> {
     .into()
 }
 
-/// "‹name› · ‹network›", the line under a page title.
-pub fn network_line(cache: &Cache, name: &str) -> String {
-    format!("{name} · {}", nav::shell::network_label(cache.chain()))
-}
-
 /// The Cube's name as the side panel shows it, or "Cube" while it has none.
 /// Names are saved without a length limit and may hold line breaks, and a
 /// pinned head doesn't scroll, so heads get the same one-line, 16-character
@@ -223,16 +159,16 @@ pub fn cube_display_name(cache: &Cache) -> String {
     }
 }
 
-/// A pinned page head: `title`, then the Cube's coin and "‹Cube› · ‹network›".
+/// A pinned page head: `title`, then the Cube's coin and its name. The line
+/// names no network: the coin says which chain, and a test network has the
+/// tag beside the wordmark (S1).
 /// Add the page's actions and its back target with the [`PageHead`] builders.
 pub fn page_head<'a>(
     cache: &Cache,
     title: impl iced::widget::text::IntoFragment<'a>,
 ) -> PageHead<'a, Message> {
-    coincube_ui::component::tenshu::page_head(title, Message::FocusAction).context(
-        cube_coin(cache),
-        network_line(cache, &cube_display_name(cache)),
-    )
+    coincube_ui::component::tenshu::page_head(title, Message::FocusAction)
+        .context(cube_coin(cache), cube_display_name(cache))
 }
 
 /// A wallet page's head: "Spark · ‹nickname›" or "Vault · ‹alias›" as the
@@ -246,7 +182,7 @@ pub fn wallet_page_head<'a>(
 }
 
 /// The head of a page inside a wallet (Send, Receive, its activity, a
-/// transaction): `title`, then the coin and "‹wallet› · ‹Cube› · ‹network›",
+/// transaction): `title`, then the coin and "‹wallet› · ‹Cube›",
 /// so the page still says which wallet it belongs to (the H-Send boards).
 pub fn wallet_sub_page_head<'a>(
     cache: &Cache,
@@ -259,7 +195,7 @@ pub fn wallet_sub_page_head<'a>(
         format!(
             "{} · {}",
             nav::shell::wallet_label(wallet, name),
-            network_line(cache, &cube_display_name(cache))
+            cube_display_name(cache)
         ),
     )
 }
@@ -802,12 +738,17 @@ const TOAST_CONTROL: f32 = 28.0;
 /// Glyph size of the toast icon and the dismiss cross.
 const TOAST_GLYPH: f32 = 16.0;
 
-/// One toast: a tone icon tile, the message, and a dismiss button when
-/// `on_dismiss` is set. Styles resolve against the live theme at draw time,
-/// so the toast follows light and dark mode.
+/// Size of a toast's detail line (`.cc-toast .cdt`, 13px muted).
+const TOAST_DETAIL_SIZE: f32 = 13.0;
+
+/// One toast (`/* cc-toasts v1 */`): a tone icon tile, a title, an optional
+/// detail line, and a dismiss button when `on_dismiss` is set. Styles
+/// resolve against the live theme at draw time, so the toast follows light
+/// and dark mode.
 fn toast_card<'a>(
     tone: coincube_ui::theme::notification::ToastTone,
-    message: String,
+    title: String,
+    detail: Option<String>,
     on_dismiss: Option<Message>,
 ) -> Container<'a, Message> {
     use coincube_ui::component::tenshu::text as tenshu_text;
@@ -838,21 +779,32 @@ fn toast_card<'a>(
 
     // `Word` wrapping never breaks inside a word, so a txid, address or URL
     // would run past the card; fall back to breaking between glyphs.
-    let message = if tone == ToastTone::Debug {
-        tenshu_text::mono(message)
+    let title = if tone == ToastTone::Debug {
+        tenshu_text::mono(title)
     } else {
-        tenshu_text::label(message)
+        tenshu_text::label(title)
     }
     .wrapping(iced::widget::text::Wrapping::WordOrGlyph);
+    let detail = detail.map(|detail| {
+        tenshu_text::body(detail)
+            .size(TOAST_DETAIL_SIZE)
+            .style(coincube_ui::theme::tenshu::text::muted)
+            .wrapping(iced::widget::text::Wrapping::WordOrGlyph)
+    });
 
     let mut content = iced::widget::Row::new()
         .spacing(12)
         .align_y(Alignment::Start)
         .push(tile)
         .push(
-            container(message)
-                .width(Length::Fill)
-                .padding(iced::Padding::ZERO.top(4).bottom(4)),
+            container(
+                iced::widget::Column::new()
+                    .spacing(2)
+                    .push(title)
+                    .push_maybe(detail),
+            )
+            .width(Length::Fill)
+            .padding(iced::Padding::ZERO.top(4).bottom(4)),
         );
 
     if let Some(on_dismiss) = on_dismiss {
@@ -906,22 +858,32 @@ fn visible_toasts<T>(iter: impl Iterator<Item = T>) -> impl Iterator<Item = T> {
     all.into_iter().skip(hidden)
 }
 
+/// The toast layer: up to `TOAST_MAX_VISIBLE` cards stacked bottom-centre,
+/// 24px above the edge, centred on the content pane beside the side menu.
+/// The menu's width follows the window like the shell's own split
+/// (`nav::split::sidebar_width_for_window`: 248px, or 208px at 1100px and
+/// narrower), so the lane is measured at layout time, not assumed.
 pub fn toast_overlay<
     'a,
     I: Iterator<Item = (usize, coincube_ui::theme::notification::ToastTone, String)>,
 >(
     iter: I,
 ) -> coincube_ui::widget::Element<'a, Message> {
+    use iced::advanced::{layout, widget::Tree};
+
     let centered = iced::widget::row![
-        // Offset notifications past the full-width Cube shell.
-        iced::widget::Space::new().width(nav::shell::FULL_WIDTH),
-        // center toasts horizontally
         iced::widget::Space::new().width(iced::Length::Fill),
         // Keyed by toast id so card state follows its toast when the number
         // shown changes. iced only matches keys when the count changes; a
         // capped shift that keeps three cards on screen re-pairs state by
         // slot, which is why the dismiss cross acts on press (`toast_card`).
         iced::widget::keyed_column(visible_toasts(iter).map(|(id, tone, content)| {
+            // Translate the whole line first: `locale::notice` matches the
+            // joined `UserError::toast` shape. Then split it into a title and
+            // a detail that keeps the reference (S7); plain lines stay one.
+            let line = coincube_ui::locale::notice(content);
+            let (title, detail) = crate::user_error::split_toast(&line);
+            let (title, detail) = (title.to_owned(), detail.map(str::to_owned));
             // `opaque` captures mouse presses on the card. It doesn't capture
             // other events, but it reports an `Idle` interaction over the
             // card, so the overlay's `Stack` hands the layers below a
@@ -932,7 +894,8 @@ pub fn toast_overlay<
             // cards are wrapped: the rest of the overlay stays click-through.
             let card = iced::widget::opaque(toast_card(
                 tone,
-                coincube_ui::locale::notice(content),
+                title,
+                detail,
                 Some(Message::DismissToast(id)),
             ));
             (id, card)
@@ -941,20 +904,36 @@ pub fn toast_overlay<
         iced::widget::Space::new().width(iced::Length::Fill),
     ];
 
-    // full screen positioning: bottom-centre, 24px above the edge
-    let column = iced::widget::column![
+    // Bottom-centre of the content pane, 24px above the edge.
+    let lane: coincube_ui::widget::Element<'a, Message> = iced::widget::column![
         iced::widget::Space::new().height(iced::Length::Fill),
         centered,
         iced::widget::Space::new().height(24),
-    ];
+    ]
+    .into();
 
-    container(column)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .align_x(Alignment::Center)
-        .align_y(Alignment::Center)
-        .into()
+    coincube_ui::component::tenshu::arranged(
+        vec![lane],
+        iced::Size::new(Length::Fill, Length::Fill),
+        |children: &mut [coincube_ui::widget::Element<'a, Message>],
+         trees: &mut [Tree],
+         renderer: &iced::Renderer,
+         limits: &layout::Limits| {
+            let size = limits.resolve(Length::Fill, Length::Fill, limits.max());
+            let sidebar = nav::split::sidebar_width_for_window(size.width);
+            let pane = iced::Size::new((size.width - sidebar).max(0.0), size.height);
+            let lane = children[0]
+                .as_widget_mut()
+                .layout(&mut trees[0], renderer, &layout::Limits::new(pane, pane))
+                .move_to((sidebar, 0.0));
+            layout::Node::with_children(size, vec![lane])
+        },
+    )
+    .into()
 }
+
+#[cfg(test)]
+mod notice_tests;
 
 #[cfg(test)]
 mod toast_overlay_tests {
@@ -1019,6 +998,15 @@ mod toast_overlay_tests {
         cache: UiCache,
         renderer: &mut Renderer,
     ) -> UserInterface<'a, Message, theme::Theme, Renderer> {
+        built(list, cache, WINDOW, renderer)
+    }
+
+    fn built<'a>(
+        list: Vec<(usize, log::Level, String)>,
+        cache: UiCache,
+        window: Size,
+        renderer: &mut Renderer,
+    ) -> UserInterface<'a, Message, theme::Theme, Renderer> {
         let underlay = iced::widget::mouse_area(
             iced::widget::Space::new()
                 .width(iced::Length::Fill)
@@ -1033,7 +1021,7 @@ mod toast_overlay_tests {
                     .map(|(id, level, text)| (id, level.into(), text)),
             ))
             .into();
-        UserInterface::build(stack, WINDOW, cache, renderer)
+        UserInterface::build(stack, window, cache, renderer)
     }
 
     fn texts(
@@ -1251,6 +1239,221 @@ mod toast_overlay_tests {
             reached_underlay(&beside),
             "a press beside the toasts must reach the screen below"
         );
+    }
+
+    /// A `UserError` toast shows its title, then a detail line that still
+    /// carries the support reference (S7).
+    #[test]
+    fn a_user_error_toast_shows_a_title_and_a_detail_with_the_reference() {
+        use crate::user_error::{UserError, CC_NET_TIMEOUT};
+        let line = UserError::new(
+            "Couldn't send",
+            "Check your connection and try again.",
+            CC_NET_TIMEOUT,
+            true,
+        )
+        .toast();
+        let mut renderer = renderer();
+        let mut ui = mounted(vec![(0, log::Level::Error, line)], &mut renderer);
+        let all = texts(&mut ui, &renderer);
+        let title = all
+            .iter()
+            .find(|(text, _)| text == "Couldn't send")
+            .unwrap_or_else(|| panic!("no title line in {:?}", all));
+        let detail = all
+            .iter()
+            .find(|(text, _)| text.starts_with("Check your connection"))
+            .unwrap_or_else(|| panic!("no detail line in {:?}", all));
+        assert!(detail.0.contains("Ref: CC-NET-TIMEOUT"), "{:?}", detail.0);
+        assert!(
+            detail.1.y >= title.1.y + title.1.height,
+            "the detail sits under the title"
+        );
+        assert_eq!(detail.1.x, title.1.x, "title and detail share a left edge");
+    }
+
+    /// A plain message keeps one line: the tile glyph, the message, the cross.
+    #[test]
+    fn a_plain_toast_has_one_line() {
+        let line = "Saved — your Cube is up to date".to_owned();
+        let mut renderer = renderer();
+        let mut ui = mounted(vec![(0, log::Level::Info, line.clone())], &mut renderer);
+        let all = texts(&mut ui, &renderer);
+        assert_eq!(all.len(), 3, "{:?}", all);
+        assert_eq!(all[1].0, line);
+        cross_of(&mut ui, &renderer, &line);
+    }
+
+    /// The stack centres on the content pane beside the side menu at both
+    /// menu widths: 248px above 1100px of window, 208px at or below.
+    #[test]
+    fn toasts_centre_on_the_content_pane_at_both_sidebar_widths() {
+        use crate::app::view::nav::shell::{COMPACT_WIDTH, FULL_WIDTH};
+        let mut renderer = renderer();
+        for (window, sidebar) in [
+            (Size::new(1440.0, 900.0), FULL_WIDTH),
+            (Size::new(1000.0, 760.0), COMPACT_WIDTH),
+        ] {
+            let mut ui = built(toasts(1), UiCache::new(), window, &mut renderer);
+            let all = texts(&mut ui, &renderer);
+            let title = all
+                .iter()
+                .find(|(text, _)| text == "Toast number 0")
+                .expect("mounted toast")
+                .1;
+            let cross = cross_of(&mut ui, &renderer, "Toast number 0");
+            // Card edges: 12px padding, the 28px tile and a 12px gap before
+            // the title; the 28px cross and 8px padding on the right.
+            let left = title.x - 52.0;
+            let right = cross.x + cross.width + 8.0;
+            assert!(
+                (right - left - super::TOAST_WIDTH).abs() < 0.5,
+                "card is {} wide",
+                right - left
+            );
+            let centre = (left + right) / 2.0;
+            let expected = sidebar + (window.width - sidebar) / 2.0;
+            assert!(
+                (centre - expected).abs() < 0.5,
+                "window {}: card centre {} but the content pane's is {}",
+                window.width,
+                centre,
+                expected
+            );
+        }
+    }
+
+    /// Drawn check of option D: a warning or error toast's fill is the panel
+    /// washed 8% in its tone, and its border is the plain line, not the tone.
+    /// Info and success stay on the plain panel.
+    #[test]
+    fn warning_and_error_toasts_draw_the_tone_wash_with_a_line_border() {
+        use crate::app::view::shared::landing::capture::render_pixels;
+        use coincube_ui::theme::notification::ToastTone;
+        let close = |a: iced::Color, b: iced::Color, tolerance: f32| {
+            (a.r - b.r).abs() <= tolerance
+                && (a.g - b.g).abs() <= tolerance
+                && (a.b - b.b).abs() <= tolerance
+        };
+        let eight_bit = |c: iced::Color| {
+            let q = |v: f32| (v * 255.0).round() / 255.0;
+            iced::Color::from_rgb(q(c.r), q(c.g), q(c.b))
+        };
+        for palette in [theme::Theme::dark(), theme::Theme::light()] {
+            let shell = palette.colors.shell;
+            for tone in [
+                ToastTone::Info,
+                ToastTone::Success,
+                ToastTone::Warning,
+                ToastTone::Error,
+            ] {
+                let card: coincube_ui::widget::Element<'_, Message> =
+                    super::toast_card(tone, "Title".to_owned(), None, None).into();
+                let pixels = render_pixels(card, (440, 120), &palette, None);
+                // Inside the top padding, clear of the copy and the corners.
+                let fill = pixels.at(200, 5);
+                let border = pixels.at(200, 0);
+                let washed = eight_bit(coincube_ui::theme::tenshu::mix(
+                    shell.panel,
+                    tone.color(&palette),
+                    coincube_ui::theme::notification::ATTENTION_WASH,
+                ));
+                if tone.needs_attention() {
+                    assert!(
+                        close(fill, washed, 1.5 / 255.0),
+                        "{:?}: fill {:?}, want the 8% wash {:?}",
+                        tone,
+                        fill,
+                        washed
+                    );
+                    assert!(
+                        !close(fill, shell.panel, 1.0 / 255.0),
+                        "{:?}: fill is the plain panel",
+                        tone
+                    );
+                } else {
+                    assert!(
+                        close(fill, shell.panel, 1.5 / 255.0),
+                        "{:?}: fill {:?} is not the plain panel",
+                        tone,
+                        fill
+                    );
+                }
+                assert!(
+                    close(border, shell.line, 3.0 / 255.0),
+                    "{:?}: border {:?}, want the line {:?}",
+                    tone,
+                    border,
+                    shell.line
+                );
+            }
+        }
+    }
+
+    /// Opt-in look check: the toast layer over a stand-in shell (side menu and
+    /// page background) in both themes and at both side menu widths, with a
+    /// success, a plain warning and a `UserError`. Writes PNGs to
+    /// `TOAST_CAPTURE_DIR`:
+    /// `TOAST_CAPTURE_DIR=<dir> cargo test -p coincube-gui --lib toast_capture -- --ignored`.
+    #[test]
+    #[ignore = "writes PNG frames"]
+    fn toast_capture() {
+        use crate::app::view::shared::landing::capture::render_pixels;
+        use crate::user_error::{UserError, CC_NET_TIMEOUT};
+        use coincube_ui::theme::notification::ToastTone;
+        let Some(directory) = std::env::var_os("TOAST_CAPTURE_DIR") else {
+            return;
+        };
+        let directory = std::path::PathBuf::from(directory);
+        std::fs::create_dir_all(&directory).expect("capture directory");
+        let error = UserError::new(
+            "Couldn't send the payment",
+            "Check your connection and try again. Nothing was sent.",
+            CC_NET_TIMEOUT,
+            true,
+        )
+        .toast();
+        for (name, palette) in [
+            ("dark", theme::Theme::dark()),
+            ("light", theme::Theme::light()),
+        ] {
+            for (width, height) in [(1440u32, 900u32), (1000, 760)] {
+                let sidebar = crate::app::view::nav::split::sidebar_width_for_window(width as f32);
+                let list = vec![
+                    (1, ToastTone::Success, "Address copied".to_owned()),
+                    (
+                        2,
+                        ToastTone::Warning,
+                        "Your node is still syncing. Balances may be out of date.".to_owned(),
+                    ),
+                    (3, ToastTone::Error, error.clone()),
+                ];
+                let backdrop = iced::widget::row![
+                    iced::widget::container(iced::widget::Space::new())
+                        .width(sidebar)
+                        .height(iced::Length::Fill)
+                        .style(|t: &theme::Theme| iced::widget::container::Style {
+                            background: Some(t.colors.shell.rail.into()),
+                            ..Default::default()
+                        }),
+                    iced::widget::container(iced::widget::Space::new())
+                        .width(iced::Length::Fill)
+                        .height(iced::Length::Fill)
+                        .style(|t: &theme::Theme| iced::widget::container::Style {
+                            background: Some(t.colors.shell.background.into()),
+                            ..Default::default()
+                        }),
+                ];
+                let content: coincube_ui::widget::Element<'_, Message> = iced::widget::Stack::new()
+                    .push(backdrop)
+                    .push(toast_overlay(list.into_iter()))
+                    .into();
+                let pixels = render_pixels(content, (width, height), &palette, None);
+                let path = directory.join(format!("toasts-{}-{}.png", name, width));
+                image::save_buffer(&path, &pixels.rgba, width, height, image::ColorType::Rgba8)
+                    .expect("save toast capture");
+            }
+        }
     }
 }
 
@@ -1474,7 +1677,7 @@ mod page_head_tests {
         let mut tree = Tree::new(element.as_widget());
         let (node, before) = frame(&mut tree, &renderer, &mut element);
         let title = before.text(TITLE);
-        let line = before.text("Everyday · Bitcoin mainnet");
+        let line = before.text("Everyday");
         let first_row = before.text("Row 0");
         let (viewport, offset) = before.scroller_of(first_row);
         assert_eq!(offset, Vector::ZERO);
@@ -1506,11 +1709,7 @@ mod page_head_tests {
         let mut element = long_page(&menu, &cache);
         let (_, after) = frame(&mut tree, &renderer, &mut element);
         assert_eq!(after.text(TITLE), title, "the title does not move");
-        assert_eq!(
-            after.text("Everyday · Bitcoin mainnet"),
-            line,
-            "the Cube line does not move"
-        );
+        assert_eq!(after.text("Everyday"), line, "the Cube line does not move");
         let (_, offset) = after.scroller_of(after.text("Row 0"));
         assert_eq!(offset.y, scrolled, "the body moved by the reported offset");
         // Content draws at its layout position less the translation.
@@ -1551,38 +1750,38 @@ mod page_head_tests {
                 &named,
                 |cache| vault_page_head(cache, "Send"),
                 "Send",
-                "Vault · Family savings · Everyday · Bitcoin mainnet",
+                "Vault · Family savings · Everyday",
             ),
             (
                 &named,
                 |cache| spark_page_head(cache, "Receive"),
                 "Receive",
-                "Spark · Daily spending · Everyday · Bitcoin mainnet",
+                "Spark · Daily spending · Everyday",
             ),
             (
                 &unnamed,
                 |cache| vault_page_head(cache, "Send"),
                 "Send",
-                "Vault · Everyday · Bitcoin mainnet",
+                "Vault · Everyday",
             ),
             (
                 &unnamed,
                 |cache| spark_page_head(cache, "Receive"),
                 "Receive",
-                "Spark · Everyday · Bitcoin mainnet",
+                "Spark · Everyday",
             ),
             // A wallet's own page is titled with its name.
             (
                 &named,
                 |cache| wallet_page_head(cache, "Vault", cache.wallet_names.vault.as_deref()),
                 "Vault · Family savings",
-                "Everyday · Bitcoin mainnet",
+                "Everyday",
             ),
             (
                 &named,
                 |cache| wallet_page_head(cache, "Spark", cache.wallet_names.spark.as_deref()),
                 "Spark · Daily spending",
-                "Everyday · Bitcoin mainnet",
+                "Everyday",
             ),
         ];
         for (cache, head, title, line) in cases {
@@ -1620,22 +1819,22 @@ mod page_head_tests {
             (
                 &overview,
                 |menu, cache| dashboard_headed(menu, cache, page_head(cache, "Overview"), rows()),
-                "A very long Cube… · Bitcoin mainnet",
+                "A very long Cube…",
             ),
             (
                 &settings,
                 |menu, cache| dashboard(menu, cache, rows()),
-                "Cube · A very long Cube… · Bitcoin mainnet",
+                "Cube · A very long Cube…",
             ),
             (
                 &tools,
                 |menu, cache| dashboard(menu, cache, rows()),
-                "A very long Cube… · Bitcoin mainnet",
+                "A very long Cube…",
             ),
             (
                 &send,
                 |menu, cache| dashboard_headed(menu, cache, vault_page_head(cache, "Send"), rows()),
-                "Vault · A very long Cube… · Bitcoin mainnet",
+                "Vault · A very long Cube…",
             ),
         ];
         for (menu, page, line) in cases {
@@ -1702,43 +1901,6 @@ mod page_head_tests {
                 "{:?}",
                 menu
             );
-        }
-    }
-}
-
-#[cfg(test)]
-mod spark_notice_button_tests {
-    use super::on_warning_button;
-    use coincube_ui::{
-        color,
-        theme::{self, tenshu::contrast},
-    };
-    use iced::widget::button::Status;
-
-    /// The banner's buttons use its own dark text, which reads on the
-    /// warning orange where the shell ink does not; Spark Settings keeps the
-    /// content rule's 1px outline in that colour and the close × has no box.
-    #[test]
-    fn warning_banner_buttons_read_on_the_orange() {
-        for t in [theme::Theme::dark(), theme::Theme::light()] {
-            let orange = t.colors.notifications.warning.background;
-            assert!(contrast(color::BLACK, orange) >= 4.5);
-            for status in [Status::Active, Status::Hovered, Status::Pressed] {
-                let boxed = on_warning_button(true)(&t, status);
-                assert_eq!(boxed.text_color, color::BLACK);
-                assert_eq!(boxed.border.width, 1.0);
-                assert_eq!(boxed.border.color, color::BLACK);
-                let close = on_warning_button(false)(&t, status);
-                assert_eq!(close.text_color, color::BLACK);
-                assert_eq!(close.border.width, 0.0);
-            }
-            assert_eq!(
-                on_warning_button(false)(&t, Status::Active).background,
-                None
-            );
-            assert!(on_warning_button(false)(&t, Status::Hovered)
-                .background
-                .is_some());
         }
     }
 }

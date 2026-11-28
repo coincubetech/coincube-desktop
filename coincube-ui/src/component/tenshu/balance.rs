@@ -105,12 +105,33 @@ pub enum BalanceValue<'a> {
 /// Where the balance sits, which sets its scale.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BalanceTier {
-    /// Total balance: 40px figure over a 14px secondary line (`.big`, `.sats`).
+    /// Total balance: 46px figure over a 14px secondary line (`.big`, `.sats`).
     Hero,
     /// Wallet card: 26px figure over a 14px secondary line (`.amt`, `.sats`).
     Card,
     /// Asset row: one 14px line with the secondary value muted (`.val`).
     Row,
+}
+
+impl BalanceTier {
+    /// Size of the tier's figure: 46px for [`BalanceTier::Hero`], 26px for
+    /// [`BalanceTier::Card`], body size for [`BalanceTier::Row`].
+    pub fn figure_size(self) -> f32 {
+        match self {
+            BalanceTier::Hero => type_size::AMOUNT_HERO,
+            BalanceTier::Card => type_size::AMOUNT_CARD,
+            BalanceTier::Row => type_size::BODY,
+        }
+    }
+
+    /// Line height of the tier's figure (`.big` 1.15, `.amt` 1.2).
+    pub fn figure_line_height(self) -> f32 {
+        match self {
+            BalanceTier::Hero => 1.15,
+            BalanceTier::Card => 1.2,
+            BalanceTier::Row => type_size::LINE_HEIGHT,
+        }
+    }
 }
 
 /// Draw a balance. Unless `visibility` shows amounts, only [`MASK`] is drawn.
@@ -132,10 +153,7 @@ pub fn balance<'a, M: 'a>(
 }
 
 fn stacked<'a, M: 'a>(value: BalanceValue<'a>, tier: BalanceTier) -> Element<'a, M> {
-    let (size, line_height) = match tier {
-        BalanceTier::Hero => (type_size::AMOUNT_HERO, 1.15),
-        _ => (type_size::AMOUNT_CARD, 1.2),
-    };
+    let (size, line_height) = (tier.figure_size(), tier.figure_line_height());
     let headline = |content: Cow<'a, str>| -> Text<'a> {
         amount_text(content, size, font::SEMIBOLD).line_height(LineHeight::Relative(line_height))
     };

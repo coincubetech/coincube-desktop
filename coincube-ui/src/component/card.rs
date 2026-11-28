@@ -38,17 +38,14 @@ pub fn invalid<'a, T: 'a, C: Into<Element<'a, T>>>(content: C) -> Container<'a, 
         .style(theme::card::invalid)
 }
 
-/// display an error card with the message and the error in a tooltip.
-pub fn warning<'a, T: 'a>(message: String) -> Container<'a, T> {
-    Container::new(
-        Row::new()
-            .spacing(20)
-            .align_y(iced::Alignment::Center)
-            .push(icon::warning_icon())
-            .push(text(crate::locale::notice(message))),
+/// A warning notice with `message` as its title, in the one notice anatomy
+/// ([`super::notice`]).
+pub fn warning<'a, T: 'a + Clone>(message: String) -> Container<'a, T> {
+    super::notice::notice(
+        super::notice::NoticeTone::Warning,
+        crate::locale::notice(message),
     )
-    .padding(15)
-    .style(theme::card::warning)
+    .into_container()
 }
 
 /// display an error card with the message and the error in a tooltip.
