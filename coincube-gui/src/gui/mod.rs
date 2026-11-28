@@ -4614,9 +4614,6 @@ impl GUI {
         })
     }
 
-    /// Whether `origin` still names the same visible state. Lock, sign-out,
-    /// deletion, duress or a replaced Cube change the visible tab or its App
-    /// generation, so closing the overlay must not restore into it.
     /// Whether the sheet's origin is a Cube open on a test network, whose
     /// top bar carries the test-network tag.
     fn origin_on_test_network(&self, origin: &OverlayOrigin) -> bool {
@@ -4631,6 +4628,9 @@ impl GUI {
             })
     }
 
+    /// Whether `origin` still names the same visible state. Lock, sign-out,
+    /// deletion, duress or a replaced Cube change the visible tab or its App
+    /// generation, so closing the overlay must not restore into it.
     pub fn overlay_origin_is_current(&self, origin: &OverlayOrigin) -> bool {
         self.visible_pane()
             .filter(|(pane, _)| *pane == origin.pane)
