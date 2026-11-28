@@ -103,6 +103,13 @@ impl EmbeddedDaemon {
         }
     }
 
+    /// Tests hold this lock to keep a [`Daemon::stop`] waiting, so they can
+    /// see where (and whether) the stop runs.
+    #[cfg(test)]
+    pub(crate) fn handle_for_test(&self) -> std::sync::Arc<Mutex<Option<DaemonHandle>>> {
+        self.handle.clone()
+    }
+
     /// Tests can supply a disposable daemon handle without a production backend.
     #[cfg(test)]
     pub(crate) fn from_regtest_handle(config: Config, handle: DaemonHandle) -> Self {

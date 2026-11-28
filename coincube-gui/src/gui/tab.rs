@@ -556,13 +556,14 @@ pub enum Message {
         /// unlock parked in the session ([`app::cube_signer::CubeSigner::after_failed_unlock_load`]).
         cube_signer:
             Result<Option<app::cube_signer::CubeSigner>, app::cube_signer::CubeSignerError>,
-        /// Spark backend loaded in the same task as the Cube signer.
-        /// `None` if the cube has no Spark signer configured; `Some(Err(..))`
-        /// if the bridge subprocess failed to spawn or the handshake failed.
-        /// A failure here is non-fatal — the gui logs and continues with
-        /// `spark_backend = None`, which surfaces as "Spark unavailable" in
-        /// the Spark panels.
-        spark_backend: Option<Arc<app::wallets::SparkBackend>>,
+        /// The Spark load the unlock started as its own task, so that it
+        /// runs beside the Vault's daemon start: the Loader waits for it only
+        /// where it builds the App. Settled already for a Cube without a
+        /// Vault, which has no daemon to start. It settles to `None` if the
+        /// Cube has no Spark signer or the bridge failed to spawn or to
+        /// handshake; that is non-fatal, and surfaces as "Spark unavailable"
+        /// in the Spark panels. Dropping it aborts a load still under way.
+        spark: app::breez_spark::SparkStartup,
         config: app::Config,
         datadir: CoincubeDirectory,
         network: bitcoin::Network,
@@ -667,6 +668,36 @@ pub(crate) fn discard_closed_loader_result(message: Message) {
     }
 }
 
+/// The Spark load an unlock hands on. With a Vault it is returned still
+/// running, so the Loader starts the daemon beside it and waits for Spark
+/// only where it builds the App. Without a Vault there is no daemon start to
+/// overlap: the load is finished here, before the App is built, as it always
+/// was. Both unlock paths (PIN and passkey) go through this.
+async fn spark_for_unlock(
+    spark: app::breez_spark::SparkStartup,
+    wallet_settings: Option<&WalletSettings>,
+) -> app::breez_spark::SparkStartup {
+    if wallet_settings.is_some() {
+        spark
+    } else {
+        spark.finish().await
+    }
+}
+
+/// A Spark load's result as the App takes it: a failure is logged and the
+/// Cube opens without Spark.
+fn spark_backend_or_none(
+    loaded: Result<Arc<app::breez_spark::SparkClient>, app::breez_spark::SparkLoadError>,
+) -> app::breez_spark::startup::SparkOutcome {
+    match loaded {
+        Ok(client) => Some(Arc::new(app::wallets::SparkBackend::new(client))),
+        Err(e) => {
+            tracing::warn!("Spark bridge unavailable, continuing without Spark: {}", e);
+            None
+        }
+    }
+}
+
 #[cfg(test)]
 mod admitted_app_startup_tests {
     use super::*;
@@ -742,7 +773,6 @@ mod admitted_app_startup_tests {
                     ));
                     tab.update(Message::Load(loader::Message::WalletsLoaded {
                         cube_signer: None,
-                        spark_backend: None,
                         cache: cache.clone(),
                         wallet: wallet.clone(),
                         config: app::Config::new(false),
@@ -786,6 +816,468 @@ mod admitted_app_startup_tests {
             .unwrap()
             .join()
             .unwrap();
+    }
+
+    /// Set when a Spark load's future is dropped, finished or not: what
+    /// drops a half-built Spark client (its bridge is `kill_on_drop`).
+    struct DropFlag(Arc<std::sync::atomic::AtomicBool>);
+
+    impl Drop for DropFlag {
+        fn drop(&mut self) {
+            self.0.store(true, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+
+    fn spark_fixture() -> Arc<app::wallets::SparkBackend> {
+        Arc::new(app::wallets::SparkBackend::new(Arc::new(
+            app::breez_spark::SparkClient::disconnected_for_test(),
+        )))
+    }
+
+    /// A Spark load that runs until `gate` opens (or forever if it never
+    /// does), raising `dropped` whenever its future goes away.
+    fn gated_spark(
+        gate: tokio::sync::oneshot::Receiver<()>,
+        dropped: Arc<std::sync::atomic::AtomicBool>,
+        loads: Arc<std::sync::atomic::AtomicUsize>,
+    ) -> app::breez_spark::SparkStartup {
+        let flag = DropFlag(dropped);
+        app::breez_spark::SparkStartup::spawn(async move {
+            let _flag = flag;
+            loads.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            match gate.await {
+                Ok(()) => Some(spark_fixture()),
+                Err(_) => std::future::pending().await,
+            }
+        })
+    }
+
+    /// Run `test` on the bounded stack and current-thread runtime the App
+    /// fixtures need, with a Bitcoin App fixture's parts.
+    fn with_fixture(
+        name: &'static str,
+        test: impl FnOnce(
+                &tokio::runtime::Runtime,
+                CoincubeDirectory,
+                app::settings::CubeSettings,
+                app::cache::Cache,
+                Arc<Wallet>,
+                Arc<dyn crate::daemon::Daemon + Sync + Send>,
+            ) + Send
+            + 'static,
+    ) {
+        std::thread::Builder::new()
+            .name(name.into())
+            .stack_size(8 * 1024 * 1024)
+            .spawn(move || {
+                let _guard = crate::app::session::test_guard();
+                let runtime = tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .unwrap();
+                let _enter = runtime.enter();
+                let path = std::env::temp_dir().join(format!("{name}-{}", uuid::Uuid::new_v4()));
+                let root = CoincubeDirectory::new(path.clone());
+                let (fixture, wallet) = crate::app::shell_tests::bitcoin_app(&path);
+                let settings = fixture.cube_settings().clone();
+                let cache = fixture.cache().clone();
+                let daemon = crate::app::shell_tests::fixture_daemon(&fixture);
+                drop(fixture);
+                test(&runtime, root, settings, cache, wallet, daemon);
+                std::fs::remove_dir_all(path).ok();
+            })
+            .unwrap()
+            .join()
+            .unwrap();
+    }
+
+    fn loader_with(
+        root: &CoincubeDirectory,
+        settings: &app::settings::CubeSettings,
+        spark: app::breez_spark::SparkStartup,
+    ) -> Loader {
+        let (loader, startup) = Loader::new(
+            root.clone(),
+            app::Config::new(false),
+            settings.network.bitcoin_network(),
+            None,
+            None,
+            None,
+            settings.clone(),
+            None,
+            spark,
+        );
+        drop(startup);
+        loader
+    }
+
+    fn vault_loaded(
+        root: &CoincubeDirectory,
+        settings: &app::settings::CubeSettings,
+        cache: &app::cache::Cache,
+        wallet: &Arc<Wallet>,
+        daemon: &Arc<dyn crate::daemon::Daemon + Sync + Send>,
+    ) -> Message {
+        Message::Load(loader::Message::WalletsLoaded {
+            cube_signer: None,
+            cache: cache.clone(),
+            wallet: wallet.clone(),
+            config: app::Config::new(false),
+            daemon: daemon.clone(),
+            datadir: root.clone(),
+            bitcoind: None,
+            cube_settings: settings.clone(),
+        })
+    }
+
+    fn vault_settings() -> WalletSettings {
+        WalletSettings {
+            name: "Vault".into(),
+            alias: None,
+            descriptor_checksum: "kt6ht0kt".into(),
+            pinned_at: Some(1_720_000_000),
+            keys: Vec::new(),
+            hardware_wallets: Vec::new(),
+            remote_backend_auth: None,
+            start_internal_bitcoind: Some(false),
+            pending_rescan: None,
+            keychain_keys_recorded: false,
+        }
+    }
+
+    /// The choice both unlock paths make: hand a running Spark load on when
+    /// there is a Vault (its daemon starts beside it), finish it first when
+    /// there is none.
+    #[test]
+    fn an_unlock_overlaps_spark_only_when_there_is_a_vault() {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let _enter = runtime.enter();
+        let bound = std::time::Duration::from_secs(5);
+
+        let (_release, gate) = tokio::sync::oneshot::channel();
+        let spark = gated_spark(gate, Arc::default(), Arc::default());
+        let handed = runtime
+            .block_on(tokio::time::timeout(
+                bound,
+                spark_for_unlock(spark, Some(&vault_settings())),
+            ))
+            .expect("with a Vault the unlock does not wait for Spark");
+        assert!(handed.outcome().is_none(), "handed on still loading");
+
+        let (release, gate) = tokio::sync::oneshot::channel();
+        let spark = gated_spark(gate, Arc::default(), Arc::default());
+        let mut finishing = Box::pin(spark_for_unlock(spark, None));
+        assert!(
+            runtime
+                .block_on(tokio::time::timeout(
+                    std::time::Duration::from_millis(200),
+                    &mut finishing,
+                ))
+                .is_err(),
+            "without a Vault the unlock waits for Spark"
+        );
+        release.send(()).unwrap();
+        let finished = runtime
+            .block_on(tokio::time::timeout(bound, finishing))
+            .expect("and finishes once Spark has");
+        assert!(matches!(finished.outcome(), Some(Some(_))));
+    }
+
+    #[test]
+    fn an_unlocked_vault_starts_its_daemon_while_spark_still_loads() {
+        with_fixture("unlock-overlap", |_runtime, root, settings, _, _, _| {
+            let dropped = Arc::new(std::sync::atomic::AtomicBool::new(false));
+            let (_release, gate) = tokio::sync::oneshot::channel();
+            let spark = gated_spark(gate, dropped.clone(), Arc::default());
+            let mut tab = Tab::new(1, State::Home(Home::new(root.clone(), None).0));
+            let startup = tab.update(Message::WalletsLoadedAfterUnlock {
+                connect_client: None,
+                migration_error: None,
+                enc_key_error: None,
+                cube_signer: Ok(None),
+                spark,
+                config: app::Config::new(false),
+                datadir: root.clone(),
+                network: settings.network.bitcoin_network(),
+                cube: settings.clone(),
+                wallet_settings: Some(vault_settings()),
+                internal_bitcoind: None,
+                backup: None,
+            });
+            let State::Loader(loader) = &tab.state else {
+                panic!("the Vault's Loader opens without waiting for Spark");
+            };
+            assert!(loader.spark.outcome().is_none(), "Spark is still loading");
+            assert!(
+                startup.units() > 0,
+                "the Loader's daemon connect/start is already issued"
+            );
+            assert!(!dropped.load(std::sync::atomic::Ordering::SeqCst));
+        });
+    }
+
+    #[test]
+    fn the_app_waits_for_both_the_vault_and_spark() {
+        with_fixture(
+            "unlock-joins-spark",
+            |runtime, root, settings, cache, wallet, daemon| {
+                let dropped = Arc::new(std::sync::atomic::AtomicBool::new(false));
+                let (release, gate) = tokio::sync::oneshot::channel();
+                let spark = gated_spark(gate, dropped.clone(), Arc::default());
+                let mut tab = Tab::new(1, State::Loader(loader_with(&root, &settings, spark)));
+
+                // The Vault is ready first: the Loader holds it.
+                let held = tab.update(vault_loaded(&root, &settings, &cache, &wallet, &daemon));
+                assert!(matches!(tab.state, State::Loader(_)), "no App before Spark");
+                // A wake-up before Spark has settled changes nothing.
+                drop(tab.update(Message::Load(loader::Message::SparkSettled)));
+                assert!(matches!(tab.state, State::Loader(_)));
+
+                // Spark settles: the held task wakes the Loader.
+                release.send(()).unwrap();
+                let mut stream = iced_runtime::task::into_stream(held).expect("a wake-up task");
+                let woke = runtime.block_on(tokio::time::timeout(
+                    std::time::Duration::from_secs(5),
+                    async {
+                        while let Some(action) = stream.next().await {
+                            if let iced_runtime::Action::Output(message) = action {
+                                return message;
+                            }
+                        }
+                        panic!("the hold never woke the Loader");
+                    },
+                ));
+                let woke = woke.expect("Spark settled within the fixture bound");
+                assert!(matches!(woke, Message::Load(loader::Message::SparkSettled)));
+                drop(tab.update(woke));
+                let State::App(app) = &tab.state else {
+                    panic!("both loads done: the App is built");
+                };
+                assert!(app.spark_backend().is_some(), "with the Spark backend");
+                drop(tab);
+            },
+        );
+    }
+
+    #[test]
+    fn a_vault_ready_after_spark_opens_at_once() {
+        with_fixture(
+            "unlock-spark-first",
+            |_runtime, root, settings, cache, wallet, daemon| {
+                let spark = app::breez_spark::SparkStartup::ready(Some(spark_fixture()));
+                let mut tab = Tab::new(1, State::Loader(loader_with(&root, &settings, spark)));
+                drop(tab.update(vault_loaded(&root, &settings, &cache, &wallet, &daemon)));
+                let State::App(app) = &tab.state else {
+                    panic!("Spark had settled: the App is built at once");
+                };
+                assert!(app.spark_backend().is_some());
+                drop(tab);
+            },
+        );
+    }
+
+    #[test]
+    fn leaving_the_loader_aborts_its_spark_load() {
+        for (name, hold, leave) in [
+            ("spark-abort-cancel", false, true),
+            ("spark-abort-cancel-held", true, true),
+            ("spark-abort-drop-held", true, false),
+        ] {
+            with_fixture(
+                name,
+                move |runtime, root, settings, cache, wallet, daemon| {
+                    let dropped = Arc::new(std::sync::atomic::AtomicBool::new(false));
+                    let (_release, gate) = tokio::sync::oneshot::channel();
+                    let spark = gated_spark(gate, dropped.clone(), Arc::default());
+                    let waiting = spark.settled();
+                    let mut tab = Tab::new(1, State::Loader(loader_with(&root, &settings, spark)));
+                    if hold {
+                        drop(tab.update(vault_loaded(&root, &settings, &cache, &wallet, &daemon)));
+                        assert!(matches!(tab.state, State::Loader(_)));
+                    }
+                    if leave {
+                        // Cancel on a stalled loading face takes this route.
+                        drop(tab.update(Message::Load(loader::Message::View(
+                            loader::ViewMessage::SwitchNetwork,
+                        ))));
+                        assert!(matches!(tab.state, State::Home(_)));
+                    } else {
+                        drop(tab);
+                    }
+                    runtime
+                        .block_on(tokio::time::timeout(
+                            std::time::Duration::from_secs(5),
+                            waiting,
+                        ))
+                        .expect("the abandoned Spark load settles its waiters");
+                    assert!(
+                        dropped.load(std::sync::atomic::Ordering::SeqCst),
+                        "{}: the Spark load (and with it the bridge) was dropped",
+                        name
+                    );
+                },
+            );
+        }
+    }
+
+    /// Cancel, lock or a dropped tab while a Vault waits for Spark stop its
+    /// daemon, and never on the UI thread: the poller may be mid-request on
+    /// a slow network. The daemon's stop is held open here, so a stop on the
+    /// calling thread would block the update until the watchdog lets go.
+    #[test]
+    fn leaving_a_held_vault_stops_its_daemon_in_the_background() {
+        for (name, how) in [
+            ("held-stop-cancel", "cancel"),
+            ("held-stop-lock", "lock"),
+            ("held-stop-drop", "drop"),
+        ] {
+            with_fixture(
+                name,
+                move |_runtime, root, settings, cache, wallet, fixture| {
+                    let config = fixture.config().cloned().expect("embedded fixture config");
+                    let dir = config
+                        .data_directory()
+                        .expect("fixture data directory")
+                        .path()
+                        .to_path_buf();
+                    let embedded = Arc::new(
+                        crate::daemon::embedded::EmbeddedDaemon::unstarted_for_test(config, None),
+                    );
+                    let daemon: Arc<dyn crate::daemon::Daemon + Sync + Send> = embedded.clone();
+                    // Keep its stop waiting until released (or the watchdog fires).
+                    let held_open = embedded
+                        .handle_for_test()
+                        .try_lock_owned()
+                        .expect("nothing else holds the fixture daemon");
+                    let (release, released) = std::sync::mpsc::channel::<()>();
+                    let watchdog = std::thread::spawn(move || {
+                        let _ = released.recv_timeout(std::time::Duration::from_secs(10));
+                        drop(held_open);
+                    });
+
+                    let (_spark_release, gate) = tokio::sync::oneshot::channel();
+                    let spark = gated_spark(gate, Arc::default(), Arc::default());
+                    let mut tab = Tab::new(1, State::Loader(loader_with(&root, &settings, spark)));
+                    drop(tab.update(vault_loaded(&root, &settings, &cache, &wallet, &daemon)));
+                    assert!(matches!(tab.state, State::Loader(_)), "the Vault is held");
+
+                    let started = std::time::Instant::now();
+                    match how {
+                        "cancel" => {
+                            drop(tab.update(Message::Load(loader::Message::View(
+                                loader::ViewMessage::SwitchNetwork,
+                            ))));
+                            assert!(matches!(tab.state, State::Home(_)));
+                        }
+                        "lock" => {
+                            tab.stop_in_background();
+                            drop(tab);
+                        }
+                        _ => drop(tab),
+                    }
+                    assert!(
+                        started.elapsed() < std::time::Duration::from_secs(5),
+                        "{}: the UI thread did not wait for the daemon",
+                        name
+                    );
+                    assert!(
+                        crate::daemon::stopping::any_stopping(std::slice::from_ref(&dir)),
+                        "{}: the held daemon is stopping in the background",
+                        name
+                    );
+                    release.send(()).unwrap();
+                    watchdog.join().unwrap();
+                    assert!(
+                        crate::daemon::stopping::wait_for_within(
+                            &dir,
+                            std::time::Duration::from_secs(5)
+                        ),
+                        "{}: and it finished stopping, so a reopen can proceed",
+                        name
+                    );
+                },
+            );
+        }
+    }
+
+    #[test]
+    fn a_holding_loader_keeps_one_daemon_held_twice() {
+        with_fixture(
+            "held-twice",
+            |_runtime, root, settings, cache, wallet, fixture| {
+                let config = fixture.config().cloned().expect("embedded fixture config");
+                let dir = config
+                    .data_directory()
+                    .expect("fixture data directory")
+                    .path()
+                    .to_path_buf();
+                let embedded = Arc::new(
+                    crate::daemon::embedded::EmbeddedDaemon::unstarted_for_test(config, None),
+                );
+                let daemon: Arc<dyn crate::daemon::Daemon + Sync + Send> = embedded.clone();
+                // A stop, if one were sent, would stay pending while this is held.
+                let held_open = embedded
+                    .handle_for_test()
+                    .try_lock_owned()
+                    .expect("nothing else holds the fixture daemon");
+                let (_spark_release, gate) = tokio::sync::oneshot::channel();
+                let spark = gated_spark(gate, Arc::default(), Arc::default());
+                let mut loader = loader_with(&root, &settings, spark);
+                let loaded = || match vault_loaded(&root, &settings, &cache, &wallet, &daemon) {
+                    Message::Load(message) => message,
+                    _ => unreachable!(),
+                };
+                drop(loader.hold_for_spark(loaded()));
+                drop(loader.hold_for_spark(loaded()));
+                assert!(
+                    !crate::daemon::stopping::any_stopping(std::slice::from_ref(&dir)),
+                    "the daemon the new hold carries was not stopped"
+                );
+                assert!(
+                    loader.release_held_for_spark().is_none(),
+                    "Spark still loads"
+                );
+                drop(held_open);
+                drop(loader);
+                assert!(crate::daemon::stopping::wait_for_within(
+                    &dir,
+                    std::time::Duration::from_secs(5)
+                ));
+            },
+        );
+    }
+
+    #[test]
+    fn a_retry_keeps_the_same_spark_load() {
+        with_fixture("spark-retry", |runtime, root, settings, _, _, _| {
+            let dropped = Arc::new(std::sync::atomic::AtomicBool::new(false));
+            let loads = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+            let (release, gate) = tokio::sync::oneshot::channel();
+            let spark = gated_spark(gate, dropped.clone(), loads.clone());
+            let mut loader = loader_with(&root, &settings, spark);
+            runtime.block_on(tokio::task::yield_now());
+            assert_eq!(loads.load(std::sync::atomic::Ordering::SeqCst), 1);
+            loader.fail(loader::Error::Unexpected("fixture".into()));
+            drop(loader.update(loader::Message::View(loader::ViewMessage::Retry)));
+            runtime.block_on(tokio::task::yield_now());
+            assert!(loader.spark.outcome().is_none(), "still the running load");
+            assert!(
+                !dropped.load(std::sync::atomic::Ordering::SeqCst),
+                "the rebuild did not abort it"
+            );
+            assert_eq!(
+                loads.load(std::sync::atomic::Ordering::SeqCst),
+                1,
+                "no second bridge"
+            );
+            // And its backend reaches the rebuilt Loader.
+            release.send(()).unwrap();
+            runtime.block_on(loader.spark.settled());
+            assert!(matches!(loader.spark.outcome(), Some(Some(_))));
+        });
     }
 }
 
@@ -998,6 +1490,9 @@ struct CubeOpening {
     loads: Vec<iced::task::Handle>,
     /// The user chose to go on while Spark was still loading.
     without_spark: bool,
+    /// The motion preference read when the unlock was verified, which the
+    /// opening face's turning Cube follows as the scene does.
+    reduced: bool,
 }
 
 pub struct Tab {
@@ -3012,7 +3507,6 @@ impl Tab {
             loader::Message::App(Ok((cache, wallet, config, daemon, datadir, bitcoind))) => {
                 Task::done(Message::Load(loader::Message::WalletsLoaded {
                     cube_signer: loader.cube_signer.clone(),
-                    spark_backend: loader.spark_backend.clone(),
                     cache,
                     wallet,
                     config,
@@ -3023,6 +3517,10 @@ impl Tab {
                 }))
             }
             msg @ loader::Message::WalletsLoaded { .. } => return self.finish_loader_wallets(msg),
+            loader::Message::SparkSettled => match loader.release_held_for_spark() {
+                Some(msg) => return self.finish_loader_wallets(msg),
+                None => Task::none(),
+            },
             loader::Message::App(Err(e)) => {
                 tracing::error!("Failed to import backup: {e}");
                 Task::none()
@@ -3214,12 +3712,11 @@ impl Tab {
                 },
             )
         } else {
-            // The Cube signer and Spark backend were resolved at
-            // unlock (either may be absent: a seed-less Cube, or a
-            // Spark bridge that failed to start).
+            // The Cube signer was resolved at unlock (it may be absent: a
+            // seed-less Cube). The Spark load the unlock started joins in
+            // `finish_loader_wallets`.
             Task::done(Message::Load(loader::Message::WalletsLoaded {
                 cube_signer: loader.cube_signer.clone(),
-                spark_backend: loader.spark_backend.clone(),
                 cache,
                 wallet,
                 config: loader.gui_config.clone(),
@@ -3234,9 +3731,18 @@ impl Tab {
     fn finish_loader_wallets(&mut self, msg: loader::Message) -> TabDispatchResult {
         use std::ops::ControlFlow::{Break, Continue};
 
+        let State::Loader(loader) = &mut self.state else {
+            unreachable!();
+        };
+        // The App is built once both the Vault and the Spark load the unlock
+        // started have finished. A Vault that is ready first waits here, held
+        // by the Loader: a Cancel or lock stops its daemon and drops the
+        // Spark load with the Loader.
+        let Some(spark_backend) = loader.spark.outcome() else {
+            return Continue(loader.hold_for_spark(msg).map(Message::Load));
+        };
         let loader::Message::WalletsLoaded {
             cube_signer,
-            spark_backend,
             cache,
             wallet,
             config,
@@ -3409,7 +3915,7 @@ impl Tab {
 
         let Message::WalletsLoadedAfterUnlock {
             cube_signer,
-            spark_backend,
+            spark,
             config,
             datadir,
             network,
@@ -3462,7 +3968,7 @@ impl Tab {
                         wallet_settings.clone(),
                         cube,
                         cube_signer,
-                        spark_backend,
+                        spark,
                         connect_client,
                     )
                 } else {
@@ -3475,16 +3981,18 @@ impl Tab {
                         Some(wallet_settings.clone()),
                         cube,
                         cube_signer,
-                        spark_backend,
+                        spark,
                     )
                 };
                 self.state = State::Loader(loader);
                 command.map(Message::Load)
             }
         } else {
+            // Settled by the unlock already: without a Vault there is no
+            // daemon start to overlap it with.
             let (app, command) = match App::new_without_wallet(
                 cube_signer,
-                spark_backend,
+                spark.outcome().flatten(),
                 config,
                 datadir,
                 network,
@@ -4704,14 +5212,14 @@ impl Tab {
                             master_signer_fingerprint,
                         );
 
-                        let spark_backend = Self::load_pin_unlock_spark(
+                        let spark = Self::start_pin_unlock_spark(
                             &datadir_clone,
                             network_val,
                             &cube,
                             &pin,
                             master_signer_fingerprint,
-                        )
-                        .await;
+                        );
+                        let spark = spark_for_unlock(spark, wallet_settings_clone.as_ref()).await;
 
                         (
                             config_clone,
@@ -4719,7 +5227,7 @@ impl Tab {
                             network_val,
                             cube,
                             signer_result,
-                            spark_backend,
+                            spark,
                             wallet_settings_clone,
                             internal_bitcoind_clone,
                             backup_clone,
@@ -4734,7 +5242,7 @@ impl Tab {
                         network,
                         cube,
                         signer_result,
-                        spark_backend,
+                        spark,
                         wallet_settings,
                         internal_bitcoind,
                         backup,
@@ -4744,7 +5252,7 @@ impl Tab {
                     )| {
                         Message::WalletsLoadedAfterUnlock {
                             cube_signer: signer_result,
-                            spark_backend,
+                            spark,
                             config,
                             datadir,
                             network,
@@ -4889,43 +5397,41 @@ impl Tab {
         }
     }
 
-    async fn load_pin_unlock_spark(
+    /// Start the Spark load of a PIN unlock as its own task (see
+    /// [`app::breez_spark::SparkStartup`]). The load spawns the bridge
+    /// subprocess (coincube-spark-bridge) and performs the init handshake
+    /// with the Cube's mnemonic. Failures are non-fatal: they are logged and
+    /// settle to `None`, so the Cube opens without Spark and the Spark panels
+    /// show a placeholder.
+    ///
+    /// The task owns its own `Zeroizing` copy of the PIN, for the seed
+    /// source, and drops it as soon as `Init` has answered (or when the load
+    /// is aborted). The unlock task used to hold the PIN across the same
+    /// load; it now ends without waiting for it.
+    fn start_pin_unlock_spark(
         datadir_clone: &CoincubeDirectory,
         network_val: bitcoin::Network,
         cube: &app::settings::CubeSettings,
         pin: &zeroize::Zeroizing<String>,
         master_signer_fingerprint: Option<bitcoin::bip32::Fingerprint>,
-    ) -> Option<Arc<app::wallets::SparkBackend>> {
-        // Load the Spark backend alongside the signer.
-        // Failures here are non-fatal — we log + return
-        // None so the gui can continue without it and the
-        // Spark panels surface a placeholder. The load
-        // path spawns the bridge subprocess
-        // (coincube-spark-bridge), performs the init
-        // handshake with the cube's mnemonic, and
-        // returns an Arc<SparkClient> on success.
-        if let Some(fingerprint) = master_signer_fingerprint {
-            match app::breez_spark::load_spark_client(
-                datadir_clone.path(),
+    ) -> app::breez_spark::SparkStartup {
+        let Some(fingerprint) = master_signer_fingerprint else {
+            return app::breez_spark::SparkStartup::none();
+        };
+        let datadir = datadir_clone.path().to_path_buf();
+        let cube_id = cube.id.clone();
+        let pin = pin.clone();
+        app::breez_spark::SparkStartup::spawn(async move {
+            let loaded = app::breez_spark::load_spark_client(
+                &datadir,
                 network_val,
-                app::seed_source::SeedSource::encrypted_file(fingerprint, pin),
-                &cube.id,
+                app::seed_source::SeedSource::encrypted_file(fingerprint, &pin),
+                &cube_id,
             )
-            .await
-            {
-                Ok(client) => Some(Arc::new(app::wallets::SparkBackend::new(client))),
-                Err(e) => {
-                    tracing::warn!(
-                        "Spark bridge unavailable, continuing \
-                     without Spark: {}",
-                        e
-                    );
-                    None
-                }
-            }
-        } else {
-            None
-        }
+            .await;
+            drop(pin);
+            spark_backend_or_none(loaded)
+        })
     }
 
     fn back_from_pin_entry(&mut self) -> Task<Message> {
@@ -5103,28 +5609,29 @@ impl Tab {
                     &cube.id,
                 );
 
-                let spark_backend = match app::breez_spark::load_spark_client(
-                    datadir_clone.path(),
-                    network_val,
-                    app::seed_source::SeedSource::in_memory(signer),
-                    &cube.id,
-                )
-                .await
-                {
-                    Ok(client) => Some(Arc::new(app::wallets::SparkBackend::new(client))),
-                    Err(e) => {
-                        tracing::warn!(
-                            "Spark bridge unavailable, continuing without \
-                             Spark: {}",
-                            e
-                        );
-                        None
-                    }
+                // Its own task, so the Vault's daemon starts beside it. The
+                // task owns this reference to the signer and drops it once
+                // `Init` has answered, as the unlock task used to.
+                let spark = {
+                    let datadir = datadir_clone.path().to_path_buf();
+                    let cube_id = cube.id.clone();
+                    app::breez_spark::SparkStartup::spawn(async move {
+                        spark_backend_or_none(
+                            app::breez_spark::load_spark_client(
+                                &datadir,
+                                network_val,
+                                app::seed_source::SeedSource::in_memory(signer),
+                                &cube_id,
+                            )
+                            .await,
+                        )
+                    })
                 };
+                let spark = spark_for_unlock(spark, wallet_settings_clone.as_ref()).await;
 
                 Message::WalletsLoadedAfterUnlock {
                     cube_signer: signer_result,
-                    spark_backend,
+                    spark,
                     config: config_clone,
                     datadir: datadir_clone,
                     network: network_val,
@@ -5516,6 +6023,22 @@ impl Tab {
         &self,
         worldview: crate::app::settings::preferences::WorldviewMode,
     ) -> Element<Message> {
+        // Every turning Cube in the tab (the Cube loader, a panel's wait)
+        // follows the motion preference; the opening's, the one it started
+        // with.
+        let reduced = self
+            .opening
+            .as_ref()
+            .map_or(self.reduce_motion, |opening| opening.reduced);
+        coincube_ui::component::tenshu::turning_cube::render_with_motion(reduced, || {
+            self.opening_or_state_view(worldview)
+        })
+    }
+
+    fn opening_or_state_view(
+        &self,
+        worldview: crate::app::settings::preferences::WorldviewMode,
+    ) -> Element<Message> {
         let Some(opening) = self.opening.as_ref() else {
             return self.state_view(worldview);
         };
@@ -5526,10 +6049,10 @@ impl Tab {
             State::Loader(loader) if loader.opening_stage().is_some() => {
                 (&loader.cube_settings, false)
             }
-            State::App(app) => (app.cube_settings(), opening.scene.shows_app(now)),
+            State::App(app) => (app.cube_settings(), opening.scene.shows_app()),
             _ => return self.state_view(worldview),
         };
-        let base = if app {
+        if app {
             self.state_view(worldview)
         } else {
             let face = home::launcher_presenter::OpeningFace {
@@ -5538,6 +6061,7 @@ impl Tab {
                 outgoing: opening.quotes.outgoing(now),
                 stage: opening.scene.stage(),
                 stalled: opening.scene.stalled(now),
+                reduced: opening.reduced,
                 cancel: || Message::CancelOpening,
                 without_spark: || Message::OpenWithoutSpark,
             };
@@ -5556,15 +6080,6 @@ impl Tab {
                     now,
                 ),
             }
-        };
-        let wash = opening.scene.wash(now);
-        if wash > 0.0 {
-            iced::widget::Stack::new()
-                .push(base)
-                .push(home::launcher_presenter::opening_wash(cube.network, wash))
-                .into()
-        } else {
-            base
         }
     }
 
@@ -5656,24 +6171,10 @@ impl Tab {
     /// `Some(None)` keeps it but has no stage (a loader error page).
     fn opening_stage(&self) -> Option<Option<home::launcher_opening::Stage>> {
         use home::launcher_opening::Stage;
-        // The unlock routes past its screen (to the Loader, or back to the
-        // Launcher for a legacy Liana Connect Vault) exactly when it carries Bitcoin wallet settings: a
-        // Vault or an imported wallet. Without them there is no daemon to
-        // start: the wallets load and the Cube is almost there.
-        let unlocked = |on_success: &crate::pin_entry::PinEntrySuccess| {
-            let crate::pin_entry::PinEntrySuccess::LoadApp {
-                wallet_settings, ..
-            } = on_success;
-            Some(if wallet_settings.is_some() {
-                Stage::Connecting
-            } else {
-                Stage::AlmostThere
-            })
-        };
         match &self.state {
-            State::PinEntry(pin) if pin.is_loading() => Some(unlocked(&pin.on_success)),
+            State::PinEntry(pin) if pin.is_loading() => Some(Some(pin.on_success.opening_stage())),
             State::PasskeyUnlock(passkey) if passkey.is_opening() => {
-                Some(unlocked(&passkey.on_success))
+                Some(Some(passkey.on_success.opening_stage()))
             }
             State::Loader(loader) => Some(loader.opening_stage()),
             // The App is up, but its Spark wallet may still be loading:
@@ -5703,6 +6204,10 @@ impl Tab {
             State::PinEntry(pin) if pin_verified && pin.is_loading() => {
                 Some((pin.loading_quote().clone(), datadir(&pin.on_success)))
             }
+            // A passkey has no classification step to wait for: the update
+            // that enters its Opening phase starts the same opening as a
+            // verified PIN, so its face covers the passkey screen from the
+            // first frame, from the floor or the list and with reduced motion.
             State::PasskeyUnlock(passkey) if passkey.is_opening() => Some((
                 passkey.loading_quote().clone(),
                 datadir(&passkey.on_success),
@@ -5710,9 +6215,9 @@ impl Tab {
             _ => None,
         };
         if let (None, Some((quote, root))) = (self.opening.as_ref(), verified) {
+            let reduced = home::motion_reduced(&root, self.system_reduces_motion);
             if let Some(Some(stage)) = self.opening_stage() {
                 self.opening_cancelled = false;
-                let reduced = home::motion_reduced(&root, self.system_reduces_motion);
                 self.opening = Some(CubeOpening {
                     scene: home::launcher_opening::Opening::new(
                         self.unlock_floor.take(),
@@ -5723,6 +6228,7 @@ impl Tab {
                     quotes: home::launcher_opening::QuoteCycle::new(quote, reduced, now),
                     loads: Vec::new(),
                     without_spark: false,
+                    reduced,
                 });
             }
         }
@@ -5759,7 +6265,7 @@ impl Tab {
                     // The Loader or App owns its work now; Cancel uses its routes.
                     opening.loads.clear();
                 }
-                if opening.scene.done(now) {
+                if opening.scene.done() {
                     self.opening = None;
                 }
             }
@@ -5771,7 +6277,7 @@ impl Tab {
     /// Back. Either way the session for this Cube is closed: it is locked.
     fn cancel_opening(&mut self) -> Task<Message> {
         // A press that lands after the Cube is ready changes nothing: the
-        // opening carries on to its finale.
+        // App is already showing.
         let cube_id = match &self.state {
             State::PinEntry(pin) => pin.cube().id.clone(),
             State::PasskeyUnlock(passkey) => passkey.cube().id.clone(),
@@ -9606,6 +10112,180 @@ mod opening_tests {
         std::fs::remove_dir_all(root).unwrap();
     }
 
+    /// A verified passkey opens the Cube exactly as a verified PIN does
+    /// (Robert, 2026-11-27: "this passkey path also uses the same loading
+    /// screen as the PIN one"). There is no PIN check to wait for, so the
+    /// update that enters the passkey's Opening phase starts the opening:
+    /// from the floor or the list, with motion or without. The tab then
+    /// draws the opening face (its heading names the Cube, then the Cube
+    /// loader: the turning Cube, the quote, the stage), not the passkey
+    /// screen.
+    #[test]
+    fn a_verified_passkey_opens_through_the_same_face_as_a_pin() {
+        use crate::app::view::shared::landing::capture;
+        use home::launcher_opening::{Opening, Stage};
+        let root = datadir();
+        for from_floor in [true, false] {
+            for reduced in [false, true] {
+                let cube = CubeSettings::new("Everyday".into(), ChainId::Bitcoin).with_passkey(
+                    crate::app::settings::PasskeyMetadata {
+                        credential_id: "Y3JlZC1pZA==".to_string(),
+                        rp_id: "coincube.io".to_string(),
+                        created_at: 1_786_122_245,
+                        label: None,
+                    },
+                );
+                let state = unlock_state(
+                    cube,
+                    root.clone(),
+                    crate::pin_entry::PinEntrySuccess::LoadApp {
+                        datadir: crate::dir::CoincubeDirectory::new(root.clone()),
+                        config: crate::app::Config::new(false),
+                        network: Network::Bitcoin,
+                        internal_bitcoind: None,
+                        backup: None,
+                        wallet_settings: None,
+                        connect_client: None,
+                    },
+                    None,
+                );
+                let mut tab = Tab::new(1, state);
+                tab.system_reduces_motion = Some(reduced);
+                if from_floor {
+                    tab.unlock_floor = Some(floor());
+                }
+                let State::PasskeyUnlock(passkey) = &mut tab.state else {
+                    unreachable!("a passkey Cube");
+                };
+                passkey.enter_opening_for_test();
+                let quote = passkey.loading_quote().clone();
+                // The ceremony's next poll is the update that lands in Opening;
+                // the tab's own update follows it with `track_opening`.
+                drop(tab.update(Message::PasskeyUnlock(crate::passkey_unlock::Message::Tick)));
+                let case = format!("floor {from_floor}, reduced {reduced}");
+                let opening = tab.opening.as_mut().unwrap_or_else(|| {
+                    panic!("{}", format!("{case}: a verified passkey opens the Cube"))
+                });
+                assert_eq!(opening.scene.floor().is_some(), from_floor, "{case}");
+                assert_eq!(opening.scene.stage(), Stage::AlmostThere, "{case}");
+                assert_eq!(opening.reduced, reduced, "{case}");
+                assert!(
+                    tab.unlock_floor.is_none(),
+                    "{}",
+                    format!("{case}: the opening took the floor")
+                );
+                // Well into the opening, past the tumble, so the face's
+                // content shows on the floor too.
+                opening.scene = Opening::new(
+                    from_floor.then(floor),
+                    reduced,
+                    Stage::AlmostThere,
+                    std::time::Instant::now() - std::time::Duration::from_secs(5),
+                );
+                let shown = capture::inspect_filled(
+                    &format!("passkey-opening-face-{from_floor}-{reduced}"),
+                    tab.view(Default::default()),
+                    (1024, 768),
+                    "dark",
+                    coincube_ui::theme::Theme::dark(),
+                    (1024, 768),
+                );
+                assert!(
+                    shown.contains(coincube_ui::locale::Text::Opening.get()),
+                    "{}",
+                    format!("{case}")
+                );
+                assert!(
+                    shown.contains("Everyday"),
+                    "{}",
+                    format!("{case}: the face names the Cube")
+                );
+                let side = shown.turning_cubes().first().map_or(0.0, |cube| cube.width);
+                assert!(
+                    side == crate::loader::CUBE_LOADER_SIZE
+                        || side == crate::loader::CUBE_LOADER_COMPACT_SIZE,
+                    "{}",
+                    format!("{case}: the Cube loader's Cube, not {side} px")
+                );
+                shown.assert_cube_loader(
+                    &case,
+                    side,
+                    quote.localized_text(),
+                    &format!("\u{2014} {}, {}", quote.author, quote.source),
+                    Stage::AlmostThere.text(),
+                );
+                // The face is built inside `responsive`, at layout, after
+                // `Tab::view` returned: the opening's own preference must
+                // still reach its Cube.
+                assert_eq!(
+                    shown.still_cubes().len(),
+                    usize::from(reduced),
+                    "{case}: the Cube holds still exactly under reduced motion"
+                );
+            }
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    /// The passkey prompt's wait (a 24 px turning Cube under "Confirm with
+    /// Touch ID") is also built inside `responsive`. Under reduced motion it
+    /// holds the logo pose, on the floor and in the list.
+    #[test]
+    fn the_passkey_prompt_holds_its_cube_still_under_reduced_motion() {
+        use crate::app::view::shared::landing::capture;
+        let root = datadir();
+        for from_floor in [true, false] {
+            for reduced in [false, true] {
+                let cube = CubeSettings::new("Everyday".into(), ChainId::Bitcoin).with_passkey(
+                    crate::app::settings::PasskeyMetadata {
+                        credential_id: "Y3JlZC1pZA==".to_string(),
+                        rp_id: "coincube.io".to_string(),
+                        created_at: 1_786_122_245,
+                        label: None,
+                    },
+                );
+                let state = unlock_state(
+                    cube,
+                    root.clone(),
+                    crate::pin_entry::PinEntrySuccess::LoadApp {
+                        datadir: crate::dir::CoincubeDirectory::new(root.clone()),
+                        config: crate::app::Config::new(false),
+                        network: Network::Bitcoin,
+                        internal_bitcoind: None,
+                        backup: None,
+                        wallet_settings: None,
+                        connect_client: None,
+                    },
+                    None,
+                );
+                let mut tab = Tab::new(1, state);
+                tab.set_reduce_motion(reduced);
+                if from_floor {
+                    tab.unlock_floor = Some(floor());
+                }
+                let State::PasskeyUnlock(passkey) = &mut tab.state else {
+                    unreachable!("a passkey Cube");
+                };
+                passkey.enter_authenticating_for_test();
+                let case = format!("passkey-prompt-floor-{from_floor}-reduced-{reduced}");
+                let shown = capture::inspect_filled(
+                    &case,
+                    tab.view(Default::default()),
+                    (1024, 768),
+                    "dark",
+                    coincube_ui::theme::Theme::dark(),
+                    (1024, 768),
+                );
+                assert!(shown.contains("Confirm with Touch ID"), "{}", case);
+                let cubes = shown.turning_cubes();
+                assert_eq!(cubes.len(), 1, "{case}: {cubes:?}");
+                assert_eq!((cubes[0].width, cubes[0].height), (24.0, 24.0), "{}", case);
+                assert_eq!(shown.still_cubes().len(), usize::from(reduced), "{}", case);
+            }
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     /// A Cube whose Bitcoin wallet is imported has no Vault id, but its
     /// unlock carries wallet settings and routes to the Loader. The opening
     /// has to start where the Loader does, or the stage line and the light
@@ -9847,6 +10527,7 @@ mod opening_tests {
             ),
             loads: Vec::new(),
             without_spark: false,
+            reduced: false,
         });
         // The loader fails; the error page holds the wait once, then the
         // tab goes to the background and gets no more ticks.
@@ -9868,15 +10549,14 @@ mod opening_tests {
         std::fs::remove_dir_all(root).unwrap();
     }
 
-    /// The opening waits on Spark inside the App, then must still run its
-    /// finale: the Ready beat, the rush and the edge-colour wash, with the
-    /// App shown only under the wash.
+    /// The opening waits on Spark inside the App, then hands over to the App
+    /// at once: no Ready beat, rush or wash holds a ready Cube back.
     #[test]
-    fn the_finale_washes_once_spark_settles() {
+    fn the_app_shows_as_soon_as_spark_settles() {
         // Keep the finite App/Tab fixture on the same bounded stack used by
         // nearby App tests, including instrumented coverage builds.
         std::thread::Builder::new()
-            .name("opening-finale".into())
+            .name("opening-ready".into())
             .stack_size(8 * 1024 * 1024)
             .spawn(|| {
                 use crate::app::view::{HomeMessage, Message as ViewMessage};
@@ -9916,6 +10596,7 @@ mod opening_tests {
                     ),
                     loads: Vec::new(),
                     without_spark: false,
+                    reduced: false,
                 });
                 tab.sync_opening(Instant::now());
                 let stage = |tab: &Tab| tab.opening.as_ref().map(|o| o.scene.stage());
@@ -9931,36 +10612,17 @@ mod opening_tests {
                 };
                 drop(tab.update(home(HomeMessage::SparkSyncedObserved)));
                 drop(tab.update(home(balance())));
-                drop(tab.update(home(balance())));
-                let ready = Instant::now();
-                assert_eq!(stage(&tab), Some(Stage::Ready), "a synced balance is Ready");
-
-                let scene = |tab: &Tab, at| {
-                    tab.opening
-                        .as_ref()
-                        .map(|o| (o.scene.wash(at), o.scene.shows_app(at)))
-                };
-                // The Ready beat holds at full light, App hidden, no wash yet.
-                tab.sync_opening(ready + Duration::from_millis(300));
                 assert_eq!(
-                    scene(&tab, ready + Duration::from_millis(300)),
-                    Some((0.0, false))
+                    stage(&tab),
+                    Some(Stage::Spark),
+                    "a stale balance still waits"
                 );
-                // The rush and wash peak while the face still covers the App.
-                let peak = ready + Duration::from_millis(1400);
-                tab.sync_opening(peak);
-                let (wash, app) = scene(&tab, peak).expect("the finale keeps the opening");
-                assert!(wash > 0.9, "the wash peaks, got {}", wash);
-                assert!(!app);
-                // The App takes over under the wash, which still covers it.
-                let under = ready + Duration::from_millis(1550);
-                tab.sync_opening(under);
-                let (wash, app) = scene(&tab, under).expect("the wash is still fading");
-                assert!(app, "the App shows under the wash");
-                assert!(wash > 0.5, "the wash still covers the App, got {}", wash);
-                // Once the wash has faded, the opening is dropped.
-                tab.sync_opening(ready + Duration::from_secs(3));
-                assert!(tab.opening.is_none());
+                drop(tab.update(home(balance())));
+                // Ready drops the opening on the spot: the App is drawn.
+                assert!(
+                    tab.opening.is_none(),
+                    "a synced balance shows the App at once"
+                );
                 std::fs::remove_dir_all(root).unwrap();
             })
             .unwrap()

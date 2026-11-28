@@ -491,7 +491,7 @@ jobs:
 
   windows_build:
     name: Build unsigned Windows executables
-    if: github.repository == 'coincubetech/coincube' && startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: github.repository == 'coincubetech/coincube-desktop' && startsWith(github.ref, 'refs/tags/v') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: windows-latest
     timeout-minutes: 120
     permissions:

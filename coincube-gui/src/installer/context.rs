@@ -182,6 +182,10 @@ pub struct Context {
     /// regenerated before it registered (API CA1). 0 when no cube settings
     /// were passed in.
     pub cube_mark_variation: u32,
+    /// The Cube's mark style (`CubeSettings::mark_style`), sent with the
+    /// number when Final registers the Cube (API CA6). 0 when no cube
+    /// settings were passed in.
+    pub cube_mark_style: u8,
     /// Vault members to fan out to the backend after the local install
     /// completes. Populated by `DefineDescriptor::apply()` for every
     /// keychain-sourced descriptor key. Empty when no such keys exist
@@ -418,6 +422,7 @@ impl Context {
             cube_encryption_key: None,
             cube_name: cube_settings.map(|cs| cs.name.clone()),
             cube_mark_variation: cube_settings.map_or(0, |cs| cs.mark_variation),
+            cube_mark_style: cube_settings.map_or(0, |cs| cs.mark_style),
             connect_vault_members: Vec::new(),
             connect_vault_timelock_days: None,
             restore_pin: None,

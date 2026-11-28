@@ -1535,6 +1535,21 @@ impl GUI {
     /// A single resolved device theme drives the window and every retained tab.
     /// A System choice follows the latest theme reported by iced; until that
     /// arrives it uses the model's documented dark fallback.
+    /// Record the system's reduce-motion setting. When it changes, every tab
+    /// takes the newly resolved motion preference too.
+    fn observe_system_motion(&mut self, observed: Option<bool>) {
+        let changed = self.system_reduces_motion != observed;
+        self.system_reduces_motion = observed;
+        for (_, pane) in self.panes.iter_mut() {
+            for tab in &mut pane.tabs {
+                tab.set_system_reduces_motion(observed);
+            }
+        }
+        if changed {
+            self.publish_appearance();
+        }
+    }
+
     fn publish_appearance(&mut self) {
         let Some(accepted) = self.preferences.accepted() else {
             return;
@@ -1604,7 +1619,6 @@ impl GUI {
                 .preferences_sheet
                 .as_ref()
                 .and_then(|sheet| sheet.worldview_changed),
-            worldview_sharing: self.worldview_view(),
             diagnostics: self
                 .preferences_sheet
                 .as_ref()
@@ -2097,15 +2111,6 @@ impl GUI {
                     sheet.page.toggle_registration_repair();
                 }
                 Task::none()
-            }
-            ViewMessage::Action(Action::RefreshWorldview) => {
-                self.worldview_action(worldview::Action::Refresh)
-            }
-            ViewMessage::Action(Action::PublishWorldview) => {
-                self.worldview_action(worldview::Action::Publish)
-            }
-            ViewMessage::Action(Action::RevokeWorldview) => {
-                self.worldview_action(worldview::Action::Revoke)
             }
             ViewMessage::Action(Action::Close) => self.close_preferences_sheet(),
             ViewMessage::Action(Action::RetryLoad) => self.retry_preferences(),
@@ -3491,12 +3496,9 @@ impl GUI {
         });
         self.connect_sheet = None;
         self.publish_preferences_sheet();
-        Task::batch([
-            iced_runtime::task::widget(iced::advanced::widget::operation::focusable::focus(
-                iced::advanced::widget::Id::new("tenshu.preferences.close"),
-            )),
-            self.worldview_action(worldview::Action::Refresh),
-        ])
+        iced_runtime::task::widget(iced::advanced::widget::operation::focusable::focus(
+            iced::advanced::widget::Id::new("tenshu.preferences.close"),
+        ))
     }
 
     fn handle_duress_lock(
@@ -3879,13 +3881,7 @@ impl GUI {
         {
             self.zoom.notice_until = None;
         }
-        let system_reduces_motion = crate::app::settings::system_accessibility::reduces_motion();
-        self.system_reduces_motion = system_reduces_motion;
-        for (_, pane) in self.panes.iter_mut() {
-            for tab in &mut pane.tabs {
-                tab.set_system_reduces_motion(system_reduces_motion);
-            }
-        }
+        self.observe_system_motion(crate::app::settings::system_accessibility::reduces_motion());
         let privacy_refresh = self
             .preferences
             .begin_refresh_if_due()
@@ -4041,7 +4037,11 @@ impl GUI {
                 .preferences
                 .accepted()
                 .map(|accepted| accepted.preferences);
-            if before.map(|prefs| prefs.theme) != after.map(|prefs| prefs.theme) {
+            // The resolved appearance follows the theme and the motion
+            // preference; each tab carries both.
+            if before.map(|prefs| (prefs.theme, prefs.motion))
+                != after.map(|prefs| (prefs.theme, prefs.motion))
+            {
                 self.publish_appearance();
             }
             if let (
@@ -5799,6 +5799,62 @@ mod app_preferences_sheet_tests {
         std::fs::remove_dir_all(directory).ok();
     }
 
+    /// The turning Cube follows each tab's motion preference, so every tab,
+    /// and every tab opened later, must hear when it changes: from the saved
+    /// Motion preference or from the system's setting, not only from a
+    /// theme change.
+    #[test]
+    fn the_motion_preference_reaches_every_tab_and_new_ones() {
+        let _guard = crate::app::session::test_guard();
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        let _enter = runtime.enter();
+        let path = std::env::temp_dir().join(format!(
+            "tenshu-preferences-motion-{}",
+            uuid::Uuid::new_v4()
+        ));
+        std::fs::create_dir_all(&path).unwrap();
+        let root = CoincubeDirectory::new(path.clone());
+        let mut gui = launcher_gui(&root);
+        let pane_id = gui.focus.unwrap();
+        let request = gui.preferences.begin_initialize().unwrap();
+        let receipt = GlobalSettings::load_or_initialize_preferences(&root).unwrap();
+        drop(gui.update(Message::Preferences(request, Ok(receipt))));
+        let tabs = |gui: &GUI| -> Vec<bool> {
+            gui.panes
+                .iter()
+                .flat_map(|(_, pane)| pane.tabs.iter().map(|tab| tab.reduce_motion))
+                .collect()
+        };
+        assert_eq!(tabs(&gui), [false]);
+
+        // Following the system (the default), its setting decides.
+        gui.observe_system_motion(Some(true));
+        assert_eq!(tabs(&gui), [true], "the system asked for reduced motion");
+        gui.observe_system_motion(Some(false));
+        assert_eq!(tabs(&gui), [false]);
+
+        // The saved preference, with no theme change.
+        let change = PreferenceChange::Motion(MotionPreference::Reduced);
+        let request = gui.preferences.begin_save(change).unwrap();
+        let receipt = GlobalSettings::save_preference(&request.root, change).unwrap();
+        drop(gui.update(Message::Preferences(request, Ok(receipt))));
+        assert_eq!(tabs(&gui), [true], "the Motion preference reached the tab");
+
+        // A tab added afterwards starts with it.
+        let (home, startup) = home::Home::new_for_chain(root.clone(), None);
+        drop(startup);
+        gui.panes
+            .get_mut(pane_id)
+            .unwrap()
+            .add_tabs(vec![tab::Tab::new(9, tab::State::Home(home))], 0);
+        assert_eq!(tabs(&gui), [true, true], "a new tab carries the preference");
+        drop(gui);
+        std::fs::remove_dir_all(path).ok();
+    }
+
     #[test]
     fn ordinary_refresh_and_display_edits_preserve_the_home_section() {
         // GUI updates reach teardown paths that close the process-global session.
@@ -7554,7 +7610,6 @@ mod shared_adoption_generation_tests {
                     1,
                     tab::Message::Load(loader::Message::WalletsLoaded {
                         cube_signer: None,
-                        spark_backend: None,
                         cache,
                         wallet,
                         config: app::Config::new(false),
@@ -8482,7 +8537,7 @@ mod single_open_lifecycle_tests {
                             cube_signer: Err(app::cube_signer::CubeSignerError::Signer(
                                 "fixture".into(),
                             )),
-                            spark_backend: None,
+                            spark: app::breez_spark::SparkStartup::none(),
                             config: app::Config::new(false),
                             datadir: root.clone(),
                             network: bitcoin::Network::Bitcoin,

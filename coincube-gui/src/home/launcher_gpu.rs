@@ -1633,6 +1633,7 @@ mod tests {
                     wallets: "Vault",
                     passkey: false,
                     mark: None,
+                    mark_style: Default::default(),
                 },
             );
             assert!(art(&svg, PANEL_ART_PX).is_some());
@@ -1662,6 +1663,7 @@ mod tests {
             wallets: "Spark",
             passkey: false,
             mark: None,
+            mark_style: Default::default(),
         };
         let cubes = |pose: Pose| {
             vec![
@@ -1759,6 +1761,7 @@ mod tests {
                 pose: Pose::DETAILS,
                 ghost_details: Some(GhostText {
                     mark: None,
+                    mark_style: Default::default(),
                     name: "Old laptop",
                     backup: "No Recovery Kit in Connect",
                     restorable: false,

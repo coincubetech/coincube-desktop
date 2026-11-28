@@ -309,12 +309,14 @@ impl ConnectPanel {
         self.cube.spark_stable_balance = decision;
     }
 
-    /// Seed the cube panel with the Cube's ring-mark variation
-    /// (`CubeSettings::mark_variation`) so a first registration carries a
-    /// number regenerated before the Cube ever registered (API CA1). The App
-    /// calls it again whenever the number changes.
-    pub fn set_cube_mark_variation(&mut self, variation: u32) {
+    /// Seed the cube panel with the Cube's ring-mark variation and style
+    /// (`CubeSettings::mark_variation`, `CubeSettings::mark_style`) so a
+    /// first registration carries a mark changed before the Cube ever
+    /// registered (API CA1, CA6). The App calls it again whenever either
+    /// changes.
+    pub fn set_cube_mark(&mut self, variation: u32, style: u8) {
         self.cube.mark_variation = variation;
+        self.cube.mark_style = style;
     }
 
     /// Seed whether the Cube already has a Connect row

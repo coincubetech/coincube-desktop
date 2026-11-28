@@ -502,33 +502,44 @@ pub async fn mark_cube_synced(
     .await
 }
 
+/// A Cube's mark as a Connect response carries it. Each part is `None` when
+/// the response did not carry it (an API that predates the field), which
+/// leaves the local copy alone; once the server has a value it is the
+/// record (plan invariant D-R2).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ServerMark {
+    /// `markVariation` (API CA1).
+    pub variation: Option<u32>,
+    /// `markStyle` (API CA6).
+    pub style: Option<u8>,
+}
+
 /// Record that Connect has a row for a Cube ([`CubeSettings::connect_registered`])
-/// and, when the listing carried one, its mark number. Used by the App when
+/// and, when the listing carried them, its mark number and style. Used by the App when
 /// its Connect panel registers the open Cube, and by the Launcher for every
 /// local Cube a current Connect listing shows. A Cube no longer in the file
 /// is left alone; the rest of the file is unchanged.
 pub async fn record_connect_row(
     network_dir: &NetworkDirectory,
     cube_id: &str,
-    mark_variation: Option<u32>,
+    mark: ServerMark,
 ) -> Result<(), SettingsError> {
     update_settings_file(network_dir, |settings| {
-        Some(with_connect_row(settings, cube_id, mark_variation))
+        Some(with_connect_row(settings, cube_id, mark))
     })
     .await
 }
 
 /// [`record_connect_row`]'s update, as a total function so a missed lookup
 /// can never turn into the `None` that deletes the file.
-fn with_connect_row(
-    mut settings: Settings,
-    cube_id: &str,
-    mark_variation: Option<u32>,
-) -> Settings {
+fn with_connect_row(mut settings: Settings, cube_id: &str, mark: ServerMark) -> Settings {
     if let Some(cube) = settings.cubes.iter_mut().find(|c| c.id == cube_id) {
         cube.connect_registered = true;
-        if let Some(variation) = mark_variation {
+        if let Some(variation) = mark.variation {
             cube.mark_variation = variation;
+        }
+        if let Some(style) = mark.style {
+            cube.mark_style = style;
         }
     }
     settings
@@ -538,26 +549,29 @@ fn with_connect_row(
 /// Regenerate stops here.
 pub const MARK_VARIATION_MAX: u32 = i32::MAX as u32;
 
-/// Record a Cube's ring-mark variation in its network's settings file.
-/// Adopting the server's number (`CubeSettings::mark_variation`) and a
-/// never-registered Cube's own Regenerate both write through here. A Cube
-/// no longer in the file is left alone; the rest of the file is unchanged.
-pub async fn set_cube_mark_variation(
+/// Record a Cube's ring-mark variation and style in its network's settings
+/// file. Adopting the server's mark (`CubeSettings::mark_variation`,
+/// `CubeSettings::mark_style`) and a never-registered Cube's own Regenerate,
+/// Back or Style all write through here. A Cube no longer in the file is
+/// left alone; the rest of the file is unchanged.
+pub async fn set_cube_mark(
     network_dir: &NetworkDirectory,
     cube_id: &str,
     variation: u32,
+    style: u8,
 ) -> Result<(), SettingsError> {
     update_settings_file(network_dir, |settings| {
-        Some(with_cube_mark_variation(settings, cube_id, variation))
+        Some(with_cube_mark(settings, cube_id, variation, style))
     })
     .await
 }
 
-/// [`set_cube_mark_variation`]'s update, as a total function so a missed
-/// lookup can never turn into the `None` that deletes the file.
-fn with_cube_mark_variation(mut settings: Settings, cube_id: &str, variation: u32) -> Settings {
+/// [`set_cube_mark`]'s update, as a total function so a missed lookup can
+/// never turn into the `None` that deletes the file.
+fn with_cube_mark(mut settings: Settings, cube_id: &str, variation: u32, style: u8) -> Settings {
     if let Some(cube) = settings.cubes.iter_mut().find(|c| c.id == cube_id) {
         cube.mark_variation = variation;
+        cube.mark_style = style;
     }
     settings
 }
@@ -767,6 +781,10 @@ fn is_zero(value: &u32) -> bool {
     *value == 0
 }
 
+fn is_zero_u8(value: &u8) -> bool {
+    *value == 0
+}
+
 fn is_false(value: &bool) -> bool {
     !*value
 }
@@ -809,6 +827,16 @@ pub struct CubeSettings {
     /// existed load as 0, and 0 writes nothing, so they round-trip unchanged.
     #[serde(default, skip_serializing_if = "is_zero")]
     pub mark_variation: u32,
+    /// Which style the Cube's mark is drawn in (master plan D8): 0 Rings,
+    /// 1 Crest, 2 Grid. The owner picks it in Cube Settings › Display. It
+    /// rides with the Cube like [`Self::mark_variation`], under the same
+    /// rule: once the Cube is registered, the server's style is the record;
+    /// a never-registered Cube keeps its own here and sends it at its first
+    /// registration. A number this build does not know is kept as it is and
+    /// drawn as Rings ([`Self::cube_mark_style`]). Files written before the
+    /// field existed load as 0, and 0 writes nothing.
+    #[serde(default, skip_serializing_if = "is_zero_u8")]
+    pub mark_style: u8,
     /// The chain this Cube lives on — its *identity*, which decides the
     /// directory it is stored under, the Connect network string, the node
     /// and provider it may talk to, and whether this build can run it at all
@@ -1169,6 +1197,7 @@ impl CubeSettings {
             name,
             spark_alias: None,
             mark_variation: 0,
+            mark_style: 0,
             network: network.into(),
             created_at: chrono::Utc::now().timestamp(),
             vault_wallet_id: None,
@@ -1221,6 +1250,12 @@ impl CubeSettings {
     /// draws the mark's centre dot alone.
     pub fn mark_seed(&self) -> Option<String> {
         coincube_ui::component::ring_mark::seed(&self.id, self.mark_variation)
+    }
+
+    /// The style this Cube's mark is drawn in: [`Self::mark_style`], or
+    /// Rings for a number this build does not know.
+    pub fn cube_mark_style(&self) -> coincube_ui::component::cube_mark::CubeMarkStyle {
+        coincube_ui::component::cube_mark::CubeMarkStyle::from_u8(self.mark_style)
     }
 
     pub fn with_vault(mut self, vault: VaultIdentity) -> Self {
@@ -5809,12 +5844,64 @@ mod test {
         );
     }
 
+    /// A `settings.json` written before the mark style loads as Rings and is
+    /// written back byte for byte; a chosen style survives the pretty JSON
+    /// the file is written with; a style this build does not know is kept as
+    /// it is and drawn as Rings.
+    #[test]
+    fn mark_style_is_optional_and_round_trips() {
+        use super::{CubeSettings, Settings};
+        use coincube_ui::component::cube_mark::CubeMarkStyle;
+
+        let old = r#"{
+  "cubes": [
+    {
+      "id": "9fb93534-081c-4253-b1e2-73a87984a8ab",
+      "name": "Savings",
+      "mark_variation": 3,
+      "network": "bitcoin",
+      "created_at": 0
+    }
+  ]
+}"#;
+        let settings: Settings = serde_json::from_str(old).unwrap();
+        assert_eq!(settings.cubes[0].mark_style, 0);
+        assert_eq!(settings.cubes[0].cube_mark_style(), CubeMarkStyle::Rings);
+        let written = serde_json::to_vec_pretty(&settings).unwrap();
+        assert!(
+            !String::from_utf8_lossy(&written).contains("mark_style"),
+            "Rings writes nothing"
+        );
+        let rewritten =
+            serde_json::to_vec_pretty(&serde_json::from_slice::<Settings>(&written).unwrap())
+                .unwrap();
+        assert_eq!(rewritten, written, "an old file round-trips byte for byte");
+
+        for (style, number) in [(CubeMarkStyle::Crest, 1), (CubeMarkStyle::Grid, 2)] {
+            let mut cube: CubeSettings = settings.cubes[0].clone();
+            cube.mark_style = number;
+            let json = serde_json::to_string(&cube).unwrap();
+            assert!(json.contains(&format!(r#""mark_style":{number}"#)));
+            let restored: CubeSettings = serde_json::from_str(&json).unwrap();
+            assert_eq!(restored.cube_mark_style(), style);
+            // The style never changes the seed: the number is shared.
+            assert_eq!(restored.mark_seed(), settings.cubes[0].mark_seed());
+        }
+
+        let mut future: CubeSettings = settings.cubes[0].clone();
+        future.mark_style = 9;
+        let restored: CubeSettings =
+            serde_json::from_str(&serde_json::to_string(&future).unwrap()).unwrap();
+        assert_eq!(restored.mark_style, 9, "an unknown style is kept");
+        assert_eq!(restored.cube_mark_style(), CubeMarkStyle::Rings);
+    }
+
     /// A Cube file without `connect_registered` loads as not registered and
     /// is written back byte for byte; the field, once set, survives the
     /// rename that resets `remote_synced`, and either one counts.
     #[test]
     fn connect_registered_is_optional_round_trips_and_outlives_remote_synced() {
-        use super::{with_connect_row, CubeSettings, Settings};
+        use super::{with_connect_row, CubeSettings, ServerMark, Settings};
 
         let old = r#"{
   "cubes": [
@@ -5843,30 +5930,48 @@ mod test {
 
         // The Launcher's listing or an in-App registration records the row,
         // and a later rename (which clears `remote_synced`) leaves it.
-        let mut recorded = with_connect_row(settings, "9fb93534-081c-4253-b1e2-73a87984a8ab", None);
+        let mut recorded = with_connect_row(
+            settings,
+            "9fb93534-081c-4253-b1e2-73a87984a8ab",
+            ServerMark::default(),
+        );
         let cube = &mut recorded.cubes[0];
         assert!(cube.connect_registered);
         assert_eq!(cube.mark_variation, 0, "no number listed, none written");
+        assert_eq!(cube.mark_style, 0, "no style listed, none written");
         cube.remote_synced = false;
         let json = serde_json::to_string(cube).unwrap();
         assert!(json.contains(r#""connect_registered":true"#));
         let restored: CubeSettings = serde_json::from_str(&json).unwrap();
         assert!(restored.is_connect_registered());
 
-        // A listed number is written with it; a missing Cube leaves the file.
-        let recorded = with_connect_row(recorded, "9fb93534-081c-4253-b1e2-73a87984a8ab", Some(4));
+        // A listed number and style are written with it; a part not listed
+        // keeps the local value; a missing Cube leaves the file.
+        let listed = |variation, style| ServerMark { variation, style };
+        let id = "9fb93534-081c-4253-b1e2-73a87984a8ab";
+        let recorded = with_connect_row(recorded, id, listed(Some(4), None));
         assert_eq!(recorded.cubes[0].mark_variation, 4);
-        let unchanged = with_connect_row(recorded.clone(), "missing", Some(9));
+        assert_eq!(recorded.cubes[0].mark_style, 0);
+        let recorded = with_connect_row(recorded, id, listed(None, Some(2)));
+        assert_eq!(
+            (
+                recorded.cubes[0].mark_variation,
+                recorded.cubes[0].mark_style
+            ),
+            (4, 2)
+        );
+        let unchanged = with_connect_row(recorded.clone(), "missing", listed(Some(9), Some(1)));
         assert_eq!(unchanged.cubes.len(), 1);
         assert_eq!(unchanged.cubes[0].mark_variation, 4);
+        assert_eq!(unchanged.cubes[0].mark_style, 2);
     }
 
     /// The settings update behind Regenerate and adoption touches only the
     /// named Cube, and a Cube missing from the file leaves the file as it was
     /// rather than deleting it.
     #[test]
-    fn setting_a_mark_variation_touches_only_that_cube() {
-        use super::{with_cube_mark_variation, CubeSettings, Settings};
+    fn setting_a_mark_touches_only_that_cube() {
+        use super::{with_cube_mark, CubeSettings, Settings};
         use crate::chain::ChainId;
 
         let settings = Settings {
@@ -5876,12 +5981,21 @@ mod test {
             ],
             ..Default::default()
         };
-        let updated = with_cube_mark_variation(settings.clone(), "b", 7);
-        assert_eq!(updated.cubes[0].mark_variation, 0);
-        assert_eq!(updated.cubes[1].mark_variation, 7);
-        let missing = with_cube_mark_variation(settings, "gone", 7);
+        let updated = with_cube_mark(settings.clone(), "b", 7, 1);
+        assert_eq!(
+            (updated.cubes[0].mark_variation, updated.cubes[0].mark_style),
+            (0, 0)
+        );
+        assert_eq!(
+            (updated.cubes[1].mark_variation, updated.cubes[1].mark_style),
+            (7, 1)
+        );
+        let missing = with_cube_mark(settings, "gone", 7, 2);
         assert_eq!(missing.cubes.len(), 2);
-        assert!(missing.cubes.iter().all(|cube| cube.mark_variation == 0));
+        assert!(missing
+            .cubes
+            .iter()
+            .all(|cube| cube.mark_variation == 0 && cube.mark_style == 0));
     }
 
     fn split_from_record(byte: u8) -> super::SplitFromRecord {

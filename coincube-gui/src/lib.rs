@@ -20,7 +20,6 @@ mod l10n_guard_tests;
 #[cfg(target_os = "linux")]
 pub mod linux_backend;
 pub mod loader;
-pub mod loading;
 pub mod logger;
 pub mod mobile_signing;
 pub mod network_visibility;
